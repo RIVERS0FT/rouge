@@ -7,6 +7,7 @@ import type {GameState,Kind,Leader,Command,Result,PlayerSetup} from '../game/typ
 import {localSession,remoteSession,createRoom,joinRoom,api,type Session,type Ticket,type RoomInfo} from '../platform/session.ts';
 import {WorldRenderer,FACTION_COLORS} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
+import {CountryIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,type Language} from './i18n.ts';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
 function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.crop.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
@@ -61,7 +62,7 @@ export function App(){
  async function importSave(file:File|undefined){if(!file)return;try{if(file.size>3_000_000)throw new Error('invalidSave');const decoded=decodeSave(await file.text());writeSave(localStorage,`import-${crypto.randomUUID()}`,decoded.state,decoded.name);refreshSaves();setToast(text('saveSuccess'));}catch(e){report(e);}finally{if(fileInput.current)fileInput.current.value='';}}
  useEffect(()=>{const key=(event:KeyboardEvent)=>{if((event.target as HTMLElement).closest('input,select,textarea')||screen!=='game')return;if(event.code==='Space'&&!modal){event.preventDefault();togglePause();}if(event.key==='Escape')setModal(null);};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen]);
  const leaderIndex=LEADERS.indexOf(leader),owned=game?.provinces.filter(p=>MAP[p.id].playable&&p.owner===actor).length??0,army=game?.units.filter(u=>u.owner===actor).length??0;
- return <div className={`app ${screen==='menu'?'is-menu':''}`}>
+ return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
   <div className="map-vignette"/>
   <div className="atlas-credit">NATURAL EARTH · MILLER / 74°N–58.64°S · {VISIBLE_COUNT.toLocaleString()} {text('adminAreas')}</div>
@@ -85,7 +86,7 @@ export function App(){
     <div className={`connection ${network}`}>● {text(network)}</div><div className="row"><button className="secondary" onClick={leave}>{text('leave')}</button>{ticket?.actor===0?<button className="primary" disabled={busy||(room?.seats.length??0)<2} onClick={beginMatch}>{text('startMatch')} →</button>:<span className="muted">{text('waitingHost')}</span>}</div><p className="small muted">{text('lanOnly')}</p>
   </section>}
   {screen==='game'&&game&&player&&province&&<>
-    <header className="hud-top"><button className="hud-brand" onClick={leave} title={text('menu')}>R<span>ROUGE</span></button><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
+    <header className="hud-top"><CountryIdentity actor={actor} language={language}/><button className="hud-brand" onClick={leave} title={text('menu')}>R<span>ROUGE</span></button><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
       <div className="resource"><span>{text('gold')}</span><strong>{Math.floor(player.gold).toLocaleString()}</strong></div><div className="resource"><span>{text('army')}</span><strong>{army}<small> / {PLAYER_CAP}</small></strong></div><div className="resource"><span>{text('territory')}</span><strong>{owned}<small> / {PLAYABLE_COUNT}</small></strong></div><div className="resource level-resource"><span>{text('level')}</span><strong>{player.level}<small> / 8</small></strong><div className="micro-progress"><i style={{width:`${Math.min(100,player.xp/(60+player.level*45)*100)}%`}}/></div></div>
       <div className="clock">{timeLabel(game.tick)}{session.current?.mode==='solo'?<div className="clock-controls"><button onClick={togglePause} title={text(paused?'resume':'pause')}>{paused?'▶':'Ⅱ'}</button><button onClick={()=>{const s=speed===1?2:1;session.current?.speed?.(s);setSpeed(s);}}>{speed}×</button></div>:<small className={`connection ${network}`}>● {text(network)}</small>}</div>
     </header>
@@ -99,6 +100,7 @@ export function App(){
       <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:FACTION_COLORS[e.player]}}>{game.players[e.player].name}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>
     </aside>
     <div className="view-controls"><span className="compass">N<br/>✦</span><button className={!near?'active':''} onClick={()=>world.current?.view('strategic')} title={text('worldView')}>2D</button><button className={near?'active':''} onClick={()=>world.current?.view('terrain')}>3D</button><button onClick={()=>world.current?.zoom(-16)} title={text('zoomIn')}>＋</button><button onClick={()=>world.current?.zoom(16)} title={text('zoomOut')}>−</button><small>{text(near?'terrain':'strategic')}</small></div>
+    <CommanderPortrait player={player} language={language} color={FACTION_COLORS[actor]} onTalents={()=>setModal('talents')}/>
     <footer className="hud-bottom"><div className="action-group"><button onClick={()=>setModal('upgrades')} data-testid="open-upgrades"><span>↟</span>{text('upgrades')}</button><button className={player.choices.length?'attention':''} onClick={()=>setModal('talents')}><span>✧</span>{text('talents')}{player.choices.length>0&&<b>!</b>}</button>{session.current?.mode==='solo'&&<button onClick={showSaves}><span>▤</span>{text('save')}</button>}</div><span className="controls-hint">{text('controls')}</span></footer>
     {paused&&<div className="pause-banner">Ⅱ {text('paused')}</div>}
     {game.winner!==null&&<div className="modal-backdrop"><section className="modal result-modal"><div className="victory-symbol">✦</div><div className="eyebrow gold">{text('winner')} / {game.players[game.winner].name}</div><h2>{text(game.winner===actor?'victory':'defeat')}</h2><p>{timeLabel(game.tick)} · {owned}/{PLAYABLE_COUNT} {text('territory')} · {player.talents.length} {text('talents')}</p><button className="primary" onClick={leave}>{text('returnMenu')} →</button></section></div>}

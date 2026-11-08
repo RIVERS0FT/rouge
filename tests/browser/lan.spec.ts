@@ -13,6 +13,7 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
       await page.getByRole('button',{name:'English',exact:true}).click();
       await page.getByRole('button',{name:/LAN multiplayer/}).click();
       await page.getByTestId('commander-name').fill(name);
+      if(name==='Guest')await page.locator('.leader-card').nth(1).click();
     }
     const [created]=await Promise.all([
       host.waitForResponse(r=>r.url().endsWith('/api/rooms')&&r.request().method()==='POST'),
@@ -28,6 +29,10 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
     await expect(host.locator('.hud-top')).toContainText('Host');
     await expect(guest.locator('.hud-top')).toContainText('Guest');
     await expect(guest.locator('.province-owner')).toContainText('Guest');
+    await expect(host.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
+    await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
+    await expect(guest.getByTestId('country-identity')).toHaveAttribute('data-actor','1');
+    await expect(guest.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
     await guest.getByTestId('open-upgrades').click();
     await guest.getByTestId('upgrade-infantry-attack').click();
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
@@ -36,6 +41,7 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
     await guest.reload();
     await guest.getByRole('button',{name:/Rejoin LAN room/}).click();
     await expect(guest.locator('.hud-top')).toContainText('Guest');
+    await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
     await guest.getByTestId('open-upgrades').click();
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
     expect(errors).toEqual([]);
