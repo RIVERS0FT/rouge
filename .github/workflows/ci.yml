@@ -5,6 +5,9 @@ on:
   pull_request:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 jobs:
   validate:
     runs-on: ubuntu-24.04
@@ -18,21 +21,21 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
       - name: Core, geography and LAN tests
-        run: npm test
+        run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
       - name: Type check and production build
-        run: npm run build
+        run: npm run build | tee artifacts/build.log
       - name: Install test browser
         run: npx playwright install --with-deps chromium
       - name: Browser acceptance
-        run: npm run test:e2e
+        run: npm run test:e2e | tee artifacts/browser-tests.log
       - name: Archive tested source
         if: always()
-        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-commander-hud-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-commander-hud-source.tar.gz artifacts/
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-fullscreen-hud-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-fullscreen-hud-source.tar.gz artifacts/
       - name: Upload build and browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rouge-commander-hud
+          name: rouge-fullscreen-hud
           path: |
             dist/
             artifacts/
@@ -42,3 +45,4 @@ jobs:
             docs/WORLD_MAP.md
             docs/MAP_CROP.md
             docs/HUD_IDENTITY.md
+            docs/FULLSCREEN_HUD.md

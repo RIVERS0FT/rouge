@@ -87,12 +87,14 @@ export function worldCoverDistance(aspect:number, verticalFovDegrees=40):number 
   return Math.min(height,WORLD_WIDTH/aspect)*0.998/(2*Math.tan(verticalFovDegrees*RAD/2));
 }
 
-/** Ground-plane footprint of a north-facing perspective camera. */
-export function cameraGroundSpan(distance:number, tilt:number, verticalFovDegrees=40):{north:number;south:number} {
+/** Footprint on the lowest rendered surface (the sea is at Y=-0.25).
+ * Using Y=0 would reveal a thin empty band at close zoom on the polar edge. */
+export function cameraGroundSpan(distance:number, tilt:number, verticalFovDegrees=40, surfaceY=-0.25):{north:number;south:number} {
   const half=verticalFovDegrees*RAD/2;
   if(!Number.isFinite(distance)||distance<=0||!Number.isFinite(tilt)||tilt<0
     || !Number.isFinite(half)||half<=0||tilt+half>=Math.PI/2)throw new Error('invalidViewport');
-  const height=distance*Math.cos(tilt),offset=distance*Math.sin(tilt);
+  if(!Number.isFinite(surfaceY)||surfaceY>=distance*Math.cos(tilt))throw new Error('invalidViewport');
+  const height=distance*Math.cos(tilt)-surfaceY,offset=distance*Math.sin(tilt);
   return {north:height*Math.tan(tilt+half)-offset,south:offset-height*Math.tan(tilt-half)};
 }
 

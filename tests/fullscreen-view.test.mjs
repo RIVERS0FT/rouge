@@ -31,3 +31,22 @@ test('camera footprint preserves both crop limits during near/far north-south pa
  const near=cameraGroundSpan(100,.6);
  assert.ok(near.north>near.south);
 });
+
+
+test('rendered sea-plane ray intersections remain inside the crop at extreme close zoom',async()=>{
+ const {PerspectiveCamera,Raycaster,Vector2,Vector3,Plane}=await import('three');
+ for(const aspect of [4/3,16/9,32/9])for(const [distance,tilt]of [[worldCoverDistance(aspect),0],[16,.6],[5,.6]]){
+  for(const target of [WORLD_BOUNDS.top-500,WORLD_BOUNDS.bottom+500]){
+   const focusZ=clampViewZ(target,distance,tilt),camera=new PerspectiveCamera(40,aspect,.01,10000);
+   camera.up.set(0,0,-1);camera.position.set(0,distance*Math.cos(tilt),focusZ+distance*Math.sin(tilt));
+   camera.lookAt(0,0,focusZ);camera.updateMatrixWorld();
+   for(const y of [-1,1]){
+    const ray=new Raycaster();ray.setFromCamera(new Vector2(0,y),camera);
+    const hit=ray.ray.intersectPlane(new Plane(new Vector3(0,1,0),.25),new Vector3());
+    assert.ok(hit);assert.ok(hit.z>=WORLD_BOUNDS.top-1e-7);assert.ok(hit.z<=WORLD_BOUNDS.bottom+1e-7);
+   }
+  }
+ }
+ assert.throws(()=>cameraGroundSpan(5,0,40,6));
+ assert.throws(()=>cameraGroundSpan(5,0,40,NaN));
+});
