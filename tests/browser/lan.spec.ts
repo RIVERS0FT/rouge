@@ -31,8 +31,8 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
     await expect(guest.locator('.province-owner')).toContainText('Guest');
     await expect(host.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
-    await expect(guest.getByTestId('country-identity')).toHaveAttribute('data-actor','1');
-    await expect(guest.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
+    await expect(guest.getByTestId('faction-identity')).toHaveAttribute('data-actor','1');
+    await expect(guest.getByTestId('country-flag')).toHaveCount(0);
     await guest.getByTestId('open-settings').click();
     await expect(guest.getByTestId('settings-save')).toBeDisabled();
     const tick=Number(await guest.getByTestId('game-clock').getAttribute('data-tick'));

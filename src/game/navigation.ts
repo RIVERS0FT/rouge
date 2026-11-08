@@ -30,10 +30,45 @@ export function cellAt(x:number,z:number,flow:LocalFlow):number {
 export function cellCenter(i:number,flow:LocalFlow) {
   return {x:flow.left+(i%flow.width+0.5)*flow.cellSize,z:flow.top+(Math.floor(i/flow.width)+0.5)*flow.cellSize};
 }
+/** The high-level route is a sequence of LAND-adjacent management regions.
+ * No country permissions, sea shortcuts or teleportation are inferred from distance.
+ * Optional blocked edges let the authoritative navigator reject sub-grid necks and
+ * try a different corridor. Equal-cost routes are deterministic by region ID. */
+export function findRegionRoute(from:number,target:number,blocked:ReadonlySet<string>=new Set()):number[]|null {
+  if(!Number.isInteger(from)||!Number.isInteger(target)||!MAP[from]?.playable||!MAP[target]?.playable)return null;
+  if(from===target)return [from];
+  const distance=new Float64Array(MAP.length).fill(Infinity),parent=new Int32Array(MAP.length).fill(-1),heap=new Heap();
+  distance[from]=0;heap.push(from,0);
+  while(heap.data.length){
+    const [id,cost]=heap.pop()!;if(cost>distance[id]+1e-9)continue;if(id===target)break;
+    for(const next of MAP[id].neighbors){
+      if(!MAP[next].playable||blocked.has(`${id}:${next}`))continue;
+      const a=MAP[id].center,b=MAP[next].center,d=cost+Math.max(0.01,Math.hypot(b.x-a.x,b.z-a.z));
+      if(d<distance[next]-1e-9){distance[next]=d;parent[next]=id;heap.push(next,d);}
+    }
+  }
+  if(!Number.isFinite(distance[target]))return null;
+  const path=[target];while(path[0]!==from){const id=parent[path[0]];if(id<0)return null;path.unshift(id);}return path;
+}
+
 export class Navigator {
   cache=new Map<string,LocalFlow>();builds=0;
+  private invalidEdges=new Set<string>();
+  /** Validate every local leg before accepting a remote order. Lazy checks avoid
+   * rasterizing the entire world; impassable candidates are removed and replanned. */
+  route(state:GameState,owner:number,from:number,target:number):number[]|null {
+    for(;;){
+      const path=findRegionRoute(from,target,this.invalidEdges);if(!path)return null;
+      let valid=true;
+      for(let i=1;i<path.length;i++){
+        const flow=this.get(state,owner,path[i],path[i-1]),center=MAP[path[i-1]].center,cell=cellAt(center.x,center.z,flow);
+        if(cell<0||!Number.isFinite(flow.distance[cell])){this.invalidEdges.add(`${path[i-1]}:${path[i]}`);valid=false;break;}
+      }
+      if(valid)return path;
+    }
+  }
   get(state:GameState,owner:number,target:number,from:number):LocalFlow {
-    const key=`${owner}:${from}:${target}:${state.topology}`,cached=this.cache.get(key);if(cached)return cached;
+    const key=`${from}:${target}`,cached=this.cache.get(key);if(cached)return cached;
     // A local land corridor, not a global coarse raster. Disjoint islands are not bridges.
     const a=MAP[from],b=MAP[target];if(!a?.playable||!b?.playable)throw new Error('unreachable');
     const bounds={left:Math.min(a.bounds.left,b.bounds.left),right:Math.max(a.bounds.right,b.bounds.right),top:Math.min(a.bounds.top,b.bounds.top),bottom:Math.max(a.bounds.bottom,b.bounds.bottom)};
@@ -50,7 +85,7 @@ export class Navigator {
       if(inTarget&&distance<nearest){nearest=distance;goal=i;}
     }
     const result={...buildFlow({width,height,costs},goal),...meta};
-    if(this.cache.size>=32)this.cache.delete(this.cache.keys().next().value!);
+    if(this.cache.size>=128)this.cache.delete(this.cache.keys().next().value!);
     this.cache.set(key,result);this.builds++;return result;
   }
   canMove(flow:LocalFlow,x:number,z:number,toX:number,toZ:number):boolean {

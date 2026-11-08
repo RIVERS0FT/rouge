@@ -1,11 +1,11 @@
 /* These two fixed identity areas belong to the local actor, never to map selection. */
 .app.is-game{--leader-width:282px;--leader-height:276px;--leader-left:24px;--leader-bottom:84px;--province-top:104px}
-.country-identity{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0}
-.country-flag-frame{width:80px;height:50px;padding:3px;display:flex;align-items:center;justify-content:center;background:#12252b;box-shadow:0 0 0 1px #b4a07160,0 3px 10px #0004;border-radius:2px}
-.country-flag{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 2px #0005)}
-.country-copy{display:flex;flex-direction:column;gap:4px;max-width:90px}
-.country-copy small{font-size:9px;color:#93a7a1;letter-spacing:.12em;white-space:nowrap}
-.country-copy b{font-family:var(--serif);font-size:18px;font-weight:500;white-space:nowrap}
+.faction-identity{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0}
+.faction-emblem-frame{width:80px;height:50px;padding:3px;display:flex;align-items:center;justify-content:center;background:#12252b;box-shadow:0 0 0 1px #b4a07160,0 3px 10px #0004;border-radius:2px}
+.faction-emblem{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 2px #0005)}
+.faction-copy{display:flex;flex-direction:column;gap:4px;max-width:90px}
+.faction-copy small{font-size:9px;color:#93a7a1;letter-spacing:.12em;white-space:nowrap}
+.faction-copy b{font-family:var(--serif);font-size:18px;font-weight:500;white-space:nowrap}
 .is-game .hud-top{gap:22px}
 .is-game .hud-brand{font-size:21px;padding:6px;border-left:1px solid var(--line)}
 .is-game .hud-brand span{display:none}
@@ -35,7 +35,14 @@
 .commander-experience i{display:block;height:100%;background:var(--commander-color)}
 .commander-portrait.has-talent{border-color:#d7bd7d}
 .is-game .atlas-credit{left:calc(var(--leader-left) + var(--leader-width) + 16px);max-width:calc(100% - var(--leader-width) - 240px);bottom:84px;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:1150px){.app.is-game{--leader-width:255px;--leader-left:18px}.is-game .hud-top{gap:14px}.country-copy{display:none}.is-game .commander-badge{padding-right:10px;max-width:135px}}
+@media(max-width:1150px){.app.is-game{--leader-width:255px;--leader-left:18px}.is-game .hud-top{gap:14px}.faction-copy{display:none}.is-game .commander-badge{padding-right:10px;max-width:135px}}
 @media(max-height:820px){.app.is-game{--leader-height:224px;--province-top:92px}.commander-portrait-copy h2{font-size:19px}.commander-portrait-copy{left:15px;bottom:16px}.commander-talents{right:12px;bottom:20px}.commander-rank{top:10px;left:14px}.is-game .province-panel{padding:15px 18px}}
-@media(max-width:800px){.app.is-game{--leader-width:220px;--leader-left:10px;--leader-bottom:73px;--province-top:82px;--leader-height:200px}.country-flag-frame{width:58px;height:38px}.is-game .hud-top{gap:12px}.is-game .hud-brand{display:block;font-size:17px}.is-game .commander-badge{min-width:65px;max-width:95px}.commander-portrait-copy h2{font-size:17px}.commander-portrait-copy{left:13px;bottom:14px}.commander-talents{right:11px;bottom:18px;padding:5px 7px}.is-game .atlas-credit{display:none}}
+@media(max-width:800px){.app.is-game{--leader-width:220px;--leader-left:10px;--leader-bottom:73px;--province-top:82px;--leader-height:200px}.faction-emblem-frame{width:58px;height:38px}.is-game .hud-top{gap:12px}.is-game .hud-brand{display:block;font-size:17px}.is-game .commander-badge{min-width:65px;max-width:95px}.commander-portrait-copy h2{font-size:17px}.commander-portrait-copy{left:13px;bottom:14px}.commander-talents{right:11px;bottom:18px;padding:5px 7px}.is-game .atlas-credit{display:none}}
 @media(max-height:620px){.app.is-game{--leader-height:166px}.commander-portrait-copy .eyebrow{display:none}.commander-portrait-copy h2{font-size:16px}.commander-portrait-copy{bottom:12px}.commander-talents{bottom:15px}.commander-rank b{font-size:20px}}
+
+.faction-emblem-frame{position:relative;display:grid;place-items:center;border-color:var(--faction-color)}
+.faction-emblem{font-size:44px;line-height:1;color:var(--faction-color)}
+.faction-emblem-frame>b{position:absolute;color:var(--faction-color);font-size:14px}
+.route-preview{padding:8px 0;border-top:1px solid #9a8b6133;line-height:1.5;overflow-wrap:anywhere}
+.route-preview strong{color:var(--gold);display:block}.route-preview small{display:block}
+.destination-search{width:100%;margin:4px 0 7px}

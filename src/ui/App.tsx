@@ -1,20 +1,23 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createGame} from '../game/engine.ts';
 import {MAP,PLAYABLE_COUNT,VISIBLE_COUNT,searchProvinces} from '../game/map.ts';
-import {KINDS,LEADERS,STATS,UNITS,upgradeCost,PLAYER_CAP} from '../game/content.ts';
-import {listSaves,readSave,writeSave,deleteSave,encodeSave,decodeSave,type SaveInfo} from '../game/save.ts';
+import {KINDS,LEADERS,STATS,UNITS,upgradeCost,PROVINCE_CAP} from '../game/content.ts';
+import {listSaves,readSave,writeSave,deleteSave,encodeSave,decodeSave,MAX_SAVE_BYTES,type SaveInfo} from '../game/save.ts';
 import type {GameState,Kind,Leader,Command,Result,PlayerSetup} from '../game/types.ts';
 import {localSession,remoteSession,createRoom,joinRoom,api,type Session,type Ticket,type RoomInfo} from '../platform/session.ts';
 import {WorldRenderer,FACTION_COLORS} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
-import {CountryIdentity, CommanderPortrait} from './CommanderHud.tsx';
+import {findRegionRoute} from '../game/navigation.ts';
+import {regionTroops,destinationRoom,regionReservations} from '../game/capacity.ts';
+import {FactionIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,type Language} from './i18n.ts';
 import {ModalDialog} from './ModalDialog.tsx';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
-function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.crop.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
+function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.state-regions.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
 const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',warden:'▱',vanguard:'↗',steward:'◇'};
 export function App(){
  const[mapQuery,setMapQuery]=useState('');
+ const[destinationQuery,setDestinationQuery]=useState('');
  const[language,setLanguage]=useState<Language>(storedLanguage),[screen,setScreen]=useState<'menu'|'game'|'lobby'>('menu');
  const[modal,setModal]=useState<'setupSolo'|'setupLan'|'saves'|'upgrades'|'talents'|'settings'|null>(null);
  const[settingsPage,setSettingsPage]=useState<'general'|'saves'>('general');
@@ -26,6 +29,8 @@ export function App(){
  latest.current=game;
  const preview=useMemo(()=>createGame([{name:'North',leader:'warden',loadout:['infantry']},{name:'East',leader:'vanguard',loadout:['infantry']},{name:'South',leader:'steward',loadout:['infantry']},{name:'West',leader:'warden',loadout:['infantry']}]),[]);
  const text=(key:string)=>t(language,key),state=game??preview,player=game?.players[actor],province=game?.provinces[selected];
+ const route=useMemo(()=>findRegionRoute(selected,target),[selected,target]);
+ const destinations=useMemo(()=>MAP.filter(p=>p.playable&&p.id!==selected&&(p.id===target||[...p.name,p.code].some(v=>v.toLocaleLowerCase().includes(destinationQuery.trim().toLocaleLowerCase())))),[selected,target,destinationQuery]);
  const notifyResult=(result:Result)=>{if(!result.ok)setToast(text(`error.${result.error}`));};
  const report=(e:unknown)=>setToast(text(`error.${e instanceof Error?e.message:'generic'}`));
  useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':'en';try{localStorage.setItem('rouge.language',language);}catch{/* Language still works without storage. */}},[language]);
@@ -51,7 +56,7 @@ export function App(){
   try{const seed=crypto.getRandomValues(new Uint32Array(1))[0];launchLocal(createGame([setup(),{name:text('eastAI'),leader:'vanguard',loadout:['infantry','cavalry','engineer'],ai:true},{name:text('southAI'),leader:'steward',loadout:['infantry','artillery','engineer'],ai:true}],seed,crypto.randomUUID()));}catch(e){report(e);}
  }
  function connect(ticket:Ticket){
-  session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket.miller.crop.v1',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}
+  session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket.state-regions.v1',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}
   setGame(null);setActor(ticket.actor);setRoom(null);setScreen('lobby');setModal(null);setNetwork('reconnecting');
   let initialized=false;
   session.current=remoteSession(ticket,value=>{setGame(value);setScreen('game');if(!initialized){setSelected(value.provinces.find(p=>p.owner===ticket.actor)?.id??0);initialized=true;}},setRoom,setNetwork,notifyResult);
@@ -59,14 +64,14 @@ export function App(){
  async function roomAction(join:boolean){setBusy(true);try{connect(await(join?joinRoom(code,setup()):createRoom(setup())));}catch(e){report(e);}finally{setBusy(false);}}
  async function beginMatch(){if(!ticket)return;setBusy(true);try{await api(`/rooms/${ticket.code}/start`,{},ticket.token);}catch(e){report(e);}finally{setBusy(false);}}
  function issue(command:Command){session.current?.command(command);}
- function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
+ function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){setTarget(id);issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
  function togglePause(){if(session.current?.mode!=='solo')return;setPaused(!paused);}
  function leave(){if(screen==='game'&&!window.confirm(text('exitConfirm')))return;if(session.current?.mode==='solo'&&latest.current){if(!saveCurrent(`auto-${latest.current.campaign}`,text('autosave'),true)&&!window.confirm(text('saveFailed')))return;}
-  session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket.miller.crop.v1');}catch{}setTicket(null);
+  session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket.state-regions.v1');}catch{}setTicket(null);
  }
  function load(id:string){try{const{state,recovered}=readSave(localStorage,id);launchLocal(state);if(recovered)setToast(text('recovered'));}catch(e){report(e);}}
  function exportCurrent(){if(!game)return;const blob=new Blob([encodeSave(game,saveName||text('theatre'))],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`rouge-${game.campaign}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),0);}
- async function importSave(file:File|undefined){if(!file)return;try{if(file.size>3_000_000)throw new Error('invalidSave');const decoded=decodeSave(await file.text());writeSave(localStorage,`import-${crypto.randomUUID()}`,decoded.state,decoded.name);refreshSaves();setToast(text('saveSuccess'));}catch(e){report(e);}finally{if(fileInput.current)fileInput.current.value='';}}
+ async function importSave(file:File|undefined){if(!file)return;try{if(file.size>MAX_SAVE_BYTES)throw new Error('invalidSave');const decoded=decodeSave(await file.text());writeSave(localStorage,`import-${crypto.randomUUID()}`,decoded.state,decoded.name);refreshSaves();setToast(text('saveSuccess'));}catch(e){report(e);}finally{if(fileInput.current)fileInput.current.value='';}}
  useEffect(()=>{const key=(event:KeyboardEvent)=>{
   if(event.key==='Escape'){
    event.preventDefault();
@@ -82,9 +87,9 @@ export function App(){
  return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
   <div className="map-vignette"/>
-  <div className="atlas-credit">NATURAL EARTH · MILLER / 74°N–58.64°S · {VISIBLE_COUNT.toLocaleString()} {text('adminAreas')}</div>
+  <div className="atlas-credit">STATE REGIONS · MILLER / 74°N–58.64°S · {VISIBLE_COUNT.toLocaleString()} {text('adminAreas')}</div>
   {screen==='game'&&<div className="map-search"><input data-testid="map-search" aria-label={text('mapSearch')} placeholder={text('mapSearch')} value={mapQuery} onChange={e=>setMapQuery(e.target.value)}/>
-    {mapQuery.trim().length>0&&<div className="map-search-results">{searchProvinces(mapQuery).map(p=><button key={p.id} onClick={()=>{setSelected(p.id);world.current?.focusProvince(p.id);setMapQuery('');}}><b>{p.name[language==='zh'?0:1]}</b><small>{p.countryName} · {p.code}</small></button>)}</div>}
+    {mapQuery.trim().length>0&&<div className="map-search-results">{searchProvinces(mapQuery).map(p=><button key={p.id} onClick={()=>{setSelected(p.id);world.current?.focusProvince(p.id);setMapQuery('');}}><b>{p.name[language==='zh'?0:1]}</b><small>{p.code.replace('STATE_','')}</small></button>)}</div>}
   </div>}
 
   {screen!=='game'&&<div className="language-switch"><button className={language==='zh'?'active':''} onClick={()=>setLanguage('zh')} aria-label="简体中文">中</button><span>/</span><button className={language==='en'?'active':''} onClick={()=>setLanguage('en')} aria-label="English">EN</button></div>}
@@ -103,17 +108,17 @@ export function App(){
     <div className={`connection ${network}`}>● {text(network)}</div><div className="row"><button className="secondary" onClick={leave}>{text('leave')}</button>{ticket?.actor===0?<button className="primary" disabled={busy||(room?.seats.length??0)<2} onClick={beginMatch}>{text('startMatch')} →</button>:<span className="muted">{text('waitingHost')}</span>}</div><p className="small muted">{text('lanOnly')}</p>
   </section>}
   {screen==='game'&&game&&player&&province&&<>
-    <header className="hud-top"><CountryIdentity actor={actor} language={language}/><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
-      <div className="resource"><span>{text('gold')}</span><strong>{Math.floor(player.gold).toLocaleString()}</strong></div><div className="resource"><span>{text('army')}</span><strong>{army}<small> / {PLAYER_CAP}</small></strong></div><div className="resource"><span>{text('territory')}</span><strong>{owned}<small> / {PLAYABLE_COUNT}</small></strong></div><div className="resource level-resource"><span>{text('level')}</span><strong>{player.level}<small> / 8</small></strong><div className="micro-progress"><i style={{width:`${Math.min(100,player.xp/(60+player.level*45)*100)}%`}}/></div></div>
+    <header className="hud-top"><FactionIdentity actor={actor} language={language} color={FACTION_COLORS[actor]}/><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
+      <div className="resource"><span>{text('gold')}</span><strong>{Math.floor(player.gold).toLocaleString()}</strong></div><div className="resource"><span>{text('army')}</span><strong data-testid="army-total" title={text('noArmyCap')}>{army.toLocaleString()}</strong></div><div className="resource"><span>{text('territory')}</span><strong>{owned}<small> / {PLAYABLE_COUNT}</small></strong></div><div className="resource level-resource"><span>{text('level')}</span><strong>{player.level}<small> / 8</small></strong><div className="micro-progress"><i style={{width:`${Math.min(100,player.xp/(60+player.level*45)*100)}%`}}/></div></div>
       <div className="clock"><time data-testid="game-clock" data-tick={game.tick}>{timeLabel(game.tick)}</time>{session.current?.mode==='solo'?<div className="clock-controls"><button onClick={togglePause} data-testid="toggle-pause" title={text(paused?'resume':'pause')}>{paused?'▶':'Ⅱ'}</button><button onClick={()=>{const s=speed===1?2:1;session.current?.speed?.(s);setSpeed(s);}}>{speed}×</button></div>:<small className={`connection ${network}`}>● {text(network)}</small>}</div>
     </header>
     <button className="settings-trigger" data-testid="open-settings" onClick={openSettings} aria-label={text('settings')} aria-haspopup="dialog"><span aria-hidden="true">⚙</span><span>{text('settings')}</span></button>
     <nav className="army-actions" aria-label={text('armyActions')}><button className="upgrade-trigger" onClick={()=>setModal('upgrades')} data-testid="open-upgrades" aria-haspopup="dialog"><span className="upgrade-icon" aria-hidden="true">↟</span><span>{text('upgrades')}</span><span aria-hidden="true">›</span></button></nav>
-    <aside className="province-panel panel"><div className="panel-kicker"><span>{text('province')} / {MAP[selected].code}</span><button className="icon-button" onClick={()=>world.current?.focusProvince(selected)} title={text('focus')}>⌖</button></div><h2>{MAP[selected].name[language==='zh'?0:1]}</h2><div className="province-meta"><span>{MAP[selected].countryName}</span><span className="status-dot"/>{text(province.capture>0?'contested':province.recovery>0?'recovering':'stable')}</div>
-      <div className="province-owner"><span className="faction-dot" style={{background:province.owner<0?'#929481':FACTION_COLORS[province.owner]}}/>{province.owner<0?text('neutral'):game.players[province.owner].name}<b>{game.units.filter(u=>u.province===selected&&u.target===null&&u.owner===province.owner).length}<small>{text('garrison')}</small></b></div>
+    <aside className="province-panel panel"><div className="panel-kicker"><span>{text('province')} / {MAP[selected].code}</span><button className="icon-button" onClick={()=>world.current?.focusProvince(selected)} title={text('focus')}>⌖</button></div><h2>{MAP[selected].name[language==='zh'?0:1]}</h2><div className="province-meta"><span>{text('managementRegion')}</span><span className="status-dot"/>{text(province.capture>0?'contested':province.recovery>0?'recovering':'stable')}</div>
+      <div className="province-owner"><span className="faction-dot" style={{background:province.owner<0?'#929481':FACTION_COLORS[province.owner]}}/>{province.owner<0?text('neutral'):game.players[province.owner].name}<b data-testid="region-capacity">{regionTroops(game,province.owner,selected)} / {PROVINCE_CAP}<small>{text('garrison')}</small></b></div>
       {province.capture>0&&<div className="capture"><span>{text('capture')}</span><div className="progress"><i style={{width:`${province.capture/8*100}%`}}/></div></div>}
       {province.owner===actor?<><label className="field-label">{text('production')}</label><select value={province.kind} onChange={e=>issue({type:'production',province:selected,kind:e.target.value as Kind})}>{player.loadout.map(k=><option key={k} value={k}>{text(k)}</option>)}</select><div className="production-line"><div className="progress"><i style={{width:`${province.production/UNITS[province.kind].train*100}%`}}/></div><span>{Math.floor(province.production)} / {UNITS[province.kind].train}s</span></div>
-      <div className="section-divider"/><h3>{text('send')}</h3><label className="field-label" htmlFor="destination">{text('target')}</label><select id="destination" data-testid="destination" value={target} onChange={e=>setTarget(Number(e.target.value))}>{MAP[selected].neighbors.map(id=><option key={id} value={id}>{MAP[id].name[language==='zh'?0:1]} · {game.provinces[id].owner===actor?'○':'◇'}</option>)}</select><div className="fraction-picker">{[0.25,0.5,0.75,1].map(f=><button key={f} className={fraction===f?'active':''} onClick={()=>setFraction(f)}>{f*100}%</button>)}</div><button className="primary full" data-testid="dispatch" disabled={target<0} onClick={()=>issue({type:'march',from:selected,to:target,fraction})}>{text('dispatch')}<span>↗</span></button><p className="small muted">{text('sendHint')}</p></>:<p className="muted">{text('selectFriendly')}</p>}
+      <div className="section-divider"/><h3>{text('send')}</h3><label className="field-label" htmlFor="destination">{text('target')}</label><input className="destination-search" data-testid="destination-search" aria-label={text('filterDestination')} placeholder={text('filterDestination')} value={destinationQuery} onChange={e=>setDestinationQuery(e.target.value)}/><select id="destination" data-testid="destination" value={target} onChange={e=>setTarget(Number(e.target.value))}>{target<0&&<option value={-1}>—</option>}{destinations.map(p=><option key={p.id} value={p.id}>{p.name[language==='zh'?0:1]} · {game.provinces[p.id].owner===actor?'○':'◇'}</option>)}</select><div className="route-preview" data-testid="route-preview" data-route={route?.map(id=>MAP[id].code).join(',')??''}><strong>{route?text('routeLegs').replace('{count}',String(route.length-1)):text('noLandRoute')}</strong>{route&&<small>{route.slice(0,6).map(id=>MAP[id].name[language==='zh'?0:1]).join(' → ')}{route.length>6?' → …':''}</small>}</div><small className="capacity-note" data-testid="destination-capacity">{text('destinationCapacity')} {target>=0?destinationRoom(game,actor,target):0} / {PROVINCE_CAP} · {text('reserved')} {target>=0?regionReservations(game,actor,target):0}</small><div className="fraction-picker">{[0.25,0.5,0.75,1].map(f=><button key={f} className={fraction===f?'active':''} onClick={()=>setFraction(f)}>{f*100}%</button>)}</div><button className="primary full" data-testid="dispatch" disabled={target<0||target===selected||!route||destinationRoom(game,actor,target)<1} onClick={()=>issue({type:'march',from:selected,to:target,fraction})}>{text('dispatch')}<span>↗</span></button><p className="small muted">{text('sendHint')}</p></>:<p className="muted">{text('selectFriendly')}</p>}
     </aside>
     <aside className="strategic-panel"><section className="panel objective"><span className="eyebrow gold">{text('objective')}</span><h3>{text('theatre')}</h3><p>{text('objectiveDesc').replace('{count}',String(Math.ceil(PLAYABLE_COUNT*0.6)))}</p><div className="faction-bars">{game.players.map(p=><div key={p.id} title={p.name}><span style={{background:FACTION_COLORS[p.id],width:`${game.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length/PLAYABLE_COUNT*100}%`}}/></div>)}</div>{game.domination[actor]>0&&<b className="gold">{text('domination')} {Math.floor(game.domination[actor])} / 30{text('seconds')}</b>}</section>
       <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:FACTION_COLORS[e.player]}}>{game.players[e.player].name}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>

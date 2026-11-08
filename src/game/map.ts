@@ -37,9 +37,9 @@ export const MAP: ProvinceDef[] = data.provinces.map((p, id) => {
   const navigationPart=primary?.partIndex??0,main=parts[navigationPart];
   let center=originalCenter;
   if(primary&&(!inRect(center,primary.bounds)||!containsPart(main,center.x,center.z)))center=visiblePart(main,primary.bounds)!.anchor;
-  return { id, code:p.code, name:[p.name[0]||p.name[1]||p.countryName||p.code,p.name[1]||p.name[0]||p.countryName||p.code] as [string,string],
-    country:p.country, countryName:p.countryName||p.country, center, polygon:main[0], parts,
-    neighbors:[], terrain:'plain', visible:!!primary, playable:!!primary&&p.country!=='ATA', navigationPart,
+  return { id, code:p.code, name:[p.name[0]||p.name[1]||p.code,p.name[1]||p.name[0]||p.code] as [string,string],
+    sourceId:p.sourceId, center, polygon:main[0], parts,
+    neighbors:[], terrain:'plain', visible:!!primary, playable:!!primary, navigationPart,
     cropped:candidates.some(c=>c.cropped)||candidates.length!==parts.length, bounds:primary?.bounds??boundsOf(main[0]) };
 });
 // Rebuild permission edges only from positive-length ORIGINAL shared borders inside
@@ -80,7 +80,7 @@ export function pointInProvince(id:number,x:number,z:number):boolean {
   return inRect({x,z},BOUNDS)&&(MAP[id]?.visible??false)&&(MAP[id]?.parts.some(part=>containsPart(part,x,z))??false);
 }
 export function navigableInProvince(id:number,x:number,z:number):boolean {
-  const p=MAP[id];return !!p?.playable&&inRect({x,z},BOUNDS)&&containsPart(p.parts[p.navigationPart],x,z);
+  const p=MAP[id];return !!p?.playable&&inRect({x,z},p.bounds)&&inRect({x,z},BOUNDS)&&containsPart(p.parts[p.navigationPart],x,z);
 }
 export function provinceAt(x:number,z:number):number {
   if(!inRect({x,z},BOUNDS))return -1;
@@ -90,16 +90,17 @@ export function provinceAt(x:number,z:number):number {
 }
 export function searchProvinces(query:string,limit=8):ProvinceDef[] {
   const q=query.trim().toLocaleLowerCase();if(!q)return [];
-  return MAP.filter(p=>p.visible&&[...p.name,p.code,p.countryName].some(v=>v.toLocaleLowerCase().includes(q))).slice(0,limit);
+  return MAP.filter(p=>p.visible&&[...p.name,p.code].some(v=>v.toLocaleLowerCase().includes(q))).slice(0,limit);
 }
 // Procedural relief is only a visual placeholder, not measured elevation or a movement obstacle.
 export function heightAt(x:number,z:number):number {return 0.16+0.32*(1+Math.sin(x*0.18)*Math.cos(z*0.22));}
 export function provinceByCode(code:string):number {
   const p=MAP.find(p=>p.code===code);if(!p)throw new Error(`Unknown province ${code}`);return p.id;
 }
-export const START_CODES=['DEU-1574','DEU-1591','FRA-5328','POL-3144'];
-export const STARTS=START_CODES.map((code,i)=>{
-  const exact=MAP.find(p=>p.code===code&&p.playable);
-  const fallback=MAP.filter(p=>p.playable&&p.country===['DEU','DEU','FRA','POL'][i]&&p.neighbors.length>=3)[i];
-  const p=exact??fallback;if(!p)throw new Error('Missing start province');return p.id;
+// Spawn seats are management regions, not nations. The first four commanders
+// do not inherit a national identity or any country-defined permissions.
+export const START_CODES=['STATE_BRANDENBURG','STATE_BAVARIA','STATE_ILE_DE_FRANCE','STATE_MAZOVIA'];
+export const STARTS=START_CODES.map(code=>{
+  const region=MAP.find(p=>p.code===code&&p.playable);
+  if(!region)throw new Error(`Missing start region ${code}`);return region.id;
 });

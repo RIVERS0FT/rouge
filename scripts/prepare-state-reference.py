@@ -41,7 +41,7 @@ for entry in sorted(listing, key=lambda item:item['name']):
         province_match=re.search(r'\bprovinces\s*=\s*\{([^}]+)\}',body)
         if not province_match: continue
         source_id=int(re.search(r'\bid\s*=\s*(\d+)',body).group(1))
-        colors=[int(value,16) for value in re.findall(r'"x([0-9A-Fa-f]{6})"',province_match.group(1))]
+        colors=[int(value,16) for value in re.findall(r'\bx([0-9A-Fa-f]{6})\b',province_match.group(1))]
         regions.append({'code':match.group(1),'sourceId':source_id,'colors':colors})
 regions.sort(key=lambda r:r['sourceId'])
 assert len({r['code'] for r in regions})==len(regions)

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 async function assertLayout(page: Page) {
-  const flag=await page.getByTestId('country-identity').boundingBox();
+  const flag=await page.getByTestId('faction-identity').boundingBox();
   const portrait=await page.getByTestId('commander-portrait').boundingBox();
   const panel=await page.locator('.province-panel').boundingBox();
   await expect(page.locator('.hud-bottom')).toHaveCount(0);
@@ -20,7 +20,7 @@ async function assertLayout(page: Page) {
 }
 
 for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as const) {
-  test(`HUD ${leader}: half-body portrait, stable flag, responsive layout and talent entry`,async({page})=>{
+  test(`HUD ${leader}: half-body portrait, stable faction identity, responsive layout and talent entry`,async({page})=>{
     test.setTimeout(150000);
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
@@ -31,18 +31,18 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('role','img');
-    await expect(page.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
-    await expect(page.getByTestId('country-flag')).toHaveAccessibleName('德国 · 国旗');
+    await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
+    await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
     await page.keyboard.press('Space');await page.getByRole('button',{name:'2D',exact:true}).click();
     await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
     await assertLayout(page);await page.screenshot({path:`artifacts/hud-${leader}-1440.png`});
     // Browsing another country must not change either local-player identity element.
     await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
     await expect(page.locator('.province-panel h2')).toContainText('江苏');
-    await expect(page.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
+    await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
-    await expect(page.getByTestId('country-flag')).toHaveAccessibleName('Germany · National flag');
+    await expect(page.getByTestId('faction-identity')).toContainText('Faction 1');
     await assertLayout(page);
     await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -56,7 +56,7 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
       await page.reload();await page.getByTestId('open-saves').click();
       await page.locator('.save-card').filter({hasText:'HUD preserved'}).getByRole('button',{name:'Load',exact:true}).click();
       await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','steward');
-      await expect(page.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
+      await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     }
     expect(errors).toEqual([]);
   });

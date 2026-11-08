@@ -1,9 +1,9 @@
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
-export const VERSION='0.4.2';
-export const MAP_ID='earth-admin1-miller-crop-v1' as const;
-export const MAX_UNITS=360;
-export const PLAYER_CAP=90;
+export const VERSION='0.5.0';
+export const MAP_ID='earth-state-regions-1137-v1' as const;
+// Per-faction physical capacity in one management region; no player/world army cap.
+export const PROVINCE_CAP=12;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer'];
 export const LEADERS:Leader[]=['warden','vanguard','steward'];
 export const STATS:Upgrade[]=['attack','health','speed'];

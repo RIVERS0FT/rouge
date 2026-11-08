@@ -43,10 +43,10 @@ test('Full Miller projection retains all source vertices; cropped camera fits mu
  }
  assert.throws(()=>worldViewDistance(0));assert.throws(()=>worldViewDistance(Infinity));assert.throws(()=>worldViewDistance(1,180));
 });
-test('geographic picking identifies Beijing, California and empty oceans',()=>{
- const beijing=project(116.4,39.9),california=project(-119,36),pacific=project(-140,0);
- assert.equal(MAP[provinceAt(beijing.x,beijing.z)].code,'CHN-1155');
- assert.equal(MAP[provinceAt(california.x,california.z)].code,'USA-3521');
+test('picking identifies state-region anchors and empty oceans',()=>{
+ const beijing=MAP.find(p=>p.code==='STATE_JIANGSU').center,california=MAP.find(p=>p.code==='STATE_CALIFORNIA').center,pacific=project(-140,0);
+ assert.equal(MAP[provinceAt(beijing.x,beijing.z)].code,'STATE_JIANGSU');
+ assert.equal(MAP[provinceAt(california.x,california.z)].code,'STATE_CALIFORNIA');
  assert.equal(provinceAt(pacific.x,pacific.z),-1);
 });
 test('holes are not land and date-line islands never span the world',()=>{
@@ -56,14 +56,14 @@ test('holes are not land and date-line islands never span the world',()=>{
  for(const p of MAP.filter(p=>p.playable))for(const part of p.parts)for(const ring of part)for(let i=1;i<ring.length;i++)assert.ok(Math.abs(ring[i].x-ring[i-1].x)<=1800.001,p.code);
 });
 test('Miller saves keep high IDs and reject both legacy coordinate systems',()=>{
- const s=createGame(setup,10);assert.equal(s.provinces.length,4596);assert.ok(validateState(s));assert.deepEqual(decodeSave(encodeSave(s,'Earth')).state,s);
+ const s=createGame(setup,10);assert.equal(s.provinces.length,675);assert.ok(validateState(s));assert.deepEqual(decodeSave(encodeSave(s,'Earth')).state,s);
  assert.equal(validateState({...s,map:'frontier-32-v1',version:1}),false);
  assert.equal(validateState({...s,map:'earth-admin1-mercator-v1',version:2}),false);
  assert.equal(validateState({...s,map:'earth-admin1-mercator-v1'}),false);
  assert.equal(validateState({...s,version:2}),false);
 });
 test('isolated islands have no fabricated neighbor across the sea',()=>{
- const hawaii=MAP.find(p=>p.name[1]==='Hawaii');assert.ok(hawaii);assert.equal(hawaii.neighbors.length,0);
+ const hawaii=MAP.find(p=>p.code==='STATE_HAWAIIAN_ISLANDS');assert.ok(hawaii);assert.equal(hawaii.neighbors.length,0);
  const e=new Engine(createGame(setup));assert.equal(e.command(0,{type:'march',from:STARTS[0],to:hawaii.id,fraction:1}).ok,false);
 });
 test('local flow is shared, land-bounded, and orders preserve map positions',()=>{
@@ -73,8 +73,11 @@ test('local flow is shared, land-bounded, and orders preserve map positions',()=
  e.step(300);for(const u of e.state.units)assert.ok(pointInProvince(u.province,u.x,u.z),`unit ${u.id}`);
 });
 
-test('atlas metadata is geographic and province payload is unchanged from v0.2',()=>{
+test('atlas is pinned to land state regions, not modern national administration',()=>{
  const atlas=JSON.parse(readFileSync(new URL('../src/generated/world.json',import.meta.url),'utf8'));
- assert.equal(atlas.format,2);assert.equal(atlas.coordinateSystem,'OGC:CRS84');assert.equal('projection' in atlas,false);
- assert.equal(createHash('sha256').update(JSON.stringify(atlas.provinces)).digest('hex'),'7a841124c275bff443bf1fa26c1a0cb57ce77e9478604b05513002bc8855ab76');
+ assert.equal(atlas.format,3);assert.equal(atlas.coordinateSystem,'OGC:CRS84');assert.equal('projection' in atlas,false);
+ const audit=JSON.parse(readFileSync(new URL('../data/state-regions-audit.json',import.meta.url),'utf8'));
+ assert.equal(createHash('sha256').update(readFileSync(new URL('../src/generated/world.json',import.meta.url))).digest('hex'),audit.outputSha256);
+ assert.equal(atlas.sourceVersion,'1.13.7');assert.equal(audit.coverageValid,true);assert.equal(audit.excludedSeaRegions,106);
+ assert.equal(atlas.provinces.length,675);assert.ok(atlas.provinces.every(p=>p.sourceId<3000&&!('country' in p)&&!('countryName' in p)));
 });

@@ -2,17 +2,14 @@ import * as THREE from 'three';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
-import { MAX_UNITS } from '../game/content.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
 export const FACTION_COLORS=['#609baa','#bb6e62','#c0a263','#8a91b5'];
 const OWNER=[0x609baa,0xbb6e62,0xc0a263,0x8a91b5];
-const PALETTE=[0x99a18b,0xb0ad91,0x8b9b8c,0xb1a48a,0x96a6a1,0xafa995,0x9b9d88,0xa1ac94];
 interface Label {sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
 interface Range {start:number;count:number}
-function countryColor(country:string):THREE.Color {
-  let h=0;for(const c of country)h=(h*31+c.charCodeAt(0))>>>0;
-  return new THREE.Color(country==='ATA'?0xc0c8bf:PALETTE[h%PALETTE.length]);
-}
+const NEUTRAL_LAND=0x9da48e;
+/** No country palette: ownership is the only political color on the map. */
+function regionColor():THREE.Color { return new THREE.Color(NEUTRAL_LAND); }
 /** One merged land mesh, batched boundaries and a bounded label pool for the global atlas. */
 export class WorldRenderer {
   readonly renderer:THREE.WebGLRenderer;
@@ -28,6 +25,7 @@ export class WorldRenderer {
   private labels:Label[]=[];
   private bodies:THREE.InstancedMesh;
   private heads:THREE.InstancedMesh;
+  private unitInstanceCapacity=512;
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
   private state:GameState|null=null;
@@ -48,7 +46,7 @@ export class WorldRenderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
-    this.renderer.domElement.setAttribute('aria-label','Cropped Miller cylindrical world administrative map');host.append(this.renderer.domElement);
+    this.renderer.domElement.setAttribute('aria-label','World management regions · Miller cylindrical projection');host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
@@ -59,10 +57,10 @@ export class WorldRenderer {
     for(let lat=Math.ceil(SOUTH_LATITUDE/20)*20;lat<=NORTH_LATITUDE;lat+=20){const a=project(-180,lat),b=project(180,lat);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     this.atlas.add(this.lines(graticule,0x507078,0.28));
     // No decorative atlas frame: the map continues behind the edge HUD.
-    const positions:number[]=[],colors:number[]=[],borders:number[]=[],countries:number[]=[];
-    const edgeOwners=new Map<string,{country:string;a:Vec2;b:Vec2;count:number}>();
+    const positions:number[]=[],colors:number[]=[],borders:number[]=[],coasts:number[]=[];
+    const edgeOwners=new Map<string,{a:Vec2;b:Vec2;count:number}>();
     for(const province of MAP) {
-      const start=positions.length/3,base=countryColor(province.country);
+      const start=positions.length/3,base=regionColor();
       for(const part of province.visible?province.parts:[]) {
         const rings=part.map(r=>r.map(p=>new THREE.Vector2(p.x,p.z)));
         const contour=rings[0],holes=rings.slice(1);
@@ -78,13 +76,13 @@ export class WorldRenderer {
           const segment=clipSegment(ring[i],ring[(i+1)%ring.length],BOUNDS);if(!segment)continue;const [a,b]=segment;borders.push(a.x,0.24,a.z,b.x,0.24,b.z);
           const ka=`${a.x.toFixed(4)},${a.z.toFixed(4)}`,kb=`${b.x.toFixed(4)},${b.z.toFixed(4)}`,key=ka<kb?`${ka}|${kb}`:`${kb}|${ka}`;
           const edge=edgeOwners.get(key);
-          if(edge){edge.count++;if(edge.country!==province.country)countries.push(a.x,0.27,a.z,b.x,0.27,b.z);}
-          else edgeOwners.set(key,{country:province.country,a,b,count:1});
+          if(edge){edge.count++;}
+          else edgeOwners.set(key,{a,b,count:1});
         }
       }
       this.ranges.push({start,count:positions.length/3-start});
     }
-    for(const e of edgeOwners.values())if(e.count===1)countries.push(e.a.x,0.27,e.a.z,e.b.x,0.27,e.b.z);
+    for(const e of edgeOwners.values())if(e.count===1)coasts.push(e.a.x,0.27,e.a.z,e.b.x,0.27,e.b.z);
     let minLandZ=Infinity,maxLandZ=-Infinity;for(let i=2;i<positions.length;i+=3){minLandZ=Math.min(minLandZ,positions[i]);maxLandZ=Math.max(maxLandZ,positions[i]);}
     this.renderer.domElement.dataset.landMinZ=String(minLandZ);this.renderer.domElement.dataset.landMaxZ=String(maxLandZ);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
@@ -92,8 +90,10 @@ export class WorldRenderer {
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
     this.relief(material);this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
-    this.admin=this.lines(borders,0x334b40,0.14);this.relief(this.admin.material as THREE.Material);this.atlas.add(this.admin);
-    const outlines=this.lines(countries,0x233f39,0.7);this.relief(outlines.material as THREE.Material);this.atlas.add(outlines);
+    this.admin=this.lines(borders,0x334b40,0.14);this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
+    const outlines=this.lines(coasts,0x233f39,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
+    this.renderer.domElement.dataset.boundaryMode='management-regions-only';
+    this.renderer.domElement.dataset.regionCount=String(MAP.length);
     this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.atlas.add(this.selection);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
     // canonical entity positions and province IDs never duplicate.
@@ -104,12 +104,23 @@ export class WorldRenderer {
       const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));sprite.renderOrder=5;sprite.visible=false;
       this.labels.push({sprite,canvas,texture,key:''});this.scene.add(sprite);
     }
-    this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),MAX_UNITS*3);
-    this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),MAX_UNITS*3);
+    this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),512);
+    this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),512);
     this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(0.5,0.6,0.65),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
     for(const mesh of [this.bodies,this.heads,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
     const c=this.renderer.domElement;c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
     this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
+  }
+  /** Grow GPU buffers; render allocation must never act as a simulation cap. */
+  private ensureUnitCapacity(required:number) {
+    if(required<=this.unitInstanceCapacity)return;
+    let capacity=this.unitInstanceCapacity;while(capacity<required)capacity*=2;
+    const grow=(old:THREE.InstancedMesh)=>{
+      const next=new THREE.InstancedMesh(old.geometry,old.material,capacity);
+      next.frustumCulled=false;next.instanceMatrix.setUsage(THREE.DynamicDrawUsage);next.count=0;
+      this.scene.remove(old);old.dispose();this.scene.add(next);return next;
+    };
+    this.bodies=grow(this.bodies);this.heads=grow(this.heads);this.unitInstanceCapacity=capacity;
   }
   private lines(points:number[],color:number,opacity:number) {
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
@@ -197,8 +208,9 @@ export class WorldRenderer {
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
-    (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.16:this.distance>300?0.28:0.55;
-    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?countryColor(MAP[id].country):new THREE.Color(OWNER[owner]);if(id===this.selected)color.lerp(new THREE.Color(0xf4d38c),0.45);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.45:this.distance>300?0.55:0.65;
+    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(OWNER[owner]);if(id===this.selected)color.lerp(new THREE.Color(0xf4d38c),0.45);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    if(this.blend>0.1)this.ensureUnitCapacity((this.state?.units.length??0)*3);
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
       live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);pos.x+=(u.x-pos.x)*t;pos.z+=(u.z-pos.z)*t;this.smoothed.set(u.id,pos);
@@ -215,7 +227,8 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
-    this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
+    this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
+    this.renderer.domElement.dataset.countryBorders='false';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
   dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}

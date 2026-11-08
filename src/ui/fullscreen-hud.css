@@ -3,7 +3,7 @@
 .is-game .world{position:absolute;inset:0;width:100%;height:100%}
 .is-game .map-vignette{background:none}
 .is-game .hud-top{top:14px;left:18px;right:132px;height:66px;padding:0 20px;gap:22px;border:1px solid #b4bd9d30;border-radius:5px;background:#0d2026e6;box-shadow:0 8px 24px #0002;backdrop-filter:blur(12px)}
-.is-game .country-flag-frame{width:72px;height:44px}
+.is-game .faction-emblem-frame{width:72px;height:44px}
 .is-game .hud-top .commander-badge{min-width:80px;max-width:155px}
 .is-game .clock{flex-shrink:0;white-space:nowrap}
 .settings-trigger{position:absolute;z-index:12;top:14px;right:18px;height:66px;width:100px;display:flex;align-items:center;justify-content:center;gap:9px;background:#0d2026ef;border:1px solid #b4bd9d50;border-radius:5px;font-size:12px;color:#dfd7c0;box-shadow:0 8px 24px #0002;backdrop-filter:blur(12px)}
@@ -48,7 +48,7 @@
 @media(max-width:1200px){
  .is-game .hud-top{gap:15px;padding:0 14px}.is-game .hud-top .commander-badge{max-width:125px;padding-right:12px}
  .is-game .map-search{left:calc(var(--leader-left) + var(--leader-width) + 18px);right:282px;width:auto;max-width:none;transform:none}
- .is-game .country-copy{display:none}
+ .is-game .faction-copy{display:none}
 }
 @media(max-width:1050px){
  .army-actions,.is-game .strategic-panel{width:205px}
@@ -62,7 +62,7 @@
 @media(max-width:800px){
  .app.is-game{--leader-left:10px;--leader-bottom:12px;--province-top:86px;--leader-width:220px;--leader-height:190px}
  .is-game .hud-top{left:10px;right:98px;top:10px;height:62px;gap:12px;padding:0 12px}
- .is-game .country-flag-frame{width:58px;height:38px}.is-game .hud-top .commander-badge{min-width:65px;max-width:95px;padding-right:0}
+ .is-game .faction-emblem-frame{width:58px;height:38px}.is-game .hud-top .commander-badge{min-width:65px;max-width:95px;padding-right:0}
  .settings-trigger{right:10px;top:10px;width:78px;height:62px;gap:5px;font-size:11px}
  .settings-trigger>span:first-child{font-size:20px}
  .army-actions{top:86px;right:10px;width:172px}.upgrade-trigger{min-height:43px;padding:8px 12px;gap:8px;font-size:11px}
