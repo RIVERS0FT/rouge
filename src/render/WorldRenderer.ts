@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
-import { project, PROJECTION_ID, worldViewDistance, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX } from '../game/geo.ts';
+import { project, PROJECTION_ID, worldViewDistance, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
 import { MAX_UNITS } from '../game/content.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
@@ -150,11 +150,11 @@ export class WorldRenderer {
       if(!this.ray.ray.intersectPlane(plane,point))return -1;
       plane.constant=-(0.16+(heightAt(wrapX(point.x),point.z)-0.16)*this.blend);
     }
-    return provinceAt(wrapX(point.x),point.z);
+    return provinceAt(viewPickX(point.x,this.globalView),point.z);
   }
   private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
   private pointerMove=(e:PointerEvent)=>{
-    if(this.down&&this.down.button!==2){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+    if(this.down&&this.down.button!==2&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
       this.focus.x=wrapX(this.down.fx-(e.clientX-this.down.x)*scale);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
   };
   private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};

@@ -47,6 +47,12 @@ export function wrapX(x:number):number {
   if(!Number.isFinite(x))throw new Error('invalidCoordinate');
   return ((x-WORLD_BOUNDS.left)%WORLD_WIDTH+WORLD_WIDTH)%WORLD_WIDTH+WORLD_BOUNDS.left;
 }
+/** Global framing draws one atlas; its exterior must stay unpickable.
+ * Free panning draws repeated copies, so only that mode normalizes longitude.
+ */
+export function viewPickX(x:number,globalView:boolean):number {
+  return globalView?x:wrapX(x);
+}
 /** Nearest visual copy of a canonical longitude. Simulation positions stay canonical. */
 export function nearestWorldX(x:number,focusX:number):number {
   return x+Math.round((focusX-x)/WORLD_WIDTH)*WORLD_WIDTH;
