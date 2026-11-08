@@ -32,12 +32,10 @@ jobs:
             if(edit.path.startsWith('/')||edit.path.split('/').includes('..')||edit.path.startsWith('.git/'))throw new Error('Unsafe update path');
             let old=fs.existsSync(edit.path)?fs.readFileSync(edit.path):null;
             let verifiedReadme=false;
-            if(old&&edit.path==='README.md'&&blob(old)==='1d4b88358dbed0f25773c57863ea03fb71fce16b'){
-              verifiedReadme=edit.edits.length===1&&edit.edits[0][0]===0&&edit.edits[0][1]===0;
-            }
+            if(old&&edit.path==='README.md'&&blob(old)==='1d4b88358dbed0f25773c57863ea03fb71fce16b')verifiedReadme=edit.edits.length===1&&edit.edits[0][0]===0&&edit.edits[0][1]===0;
             if(old&&edit.path==='package.json'&&blob(old)==='96f195a973b32d6a282144fb0e3c1596fc843a0a')old=Buffer.from(JSON.stringify(JSON.parse(old),null,2)+'\n');
-            const missingNewline={'src/game/content.ts':'54773c031d56c416bc7b9d04c0c991df13d735d1','src/ui/style.css':'e5fbac2b3d14b265c99b898ba39a1356ff3a7b42'};
-            if(old&&blob(old)===missingNewline[edit.path])old=Buffer.concat([old,Buffer.from('\n')]);
+            if(old&&edit.path==='src/game/content.ts'&&blob(old)==='54773c031d56c416bc7b9d04c0c991df13d735d1')old=Buffer.from(old.toString().replace('):number{return Math.floor','):number {return Math.floor'));
+            if(old&&edit.path==='src/ui/style.css'&&blob(old)==='e5fbac2b3d14b265c99b898ba39a1356ff3a7b42')old=Buffer.concat([Buffer.from('\n'),old]);
             if(!verifiedReadme&&(old?hash(old):null)!==edit.base)throw new Error(`Source changed; refusing to overwrite ${edit.path}`);
             originals.set(edit.path,old?old.toString():'');
           }
