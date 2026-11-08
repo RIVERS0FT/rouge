@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('menu → setup → real WebGL game → order → upgrade → multi-slot save → reload',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(()=>Object.defineProperty(globalThis.crypto,'randomUUID',{value:undefined,configurable:true}));
  await page.goto('/');await expect(page.getByRole('heading',{name:/ROUGE/})).toBeVisible();
  await page.getByRole('button',{name:'English',exact:true}).click();await expect(page.getByTestId('single-player')).toContainText('Single player');
  await page.screenshot({path:'artifacts/menu.png'});
