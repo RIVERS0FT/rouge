@@ -1,8 +1,5 @@
-name: Prepare management-region atlas
+name: Rebuild management-region reference
 on:
-  push:
-    branches: [feat/state-regions-routing]
-    paths: ['scripts/prepare-state-reference.py', '.github/workflows/state-reference.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,20 +12,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install numpy==2.2.6 pillow==11.3.0 rasterio==1.4.3 shapely==2.1.2
-      - name: Parse both valid identifier forms and audit geometry
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('scripts/prepare-state-reference.py')
-          text=p.read_text().replace('"x([0-9A-Fa-f]{6})"',r'\bx([0-9A-Fa-f]{6})\b')
-          p.write_text(text)
-          PY
-          python scripts/prepare-state-reference.py
-          cp scripts/prepare-state-reference.py artifacts/state-reference/
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - uses: actions/setup-node@v4
         with:
-          name: management-region-atlas
-          path: artifacts/state-reference/
+          node-version: '22.16.0'
+      - run: pip install numpy==2.2.6 pillow==11.3.0 rasterio==1.4.3 shapely==2.1.2
+      - run: python scripts/prepare-state-reference.py
+      - run: python scripts/normalize-state-atlas.py --input artifacts/state-reference --output data
+      - name: Verify pinned final atlas
+        run: node scripts/build-world.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebuilt-management-atlas
+          path: |
+            data/state-regions-1.13.7.json.gz
+            data/state-regions-audit.json
           retention-days: 30

@@ -30,12 +30,12 @@ jobs:
         run: npm run test:e2e | tee artifacts/browser-tests.log
       - name: Archive tested source
         if: always()
-        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-fullscreen-hud-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-fullscreen-hud-source.tar.gz artifacts/
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-state-regions-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-state-regions-source.tar.gz artifacts/
       - name: Upload build and browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rouge-fullscreen-hud
+          name: rouge-state-regions
           path: |
             dist/
             artifacts/
@@ -46,3 +46,5 @@ jobs:
             docs/MAP_CROP.md
             docs/HUD_IDENTITY.md
             docs/FULLSCREEN_HUD.md
+            docs/STATE_REGIONS.md
+            data/state-regions-audit.json
