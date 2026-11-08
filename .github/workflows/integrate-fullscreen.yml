@@ -2,7 +2,7 @@ name: Integrate fullscreen HUD
 on:
   push:
     branches: [feat/fullscreen-hud]
-    paths: [.changes/fullscreen-1.b64, .changes/fullscreen-2.b64, .github/workflows/integrate-fullscreen.yml]
+    paths: [.changes/fullscreen-1.b64, .changes/fullscreen-2.b64, .changes/fullscreen-refinements.json, .github/workflows/integrate-fullscreen.yml]
 permissions:
   contents: write
 defaults:
@@ -38,6 +38,14 @@ jobs:
             results.push([edit.path,result]);
           }
           for(const[path,content]of results){fs.mkdirSync(path.split('/').slice(0,-1).join('/')||'.',{recursive:true});fs.writeFileSync(path,content);}
+          for(const edit of JSON.parse(fs.readFileSync('.changes/fullscreen-refinements.json','utf8'))){
+            if(edit.path.startsWith('/')||edit.path.split('/').includes('..')||edit.path.startsWith('.git'))throw Error('Unsafe path');
+            let source=fs.readFileSync(edit.path,'utf8');
+            if(hash(source)!==edit.base)throw Error(`Refinement baseline mismatch: ${edit.path}`);
+            for(const[a,b]of edit.replacements){if(source.split(a).length!==2)throw Error('Replacement must be unique');source=source.replace(a,b);}
+            if(hash(source)!==edit.result)throw Error(`Refinement result mismatch: ${edit.path}`);
+            fs.writeFileSync(edit.path,source);
+          }
           NODE
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
@@ -51,7 +59,7 @@ jobs:
         run: npm run test:e2e | tee artifacts/browser-tests.log
       - name: Commit verified implementation
         run: |
-          rm -f .changes/fullscreen-1.b64 .changes/fullscreen-2.b64
+          rm -f .changes/fullscreen-1.b64 .changes/fullscreen-2.b64 .changes/fullscreen-refinements.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
