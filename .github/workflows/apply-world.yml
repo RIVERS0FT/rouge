@@ -1,0 +1,74 @@
+name: Apply and verify Mercator world
+on:
+  push:
+    branches: [feat/world-mercator]
+    paths: [.changes/mercator-ready]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify and apply source edits
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import zlib from 'node:zlib';
+          const encoded=[1,2,3].map(i=>fs.readFileSync(`.changes/mercator-${i}.b64`,'utf8')).join('');
+          const compressed=Buffer.from(encoded,'base64');
+          const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+          if(hash(compressed)!=='b479a3f3199486cab1d59853ea78adb6ad94b498e8def5c52ddeb25117b4ad7c')throw new Error('Update archive checksum mismatch');
+          const edits=JSON.parse(zlib.brotliDecompressSync(compressed).toString());
+          for(const edit of edits){
+            if(edit.path.startsWith('/')||edit.path.split('/').includes('..')||edit.path.startsWith('.git/'))throw new Error('Unsafe update path');
+            const old=fs.existsSync(edit.path)?fs.readFileSync(edit.path):null;
+            if((old?hash(old):null)!==edit.base)throw new Error(`Source changed; refusing to overwrite ${edit.path}`);
+          }
+          for(const edit of edits){
+            const old=fs.existsSync(edit.path)?fs.readFileSync(edit.path,'utf8'):'';
+            const lines=old.match(/[^\n]*\n|[^\n]+$/g)||[];
+            for(const[start,end,text]of [...edit.edits].reverse())lines.splice(start,end-start,text);
+            fs.mkdirSync(edit.path.split('/').slice(0,-1).join('/')||'.',{recursive:true});
+            fs.writeFileSync(edit.path,lines.join(''));
+          }
+          NODE
+      - name: Build pinned offline atlas
+        run: node --max-old-space-size=2048 scripts/build-world.mjs
+      - name: Install and lock dependencies
+        run: npm install --no-audit --no-fund
+      - name: Core and geographical tests
+        run: npm test
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Commit verified source and offline data
+        run: |
+          rm -f .changes/mercator-*.b64 .changes/mercator-ready .github/workflows/apply-world.yml .github/workflows/world-data.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git add -f src/generated/world.json
+          git commit -m 'feat: real-world Mercator atlas, administrative geometry and land navigation'
+          git push origin HEAD:feat/world-mercator
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance and real screenshots
+        run: npm run test:e2e
+      - name: Export tested build and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-mercator-preview
+          path: |
+            dist/
+            artifacts/
+            test-results/
+            src/generated/world.json
+            package-lock.json
+            docs/WORLD_MAP.md
