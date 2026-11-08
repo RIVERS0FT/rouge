@@ -1,0 +1,51 @@
+name: Delete safely merged branches
+on:
+  pull_request_target:
+    types: [closed]
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cleanup-merged-branches.yml', '.github/scripts/cleanup-merged-branches*']
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview only, do not delete branches'
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: merged-branch-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: github.event_name != 'pull_request_target' || (github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      # Execute only the trusted workflow revision. Never checkout a PR head.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Test deletion guards and atomic lease behavior
+        run: node --test .github/scripts/cleanup-merged-branches.test.mjs
+      - name: Remove only safely merged branch heads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: node .github/scripts/cleanup-merged-branches.mjs
+      - name: Archive cleanup report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-branch-cleanup-report
+          path: artifacts/branch-cleanup.json
+          retention-days: 30

@@ -1,26 +1,21 @@
 name: Publish ROUGE to GitHub Pages
-
-# Deployment is independent of the unmerged game feature PRs.
-# The default source is the tested v0.4.2 commit, not the README-only main branch.
+# main contains release operations; gameplay remains on tested feature commits.
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/pages.yml']
+    paths: ['.github/workflows/pages.yml', '.github/scripts/verify-pages.mjs']
   workflow_dispatch:
     inputs:
       game_ref:
         description: 'Game source commit, tag or branch'
         required: true
-        default: 'c5c60e6f1bcbab7b39a0ee3775bcf987bc2c0b44'
+        default: '174af4617f49af8a46c07c3f3e7f11d267548c3a'
         type: string
-
 permissions:
   contents: read
-
 concurrency:
   group: github-pages
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -31,17 +26,12 @@ jobs:
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
     steps:
-      - name: Inspect existing Pages configuration
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api "repos/$GITHUB_REPOSITORY/pages" --jq '{html_url,build_type,source,https_enforced}'
-      - name: Read Pages site metadata
+      - uses: actions/configure-pages@v5
         id: pages
-        uses: actions/configure-pages@v5
       - name: Checkout tested game source
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.game_ref || 'c5c60e6f1bcbab7b39a0ee3775bcf987bc2c0b44' }}
+          ref: ${{ inputs.game_ref || '174af4617f49af8a46c07c3f3e7f11d267548c3a' }}
           persist-credentials: false
       - name: Record exact game commit
         id: source
@@ -50,15 +40,14 @@ jobs:
         with:
           node-version: '22.16.0'
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Test game rules and compatibility
+      - run: npm ci --no-audit --no-fund
+      - name: Test game rules, regional capacity and long-range routing
         run: npm test
       - name: Type check and build for the Pages subpath
         env:
           SITE_BASE: ${{ steps.pages.outputs.base_path }}/
         run: npm run build -- --base "$SITE_BASE"
-      - name: Add build identity and bundled-library notices
+      - name: Add build identity and accurate source notices
         env:
           SOURCE_COMMIT: ${{ steps.source.outputs.sha }}
         run: |
@@ -66,24 +55,31 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const atlas = JSON.parse(fs.readFileSync('src/generated/world.json', 'utf8'));
+          const isRegions = fs.existsSync('docs/STATE_REGIONS.md');
           fs.writeFileSync('dist/build-info.json', JSON.stringify({
-            name: 'ROUGE', version: pkg.version,
-            sourceCommit: process.env.SOURCE_COMMIT,
-            hosting: 'GitHub Pages', multiplayerBackendIncluded: false
+            name:'ROUGE', version:pkg.version, sourceCommit:process.env.SOURCE_COMMIT,
+            hosting:'GitHub Pages', multiplayerBackendIncluded:false,
+            map:isRegions?'earth-state-regions-1137-v1':'earth-admin1-miller-crop-v1',
+            regionCount:atlas.provinces.length,
+            mapRedistributionAuthorization:isRegions?'not-verified':'natural-earth-public-domain'
           }, null, 2));
           const notices = ['ROUGE - bundled library notices\n'];
-          for (const name of ['react', 'react-dom', 'scheduler', 'three']) {
-            notices.push(`\n===== ${name} =====\n`);
-            notices.push(fs.readFileSync(`node_modules/${name}/LICENSE`, 'utf8'));
+          for (const name of ['react','react-dom','scheduler','three']) {
+            notices.push(`\n===== ${name} =====\n`, fs.readFileSync(`node_modules/${name}/LICENSE`,'utf8'));
           }
-          notices.push('\nMap data: Natural Earth, public domain. https://www.naturalearthdata.com/about/terms-of-use/\n');
-          fs.writeFileSync('dist/THIRD_PARTY_NOTICES.txt', notices.join('\n'));
+          if (isRegions) {
+            notices.push('\nMAP DATA: transformed Victoria 3 1.13.7 State Region reference boundaries.\nIndependent redistribution authorization has not been verified.\nThese boundaries are NOT Natural Earth public-domain data and are NOT covered by the map editor tool MIT license.\nSee MAP_DATA_SOURCE.md for the pinned source and limitations.\n');
+            fs.copyFileSync('docs/STATE_REGIONS.md','dist/MAP_DATA_SOURCE.md');
+            fs.copyFileSync('data/state-regions-audit.json','dist/map-data-audit.json');
+          } else {
+            notices.push('\nMap data: Natural Earth, public domain. https://www.naturalearthdata.com/about/terms-of-use/\n');
+          }
+          fs.writeFileSync('dist/THIRD_PARTY_NOTICES.txt',notices.join('\n'));
           NODE
-      - name: Upload deployable website
-        uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
-
   deploy:
     needs: build
     runs-on: ubuntu-24.04
@@ -100,109 +96,39 @@ jobs:
       - name: Publish website
         id: deployment
         uses: actions/deploy-pages@v4
-
   verify:
     needs: [build, deploy]
     runs-on: ubuntu-24.04
     timeout-minutes: 12
-    permissions:
-      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout trusted verification script
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: release-ops
+          persist-credentials: false
+      - name: Checkout exact published game source
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.build.outputs.source_sha }}
+          path: game
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
           cache: npm
+          cache-dependency-path: game/package-lock.json
       - run: npm ci --no-audit --no-fund
+        working-directory: game
+      - run: npm run prepare:map
+        working-directory: game
       - run: npx playwright install --with-deps chromium
-      - name: Verify the actual HTTPS site, Worker simulation and browser saves
+        working-directory: game
+      - name: Verify live HTTPS game, regions, remote orders and browser saves
         env:
           SITE_URL: ${{ needs.deploy.outputs.page_url }}
           SOURCE_COMMIT: ${{ needs.build.outputs.source_sha }}
-        run: |
-          mkdir -p artifacts
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import assert from 'node:assert/strict';
-          import { chromium, expect as baseExpect } from '@playwright/test';
-          const expect = baseExpect.configure({timeout:45000});
-          const site = process.env.SITE_URL.replace(/\/?$/, '/');
-          const errors = [];
-          const failedResources = [];
-          let info;
-          for (let attempt = 0; attempt < 18; attempt++) {
-            try {
-              const res = await fetch(`${site}build-info.json?check=${Date.now()}`, {signal:AbortSignal.timeout(15000)});
-              if (res.ok) {
-                info = await res.json();
-                if (info.sourceCommit === process.env.SOURCE_COMMIT) break;
-              }
-            } catch {}
-            await new Promise(resolve => setTimeout(resolve, 5000));
-          }
-          assert.equal(info?.sourceCommit, process.env.SOURCE_COMMIT, 'Live site must contain the intended game commit');
-          const browser = await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-          const context = await browser.newContext({viewport:{width:1440,height:960}});
-          const page = await context.newPage();
-          page.setDefaultTimeout(45000);
-          page.on('pageerror', error => errors.push(error.message));
-          page.on('response', response => {
-            if (response.url().startsWith(site) && response.status() >= 400 && /\.(js|css|json)(\?|$)/.test(response.url())) {
-              failedResources.push(`${response.status()} ${response.url()}`);
-            }
-          });
-          try {
-            const res = await page.goto(site, {waitUntil:'networkidle', timeout:90000});
-            assert.equal(res?.status(), 200);
-            await expect(page.getByTestId('single-player')).toBeVisible();
-            await page.screenshot({path:'artifacts/pages-main-menu.png'});
-            await page.getByTestId('single-player').click();
-            await page.getByTestId('commander-name').fill('Pages Smoke Test');
-            await page.getByTestId('begin-campaign').click();
-            await expect(page.getByTestId('open-settings')).toBeVisible();
-            await expect(page.locator('.render-error')).toHaveCount(0);
-            await expect(page.locator('canvas')).toHaveAttribute('data-framing','cover');
-            await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
-            const clock = page.getByTestId('game-clock');
-            const firstTick = Number(await clock.getAttribute('data-tick'));
-            await expect.poll(async () => Number(await clock.getAttribute('data-tick')), {timeout:20000}).toBeGreaterThan(firstTick);
-            await page.getByTestId('dispatch').click();
-            await page.getByTestId('open-upgrades').click();
-            await page.getByTestId('upgrade-infantry-attack').click();
-            await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
-            await page.keyboard.press('Escape');
-            await page.screenshot({path:'artifacts/pages-live-battle.png'});
-            await page.getByTestId('open-settings').click();
-            await page.getByTestId('settings-save').click();
-            await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
-            await page.getByTestId('create-save').click();
-            await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
-            await page.reload({waitUntil:'networkidle'});
-            await page.getByTestId('open-saves').click();
-            const save = page.locator('.save-card').filter({hasText:'Pages verification'});
-            await expect(save).toBeVisible();
-            await save.getByRole('button', {name:/^(载入|Load)$/}).click();
-            await expect(page.getByTestId('open-settings')).toBeVisible();
-            await expect(page.locator('.hud-top')).toContainText('Pages Smoke Test');
-            assert.deepEqual(errors, []);
-            assert.deepEqual(failedResources, []);
-            fs.writeFileSync('artifacts/pages-verification.json', JSON.stringify({
-              verifiedAt:new Date().toISOString(), url:site, build:info,
-              checks:['HTTPS 200','correct source commit','main menu','WebGL fullscreen map','Worker simulation ticks','dispatch','unit upgrade','settings save','reload and restore'],
-              pageErrors:errors, failedResources
-            }, null, 2));
-            console.log(JSON.stringify({url:site,version:info.version,sourceCommit:info.sourceCommit,result:'PASS'}));
-          } catch (error) {
-            await page.screenshot({path:'artifacts/pages-verification-failed.png'}).catch(()=>{});
-            fs.writeFileSync('artifacts/pages-verification-error.txt', String(error));
-            throw error;
-          } finally {
-            await browser.close();
-          }
-          NODE
+        run: node release-ops/.github/scripts/verify-pages.mjs
       - name: Archive live-site verification evidence
         if: always()
         uses: actions/upload-artifact@v4
