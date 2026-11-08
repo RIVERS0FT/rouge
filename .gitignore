@@ -8,3 +8,6 @@ coverage/
 artifacts/
 test-results/
 playwright-report/
+
+.cache/
+src/generated/world.json

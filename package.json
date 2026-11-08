@@ -1,9 +1,11 @@
 {
   "name": "rouge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.16.0" },
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
@@ -11,9 +13,18 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck:core": "tsc -p tsconfig.core.json",
     "lan": "node --experimental-strip-types server/lan.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prepare:map": "node --max-old-space-size=2048 scripts/build-world.mjs",
+    "predev": "npm run prepare:map",
+    "prebuild": "npm run prepare:map",
+    "pretest": "npm run prepare:map",
+    "prelan": "npm run prepare:map"
   },
-  "dependencies": { "react": "18.3.1", "react-dom": "18.3.1", "three": "0.180.0" },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three": "0.180.0"
+  },
   "devDependencies": {
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",

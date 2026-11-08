@@ -1,107 +1,186 @@
 import * as THREE from 'three';
-import { MAP, heightAt, contains } from '../game/map.ts';
+import { MAP, BOUNDS, heightAt, containsPart, provinceAt } from '../game/map.ts';
+import { project } from '../game/geo.ts';
 import { MAX_UNITS } from '../game/content.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
 export const FACTION_COLORS=['#609baa','#bb6e62','#c0a263','#8a91b5'];
 const OWNER=[0x609baa,0xbb6e62,0xc0a263,0x8a91b5];
-function tessellate(a:Vec2,b:Vec2,c:Vec2,n:number,out:number[]){
-  if(n===0){for(const p of[a,b,c])out.push(p.x,0.18,p.z);return;}
-  const ab={x:(a.x+b.x)/2,z:(a.z+b.z)/2},bc={x:(b.x+c.x)/2,z:(b.z+c.z)/2},ca={x:(c.x+a.x)/2,z:(c.z+a.z)/2};
-  tessellate(a,ab,ca,n-1,out);tessellate(ab,b,bc,n-1,out);tessellate(ca,bc,c,n-1,out);tessellate(ab,bc,ca,n-1,out);
+const PALETTE=[0x99a18b,0xb0ad91,0x8b9b8c,0xb1a48a,0x96a6a1,0xafa995,0x9b9d88,0xa1ac94];
+interface Label {sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
+interface Range {start:number;count:number}
+function countryColor(country:string):THREE.Color {
+  let h=0;for(const c of country)h=(h*31+c.charCodeAt(0))>>>0;
+  return new THREE.Color(country==='ATA'?0xc0c8bf:PALETTE[h%PALETTE.length]);
 }
-function provinceGeometry(id:number){
-  const p=MAP[id],positions:number[]=[];
-  for(let i=0;i<p.polygon.length;i++)tessellate(p.center,p.polygon[i],p.polygon[(i+1)%p.polygon.length],3,positions);
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.computeVertexNormals();
-  const elevated=positions.map((v,i)=>i%3===1?heightAt(positions[i-1],positions[i+1]):v),near=new THREE.BufferGeometry();near.setAttribute('position',new THREE.Float32BufferAttribute(elevated,3));near.computeVertexNormals();
-  geometry.morphAttributes.position=[near.getAttribute('position')];geometry.morphAttributes.normal=[near.getAttribute('normal')];geometry.computeBoundingSphere();return geometry;
-}
-interface Label{sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
-export class WorldRenderer{
-  readonly renderer:THREE.WebGLRenderer;readonly scene=new THREE.Scene();readonly camera=new THREE.PerspectiveCamera(40,1,0.1,600);
-  private meshes:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>[]=[];
-  private borders:THREE.Line[]=[];private labels:Label[]=[];
-  private bodies:THREE.InstancedMesh;private heads:THREE.InstancedMesh;private trees:THREE.InstancedMesh;private towns:THREE.InstancedMesh;
-  private townPoints:Vec2[]=[];private treePoints:Vec2[]=[];
-  private state:GameState|null=null;private selected=-1;private hover=-1;private lang:'zh'|'en'='zh';
+/** One merged land mesh, batched boundaries and a bounded label pool for the global atlas. */
+export class WorldRenderer {
+  readonly renderer:THREE.WebGLRenderer;
+  readonly scene=new THREE.Scene();
+  readonly camera=new THREE.PerspectiveCamera(40,1,0.05,20000);
+  private land:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>;
+  private admin:THREE.LineSegments;
+  private selection:THREE.LineSegments;
+  private ranges:Range[]=[];
+  private colors:THREE.Float32BufferAttribute;
+  private labels:Label[]=[];
+  private bodies:THREE.InstancedMesh;
+  private heads:THREE.InstancedMesh;
+  private towns:THREE.InstancedMesh;
+  private blendUniform={value:0};
+  private state:GameState|null=null;
+  private selected=-1;private hover=-1;private lang:'zh'|'en'='zh';
+  private ownerIds=MAP.map(()=>-1);
+  private dirty=new Set<number>();
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
-  private animation=0;private observer:ResizeObserver;private last=0;private distance=112;private desiredDistance=112;private focus=new THREE.Vector3();private blend=0;private lastBlend=-1;private lastMode='';
-  private down:{x:number;y:number;button:number;fx:number;fz:number}|null=null;
-  private smoothed=new Map<number,{x:number;z:number}>();
-  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void){
-    this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.75));this.renderer.setClearColor(0x132a31);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.3;
-    this.renderer.domElement.setAttribute('aria-label','Interactive province map');this.host.append(this.renderer.domElement);
-    this.scene.add(new THREE.HemisphereLight(0xf4e9cf,0x30454a,2.4));const sun=new THREE.DirectionalLight(0xffefce,2.2);sun.position.set(-45,60,-20);this.scene.add(sun);
-    const ocean=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshStandardMaterial({color:0x17343d,roughness:0.9}));ocean.rotation.x=-Math.PI/2;ocean.position.y=-0.18;this.scene.add(ocean);
-    const grid=new THREE.GridHelper(400,80,0x31545a,0x27464e);grid.position.y=-0.15;const gm=grid.material as THREE.Material;gm.transparent=true;gm.opacity=0.28;this.scene.add(grid);
-    for(const p of MAP){
-      const material=new THREE.MeshStandardMaterial({color:0x8f9979,roughness:1,metalness:0,side:THREE.DoubleSide});const mesh=new THREE.Mesh(provinceGeometry(p.id),material);mesh.userData.id=p.id;this.meshes.push(mesh);this.scene.add(mesh);
-      const points=p.polygon.concat(p.polygon[0]).map(v=>new THREE.Vector3(v.x,0.22,v.z));const border=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0x34433c,transparent:true,opacity:0.85}));this.borders.push(border);this.scene.add(border);
-      const canvas=document.createElement('canvas');canvas.width=384;canvas.height=112;const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
-      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false}));sprite.renderOrder=5;sprite.scale.set(7.5,2.2,1);this.labels.push({sprite,canvas,texture,key:''});this.scene.add(sprite);
-      for(let i=0;i<4;i++)this.townPoints.push({x:p.center.x+Math.cos(i*2.3)*0.8,z:p.center.z+Math.sin(i*2.3)*0.8});
-      if(p.terrain==='forest')for(let i=0;i<42;i++){const x=p.center.x+Math.sin(i*7.13+p.id)*4.3,z=p.center.z+Math.cos(i*4.47+p.id)*4.3;if(contains(p.polygon,x,z))this.treePoints.push({x,z});}
-    }
-    this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),MAX_UNITS*3);
-    this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xc8bf9e,roughness:1}),MAX_UNITS*3);
-    this.trees=new THREE.InstancedMesh(new THREE.ConeGeometry(0.43,1.6,5),new THREE.MeshStandardMaterial({color:0x354b38,roughness:1}),this.treePoints.length);
-    this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(0.5,0.7,0.6),new THREE.MeshStandardMaterial({color:0xc6b99b,roughness:1}),this.townPoints.length);
-    for(const mesh of[this.bodies,this.heads,this.trees,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.scene.add(mesh);}
-    this.bodies.count=this.heads.count=0;
-    const canvas=this.renderer.domElement;canvas.addEventListener('pointerdown',this.pointerDown);canvas.addEventListener('pointermove',this.pointerMove);canvas.addEventListener('pointerup',this.pointerUp);canvas.addEventListener('pointercancel',this.pointerCancel);canvas.addEventListener('wheel',this.wheel,{passive:false});canvas.addEventListener('contextmenu',this.contextMenu);
-    this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
-  }
-  update(state:GameState,selected:number,lang:'zh'|'en'){this.state=state;this.selected=selected;this.lang=lang;}
-  zoom(delta:number){this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance+delta,23,155);}
-  view(mode:'strategic'|'terrain'){this.desiredDistance=mode==='strategic'?112:48;}
-  focusProvince(id:number){const p=MAP[id];if(p){this.focus.set(p.center.x,0,p.center.z);this.desiredDistance=56;}}
-  private resize=()=>{const width=this.host.clientWidth,height=this.host.clientHeight;if(width<1||height<1)return;this.renderer.setSize(width,height);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();};
-  private pick(event:PointerEvent):number{const rect=this.renderer.domElement.getBoundingClientRect();this.pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);return this.ray.intersectObjects(this.meshes,false)[0]?.object.userData.id??-1;}
-  private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,button:e.button,fx:this.focus.x,fz:this.focus.z};this.renderer.domElement.setPointerCapture(e.pointerId);};
-  private pointerMove=(e:PointerEvent)=>{if(this.down&&this.down.button!==2){const scale=this.distance*0.0014;this.focus.x=THREE.MathUtils.clamp(this.down.fx-(e.clientX-this.down.x)*scale,-65,65);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,-45,45);}else if(!this.down)this.hover=this.pick(e);};
-  private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
-  private pointerCancel=()=>{this.down=null;};
-  private wheel=(e:WheelEvent)=>{e.preventDefault();this.zoom(e.deltaY*0.045);};
-  private contextMenu=(e:Event)=>e.preventDefault();
-  private frame=(time:number)=>{
-    const dt=Math.min((time-this.last)/1000||0.016,0.1);this.last=time;this.distance+=(this.desiredDistance-this.distance)*(1-Math.exp(-dt*8));this.blend=THREE.MathUtils.smoothstep(112-this.distance,12,65);
-    const angle=this.blend*0.68;this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle)+0.001);this.camera.lookAt(this.focus);
-    const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
-    if(Math.abs(this.blend-this.lastBlend)>0.002){
-      for(const[p,mesh]of this.meshes.entries()){
-        if(mesh.morphTargetInfluences)mesh.morphTargetInfluences[0]=this.blend;
-        const attr=this.borders[p].geometry.getAttribute('position');for(let i=0;i<attr.count;i++)attr.setY(i,0.23+heightAt(attr.getX(i),attr.getZ(i))*this.blend);attr.needsUpdate=true;
-      }
-      for(const[mesh,points,offset]of[[this.trees,this.treePoints,0.8],[this.towns,this.townPoints,0.35]] as const){for(let i=0;i<points.length;i++){const p=points[i];this.dummy.position.set(p.x,heightAt(p.x,p.z)*this.blend+offset*this.blend,p.z);this.dummy.rotation.set(0,i*0.8,0);this.dummy.scale.setScalar(this.blend);this.dummy.updateMatrix();mesh.setMatrixAt(i,this.dummy.matrix);}mesh.instanceMatrix.needsUpdate=true;}this.lastBlend=this.blend;
-    }
-    const state=this.state;
-    if(state){
-      const totals=new Map<number,number>();for(const u of state.units)totals.set(u.province,(totals.get(u.province)??0)+1);
-      for(const p of state.provinces){
-        const mesh=this.meshes[p.id],base=new THREE.Color(p.owner<0?0x8d977b:OWNER[p.owner]),highlight=p.id===this.selected?0.2:p.id===this.hover?0.1:0;
-        mesh.material.color.copy(base).lerp(new THREE.Color(0x849075),this.blend*0.4);mesh.material.emissive.setHex(highlight?0xb7aa77:0x000000);mesh.material.emissiveIntensity=highlight;
-        const border=this.borders[p.id].material as THREE.LineBasicMaterial;border.color.setHex(p.id===this.selected?0xf5dc99:0x34433c);
-        const label=this.labels[p.id],name=MAP[p.id].name[this.lang==='zh'?0:1],count=totals.get(p.id)??0,key=`${name}:${count}:${p.owner}`;
-        if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,384,112);ctx.textAlign='center';ctx.fillStyle='#172726';ctx.font='600 29px Georgia, "Noto Serif CJK SC", serif';ctx.fillText(name,192,40);ctx.font='600 25px system-ui';ctx.fillStyle=p.owner<0?'#34443e':'#142b2d';ctx.fillText(`${p.owner<0?'◇':'⚑'}  ${count}`,192,79);label.texture.needsUpdate=true;label.key=key;}
-        label.sprite.position.set(MAP[p.id].center.x,heightAt(MAP[p.id].center.x,MAP[p.id].center.z)*this.blend+0.55,MAP[p.id].center.z-2.3);label.sprite.visible=this.distance>34||p.id===this.selected;
-      }
-      let instance=0;const activeIds=new Set<number>();
-      for(const u of state.units){
-        activeIds.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z};pos.x+=(u.x-pos.x)*(1-Math.exp(-dt*16));pos.z+=(u.z-pos.z)*(1-Math.exp(-dt*16));this.smoothed.set(u.id,pos);
-        const angle=u.target===null?0:Math.atan2(MAP[u.target].center.x-u.x,MAP[u.target].center.z-u.z),color=new THREE.Color(u.owner<0?0x575c50:OWNER[u.owner]);
-        for(let j=0;j<3;j++){
-          const spread=(u.id%3)*0.17,x=pos.x+Math.cos(j*2.1+u.id)*0.4+spread,z=pos.z+Math.sin(j*2.1+u.id)*0.4,y=heightAt(x,z)*this.blend;
-          const scale=u.kind==='cavalry'?1.35:u.kind==='artillery'?1.1:1;
-          this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,angle,0);this.dummy.scale.set(scale,scale,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(instance,this.dummy.matrix);this.bodies.setColorAt(instance,color);
-          this.dummy.position.y=y+0.68*scale;this.dummy.scale.setScalar(scale);this.dummy.updateMatrix();this.heads.setMatrixAt(instance,this.dummy.matrix);instance++;
+  private observer:ResizeObserver;private animation=0;private last=0;
+  private distance=4050;private desiredDistance=4050;private focus=new THREE.Vector3(0,0,-170);
+  private blend=0;private lastMode='';private lastLabels=0;
+  private down:{x:number;y:number;fx:number;fz:number;button:number}|null=null;
+  private smoothed=new Map<number,Vec2>();
+  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void) {
+    this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
+    this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
+    this.renderer.domElement.setAttribute('aria-label','Mercator world administrative map');host.append(this.renderer.domElement);
+    this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
+    const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
+    const sea=new THREE.Mesh(new THREE.PlaneGeometry(16000,16000),new THREE.MeshBasicMaterial({color:0x173742}));sea.rotation.x=-Math.PI/2;sea.position.y=-0.25;this.scene.add(sea);
+    const graticule:number[]=[];
+    for(let lon=-180;lon<=180;lon+=30){const a=project(lon,-85.05112878),b=project(lon,85.05112878);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
+    for(let lat=-80;lat<=80;lat+=20){const a=project(-180,lat),b=project(180,lat);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
+    this.scene.add(this.lines(graticule,0x507078,0.28));
+    const positions:number[]=[],colors:number[]=[],borders:number[]=[],countries:number[]=[];
+    const edgeOwners=new Map<string,{country:string;a:Vec2;b:Vec2;count:number}>();
+    for(const province of MAP) {
+      const start=positions.length/3,base=countryColor(province.country);
+      for(const part of province.parts) {
+        const rings=part.map(r=>r.map(p=>new THREE.Vector2(p.x,p.z)));
+        const contour=rings[0],holes=rings.slice(1);
+        // Earcut via Three.js supports concave outlines and holes. Each island is separate.
+        const points=rings.flat(),triangles=THREE.ShapeUtils.triangulateShape(contour,holes);
+        for(const tri of triangles)for(const i of tri){const p=points[i];positions.push(p.x,0.16,p.y);colors.push(base.r,base.g,base.b);}
+        for(const ring of part)for(let i=0;i<ring.length;i++) {
+          const a=ring[i],b=ring[(i+1)%ring.length];borders.push(a.x,0.24,a.z,b.x,0.24,b.z);
+          const ka=`${a.x.toFixed(4)},${a.z.toFixed(4)}`,kb=`${b.x.toFixed(4)},${b.z.toFixed(4)}`,key=ka<kb?`${ka}|${kb}`:`${kb}|${ka}`;
+          const edge=edgeOwners.get(key);
+          if(edge){edge.count++;if(edge.country!==province.country)countries.push(a.x,0.27,a.z,b.x,0.27,b.z);}
+          else edgeOwners.set(key,{country:province.country,a,b,count:1});
         }
       }
-      for(const id of this.smoothed.keys())if(!activeIds.has(id))this.smoothed.delete(id);
-      this.bodies.count=this.heads.count=instance;this.bodies.visible=this.heads.visible=this.blend>0.15;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
+      this.ranges.push({start,count:positions.length/3-start});
     }
-    this.renderer.render(this.scene,this.camera);this.animation=requestAnimationFrame(this.frame);
+    for(const e of edgeOwners.values())if(e.count===1)countries.push(e.a.x,0.27,e.a.z,e.b.x,0.27,e.b.z);
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    this.colors=new THREE.Float32BufferAttribute(colors,3);this.colors.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('color',this.colors);
+    const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
+    const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
+    this.relief(material);this.land=new THREE.Mesh(geometry,material);this.scene.add(this.land);
+    this.admin=this.lines(borders,0x334b40,0.14);this.relief(this.admin.material as THREE.Material);this.scene.add(this.admin);
+    const outlines=this.lines(countries,0x233f39,0.7);this.relief(outlines.material as THREE.Material);this.scene.add(outlines);
+    this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.scene.add(this.selection);
+    for(let i=0;i<48;i++) {
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
+      const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));sprite.renderOrder=5;sprite.visible=false;
+      this.labels.push({sprite,canvas,texture,key:''});this.scene.add(sprite);
+    }
+    this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),MAX_UNITS*3);
+    this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),MAX_UNITS*3);
+    this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(0.5,0.6,0.65),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
+    for(const mesh of [this.bodies,this.heads,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
+    const c=this.renderer.domElement;c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
+    this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
+  }
+  private lines(points:number[],color:number,opacity:number) {
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
+    return new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false}));
+  }
+  private relief(material:THREE.Material) {
+    material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.vertexShader='uniform float uRelief;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y += uRelief * (0.32 * (1.0 + sin(position.x * 0.18) * cos(position.z * 0.22)));');};
+    material.customProgramCacheKey=()=> 'earth-relief-v1';
+  }
+  update(state:GameState,selected:number,lang:'zh'|'en') {
+    this.state=state;this.lang=lang;
+    for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);}
+    if(selected!==this.selected){if(this.selected>=0)this.dirty.add(this.selected);this.selected=selected;if(selected>=0)this.dirty.add(selected);this.drawSelection();this.lastLabels=0;}
+  }
+  private drawSelection() {
+    const points:number[]=[];
+    if(this.selected>=0)for(const part of MAP[this.selected].parts)for(const ring of part)for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];points.push(a.x,0.32,a.z,b.x,0.32,b.z);}
+    this.selection.geometry.dispose();this.selection.geometry=new THREE.BufferGeometry();this.selection.geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
+  }
+  zoom(delta:number){this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
+  view(mode:'strategic'|'terrain') {
+    if(mode==='strategic'){this.focus.set(0,0,-170);this.desiredDistance=4050;}
+    else if(this.selected>=0)this.focusProvince(this.selected);
+  }
+  focusProvince(id:number) {
+    const p=MAP[id];if(!p)return;this.focus.set(p.center.x,0,p.center.z);
+    this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
+  }
+  private resize=()=>{const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();};
+  private pick(e:PointerEvent):number {
+    const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
+    const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
+    for(let i=0;i<4;i++){
+      if(!this.ray.ray.intersectPlane(plane,point))return -1;
+      plane.constant=-(0.16+(heightAt(point.x,point.z)-0.16)*this.blend);
+    }
+    return provinceAt(point.x,point.z);
+  }
+  private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
+  private pointerMove=(e:PointerEvent)=>{
+    if(this.down&&this.down.button!==2){const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+      this.focus.x=THREE.MathUtils.clamp(this.down.fx-(e.clientX-this.down.x)*scale,BOUNDS.left,BOUNDS.right);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
+  };
+  private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
+  private pointerCancel=()=>{this.down=null;};
+  private wheel=(e:WheelEvent)=>{e.preventDefault();this.zoom(e.deltaY*0.12);};
+  private contextMenu=(e:Event)=>e.preventDefault();
+  private drawLabels(time:number) {
+    if(time-this.lastLabels<180)return;this.lastLabels=time;const near=this.distance<500;
+    const candidates=near?MAP.filter(p=>Math.abs(p.center.x-this.focus.x)<this.distance*this.camera.aspect*0.45&&Math.abs(p.center.z-this.focus.z)<this.distance*0.5).sort((a,b)=>(a.id===this.selected?-1:b.id===this.selected?1:(a.center.x-this.focus.x)**2+(a.center.z-this.focus.z)**2-(b.center.x-this.focus.x)**2-(b.center.z-this.focus.z)**2)):[];
+    const occupied:{x:number;y:number}[]=[];let n=0,townCount=0;
+    const paint=(name:string,x:number,z:number,ocean=false)=>{
+      const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.host.clientWidth/2,sy=(1-screen.y)*this.host.clientHeight/2;
+      if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>Math.abs(p.x-sx)<95&&Math.abs(p.y-sy)<27)||n>=48)return;
+      occupied.push({x:sx,y:sy});const label=this.labels[n++],key=`${name}:${ocean}`;
+      if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
+        ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#8ca7ac':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
+      label.sprite.visible=true;label.sprite.position.set(x,0.9+heightAt(x,z)*this.blend,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
+    };
+    for(const p of candidates){
+      paint(p.name[this.lang==='zh'?0:1],p.center.x,p.center.z);
+      if(this.blend>0.1&&townCount<188){for(let i=0;i<4;i++){const x=p.center.x+Math.cos(i*2.3)*0.65,z=p.center.z+Math.sin(i*2.3)*0.65;if(!containsPart(p.parts[0],x,z))continue;
+        this.dummy.position.set(x,heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,i,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
+    }
+    if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,81]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
+    for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
+  }
+  private frame=(time:number)=>{
+    const dt=Math.min((time-this.last)/1000||0.016,0.1);this.last=time;this.distance+=(this.desiredDistance-this.distance)*(1-Math.exp(-dt*9));
+    this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
+    const angle=this.blend*0.6;this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle)+0.001);this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
+    const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
+    (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.16:this.distance>300?0.28:0.55;
+    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?countryColor(MAP[id].country):new THREE.Color(OWNER[owner]);if(id===this.selected)color.lerp(new THREE.Color(0xf4d38c),0.45);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    let n=0;const live=new Set<number>();
+    for(const u of this.state?.units??[]) {
+      live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);pos.x+=(u.x-pos.x)*t;pos.z+=(u.z-pos.z)*t;this.smoothed.set(u.id,pos);
+      if(this.blend<0.1||Math.abs(pos.x-this.focus.x)>this.distance||Math.abs(pos.z-this.focus.z)>this.distance)continue;
+      for(let j=0;j<3;j++){
+        const x=pos.x+Math.cos(j*2.1+u.id)*0.3,z=pos.z+Math.sin(j*2.1+u.id)*0.3,y=heightAt(x,z)*this.blend;
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:OWNER[u.owner]));
+        this.dummy.position.y=y+0.68;this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
+      }
+    }
+    for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
+    this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
+    this.drawLabels(time);this.renderer.render(this.scene,this.camera);
+    this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection='EPSG:3857';this.renderer.domElement.dataset.provinces=String(MAP.length);
+    this.animation=requestAnimationFrame(this.frame);
   };
   dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
-    this.scene.traverse(object=>{const mesh=object as THREE.Mesh;mesh.geometry?.dispose();if(mesh.material)for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.dispose();});for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
+    this.scene.traverse(o=>{const m=o as THREE.Mesh;m.geometry?.dispose();if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])material.dispose();});for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
 }

@@ -1,4 +1,4 @@
-import { MAP, BOUNDS, provinceAt } from './map.ts';
+import { MAP, boundsOf, containsPart } from './map.ts';
 import type { GameState } from './types.ts';
 export interface Grid {width:number;height:number;costs:Float32Array}
 export interface Flow {width:number;height:number;goal:number;distance:Float32Array;next:Int32Array}
@@ -21,20 +21,44 @@ export function buildFlow(grid:Grid,goal:number):Flow{
     }
   }return{width,height,goal,distance,next};
 }
-export const CELL=0.8,WIDTH=130,HEIGHT=78;
-const labels=new Int16Array(WIDTH*HEIGHT);
-for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++)labels[y*WIDTH+x]=provinceAt(BOUNDS.left+(x+0.5)*CELL,BOUNDS.top+(y+0.5)*CELL);
-export function cellAt(x:number,z:number):number{const a=Math.floor((x-BOUNDS.left)/CELL),b=Math.floor((z-BOUNDS.top)/CELL);return a<0||b<0||a>=WIDTH||b>=HEIGHT?-1:b*WIDTH+a;}
-export function cellCenter(i:number){return{x:BOUNDS.left+(i%WIDTH+0.5)*CELL,z:BOUNDS.top+(Math.floor(i/WIDTH)+0.5)*CELL};}
-export class Navigator{
-  cache=new Map<string,Flow>();builds=0;
-  get(state:GameState,owner:number,target:number):Flow{
-    const key=`${owner}:${target}:${state.topology}`,old=this.cache.get(key);if(old)return old;
-    const costs=new Float32Array(labels.length);
-    for(let i=0;i<labels.length;i++){const id=labels[i];costs[i]=id>=0&&(state.provinces[id].owner===owner||id===target)?(MAP[id].terrain==='highland'?2:MAP[id].terrain==='forest'?1.4:1):Infinity;}
-    const c=MAP[target].center,flow=buildFlow({width:WIDTH,height:HEIGHT,costs},cellAt(c.x,c.z));
-    if(this.cache.size>=64)this.cache.delete(this.cache.keys().next().value!);
-    this.cache.set(key,flow);this.builds++;return flow;
+
+export interface LocalFlow extends Flow { left:number; top:number; cellSize:number; from:number; target:number }
+export function cellAt(x:number,z:number,flow:LocalFlow):number {
+  const a=Math.floor((x-flow.left)/flow.cellSize),b=Math.floor((z-flow.top)/flow.cellSize);
+  return a<0||b<0||a>=flow.width||b>=flow.height?-1:b*flow.width+a;
+}
+export function cellCenter(i:number,flow:LocalFlow) {
+  return {x:flow.left+(i%flow.width+0.5)*flow.cellSize,z:flow.top+(Math.floor(i/flow.width)+0.5)*flow.cellSize};
+}
+export class Navigator {
+  cache=new Map<string,LocalFlow>();builds=0;
+  get(state:GameState,owner:number,target:number,from:number):LocalFlow {
+    const key=`${owner}:${from}:${target}:${state.topology}`,cached=this.cache.get(key);if(cached)return cached;
+    // A local land corridor, not a global coarse raster. Disjoint islands are not bridges.
+    const a=MAP[from],b=MAP[target],bounds=boundsOf([...a.parts[0][0],...b.parts[0][0]]);
+    const cellSize=Math.max(bounds.right-bounds.left,bounds.bottom-bounds.top)/190;
+    const left=bounds.left-cellSize*2,top=bounds.top-cellSize*2;
+    const width=Math.ceil((bounds.right-left)/cellSize)+2,height=Math.ceil((bounds.bottom-top)/cellSize)+2;
+    const costs=new Float32Array(width*height).fill(Infinity),meta={left,top,cellSize,width,height,from,target};
+    let goal=-1,nearest=Infinity;
+    for(let i=0;i<costs.length;i++){
+      const x=left+(i%width+0.5)*cellSize,z=top+(Math.floor(i/width)+0.5)*cellSize;
+      const inTarget=containsPart(b.parts[0],x,z),inSource=containsPart(a.parts[0],x,z);
+      if(inTarget||inSource)costs[i]=1;
+      const distance=(x-b.center.x)**2+(z-b.center.z)**2;
+      if(inTarget&&distance<nearest){nearest=distance;goal=i;}
+    }
+    const result={...buildFlow({width,height,costs},goal),...meta};
+    if(this.cache.size>=32)this.cache.delete(this.cache.keys().next().value!);
+    this.cache.set(key,result);this.builds++;return result;
+  }
+  canMove(flow:LocalFlow,x:number,z:number,toX:number,toZ:number):boolean {
+    const count=Math.max(2,Math.ceil(Math.hypot(toX-x,toZ-z)/(flow.cellSize*0.2)));
+    for(let i=1;i<=count;i++){
+      const t=i/count,px=x+(toX-x)*t,pz=z+(toZ-z)*t;
+      if(!containsPart(MAP[flow.from].parts[0],px,pz)&&!containsPart(MAP[flow.target].parts[0],px,pz))return false;
+    }
+    return true;
   }
   clear(){this.cache.clear();}
 }

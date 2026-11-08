@@ -22,7 +22,7 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
     try{
       // Same-origin only: the server also serves the built game. No permissive CORS.
       if(req.headers.origin){const origin=new URL(req.headers.origin);if(origin.host!==req.headers.host){json(res,403,{error:'originDenied'});return;}}
-      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:'0.1.0'});return;}
+      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:'0.2.0'});return;}
       if(req.method==='POST'&&url.pathname==='/api/rooms'){
         if(rooms.size>=(options.maxRooms??16)){json(res,503,{error:'serverFull'});return;}
         const input=await body(req);if(!validateSetup(input?.setup)){json(res,400,{error:'invalidSetup'});return;}

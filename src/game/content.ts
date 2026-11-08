@@ -1,7 +1,7 @@
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
-export const VERSION='0.1.0';
-export const MAP_ID='frontier-32-v1' as const;
+export const VERSION='0.2.0';
+export const MAP_ID='earth-admin1-mercator-v1' as const;
 export const MAX_UNITS=360;
 export const PLAYER_CAP=90;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer'];
@@ -18,7 +18,7 @@ export const TALENTS:{id:string;kind?:Kind}[]=[
   {id:'logistics'},{id:'conqueror'},{id:'charge',kind:'cavalry'},
   {id:'barrage',kind:'artillery'},{id:'sappers',kind:'engineer'},
 ];
-export function upgradeCost(level:number):number{return Math.floor(30*Math.pow(level+1,1.65));}
+export function upgradeCost(level:number):number {return Math.floor(30*Math.pow(level+1,1.65));}
 export function stats(p:Player|undefined,kind:Kind) {
   const b=UNITS[kind],u=p?.upgrades[kind],has=(id:string)=>p?.talents.includes(id)??false;
   return {

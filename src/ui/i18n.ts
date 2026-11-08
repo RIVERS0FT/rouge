@@ -1,10 +1,11 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
- title:['诸省之争','A continent. Your command.'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
- prototype:['可玩原型 · 0.1','PLAYABLE PROTOTYPE · 0.1'],single:['单人战役','Single player'],multiplayer:['局域网联机','LAN multiplayer'],saves:['战役档案','Campaign archives'],
+ adminAreas:['行政区','administrative areas'],mapSearch:['搜索省份 / 国家 / 编码','Search province / country / code'],worldView:['全球墨卡托视图','Global Mercator view'],
+ title:['诸省之争','The world. Your command.'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
+ prototype:['世界地图 · 0.2','WORLD ATLAS · 0.2'],single:['单人战役','Single player'],multiplayer:['局域网联机','LAN multiplayer'],saves:['战役档案','Campaign archives'],
  start:['开始征途','Begin campaign'],back:['返回','Back'],close:['关闭','Close'],settings:['语言','Language'],continue:['继续战役','Continue campaign'],
  menuBrief:['占领省份，集结军队，以战养战。用单位升级与领袖天赋，构筑你的征服之路。','Claim provinces. Raise armies. Forge a conquest through permanent-in-run upgrades and changing leader talents.'],
- theatre:['边境大陆','The Frontier'],theatreSub:['32 个架空省份 · 即时战略 · 肉鸽构筑','32 fictional provinces · Real-time strategy · Roguelike builds'],
+ theatre:['世界战场','World theatre'],theatreSub:['真实行政区 · 墨卡托投影 · 肉鸽战略','Real administrative borders · Mercator projection · Roguelike strategy'],
  platformPending:['Steam / Epic：尚未接入','Steam / Epic: not integrated'],offlineHint:['单人无需账号；联机需先启动局域网服务器。','No account for solo. Multiplayer requires a running LAN server.'],
  chooseLeader:['选择你的领袖','Choose your leader'],chooseUnits:['编成初始军团','Assemble your army'],chooseHint:['基础步兵必选，最多携带三种兵种。选择影响本局生产与天赋池。','Infantry is required. Bring up to three unit types; your selection shapes production and talents.'],
  commander:['指挥官名号','Commander name'],yourName:['指挥官','Commander'],setup:['战役部署','Campaign deployment'],loadout:['出征配置','Army loadout'],
@@ -24,7 +25,7 @@ export const STRINGS:Record<string,[string,string]>={
  paused:['已暂停','Paused'],pause:['暂停','Pause'],resume:['继续','Resume'],save:['保存战役','Save campaign'],menu:['返回主菜单','Main menu'],exitConfirm:['离开战役？单人战役将尝试自动保存。','Leave this campaign? Solo progress will be auto-saved when storage is available.'],
  strategic:['战略地图','Strategic map'],terrain:['三维地形','3D terrain'],zoomIn:['拉近','Zoom in'],zoomOut:['拉远','Zoom out'],focus:['聚焦此省','Focus province'],
  controls:['左键选择 · 拖动平移 · 滚轮缩放 · 右键下令','Click to select · Drag to pan · Scroll to zoom · Right-click to order'],
- objective:['征服目标','Conquest objective'],objectiveDesc:['控制 20 / 32 个省份，并保持 30 秒。消灭全部对手也可获胜。','Hold 20 of 32 provinces for 30 seconds, or eliminate all opponents.'],
+ objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 个可玩行政区并保持 30 秒，或消灭全部对手。当前开局在欧洲大陆。','Hold {count} playable areas for 30 seconds, or eliminate all opponents. The opening theatre is mainland Europe.'],
  domination:['统治进度','Domination'],seconds:['秒','s'],province:['省份','Province'],owner:['控制者','Controlled by'],garrison:['驻军','Garrison'],production:['自动生产','Auto-production'],
  recovering:['正在恢复生产','Production recovering'],contested:['正在被争夺','Contested'],stable:['控制稳定','Stable control'],capture:['占领进度','Capture progress'],
  send:['调兵 / 进攻','March / attack'],sendHint:['只能向相邻省份下令。基础生产不消耗军费。','Issue orders to adjacent provinces. Basic production does not spend treasury.'],

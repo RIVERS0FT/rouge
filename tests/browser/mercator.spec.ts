@@ -1,0 +1,20 @@
+import {test,expect} from '@playwright/test';
+test('real global Mercator atlas, geographic search and near terrain',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await expect(page.locator('canvas[data-ready="true"]')).toBeVisible({timeout:30000});
+ await expect(page.locator('canvas')).toHaveAttribute('data-projection','EPSG:3857');
+ await expect(page.locator('canvas')).toHaveAttribute('data-provinces','4596');
+ await page.screenshot({path:'artifacts/mercator-menu.png'});
+ await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
+ await expect(page.locator('.hud-top')).toBeVisible();
+ await page.getByRole('button',{name:'2D',exact:true}).click();await page.waitForTimeout(1800);
+ await page.screenshot({path:'artifacts/mercator-world.png'});
+ await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
+ await expect(page.locator('.province-panel h2')).toContainText('江苏');
+ await page.waitForTimeout(1800);await page.screenshot({path:'artifacts/mercator-jiangsu.png'});
+ await page.getByRole('button',{name:'English',exact:true}).click();
+ await page.getByTestId('map-search').fill('California');await page.locator('.map-search-results button').first().click();
+ await expect(page.locator('.province-panel h2')).toContainText('California');
+ await page.getByRole('button',{name:'2D',exact:true}).click();
+ await page.waitForTimeout(1500);await expect(page.locator('.render-error')).toHaveCount(0);expect(errors).toEqual([]);
+});
