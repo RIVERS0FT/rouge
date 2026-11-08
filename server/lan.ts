@@ -4,18 +4,20 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Engine, createGame } from '../src/game/engine.ts';
+import { encodeFrame, type SnapshotBase } from '../src/platform/replication.ts';
 import { validateSetup, LEADERS } from '../src/game/content.ts';
 import type { PlayerSetup } from '../src/game/types.ts';
 interface Seat {id:number;setup:PlayerSetup;token:string;requests:number;window:number}
 interface Room {code:string;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
 const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json'};
 export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
+  const bases=new WeakMap<ServerResponse,SnapshotBase>();
   const rooms=new Map<string,Room>(),dist=resolve(options.dist??fileURLToPath(new URL('../dist',import.meta.url)));
   const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),seats:r.seats.map(s=>({id:s.id,name:s.setup.name,leader:s.setup.leader,loadout:s.setup.loadout}))});
   function json(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
   function emit(res:ServerResponse,event:unknown){if(!res.destroyed&&res.writableLength<1_000_000)res.write(`data: ${JSON.stringify(event)}\n\n`);else res.destroy();}
   function broadcast(room:Room){for(const res of room.streams.values())emit(res,{type:'room',room:info(room)});}
-  function snapshot(room:Room){if(!room.engine)return;for(const[actor,res]of room.streams){const state=structuredClone(room.engine.state);for(const p of state.players)if(p.id!==actor)p.choices=[];emit(res,{type:'state',state});}}
+  function snapshot(room:Room){if(!room.engine)return;for(const[actor,res]of room.streams){const encoded=encodeFrame(room.engine.state,bases.get(res),actor);emit(res,encoded.frame);bases.set(res,encoded.base);}}
   async function body(req:IncomingMessage):Promise<any>{let text='';for await(const chunk of req){text+=chunk.toString();if(text.length>8192)throw new Error('tooLarge');}try{return JSON.parse(text);}catch{throw new Error('invalidJson');}}
   const server=createServer(async(req,res)=>{
     const url=new URL(req.url??'/',`http://${req.headers.host??'localhost'}`);
@@ -57,7 +59,7 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
         }
         if(action==='command'&&req.method==='POST'){
           if(!room.engine){json(res,409,{error:'notPlaying'});return;}
-          const input=await body(req),result=room.engine.command(seat.id,input?.command);json(res,result.ok?200:400,result);return;
+          const input=await body(req),result=room.engine.command(seat.id,input?.command);json(res,result.ok?200:400,result);if(result.ok)snapshot(room);return;
         }
         json(res,405,{error:'methodNotAllowed'});return;
       }

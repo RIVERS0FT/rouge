@@ -1,3 +1,4 @@
+import { applyFrame } from './replication.ts';
 import type { Command, GameState, Result, PlayerSetup } from '../game/types.ts';
 export interface Seat {id:number;name:string;leader:string;loadout:string[]}
 export interface RoomInfo {code:string;host:number;started:boolean;seats:Seat[]}
@@ -24,14 +25,14 @@ export async function api(path:string,body?:unknown,token?:string):Promise<any>{
 export async function createRoom(setup:PlayerSetup):Promise<Ticket>{return api('/rooms',{setup});}
 export async function joinRoom(code:string,setup:PlayerSetup):Promise<Ticket>{return api(`/rooms/${code.toUpperCase()}/join`,{setup});}
 export function remoteSession(ticket:Ticket,onState:(s:GameState)=>void,onRoom:(r:RoomInfo)=>void,onStatus:(s:'connected'|'reconnecting')=>void,onResult:(r:Result)=>void):Session{
-  let closed=false;const controller=new AbortController();let retry:ReturnType<typeof setTimeout>|undefined;
+  let closed=false,current:GameState|null=null;const controller=new AbortController();let retry:ReturnType<typeof setTimeout>|undefined;
   async function connect(){
     try{
       const response=await fetch(`/api/rooms/${ticket.code}/events`,{headers:{Authorization:`Bearer ${ticket.token}`},signal:controller.signal});
       if(!response.ok||!response.body)throw new Error('connectionLost');
       const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';onStatus('connected');
       while(!closed){const{done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end:number;
-        while((end=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,end);buffer=buffer.slice(end+2);const line=chunk.split('\n').find(l=>l.startsWith('data: '));if(line){const event=JSON.parse(line.slice(6));if(event.type==='state')onState(event.state);else if(event.type==='room')onRoom(event.room);}}
+        while((end=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,end);buffer=buffer.slice(end+2);const line=chunk.split('\n').find(l=>l.startsWith('data: '));if(line){const event=JSON.parse(line.slice(6));if(event.type==='state'||event.type==='delta'){current=applyFrame(current,event);onState(current);}else if(event.type==='room')onRoom(event.room);}}
       }
     }catch{ /* Retry only while this session still owns the connection. */ }
     if(!closed){onStatus('reconnecting');retry=setTimeout(connect,2000);}

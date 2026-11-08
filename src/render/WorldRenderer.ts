@@ -33,7 +33,7 @@ export class WorldRenderer {
   private dirty=new Set<number>();
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
   private observer:ResizeObserver;private animation=0;private last=0;
-  private distance=4050;private desiredDistance=4050;private focus=new THREE.Vector3(0,0,-170);
+  private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(0,0,-170);
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number}|null=null;
   private smoothed=new Map<number,Vec2>();
@@ -58,7 +58,7 @@ export class WorldRenderer {
         const contour=rings[0],holes=rings.slice(1);
         // Earcut via Three.js supports concave outlines and holes. Each island is separate.
         const points=rings.flat(),triangles=THREE.ShapeUtils.triangulateShape(contour,holes);
-        for(const tri of triangles)for(const i of tri){const p=points[i];positions.push(p.x,0.16,p.y);colors.push(base.r,base.g,base.b);}
+        for(const tri of triangles)for(const i of [tri[0],tri[2],tri[1]]){const p=points[i];positions.push(p.x,0.16,p.y);colors.push(base.r,base.g,base.b);}
         for(const ring of part)for(let i=0;i<ring.length;i++) {
           const a=ring[i],b=ring[(i+1)%ring.length];borders.push(a.x,0.24,a.z,b.x,0.24,b.z);
           const ka=`${a.x.toFixed(4)},${a.z.toFixed(4)}`,kb=`${b.x.toFixed(4)},${b.z.toFixed(4)}`,key=ka<kb?`${ka}|${kb}`:`${kb}|${ka}`;
@@ -112,7 +112,7 @@ export class WorldRenderer {
   }
   zoom(delta:number){this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
   view(mode:'strategic'|'terrain') {
-    if(mode==='strategic'){this.focus.set(0,0,-170);this.desiredDistance=4050;}
+    if(mode==='strategic'){this.focus.set(0,0,-170);this.desiredDistance=4400;}
     else if(this.selected>=0)this.focusProvince(this.selected);
   }
   focusProvince(id:number) {

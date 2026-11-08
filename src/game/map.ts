@@ -21,7 +21,7 @@ export function boundsOf(points: Vec2[]) {
 }
 export const MAP: ProvinceDef[] = data.provinces.map((p, id) => {
   const parts = p.geometry.map(poly => poly.map(ring => ring.slice(0, -1).map(v => project(v[0], v[1]))));
-  return { id, code: p.code, name: p.name as [string, string], country: p.country, countryName: p.countryName,
+  return { id, code: p.code, name: [p.name[0] || p.name[1] || p.countryName || p.code, p.name[1] || p.name[0] || p.countryName || p.code] as [string, string], country: p.country, countryName: p.countryName || p.country,
     center: project(p.center[0], p.center[1]), polygon: parts[0][0], parts, neighbors: p.neighbors,
     terrain: 'plain', playable: p.country !== 'ATA', bounds: boundsOf(parts[0][0]) };
 });
