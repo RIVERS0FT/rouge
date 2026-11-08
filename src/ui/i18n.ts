@@ -1,11 +1,11 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
- adminAreas:['行政区','administrative areas'],mapSearch:['搜索省份 / 国家 / 编码','Search province / country / code'],worldView:['全球墨卡托视图','Global Mercator view'],
+ incompatibleMap:['地图版本或投影不兼容，请刷新页面并使用同版本主机。','Map or projection mismatch. Reload and use a matching host build.'],adminAreas:['行政区','administrative areas'],mapSearch:['搜索省份 / 国家 / 编码','Search province / country / code'],worldView:['全球米勒视图','Global Miller view'],
  title:['诸省之争','The world. Your command.'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
  prototype:['世界地图 · 0.2','WORLD ATLAS · 0.2'],single:['单人战役','Single player'],multiplayer:['局域网联机','LAN multiplayer'],saves:['战役档案','Campaign archives'],
  start:['开始征途','Begin campaign'],back:['返回','Back'],close:['关闭','Close'],settings:['语言','Language'],continue:['继续战役','Continue campaign'],
  menuBrief:['占领省份，集结军队，以战养战。用单位升级与领袖天赋，构筑你的征服之路。','Claim provinces. Raise armies. Forge a conquest through permanent-in-run upgrades and changing leader talents.'],
- theatre:['世界战场','World theatre'],theatreSub:['真实行政区 · 墨卡托投影 · 肉鸽战略','Real administrative borders · Mercator projection · Roguelike strategy'],
+ theatre:['世界战场','World theatre'],theatreSub:['真实行政区 · 米勒圆柱投影 · 肉鸽战略','Real administrative borders · Miller cylindrical projection · Roguelike strategy'],
  platformPending:['Steam / Epic：尚未接入','Steam / Epic: not integrated'],offlineHint:['单人无需账号；联机需先启动局域网服务器。','No account for solo. Multiplayer requires a running LAN server.'],
  chooseLeader:['选择你的领袖','Choose your leader'],chooseUnits:['编成初始军团','Assemble your army'],chooseHint:['基础步兵必选，最多携带三种兵种。选择影响本局生产与天赋池。','Infantry is required. Bring up to three unit types; your selection shapes production and talents.'],
  commander:['指挥官名号','Commander name'],yourName:['指挥官','Commander'],setup:['战役部署','Campaign deployment'],loadout:['出征配置','Army loadout'],

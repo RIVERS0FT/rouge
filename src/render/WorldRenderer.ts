@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MAP, BOUNDS, heightAt, containsPart, provinceAt } from '../game/map.ts';
-import { project } from '../game/geo.ts';
+import { project, MAX_LATITUDE, PROJECTION_ID, worldViewDistance } from '../game/geo.ts';
 import { MAX_UNITS } from '../game/content.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
 export const FACTION_COLORS=['#609baa','#bb6e62','#c0a263','#8a91b5'];
@@ -33,7 +33,8 @@ export class WorldRenderer {
   private dirty=new Set<number>();
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
   private observer:ResizeObserver;private animation=0;private last=0;
-  private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(0,0,-170);
+  private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(0,0,0);
+  private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number}|null=null;
@@ -42,12 +43,12 @@ export class WorldRenderer {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
-    this.renderer.domElement.setAttribute('aria-label','Mercator world administrative map');host.append(this.renderer.domElement);
+    this.renderer.domElement.setAttribute('aria-label','Miller cylindrical world administrative map');host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     const sea=new THREE.Mesh(new THREE.PlaneGeometry(16000,16000),new THREE.MeshBasicMaterial({color:0x173742}));sea.rotation.x=-Math.PI/2;sea.position.y=-0.25;this.scene.add(sea);
     const graticule:number[]=[];
-    for(let lon=-180;lon<=180;lon+=30){const a=project(lon,-85.05112878),b=project(lon,85.05112878);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
+    for(let lon=-180;lon<=180;lon+=30){const a=project(lon,-MAX_LATITUDE),b=project(lon,MAX_LATITUDE);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     for(let lat=-80;lat<=80;lat+=20){const a=project(-180,lat),b=project(180,lat);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     this.scene.add(this.lines(graticule,0x507078,0.28));
     const positions:number[]=[],colors:number[]=[],borders:number[]=[],countries:number[]=[];
@@ -111,17 +112,17 @@ export class WorldRenderer {
     if(this.selected>=0)for(const part of MAP[this.selected].parts)for(const ring of part)for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];points.push(a.x,0.32,a.z,b.x,0.32,b.z);}
     this.selection.geometry.dispose();this.selection.geometry=new THREE.BufferGeometry();this.selection.geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
   }
-  zoom(delta:number){this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
+  zoom(delta:number){this.renderer.domElement.dataset.settled='false';this.globalView=false;this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
   view(mode:'strategic'|'terrain') {
-    this.invalidated=true;
-    if(mode==='strategic'){this.focus.set(0,0,-170);this.desiredDistance=4400;}
+    this.renderer.domElement.dataset.settled='false';this.invalidated=true;
+    if(mode==='strategic'){this.globalView=true;this.focus.set(0,0,0);this.desiredDistance=worldViewDistance(this.camera.aspect);}
     else if(this.selected>=0)this.focusProvince(this.selected);
   }
   focusProvince(id:number) {
-    const p=MAP[id];if(!p)return;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);
+    const p=MAP[id];if(!p)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.invalidated=true;const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();};
+  private resize=()=>{this.invalidated=true;const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldViewDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.resized=true;};
   private pick(e:PointerEvent):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -133,7 +134,7 @@ export class WorldRenderer {
   }
   private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
   private pointerMove=(e:PointerEvent)=>{
-    if(this.down&&this.down.button!==2){this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+    if(this.down&&this.down.button!==2){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
       this.focus.x=THREE.MathUtils.clamp(this.down.fx-(e.clientX-this.down.x)*scale,BOUNDS.left,BOUNDS.right);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
   };
   private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
@@ -171,7 +172,7 @@ export class WorldRenderer {
     const dt=Math.min((time-this.last)/1000||0.016,0.1);this.last=time;this.distance+=(this.desiredDistance-this.distance)*(1-Math.exp(-dt*9));
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
-    this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
+    this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle)+0.001);this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.16:this.distance>300?0.28:0.55;
@@ -189,7 +190,7 @@ export class WorldRenderer {
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
     this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
     this.drawLabels(time);this.renderer.render(this.scene,this.camera);
-    this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection='EPSG:3857';this.renderer.domElement.dataset.provinces=String(MAP.length);
+    this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
   dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     this.scene.traverse(o=>{const m=o as THREE.Mesh;m.geometry?.dispose();if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])material.dispose();});for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}

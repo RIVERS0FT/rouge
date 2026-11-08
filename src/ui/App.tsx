@@ -9,7 +9,7 @@ import {WorldRenderer,FACTION_COLORS} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
 import {t,timeLabel,type Language} from './i18n.ts';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
-function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
+function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
 const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',warden:'▱',vanguard:'↗',steward:'◇'};
 export function App(){
  const[mapQuery,setMapQuery]=useState('');
@@ -43,7 +43,7 @@ export function App(){
   try{const seed=crypto.getRandomValues(new Uint32Array(1))[0];launchLocal(createGame([setup(),{name:text('eastAI'),leader:'vanguard',loadout:['infantry','cavalry','engineer'],ai:true},{name:text('southAI'),leader:'steward',loadout:['infantry','artillery','engineer'],ai:true}],seed,crypto.randomUUID()));}catch(e){report(e);}
  }
  function connect(ticket:Ticket){
-  session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}
+  session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket.miller.v1',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}
   setGame(null);setActor(ticket.actor);setRoom(null);setScreen('lobby');setModal(null);setNetwork('reconnecting');
   let initialized=false;
   session.current=remoteSession(ticket,value=>{setGame(value);setScreen('game');if(!initialized){setSelected(value.provinces.find(p=>p.owner===ticket.actor)?.id??0);initialized=true;}},setRoom,setNetwork,notifyResult);
@@ -54,7 +54,7 @@ export function App(){
  function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
  function togglePause(){if(session.current?.mode!=='solo')return;session.current.pause?.(!paused);setPaused(!paused);}
  function leave(){if(screen==='game'&&!window.confirm(text('exitConfirm')))return;if(session.current?.mode==='solo'&&latest.current){if(!saveCurrent(`auto-${latest.current.campaign}`,text('autosave'),true)&&!window.confirm(text('saveFailed')))return;}
-  session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket');}catch{}setTicket(null);
+  session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket.miller.v1');}catch{}setTicket(null);
  }
  function load(id:string){try{const{state,recovered}=readSave(localStorage,id);launchLocal(state);if(recovered)setToast(text('recovered'));}catch(e){report(e);}}
  function exportCurrent(){if(!game)return;const blob=new Blob([encodeSave(game,saveName||text('theatre'))],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`rouge-${game.campaign}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),0);}
@@ -64,7 +64,7 @@ export function App(){
  return <div className={`app ${screen==='menu'?'is-menu':''}`}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
   <div className="map-vignette"/>
-  <div className="atlas-credit">NATURAL EARTH · EPSG:3857 · {MAP.length.toLocaleString()} {text('adminAreas')}</div>
+  <div className="atlas-credit">NATURAL EARTH · MILLER · {MAP.length.toLocaleString()} {text('adminAreas')}</div>
   {screen==='game'&&<div className="map-search"><input data-testid="map-search" aria-label={text('mapSearch')} placeholder={text('mapSearch')} value={mapQuery} onChange={e=>setMapQuery(e.target.value)}/>
     {mapQuery.trim().length>0&&<div className="map-search-results">{MAP.filter(p=>[...p.name,p.code,p.countryName].some(v=>v.toLocaleLowerCase().includes(mapQuery.trim().toLocaleLowerCase()))).slice(0,8).map(p=><button key={p.id} onClick={()=>{setSelected(p.id);world.current?.focusProvince(p.id);setMapQuery('');}}><b>{p.name[language==='zh'?0:1]}</b><small>{p.countryName} · {p.code}</small></button>)}</div>}
   </div>}

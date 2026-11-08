@@ -24,3 +24,9 @@ test('replication never sends another player pending talent candidates',()=>{
  const a=encodeFrame(s,undefined,1);assert.deepEqual(a.frame.state.players[0].choices,[]);assert.deepEqual(s.players[0].choices,['drill']);
  const b=encodeFrame(s,a.base,1);assert.deepEqual(b.frame.state.players[0].choices,[]);assert.deepEqual(b.frame.state.players[1].choices,['march']);
 });
+
+test('full snapshots reject a different projection before rendering foreign coordinates',()=>{
+ const s=createGame(setup);
+ assert.throws(()=>applyFrame(null,{type:'state',state:{...s,map:'earth-admin1-mercator-v1',version:2}}),/incompatibleMap/);
+ assert.throws(()=>applyFrame(null,{type:'state',state:{...s,version:2}}),/incompatibleMap/);
+});

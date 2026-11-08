@@ -1,3 +1,4 @@
+import { MAP_ID } from '../game/content.ts';
 import type { GameState, Province } from '../game/types.ts';
 
 /** Full state on connection; reliable ordered deltas thereafter. Static GIS never travels here. */
@@ -17,6 +18,7 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   return {frame,base:{campaign:state.campaign,tick:state.tick,provinces:state.provinces.map(p=>({...p}))}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
+  if(frame.state.map!==MAP_ID||frame.state.version!==3)throw new Error('incompatibleMap');
   if(frame.type==='state')return frame.state;
   if(!current||current.campaign!==frame.campaign||current.tick!==frame.baseTick||frame.state.map!==current.map)throw new Error('snapshotGap');
   const provinces=current.provinces.slice();

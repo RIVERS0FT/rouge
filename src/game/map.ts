@@ -1,8 +1,8 @@
 import data from '../generated/world.json' with { type: 'json' };
-import { project } from './geo.ts';
+import { project, PROJECTION_ID, WORLD_BOUNDS } from './geo.ts';
 import type { Vec2, ProvinceDef } from './types.ts';
-export const BOUNDS = { left: -1800, right: 1800, top: -1800, bottom: 1800 };
-export const MAP_METADATA = { source: data.source, revision: data.sourceRevision, projection: data.projection, count: data.provinces.length };
+export const BOUNDS = WORLD_BOUNDS;
+export const MAP_METADATA = { source: data.source, revision: data.sourceRevision, projection: PROJECTION_ID, count: data.provinces.length };
 export function contains(polygon: Vec2[], x: number, z: number): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {

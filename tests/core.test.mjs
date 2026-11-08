@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { MAP, provinceAt, STARTS, pointInProvince } from '../src/game/map.ts';
 import { buildFlow } from '../src/game/navigation.ts';
-import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave } from '../src/game/save.ts';
+import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX } from '../src/game/save.ts';
 import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry','cavalry','artillery']},{name:'AI',leader:'steward',loadout:['infantry','engineer'],ai:true}];
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
@@ -35,7 +35,15 @@ test('march, combat, capture and automatic production form a working loop',()=>{
 test('talents can only be selected from the current candidate set',()=>{const e=fresh(),p=e.state.players[0];assert.equal(e.command(0,{type:'talent',id:'veterans'}).ok,false);p.drafts=1;p.choices=['veterans','industry','entrenchment'];assert.equal(e.command(0,{type:'talent',id:'veterans'}).ok,true);assert.ok(p.talents.includes('veterans'));assert.equal(p.choices.length,0);});
 test('save roundtrip retains RNG and pending talent choices; corruption rejected',()=>{const e=fresh();e.state.players[0].choices=['industry','veterans'];e.state.players[0].drafts=1;const raw=encodeSave(e.state,'Test');assert.deepEqual(decodeSave(raw).state,e.state);const envelope=JSON.parse(raw);envelope.hash='bad';assert.throws(()=>decodeSave(JSON.stringify(envelope)));assert.throws(()=>decodeSave('{}'));assert.equal(validateState({...e.state,version:99}),false);});
 test('multi-slot deletion isolation and corrupt-current recovery from backup',()=>{
- const storage=new MemoryStorage(),e=fresh();writeSave(storage,'a',e.state,'A');writeSave(storage,'b',e.state,'B');e.step(10);writeSave(storage,'a',e.state,'A');storage.setItem('rouge.save.earth.v1.a','bad');assert.equal(readSave(storage,'a').recovered,true);assert.equal(readSave(storage,'a').state.tick,0);assert.equal(listSaves(storage).length,2);deleteSave(storage,'a');assert.equal(listSaves(storage).length,1);assert.equal(readSave(storage,'b').state.campaign,'test');
+ const storage=new MemoryStorage(),e=fresh();writeSave(storage,'a',e.state,'A');writeSave(storage,'b',e.state,'B');e.step(10);writeSave(storage,'a',e.state,'A');storage.setItem(SAVE_PREFIX+'a','bad');assert.equal(readSave(storage,'a').recovered,true);assert.equal(readSave(storage,'a').state.tick,0);assert.equal(listSaves(storage).length,2);deleteSave(storage,'a');assert.equal(listSaves(storage).length,1);assert.equal(readSave(storage,'b').state.campaign,'test');
 });
 test('save rejects out-of-bounds coordinates and nonexistent unit types',()=>{const e=fresh();e.state.units[0].x=Infinity;assert.equal(validateState(e.state),false);e.state.units[0].x=0;e.state.units[0].kind='tank';assert.equal(validateState(e.state),false);});
 test('victory locks further commands',()=>{const e=fresh();for(const p of e.state.provinces)p.owner=0;e.state.units=e.state.units.filter(u=>u.owner===0);e.step();assert.equal(e.state.winner,0);assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}).ok,false);});
+
+test('Miller slots do not read, delete or overwrite legacy Mercator slots',()=>{
+ const storage=new MemoryStorage(),state=fresh().state;
+ const legacyKey='rouge.save.earth.v1.same';storage.setItem(legacyKey,'old-game-must-remain');
+ writeSave(storage,'same',state,'Miller');assert.equal(listSaves(storage).length,1);
+ assert.equal(storage.getItem(legacyKey),'old-game-must-remain');deleteSave(storage,'same');
+ assert.equal(storage.getItem(legacyKey),'old-game-must-remain');assert.equal(listSaves(storage).length,0);
+});

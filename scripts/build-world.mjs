@@ -6,8 +6,17 @@ const root=new URL('../',import.meta.url);
 const revision='f1890d9f152c896d250a77557a5751a93d494776';
 const source=`https://raw.githubusercontent.com/nvkelso/natural-earth-vector/${revision}/geojson/ne_10m_admin_1_states_provinces.geojson`;
 const sha256='22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5';
-const format=1,output=new URL('src/generated/world.json',root),cache=new URL('.cache/admin1.geojson',root);
-try {const old=JSON.parse(await readFile(output,'utf8'));if(old.format===format&&old.sourceSha256===sha256&&old.provinces.length===4596){console.log('World atlas: verified source identity, using local generated atlas.');process.exit(0);}}catch{}
+const format=2,output=new URL('src/generated/world.json',root),cache=new URL('.cache/admin1.geojson',root);
+try {
+ const old=JSON.parse(await readFile(output,'utf8'));
+ if((old.format===1||old.format===format)&&old.sourceRevision===revision&&old.sourceSha256===sha256&&old.provinces.length===4596){
+  if(old.format!==format||old.coordinateSystem!=='OGC:CRS84'||'projection' in old||'latitudeLimit' in old){
+   const {projection,latitudeLimit,...geographic}=old;
+   await writeFile(output,JSON.stringify({...geographic,format,coordinateSystem:'OGC:CRS84'}));
+  }
+  console.log('World atlas: pinned longitude/latitude data; projection is selected by geo.ts.');process.exit(0);
+ }
+}catch{}
 await mkdir(new URL('.cache/',root),{recursive:true});await mkdir(new URL('src/generated/',root),{recursive:true});
 let raw;try{raw=await readFile(cache);}catch{
  console.log('Downloading pinned Natural Earth Admin-1 source (first setup only)…');
@@ -56,5 +65,5 @@ const provinces=features.map((f,id)=>{
  const center=anchor(geometry[0],[p.longitude,p.latitude]);
  return {code:p.adm1_code,name:[p.name_zh||p.name,p.name_en||p.name],country:p.adm0_a3,countryName:p.admin,level:p.gn_level??null,center,neighbors:[...neighbors[id]].sort((a,b)=>a-b),geometry};
 });
-const result={format,source,sourceRevision:revision,sourceSha256:sha256,license:'Public domain',projection:'EPSG:3857',latitudeLimit:85.0511287798066,provinces};
+const result={format,source,sourceRevision:revision,sourceSha256:sha256,license:'Public domain',coordinateSystem:'OGC:CRS84',provinces};
 await writeFile(output,JSON.stringify(result));console.log(`World atlas: ${provinces.length} administrative features; ${points} vertices; ${fileURLToPath(output)}`);

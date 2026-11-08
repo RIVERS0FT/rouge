@@ -3,12 +3,13 @@ import { MAP, BOUNDS } from './map.ts';
 import type { GameState } from './types.ts';
 export interface StorageLike{readonly length:number;key(index:number):string|null;getItem(key:string):string|null;setItem(key:string,value:string):void;removeItem(key:string):void}
 export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leader:string;corrupted?:boolean}
-const PREFIX='rouge.save.earth.v1.';
+export const SAVE_PREFIX='rouge.save.earth.miller.v1.';
+const PREFIX=SAVE_PREFIX;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
-  if(s.version!==2||s.map!==MAP_ID||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
+  if(s.version!==3||s.map!==MAP_ID||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>4||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units)||s.units.length>MAX_UNITS)return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
