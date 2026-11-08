@@ -1,0 +1,78 @@
+/* Edge-to-edge map. All HUD elements float over it; there is no bottom dock. */
+.app.is-game{min-height:0;height:100dvh;--leader-bottom:18px;--leader-left:18px;--province-top:98px}
+.is-game .world{position:absolute;inset:0;width:100%;height:100%}
+.is-game .map-vignette{background:none}
+.is-game .hud-top{top:14px;left:18px;right:132px;height:66px;padding:0 20px;gap:22px;border:1px solid #b4bd9d30;border-radius:5px;background:#0d2026e6;box-shadow:0 8px 24px #0002;backdrop-filter:blur(12px)}
+.is-game .country-flag-frame{width:72px;height:44px}
+.is-game .hud-top .commander-badge{min-width:80px;max-width:155px}
+.is-game .clock{flex-shrink:0;white-space:nowrap}
+.settings-trigger{position:absolute;z-index:12;top:14px;right:18px;height:66px;width:100px;display:flex;align-items:center;justify-content:center;gap:9px;background:#0d2026ef;border:1px solid #b4bd9d50;border-radius:5px;font-size:12px;color:#dfd7c0;box-shadow:0 8px 24px #0002;backdrop-filter:blur(12px)}
+.settings-trigger>span:first-child{font-size:22px;line-height:1;color:var(--gold)}
+.army-actions{position:absolute;top:98px;right:18px;width:246px;z-index:12}
+.upgrade-trigger{display:flex;align-items:center;gap:13px;text-align:left;width:100%;min-height:48px;padding:10px 16px;background:#13282dee;border:1px solid #c8b37f80;border-radius:4px;box-shadow:0 6px 22px #0002;font-size:12px;color:#e2d3b0;backdrop-filter:blur(12px)}
+.upgrade-trigger>span:last-child{margin-left:auto;font-size:22px;color:var(--gold)}
+.upgrade-icon{display:grid;place-items:center;width:26px;height:26px;font-size:22px;color:var(--gold)}
+.is-game .strategic-panel{right:18px;top:160px;max-height:calc(100dvh - 260px);overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}
+.is-game .map-search{top:98px;left:50%;right:auto;transform:translateX(-50%);width:310px;max-width:calc(100% - 630px)}
+.is-game .map-search input{min-height:45px;padding:12px}
+.is-game .province-panel{border-radius:4px}
+.is-game .commander-portrait{border-radius:4px}
+.is-game .view-controls{right:18px;bottom:32px;z-index:10}
+.is-game .atlas-credit{left:calc(var(--leader-left) + var(--leader-width) + 16px);bottom:12px;max-width:calc(100% - var(--leader-width) - 280px);padding:4px 6px;color:#b4c7bd;background:#0c232980;font-size:8px}
+.is-game .pause-banner{top:156px;padding:8px 24px;pointer-events:none}
+.is-game .toast{bottom:26px}
+.settings-modal{width:min(620px,100%);overscroll-behavior:contain}
+.settings-modal h2{margin-bottom:14px}
+.settings-status{font-size:12px;line-height:1.7;margin-bottom:26px}
+.settings-language{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.settings-language h3{font-size:13px;margin:0}
+.settings-language-options{display:flex;gap:8px}
+.settings-language-options button{border:1px solid #ffffff24;padding:10px 15px;border-radius:3px;font-size:12px}
+.settings-language-options button[aria-pressed="true"]{border-color:var(--gold);background:#cbb47f20;color:var(--gold)}
+.settings-actions{display:grid;gap:14px}
+.settings-save{display:flex;align-items:center;gap:15px;width:100%;text-align:left;padding:17px;background:#132a2e;border:1px solid #cbb47f50;border-radius:3px}
+.settings-save>span{font-size:24px;color:var(--gold)}
+.settings-save>span:last-child{margin-left:auto}
+.settings-save>div{min-width:0}
+.settings-save strong{display:block;font-size:14px;font-weight:500}
+.settings-save small{display:block;margin-top:7px;color:#a3b3a7;font-size:11px}
+.settings-save:disabled{opacity:.65}
+.settings-leave{justify-self:center;padding:8px 16px;color:#c1b4a2}
+.settings-controls{font-size:10px;line-height:2;margin:24px 0 0}
+.settings-back{display:block;color:var(--gold);border-bottom:1px solid #cbb47f40;padding:5px 0 9px;margin-bottom:22px;font-size:12px}
+.settings-modal .save-list{max-height:40dvh}
+.settings-modal .save-card{flex-wrap:wrap}
+.settings-modal .save-description{flex-basis:50%}
+.settings-modal .save-actions{margin-left:auto;flex-direction:row}
+.settings-modal .new-save input{width:100px}
+@media(max-width:1200px){
+ .is-game .hud-top{gap:15px;padding:0 14px}.is-game .hud-top .commander-badge{max-width:125px;padding-right:12px}
+ .is-game .map-search{left:calc(var(--leader-left) + var(--leader-width) + 18px);right:282px;width:auto;max-width:none;transform:none}
+ .is-game .country-copy{display:none}
+}
+@media(max-width:1050px){
+ .army-actions,.is-game .strategic-panel{width:205px}
+ .is-game .map-search{right:240px}
+ .is-game .hud-top{gap:12px}.is-game .resource{min-width:48px}
+}
+@media(max-height:820px){
+ .app.is-game{--province-top:98px;--leader-height:224px}
+ .is-game .strategic-panel .objective{padding:16px}.is-game .dispatches{padding:18px 12px}
+}
+@media(max-width:800px){
+ .app.is-game{--leader-left:10px;--leader-bottom:12px;--province-top:86px;--leader-width:220px;--leader-height:190px}
+ .is-game .hud-top{left:10px;right:98px;top:10px;height:62px;gap:12px;padding:0 12px}
+ .is-game .country-flag-frame{width:58px;height:38px}.is-game .hud-top .commander-badge{min-width:65px;max-width:95px;padding-right:0}
+ .settings-trigger{right:10px;top:10px;width:78px;height:62px;gap:5px;font-size:11px}
+ .settings-trigger>span:first-child{font-size:20px}
+ .army-actions{top:86px;right:10px;width:172px}.upgrade-trigger{min-height:43px;padding:8px 12px;gap:8px;font-size:11px}
+ .is-game .map-search{top:86px;left:246px;right:196px;width:auto}.is-game .map-search input{min-height:43px;font-size:11px}
+ .is-game .view-controls{bottom:28px;right:12px}.is-game .atlas-credit{display:none}
+ .is-game .strategic-panel{display:none}.is-game .pause-banner{top:141px;font-size:10px}
+}
+@media(max-height:620px){.app.is-game{--leader-height:166px}.is-game .province-panel{padding:12px 15px}}
+@media(max-width:620px){
+ .is-game .hud-top .commander-badge,.is-game .resource.level-resource{display:none}
+ .army-actions{top:140px;width:150px}.is-game .map-search{left:246px;right:10px}
+ .settings-modal{padding:30px 20px}.settings-language-options button{padding:9px}
+}

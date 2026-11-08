@@ -9,13 +9,15 @@ import {WorldRenderer,FACTION_COLORS} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
 import {CountryIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,type Language} from './i18n.ts';
+import {ModalDialog} from './ModalDialog.tsx';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
 function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.crop.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
 const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',warden:'▱',vanguard:'↗',steward:'◇'};
 export function App(){
  const[mapQuery,setMapQuery]=useState('');
  const[language,setLanguage]=useState<Language>(storedLanguage),[screen,setScreen]=useState<'menu'|'game'|'lobby'>('menu');
- const[modal,setModal]=useState<'setupSolo'|'setupLan'|'saves'|'upgrades'|'talents'|null>(null);
+ const[modal,setModal]=useState<'setupSolo'|'setupLan'|'saves'|'upgrades'|'talents'|'settings'|null>(null);
+ const[settingsPage,setSettingsPage]=useState<'general'|'saves'>('general');
  const[game,setGame]=useState<GameState|null>(null),[actor,setActor]=useState(0),[selected,setSelected]=useState(0),[target,setTarget]=useState(8),[fraction,setFraction]=useState(0.75);
  const[leader,setLeader]=useState<Leader>('warden'),[loadout,setLoadout]=useState<Kind[]>(['infantry','cavalry','artillery']),[name,setName]=useState('Commander');
  const[paused,setPaused]=useState(false),[speed,setSpeed]=useState(1),[near,setNear]=useState(false),[toast,setToast]=useState('');
@@ -32,12 +34,17 @@ export function App(){
  useEffect(()=>{setTarget(MAP[selected].neighbors.find(id=>game?.provinces[id].owner!==actor)??MAP[selected].neighbors[0]??-1);},[selected,actor]);
  function refreshSaves(){try{setSaves(listSaves(localStorage));}catch{setToast(text('saveFailed'));}}
  function showSaves(){refreshSaves();setModal('saves');}
+ function openSettings(){setSettingsPage('general');setModal('settings');}
+ function openSettingsSaves(){refreshSaves();setSettingsPage('saves');}
+ function closeModal(){setModal(null);}
+ // The settings menu pauses only the local simulation, without changing the user's pause intent.
+ useEffect(()=>{if(screen==='game'&&session.current?.mode==='solo')session.current.pause?.(paused||modal==='settings');},[paused,modal,screen]);
  function saveCurrent(id:string,displayName:string,quiet=false):boolean{
   if(!latest.current||session.current?.mode!=='solo')return false;
   try{writeSave(localStorage,id,latest.current,displayName);if(!quiet)setToast(text('saveSuccess'));refreshSaves();return true;}catch{setToast(text('saveFailed'));return false;}
  }
  useEffect(()=>{if(game&&session.current?.mode==='solo'&&game.tick-autoTick.current>=1200){autoTick.current=game.tick;saveCurrent(`auto-${game.campaign}`,text('autosave'),true);}},[game?.tick]);
- useEffect(()=>{if(screen==='game')world.current?.focusProvince(latest.current?.provinces.find(p=>p.owner===actor)?.id??selected);else if(screen==='menu')world.current?.view('strategic');},[screen,actor]);
+ useEffect(()=>{if(screen==='game'||screen==='menu')world.current?.view('strategic');},[screen,actor]);
  function launchLocal(value:GameState){session.current?.dispose();setActor(0);setGame(value);setSelected(value.provinces.find(p=>p.owner===0)?.id??0);setScreen('game');setModal(null);setPaused(false);setSpeed(1);autoTick.current=value.tick;session.current=localSession(value,setGame,notifyResult);}
  function setup():PlayerSetup{return{name:name.trim(),leader,loadout};}
  function startSolo(){
@@ -53,14 +60,24 @@ export function App(){
  async function beginMatch(){if(!ticket)return;setBusy(true);try{await api(`/rooms/${ticket.code}/start`,{},ticket.token);}catch(e){report(e);}finally{setBusy(false);}}
  function issue(command:Command){session.current?.command(command);}
  function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
- function togglePause(){if(session.current?.mode!=='solo')return;session.current.pause?.(!paused);setPaused(!paused);}
+ function togglePause(){if(session.current?.mode!=='solo')return;setPaused(!paused);}
  function leave(){if(screen==='game'&&!window.confirm(text('exitConfirm')))return;if(session.current?.mode==='solo'&&latest.current){if(!saveCurrent(`auto-${latest.current.campaign}`,text('autosave'),true)&&!window.confirm(text('saveFailed')))return;}
   session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket.miller.crop.v1');}catch{}setTicket(null);
  }
  function load(id:string){try{const{state,recovered}=readSave(localStorage,id);launchLocal(state);if(recovered)setToast(text('recovered'));}catch(e){report(e);}}
  function exportCurrent(){if(!game)return;const blob=new Blob([encodeSave(game,saveName||text('theatre'))],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`rouge-${game.campaign}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),0);}
  async function importSave(file:File|undefined){if(!file)return;try{if(file.size>3_000_000)throw new Error('invalidSave');const decoded=decodeSave(await file.text());writeSave(localStorage,`import-${crypto.randomUUID()}`,decoded.state,decoded.name);refreshSaves();setToast(text('saveSuccess'));}catch(e){report(e);}finally{if(fileInput.current)fileInput.current.value='';}}
- useEffect(()=>{const key=(event:KeyboardEvent)=>{if((event.target as HTMLElement).closest('input,select,textarea')||screen!=='game')return;if(event.code==='Space'&&!modal){event.preventDefault();togglePause();}if(event.key==='Escape')setModal(null);};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen]);
+ useEffect(()=>{const key=(event:KeyboardEvent)=>{
+  if(event.key==='Escape'){
+   event.preventDefault();
+   if(modal==='settings'&&settingsPage==='saves')setSettingsPage('general');
+   else if(modal)closeModal();
+   else if(screen==='game'&&game?.winner===null)openSettings();
+   return;
+  }
+  if((event.target as HTMLElement).closest('input,select,textarea,button')||screen!=='game')return;
+  if(event.code==='Space'&&!modal){event.preventDefault();togglePause();}
+ };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen,settingsPage,game?.winner]);
  const leaderIndex=LEADERS.indexOf(leader),owned=game?.provinces.filter(p=>MAP[p.id].playable&&p.owner===actor).length??0,army=game?.units.filter(u=>u.owner===actor).length??0;
  return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
@@ -70,7 +87,7 @@ export function App(){
     {mapQuery.trim().length>0&&<div className="map-search-results">{searchProvinces(mapQuery).map(p=><button key={p.id} onClick={()=>{setSelected(p.id);world.current?.focusProvince(p.id);setMapQuery('');}}><b>{p.name[language==='zh'?0:1]}</b><small>{p.countryName} · {p.code}</small></button>)}</div>}
   </div>}
 
-  <div className="language-switch"><button className={language==='zh'?'active':''} onClick={()=>setLanguage('zh')} aria-label="简体中文">中</button><span>/</span><button className={language==='en'?'active':''} onClick={()=>setLanguage('en')} aria-label="English">EN</button></div>
+  {screen!=='game'&&<div className="language-switch"><button className={language==='zh'?'active':''} onClick={()=>setLanguage('zh')} aria-label="简体中文">中</button><span>/</span><button className={language==='en'?'active':''} onClick={()=>setLanguage('en')} aria-label="English">EN</button></div>}
   {screen==='menu'&&<main className="main-menu">
     <div className="menu-top"><span className="brand-mark">R</span><span className="eyebrow">RIVERSOFT / STRATEGY LAB</span></div>
     <section className="menu-content"><div className="eyebrow gold">{text('prototype')}</div><h1>ROUGE<span>{text('title')}</span></h1><p className="menu-description">{text('menuBrief')}</p>
@@ -86,10 +103,12 @@ export function App(){
     <div className={`connection ${network}`}>● {text(network)}</div><div className="row"><button className="secondary" onClick={leave}>{text('leave')}</button>{ticket?.actor===0?<button className="primary" disabled={busy||(room?.seats.length??0)<2} onClick={beginMatch}>{text('startMatch')} →</button>:<span className="muted">{text('waitingHost')}</span>}</div><p className="small muted">{text('lanOnly')}</p>
   </section>}
   {screen==='game'&&game&&player&&province&&<>
-    <header className="hud-top"><CountryIdentity actor={actor} language={language}/><button className="hud-brand" onClick={leave} title={text('menu')}>R<span>ROUGE</span></button><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
+    <header className="hud-top"><CountryIdentity actor={actor} language={language}/><div className="commander-badge"><span className="faction-dot" style={{background:FACTION_COLORS[actor]}}/><div><b>{player.name}</b><small>{text(player.leader)}</small></div></div>
       <div className="resource"><span>{text('gold')}</span><strong>{Math.floor(player.gold).toLocaleString()}</strong></div><div className="resource"><span>{text('army')}</span><strong>{army}<small> / {PLAYER_CAP}</small></strong></div><div className="resource"><span>{text('territory')}</span><strong>{owned}<small> / {PLAYABLE_COUNT}</small></strong></div><div className="resource level-resource"><span>{text('level')}</span><strong>{player.level}<small> / 8</small></strong><div className="micro-progress"><i style={{width:`${Math.min(100,player.xp/(60+player.level*45)*100)}%`}}/></div></div>
-      <div className="clock">{timeLabel(game.tick)}{session.current?.mode==='solo'?<div className="clock-controls"><button onClick={togglePause} title={text(paused?'resume':'pause')}>{paused?'▶':'Ⅱ'}</button><button onClick={()=>{const s=speed===1?2:1;session.current?.speed?.(s);setSpeed(s);}}>{speed}×</button></div>:<small className={`connection ${network}`}>● {text(network)}</small>}</div>
+      <div className="clock"><time data-testid="game-clock" data-tick={game.tick}>{timeLabel(game.tick)}</time>{session.current?.mode==='solo'?<div className="clock-controls"><button onClick={togglePause} data-testid="toggle-pause" title={text(paused?'resume':'pause')}>{paused?'▶':'Ⅱ'}</button><button onClick={()=>{const s=speed===1?2:1;session.current?.speed?.(s);setSpeed(s);}}>{speed}×</button></div>:<small className={`connection ${network}`}>● {text(network)}</small>}</div>
     </header>
+    <button className="settings-trigger" data-testid="open-settings" onClick={openSettings} aria-label={text('settings')} aria-haspopup="dialog"><span aria-hidden="true">⚙</span><span>{text('settings')}</span></button>
+    <nav className="army-actions" aria-label={text('armyActions')}><button className="upgrade-trigger" onClick={()=>setModal('upgrades')} data-testid="open-upgrades" aria-haspopup="dialog"><span className="upgrade-icon" aria-hidden="true">↟</span><span>{text('upgrades')}</span><span aria-hidden="true">›</span></button></nav>
     <aside className="province-panel panel"><div className="panel-kicker"><span>{text('province')} / {MAP[selected].code}</span><button className="icon-button" onClick={()=>world.current?.focusProvince(selected)} title={text('focus')}>⌖</button></div><h2>{MAP[selected].name[language==='zh'?0:1]}</h2><div className="province-meta"><span>{MAP[selected].countryName}</span><span className="status-dot"/>{text(province.capture>0?'contested':province.recovery>0?'recovering':'stable')}</div>
       <div className="province-owner"><span className="faction-dot" style={{background:province.owner<0?'#929481':FACTION_COLORS[province.owner]}}/>{province.owner<0?text('neutral'):game.players[province.owner].name}<b>{game.units.filter(u=>u.province===selected&&u.target===null&&u.owner===province.owner).length}<small>{text('garrison')}</small></b></div>
       {province.capture>0&&<div className="capture"><span>{text('capture')}</span><div className="progress"><i style={{width:`${province.capture/8*100}%`}}/></div></div>}
@@ -99,23 +118,34 @@ export function App(){
     <aside className="strategic-panel"><section className="panel objective"><span className="eyebrow gold">{text('objective')}</span><h3>{text('theatre')}</h3><p>{text('objectiveDesc').replace('{count}',String(Math.ceil(PLAYABLE_COUNT*0.6)))}</p><div className="faction-bars">{game.players.map(p=><div key={p.id} title={p.name}><span style={{background:FACTION_COLORS[p.id],width:`${game.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length/PLAYABLE_COUNT*100}%`}}/></div>)}</div>{game.domination[actor]>0&&<b className="gold">{text('domination')} {Math.floor(game.domination[actor])} / 30{text('seconds')}</b>}</section>
       <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:FACTION_COLORS[e.player]}}>{game.players[e.player].name}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>
     </aside>
-    <div className="view-controls"><span className="compass">N<br/>✦</span><button className={!near?'active':''} onClick={()=>world.current?.view('strategic')} title={text('worldView')}>2D</button><button className={near?'active':''} onClick={()=>world.current?.view('terrain')}>3D</button><button onClick={()=>world.current?.zoom(-16)} title={text('zoomIn')}>＋</button><button onClick={()=>world.current?.zoom(16)} title={text('zoomOut')}>−</button><small>{text(near?'terrain':'strategic')}</small></div>
+    <div className="view-controls"><span className="compass">N<br/>✦</span><button className={!near?'active':''} onClick={()=>world.current?.view('strategic')} title={text('worldView')}>2D</button><button className={near?'active':''} onClick={()=>world.current?.view('terrain')}>3D</button><button onClick={()=>world.current?.zoom(-16)} title={text('zoomIn')} aria-label={text('zoomIn')}>＋</button><button onClick={()=>world.current?.zoom(16)} title={text('zoomOut')} aria-label={text('zoomOut')}>−</button><small>{text(near?'terrain':'strategic')}</small></div>
     <CommanderPortrait player={player} language={language} color={FACTION_COLORS[actor]} onTalents={()=>setModal('talents')}/>
-    <footer className="hud-bottom"><div className="action-group"><button onClick={()=>setModal('upgrades')} data-testid="open-upgrades"><span>↟</span>{text('upgrades')}</button><button className={player.choices.length?'attention':''} onClick={()=>setModal('talents')}><span>✧</span>{text('talents')}{player.choices.length>0&&<b>!</b>}</button>{session.current?.mode==='solo'&&<button onClick={showSaves}><span>▤</span>{text('save')}</button>}</div><span className="controls-hint">{text('controls')}</span></footer>
     {paused&&<div className="pause-banner">Ⅱ {text('paused')}</div>}
     {game.winner!==null&&<div className="modal-backdrop"><section className="modal result-modal"><div className="victory-symbol">✦</div><div className="eyebrow gold">{text('winner')} / {game.players[game.winner].name}</div><h2>{text(game.winner===actor?'victory':'defeat')}</h2><p>{timeLabel(game.tick)} · {owned}/{PLAYABLE_COUNT} {text('territory')} · {player.talents.length} {text('talents')}</p><button className="primary" onClick={leave}>{text('returnMenu')} →</button></section></div>}
   </>}
-  {modal&&<div className="modal-backdrop" onClick={e=>{if(e.target===e.currentTarget)setModal(null);}}><section className={`modal ${modal.startsWith('setup')?'setup-modal':''} ${modal==='talents'?'talent-modal':''}`} role="dialog" aria-modal="true" aria-label={text(modal==='setupSolo'||modal==='setupLan'?'setup':modal)}><button className="modal-close" onClick={()=>setModal(null)} aria-label={text('close')}>×</button>
+  {modal&&<ModalDialog className={`${modal.startsWith('setup')?'setup-modal':''} ${modal==='talents'?'talent-modal':''} ${modal==='settings'?'settings-modal':''}`} label={text(modal==='setupSolo'||modal==='setupLan'?'setup':modal)} onClose={closeModal} closeLabel={text('close')} pageKey={modal==='settings'?settingsPage:modal}>
+    {modal==='settings'&&settingsPage==='general'&&<>
+      <div className="eyebrow gold">ROUGE / {text('campaignSettings')}</div><h2>{text('settings')}</h2>
+      <p className="settings-status muted">{text(session.current?.mode==='solo'?'settingsSoloPaused':'settingsLanRunning')}</p>
+      <section className="settings-language"><h3>{text('language')}</h3><div className="settings-language-options"><button aria-label="简体中文" aria-pressed={language==='zh'} onClick={()=>setLanguage('zh')}>简体中文</button><button aria-label="English" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>English</button></div></section>
+      <div className="settings-actions">
+        <button className="settings-save" data-testid="settings-save" onClick={openSettingsSaves} disabled={session.current?.mode!=='solo'}><span aria-hidden="true">▤</span><div><strong>{text('save')}</strong><small>{text(session.current?.mode==='solo'?'settingsSaveHint':'settingsLanSaveUnavailable')}</small></div><span aria-hidden="true">›</span></button>
+        <button className="primary full" data-testid="settings-resume" onClick={closeModal}>{text('returnGame')}<span aria-hidden="true">→</span></button>
+        <button className="quiet settings-leave" onClick={leave}>{text('returnMenu')}</button>
+      </div>
+      <p className="settings-controls muted">{text('controls')}<br/>{text('settingsKeyboard')}</p>
+    </>}
+    {modal==='settings'&&settingsPage==='saves'&&<button className="settings-back" data-testid="settings-back" onClick={()=>setSettingsPage('general')}>← {text('backSettings')}</button>}
     {(modal==='setupSolo'||modal==='setupLan')&&<><div className="eyebrow gold">{text(modal==='setupSolo'?'single':'multiplayer')} / 01</div><h2>{text('chooseLeader')}</h2><div className="leader-grid">{LEADERS.map((l,i)=><button key={l} className={`leader-card ${leader===l?'chosen':''}`} onClick={()=>setLeader(l)}><div className={`leader-art art-${i}`}><div className="leader-insignia">{SYMBOLS[l]}</div><span>0{i+1}</span></div><div className="leader-copy"><b>{text(l)}</b><p>{text(`${l}.desc`)}</p><span className="selected-dot">{leader===l?'●':'○'}</span></div></button>)}</div>
       <div className="setup-subheading"><div><span className="eyebrow">{text('loadout')} / 02</span><h3>{text('chooseUnits')}</h3></div><span className="gold">{loadout.length} / 3</span></div><p className="muted small">{text('chooseHint')}</p><div className="unit-grid">{KINDS.map(k=><button key={k} className={`unit-card ${loadout.includes(k)?'chosen':''}`} disabled={k==='infantry'||(!loadout.includes(k)&&loadout.length>=3)} onClick={()=>setLoadout(loadout.includes(k)?loadout.filter(v=>v!==k):[...loadout,k])}><span className="unit-mark">{SYMBOLS[k]}</span><div><b>{text(k)}</b><small>{text(`${k}.desc`)}</small></div><span>{loadout.includes(k)?'✓':'＋'}</span></button>)}</div>
       <div className="setup-footer"><label>{text('commander')}<input data-testid="commander-name" value={name} maxLength={24} onChange={e=>setName(e.target.value)}/></label>{modal==='setupSolo'?<button className="primary" data-testid="begin-campaign" disabled={!name.trim()} onClick={startSolo}>{text('start')} →</button>:<div className="lan-actions"><button className="primary" disabled={busy||!name.trim()} onClick={()=>roomAction(false)}>{text('createRoom')}</button><div className="join-row"><input placeholder={text('roomCode')} value={code} maxLength={6} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,''))}/><button className="secondary" disabled={busy||code.length!==6||!name.trim()} onClick={()=>roomAction(true)}>{text('joinRoom')}</button></div></div>}</div>{modal==='setupLan'&&<p className="small muted">{text('lanHint')}<br/>{text('lanOnly')}</p>}
     </>}
-    {modal==='saves'&&<><div className="eyebrow gold">CAMPAIGN ARCHIVES</div><h2>{text('saves')}</h2><p className="muted">{text('saveHint')}</p>{session.current?.mode==='solo'&&game&&<div className="new-save"><input placeholder={text('saveName')} value={saveName} onChange={e=>setSaveName(e.target.value)} maxLength={64}/><button className="primary" data-testid="create-save" onClick={()=>saveCurrent(`manual-${crypto.randomUUID()}`,saveName||`${text('theatre')} ${timeLabel(game.tick)}`)}>{text('newSave')}</button></div>}
+    {(modal==='saves'||(modal==='settings'&&settingsPage==='saves'))&&<><div className="eyebrow gold">CAMPAIGN ARCHIVES</div><h2>{text('saves')}</h2><p className="muted">{text('saveHint')}</p>{session.current?.mode==='solo'&&game&&<div className="new-save"><input placeholder={text('saveName')} value={saveName} onChange={e=>setSaveName(e.target.value)} maxLength={64}/><button className="primary" data-testid="create-save" onClick={()=>saveCurrent(`manual-${crypto.randomUUID()}`,saveName||`${text('theatre')} ${timeLabel(game.tick)}`)}>{text('newSave')}</button></div>}
       <div className="save-list">{saves.length?saves.map(s=><article key={s.id} className="save-card"><div className="save-icon">▤</div><div className="save-description"><h3>{s.name}</h3><small>{s.corrupted?text('corrupt'):`${text(s.leader)} · ${timeLabel(s.tick)} · ${new Date(s.savedAt).toLocaleString(language==='zh'?'zh-CN':'en-US')}`}</small></div><div className="save-actions"><button className="secondary" onClick={()=>load(s.id)}>{text('load')}</button>{session.current?.mode==='solo'&&<button className="quiet" onClick={()=>{if(confirm(text('overwriteConfirm')))saveCurrent(s.id,s.name);}}>{text('overwrite')}</button>}<button className="quiet danger" onClick={()=>{if(confirm(text('deleteConfirm'))){deleteSave(localStorage,s.id);refreshSaves();}}}>{text('delete')}</button></div></article>):<div className="empty-state">{text('emptySaves')}</div>}</div><div className="row">{session.current?.mode==='solo'&&game&&<button className="secondary" onClick={exportCurrent}>{text('export')} ↗</button>}<button className="secondary" onClick={()=>fileInput.current?.click()}>{text('import')}</button><input hidden type="file" accept="application/json,.json" ref={fileInput} onChange={e=>importSave(e.target.files?.[0])}/></div>
     </>}
     {modal==='upgrades'&&player&&<><div className="eyebrow gold">ARMY DEVELOPMENT</div><h2>{text('upgrades')}</h2><p className="muted">{text('upgradesHint')}</p><div className="treasury">{text('gold')} <strong>{Math.floor(player.gold)}</strong></div><div className="upgrade-grid">{player.loadout.map(k=><article className="upgrade-card" key={k}><div className="upgrade-title"><span className="unit-mark">{SYMBOLS[k]}</span><h3>{text(k)}</h3></div>{STATS.map(stat=>{const level=player.upgrades[k][stat],cost=upgradeCost(level);return <div className="upgrade-row" key={stat}><div><b>{text(stat)} <span className="gold">{level}/8</span></b><small>{text(`${stat}.desc`)}</small></div><button className="secondary" data-testid={`upgrade-${k}-${stat}`} disabled={level>=8||player.gold<cost} onClick={()=>issue({type:'upgrade',kind:k,stat})}>{level>=8?text('max'):`＋ ${cost}`}</button></div>;})}</article>)}</div></>}
     {modal==='talents'&&player&&<><div className="eyebrow gold">{text('talents')} / {text(player.leader)}</div><h2>{text('talentTitle')}</h2><p className="muted">{text('talentHint')}</p>{player.choices.length?<><div className="talent-grid">{player.choices.map((id,i)=><button className="talent-card" key={id} onClick={()=>{issue({type:'talent',id});setModal(null);}}><span className="talent-number">0{i+1}</span><div className="talent-symbol">{['✧','⌁','◇'][i]}</div><h3>{text(id)}</h3><p>{text(`${id}.desc`)}</p><span className="talent-select">{text('select')} →</span></button>)}</div><button className="secondary" disabled={player.rerolls===0} onClick={()=>issue({type:'reroll'})}>{text('reroll')} · {player.rerolls}</button></>:<div className="empty-state">{text('level')} {player.level}/8 · {Math.floor(player.xp)}/{60+player.level*45} XP</div>}{player.talents.length>0&&<div className="chosen-talents">{player.talents.map(id=><span key={id} title={text(`${id}.desc`)}>✧ {text(id)}</span>)}</div>}</>}
-  </section></div>}
+  </ModalDialog>}
   {toast&&<div className="toast" role="status">{toast}<button onClick={()=>setToast('')} aria-label={text('close')}>×</button></div>}
  </div>;
 }

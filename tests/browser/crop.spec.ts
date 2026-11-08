@@ -30,7 +30,7 @@ test('cropped Miller atlas: real geometry limits, hidden search, wrapping and po
   await page.getByRole('button',{name:'2D',exact:true}).click();await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   // A real pointer drag passes the dateline. The nearest repeated atlas is drawn
   // and focus wraps into the canonical interval, rather than clamping at ±1800.
-  await page.mouse.move(1100,600);await page.mouse.down();await page.mouse.move(360,600,{steps:12});await page.mouse.up();
+  for(let i=0;i<2;i++){await page.mouse.move(1100,600);await page.mouse.down();await page.mouse.move(360,600,{steps:12});await page.mouse.up();}
   await expect(canvas).toHaveAttribute('data-wrap-x','true');
   await expect.poll(async()=>Number(await canvas.getAttribute('data-focus-x'))).toBeLessThan(0);
   expect(Number(await canvas.getAttribute('data-focus-x'))).toBeGreaterThanOrEqual(-1800);

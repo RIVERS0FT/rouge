@@ -4,15 +4,15 @@ async function assertLayout(page: Page) {
   const flag=await page.getByTestId('country-identity').boundingBox();
   const portrait=await page.getByTestId('commander-portrait').boundingBox();
   const panel=await page.locator('.province-panel').boundingBox();
-  const footer=await page.locator('.hud-bottom').boundingBox();
+  await expect(page.locator('.hud-bottom')).toHaveCount(0);
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
   const viewport=page.viewportSize()!;
-  expect(flag).not.toBeNull();expect(portrait).not.toBeNull();expect(panel).not.toBeNull();expect(footer).not.toBeNull();
+  expect(flag).not.toBeNull();expect(portrait).not.toBeNull();expect(panel).not.toBeNull();
   expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
   expect(portrait!.x).toBeLessThan(40);expect(portrait!.y).toBeGreaterThan(viewport.height*.5);
   expect(panel!.y+panel!.height).toBeLessThanOrEqual(portrait!.y-10);
-  expect(portrait!.y+portrait!.height).toBeLessThanOrEqual(footer!.y-8);
+  expect(portrait!.y+portrait!.height).toBeLessThanOrEqual(viewport.height-8);
   expect(portrait!.x+portrait!.width).toBeLessThan(viewport.width);
   expect(name).not.toBeNull();expect(talent).not.toBeNull();
   expect(name!.x+name!.width).toBeLessThanOrEqual(talent!.x-8);
@@ -41,7 +41,7 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await expect(page.locator('.province-panel h2')).toContainText('江苏');
     await expect(page.getByTestId('country-flag')).toHaveAttribute('data-country','DEU');
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
-    await page.getByRole('button',{name:'English',exact:true}).click();
+    await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
     await expect(page.getByTestId('country-flag')).toHaveAccessibleName('Germany · National flag');
     await assertLayout(page);
     await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
@@ -51,7 +51,7 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await page.setViewportSize({width:800,height:600});await assertLayout(page);
     await page.setViewportSize({width:1440,height:960});
     if(leader==='steward') {
-      await page.getByRole('button',{name:'Save campaign',exact:false}).click();
+      await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
       await page.getByPlaceholder('Save name').fill('HUD preserved');await page.getByTestId('create-save').click();
       await page.reload();await page.getByTestId('open-saves').click();
       await page.locator('.save-card').filter({hasText:'HUD preserved'}).getByRole('button',{name:'Load',exact:true}).click();

@@ -1,6 +1,6 @@
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
-export const VERSION='0.4.1';
+export const VERSION='0.4.2';
 export const MAP_ID='earth-admin1-miller-crop-v1' as const;
 export const MAX_UNITS=360;
 export const PLAYER_CAP=90;

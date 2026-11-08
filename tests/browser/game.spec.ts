@@ -9,7 +9,7 @@ test('menu → setup → real WebGL game → order → upgrade → multi-slot sa
  await expect(page.locator('.hud-top')).toContainText('E2E Commander');await expect(page.locator('.render-error')).toHaveCount(0);await expect(page.locator('canvas')).toBeVisible();
  await page.getByTestId('dispatch').click();await page.waitForTimeout(500);await page.getByTestId('open-upgrades').click();
  await page.getByTestId('upgrade-infantry-attack').click();await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
- await page.getByRole('button',{name:'Close',exact:true}).click();await page.getByRole('button',{name:'Save campaign',exact:false}).click();
+ await page.getByRole('button',{name:'Close',exact:true}).click();await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('Save name').fill('First slot');await page.getByTestId('create-save').click();
  await page.getByPlaceholder('Save name').fill('Second slot');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card')).toHaveCount(2);await page.getByRole('button',{name:'Close',exact:true}).first().click();

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
-import { project, PROJECTION_ID, worldViewDistance, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
+import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
 import { MAX_UNITS } from '../game/content.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
@@ -37,6 +37,7 @@ export class WorldRenderer {
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
   private observer:ResizeObserver;private animation=0;private last=0;
   private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(WORLD_CENTER.x,0,WORLD_CENTER.z);
+  private desiredFocusZ=WORLD_CENTER.z;
   private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
   private blend=0;private lastMode='';private lastLabels=0;
@@ -45,6 +46,7 @@ export class WorldRenderer {
   constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
+    this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
     this.renderer.domElement.setAttribute('aria-label','Cropped Miller cylindrical world administrative map');host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
@@ -56,8 +58,7 @@ export class WorldRenderer {
     for(let lon=-180;lon<=180;lon+=30){const a=project(lon,SOUTH_LATITUDE),b=project(lon,NORTH_LATITUDE);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     for(let lat=Math.ceil(SOUTH_LATITUDE/20)*20;lat<=NORTH_LATITUDE;lat+=20){const a=project(-180,lat),b=project(180,lat);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     this.atlas.add(this.lines(graticule,0x507078,0.28));
-    const frame=[BOUNDS.left,0.01,BOUNDS.top,BOUNDS.right,0.01,BOUNDS.top,BOUNDS.left,0.01,BOUNDS.bottom,BOUNDS.right,0.01,BOUNDS.bottom];
-    this.atlas.add(this.lines(frame,0x91a2a0,0.5));
+    // No decorative atlas frame: the map continues behind the edge HUD.
     const positions:number[]=[],colors:number[]=[],borders:number[]=[],countries:number[]=[];
     const edgeOwners=new Map<string,{country:string;a:Vec2;b:Vec2;count:number}>();
     for(const province of MAP) {
@@ -132,17 +133,17 @@ export class WorldRenderer {
     this.selection.geometry.dispose();this.selection.geometry=new THREE.BufferGeometry();this.selection.geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
     for(const copy of this.repeats)(copy.getObjectByName('selected-border') as THREE.LineSegments).geometry=this.selection.geometry;
   }
-  zoom(delta:number){this.invalidated=true;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
+  zoom(delta:number){this.invalidated=true;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,worldCoverDistance(this.camera.aspect));}
   view(mode:'strategic'|'terrain') {
     this.renderer.domElement.dataset.settled='false';this.invalidated=true;
-    if(mode==='strategic'){this.globalView=true;this.focus.set(WORLD_CENTER.x,0,WORLD_CENTER.z);this.desiredDistance=worldViewDistance(this.camera.aspect);}
+    if(mode==='strategic'){this.globalView=true;this.focus.set(WORLD_CENTER.x,0,WORLD_CENTER.z);this.desiredFocusZ=WORLD_CENTER.z;this.desiredDistance=worldCoverDistance(this.camera.aspect);}
     else if(this.selected>=0)this.focusProvince(this.selected);
   }
   focusProvince(id:number) {
-    const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);
+    const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);this.desiredFocusZ=p.center.z;
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.invalidated=true;const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldViewDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.resized=true;};
+  private resize=()=>{this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:PointerEvent):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -155,7 +156,7 @@ export class WorldRenderer {
   private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
   private pointerMove=(e:PointerEvent)=>{
     if(this.down&&this.down.button!==2&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
-      this.focus.x=wrapX(this.down.fx-(e.clientX-this.down.x)*scale);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
+      this.focus.x=wrapX(this.down.fx-(e.clientX-this.down.x)*scale);this.desiredFocusZ=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
   };
   private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
   private pointerCancel=()=>{this.down=null;};
@@ -194,7 +195,7 @@ export class WorldRenderer {
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
-    const angle=this.blend*0.6;this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle)+0.001);this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
+    const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.16:this.distance>300?0.28:0.55;
     if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?countryColor(MAP[id].country):new THREE.Color(OWNER[owner]);if(id===this.selected)color.lerp(new THREE.Color(0xf4d38c),0.45);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
@@ -211,6 +212,8 @@ export class WorldRenderer {
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
     this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
     this.drawLabels(time);this.renderer.render(this.scene,this.camera);
+    this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
+    const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
     this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };

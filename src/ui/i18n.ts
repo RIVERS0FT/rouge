@@ -1,9 +1,16 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ armyActions:['军队操作','Army actions'],campaignSettings:['战役设置','Campaign settings'],
+ settingsSoloPaused:['设置打开期间，单人战役已暂停。','The single-player campaign is paused while settings are open.'],
+ settingsLanRunning:['联机战役继续运行，不暂停其他玩家。','The multiplayer match continues for all players.'],
+ settingsSaveHint:['创建、载入或导出本机战役档案','Create, load or export your local campaign archives'],
+ settingsLanSaveUnavailable:['联机战役暂不支持本机保存','Local saves are unavailable in multiplayer'],
+ returnGame:['返回战局','Return to game'],backSettings:['返回设置','Back to settings'],
+ settingsKeyboard:['Esc 打开或关闭设置 · 空格暂停单人战役','Esc opens or closes settings · Space pauses a solo campaign'],
  incompatibleMap:['地图版本或投影不兼容，请刷新页面并使用同版本主机。','Map or projection mismatch. Reload and use a matching host build.'],adminAreas:['行政区','administrative areas'],mapSearch:['搜索省份 / 国家 / 编码','Search province / country / code'],worldView:['全球米勒视图','Global Miller view'],
  title:['诸省之争','The world. Your command.'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
  prototype:['世界地图 · 0.2','WORLD ATLAS · 0.2'],single:['单人战役','Single player'],multiplayer:['局域网联机','LAN multiplayer'],saves:['战役档案','Campaign archives'],
- start:['开始征途','Begin campaign'],back:['返回','Back'],close:['关闭','Close'],settings:['语言','Language'],continue:['继续战役','Continue campaign'],
+ start:['开始征途','Begin campaign'],back:['返回','Back'],close:['关闭','Close'],settings:['设置','Settings'],language:['语言','Language'],continue:['继续战役','Continue campaign'],
  menuBrief:['占领省份，集结军队，以战养战。用单位升级与领袖天赋，构筑你的征服之路。','Claim provinces. Raise armies. Forge a conquest through permanent-in-run upgrades and changing leader talents.'],
  theatre:['世界战场','World theatre'],theatreSub:['真实行政区 · 米勒圆柱投影 · 肉鸽战略','Real administrative borders · Miller cylindrical projection · Roguelike strategy'],
  platformPending:['Steam / Epic：尚未接入','Steam / Epic: not integrated'],offlineHint:['单人无需账号；联机需先启动局域网服务器。','No account for solo. Multiplayer requires a running LAN server.'],

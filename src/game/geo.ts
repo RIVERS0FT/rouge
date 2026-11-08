@@ -75,3 +75,31 @@ export function worldViewDistance(aspect: number, verticalFovDegrees = 40, usabl
   const width = WORLD_BOUNDS.right - WORLD_BOUNDS.left, height = WORLD_BOUNDS.bottom - WORLD_BOUNDS.top;
   return Math.max(height, width / aspect) / (2 * Math.tan(verticalFovDegrees * RAD / 2) * usableFraction);
 }
+
+/** Cover the window without stretching or letterboxing. Some longitude/latitude can
+ * fall outside the view on a different aspect ratio; it remains available by panning.
+ * This is a camera choice, not another geographic crop or a simulation change.
+ */
+export function worldCoverDistance(aspect:number, verticalFovDegrees=40):number {
+  // Reuse validation, but not the padded fit calculation.
+  worldViewDistance(aspect,verticalFovDegrees,1);
+  const height=WORLD_BOUNDS.bottom-WORLD_BOUNDS.top;
+  return Math.min(height,WORLD_WIDTH/aspect)*0.998/(2*Math.tan(verticalFovDegrees*RAD/2));
+}
+
+/** Ground-plane footprint of a north-facing perspective camera. */
+export function cameraGroundSpan(distance:number, tilt:number, verticalFovDegrees=40):{north:number;south:number} {
+  const half=verticalFovDegrees*RAD/2;
+  if(!Number.isFinite(distance)||distance<=0||!Number.isFinite(tilt)||tilt<0
+    || !Number.isFinite(half)||half<=0||tilt+half>=Math.PI/2)throw new Error('invalidViewport');
+  const height=distance*Math.cos(tilt),offset=distance*Math.sin(tilt);
+  return {north:height*Math.tan(tilt+half)-offset,south:offset-height*Math.tan(tilt-half)};
+}
+
+/** Keep the visible ground inside the north/south crop even during pan/zoom. */
+export function clampViewZ(z:number,distance:number,tilt:number):number {
+  if(!Number.isFinite(z))throw new Error('invalidViewport');
+  const span=cameraGroundSpan(distance,tilt);
+  const min=WORLD_BOUNDS.top+span.north,max=WORLD_BOUNDS.bottom-span.south;
+  return min>max?WORLD_CENTER.z:Math.max(min,Math.min(max,z));
+}

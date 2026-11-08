@@ -13,7 +13,7 @@ test('real global Miller atlas, geographic search and near terrain',async({page}
  await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText('江苏');
  await page.getByRole('button',{name:'3D',exact:true}).click();await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:15000});await page.screenshot({path:'artifacts/miller-jiangsu.png'});
- await page.getByRole('button',{name:'English',exact:true}).click();
+ await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
  await page.getByTestId('map-search').fill('California');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText('California');
  await page.getByRole('button',{name:'2D',exact:true}).click();
