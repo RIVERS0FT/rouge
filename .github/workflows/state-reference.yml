@@ -16,8 +16,18 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install numpy==2.2.6 pillow==11.3.0 rasterio==1.4.3 shapely==2.1.2
-      - run: python scripts/prepare-state-reference.py
+      - name: Parse both valid identifier forms and audit geometry
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/prepare-state-reference.py')
+          text=p.read_text().replace('"x([0-9A-Fa-f]{6})"',r'\bx([0-9A-Fa-f]{6})\b')
+          p.write_text(text)
+          PY
+          python scripts/prepare-state-reference.py
+          cp scripts/prepare-state-reference.py artifacts/state-reference/
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: management-region-atlas
           path: artifacts/state-reference/
