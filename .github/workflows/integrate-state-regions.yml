@@ -1,0 +1,89 @@
+name: Integrate management regions and routing
+on:
+  push:
+    branches: [feat/state-regions-routing]
+    paths: ['.changes/**', '.github/workflows/integrate-state-regions.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download audited raw atlas
+        uses: actions/download-artifact@v4
+        with:
+          name: management-region-atlas
+          run-id: 42494839084
+          github-token: ${{ github.token }}
+          path: .cache/state-input
+      - name: Verify and apply source implementation
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import zlib from 'node:zlib';
+          const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const archive=Buffer.from([1,2,3].map(i=>fs.readFileSync(`.changes/state-${i}.b64`,'utf8')).join(''),'base64');
+          if(hash(archive)!=='96e3f2737996a831ca732b6ba07fdf22e94a9ef1190eaf3cd6eb5dc3ef48ad9c')throw Error('Patch checksum mismatch');
+          const results=[];
+          for(const edit of JSON.parse(zlib.brotliDecompressSync(archive))){
+            if(edit.path.startsWith('/')||edit.path.split('/').includes('..')||edit.path.startsWith('.git'))throw Error('Unsafe path');
+            const old=fs.existsSync(edit.path)?fs.readFileSync(edit.path):null;
+            if((old?hash(old):null)!==edit.base)throw Error(`Baseline mismatch: ${edit.path}`);
+            const lines=old?(old.toString().match(/[^\n]*\n|[^\n]+$/g)||[]):[];
+            for(const[start,end,text]of [...edit.edits].reverse())lines.splice(start,end-start,text);
+            const result=lines.join('');
+            if(hash(result)!==edit.result)throw Error(`Result mismatch: ${edit.path}`);
+            results.push([edit.path,result]);
+          }
+          for(const[path,content]of results){fs.mkdirSync(path.split('/').slice(0,-1).join('/')||'.',{recursive:true});fs.writeFileSync(path,content);}
+          console.log(`Applied ${results.length} verified source files`);
+          NODE
+      - name: Normalize shared edges and exclude sea regions
+        run: |
+          pip install numpy==2.2.6 shapely==2.1.2
+          python scripts/normalize-state-atlas.py --input .cache/state-input --output data
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Core and routing regression tests
+        run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
+      - name: Type check and production build
+        run: npm run build | tee artifacts/build.log
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance and actual screenshots
+        run: npm run test:e2e | tee artifacts/browser-tests.log
+      - name: Commit verified implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md docs data package.json package-lock.json scripts src tests
+          git commit -m 'feat: 675 management regions, multi-region dispatch and tile-only capacity'
+          git push origin HEAD:feat/state-regions-routing
+          git rev-parse HEAD > artifacts/tested-commit.txt
+      - name: Archive tested source
+        if: always()
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache --exclude=.changes -czf /tmp/rouge-state-regions-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-state-regions-source.tar.gz artifacts/
+      - name: Export build and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-state-regions-integration
+          path: |
+            dist/
+            artifacts/
+            test-results/
+            data/state-regions-audit.json
