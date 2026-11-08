@@ -1,4 +1,4 @@
-import { MAP, boundsOf, containsPart } from './map.ts';
+import { MAP, navigableInProvince } from './map.ts';
 import type { GameState } from './types.ts';
 export interface Grid {width:number;height:number;costs:Float32Array}
 export interface Flow {width:number;height:number;goal:number;distance:Float32Array;next:Int32Array}
@@ -35,7 +35,8 @@ export class Navigator {
   get(state:GameState,owner:number,target:number,from:number):LocalFlow {
     const key=`${owner}:${from}:${target}:${state.topology}`,cached=this.cache.get(key);if(cached)return cached;
     // A local land corridor, not a global coarse raster. Disjoint islands are not bridges.
-    const a=MAP[from],b=MAP[target],bounds=boundsOf([...a.parts[0][0],...b.parts[0][0]]);
+    const a=MAP[from],b=MAP[target];if(!a?.playable||!b?.playable)throw new Error('unreachable');
+    const bounds={left:Math.min(a.bounds.left,b.bounds.left),right:Math.max(a.bounds.right,b.bounds.right),top:Math.min(a.bounds.top,b.bounds.top),bottom:Math.max(a.bounds.bottom,b.bounds.bottom)};
     const cellSize=Math.max(bounds.right-bounds.left,bounds.bottom-bounds.top)/190;
     const left=bounds.left-cellSize*2,top=bounds.top-cellSize*2;
     const width=Math.ceil((bounds.right-left)/cellSize)+2,height=Math.ceil((bounds.bottom-top)/cellSize)+2;
@@ -43,7 +44,7 @@ export class Navigator {
     let goal=-1,nearest=Infinity;
     for(let i=0;i<costs.length;i++){
       const x=left+(i%width+0.5)*cellSize,z=top+(Math.floor(i/width)+0.5)*cellSize;
-      const inTarget=containsPart(b.parts[0],x,z),inSource=containsPart(a.parts[0],x,z);
+      const inTarget=navigableInProvince(target,x,z),inSource=navigableInProvince(from,x,z);
       if(inTarget||inSource)costs[i]=1;
       const distance=(x-b.center.x)**2+(z-b.center.z)**2;
       if(inTarget&&distance<nearest){nearest=distance;goal=i;}
@@ -53,10 +54,11 @@ export class Navigator {
     this.cache.set(key,result);this.builds++;return result;
   }
   canMove(flow:LocalFlow,x:number,z:number,toX:number,toZ:number):boolean {
+    if(!navigableInProvince(flow.from,x,z)&&!navigableInProvince(flow.target,x,z))return false;
     const count=Math.max(2,Math.ceil(Math.hypot(toX-x,toZ-z)/(flow.cellSize*0.2)));
     for(let i=1;i<=count;i++){
       const t=i/count,px=x+(toX-x)*t,pz=z+(toZ-z)*t;
-      if(!containsPart(MAP[flow.from].parts[0],px,pz)&&!containsPart(MAP[flow.target].parts[0],px,pz))return false;
+      if(!navigableInProvince(flow.from,px,pz)&&!navigableInProvince(flow.target,px,pz))return false;
     }
     return true;
   }

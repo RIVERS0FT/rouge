@@ -6,7 +6,7 @@ function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>4||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
-  const s:GameState={version:3,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
+  const s:GameState={version:4,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
   // Each commander starts with a real province and one available land neighbor.
   for (let actor=0;actor<setups.length;actor++) {
@@ -16,7 +16,7 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   }
   const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
   for(const p of s.provinces) {
-    const count=p.owner>=0?5:frontier.has(p.id)?2:0;
+    const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?2:0;
     for(let i=0;i<count&&s.units.length<MAX_UNITS;i++)spawn(s,p.id,'infantry');
   }
   return s;
@@ -47,7 +47,7 @@ export class Engine{
       case 'march':{
         if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!Number.isFinite(c.fraction)||c.fraction<0.25||c.fraction>1)return fail('invalidCommand');
         const from=s.provinces[c.from],to=s.provinces[c.to];if(!from||!to||from.owner!==actor)return fail('notOwner');
-        if(!MAP[c.to].playable||!MAP[c.from].neighbors.includes(c.to))return fail('notAdjacent');
+        if(!MAP[c.from].playable||!MAP[c.to].playable||!MAP[c.from].neighbors.includes(c.to))return fail('notAdjacent');
         const available=s.units.filter(u=>u.owner===actor&&u.province===c.from&&u.target===null);
         const n=Math.floor(available.length*c.fraction);if(n<1)return fail('noTroops');
         const flow=this.navigation.get(s,actor,c.to,c.from),reachable=available.filter(u=>{const cell=cellAt(u.x,u.z,flow);return cell>=0&&Number.isFinite(flow.distance[cell]);});
@@ -55,7 +55,7 @@ export class Engine{
       }
       case 'production':{
         if(!Number.isInteger(c.province)||!KINDS.includes(c.kind)||!p.loadout.includes(c.kind))return fail('invalidCommand');
-        const province=s.provinces[c.province];if(!province||province.owner!==actor)return fail('notOwner');
+        const province=s.provinces[c.province];if(!province||!MAP[c.province].playable||province.owner!==actor)return fail('notOwner');
         // Keep the fractional work when changing the queue; switching never grants a free unit.
         province.production=Math.min(province.production/UNITS[province.kind].train,0.99)*UNITS[c.kind].train;province.kind=c.kind;return{ok:true};
       }
@@ -121,9 +121,9 @@ export class Engine{
     }
     if(s.tick%80===0)this.ai();
     for(const p of s.players){
-      const owned=s.provinces.filter(v=>v.owner===p.id).length;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
+      const owned=s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
       const opponents=s.players.filter(o=>o.id!==p.id);
-      if(s.domination[p.id]>=30||(owned>0&&opponents.every(o=>!s.provinces.some(v=>v.owner===o.id)&&!s.units.some(u=>u.owner===o.id)))){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
+      if(s.domination[p.id]>=30||(owned>0&&opponents.every(o=>!s.provinces.some(v=>MAP[v.id].playable&&v.owner===o.id)&&!s.units.some(u=>u.owner===o.id)))){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
@@ -132,7 +132,7 @@ export class Engine{
     for(const p of s.players.filter(p=>p.ai)){
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
-      for(const province of s.provinces.filter(v=>v.owner===p.id)){
+      for(const province of s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id)){
         const units=s.units.filter(u=>u.owner===p.id&&u.province===province.id&&u.target===null);if(units.length<4)continue;
         const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>s.units.filter(u=>u.province===a).length-s.units.filter(u=>u.province===b).length);
         const destination=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];

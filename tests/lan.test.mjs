@@ -22,7 +22,7 @@ test('LAN rejects missing or mismatched map identity before creating or accessin
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}`;
  try{
-  const health=await(await fetch(base+'/api/health')).json();assert.equal(health.map,MAP_ID);assert.equal(health.version,'0.3.0');
+  const health=await(await fetch(base+'/api/health')).json();assert.equal(health.map,MAP_ID);assert.equal(health.version,'0.4.0');
   for(const map of [undefined,'earth-admin1-mercator-v1']){
    const headers={'Content-Type':'application/json',...(map?{'X-Rouge-Map':map}:{})};
    const r=await fetch(base+'/api/rooms',{method:'POST',headers,body:JSON.stringify({setup})});

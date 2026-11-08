@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {project,unproject,MAX_LATITUDE,WORLD_SCALE,groundMetric,WORLD_BOUNDS,PROJECTION_ID,worldViewDistance} from '../src/game/geo.ts';
+import {project,unproject,MAX_LATITUDE,WORLD_SCALE,groundMetric,WORLD_BOUNDS,PROJECTION_BOUNDS,PROJECTION_ID,worldViewDistance} from '../src/game/geo.ts';
 import {MAP,containsPart,provinceAt,pointInProvince,provinceByCode,STARTS} from '../src/game/map.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {cellAt,cellCenter} from '../src/game/navigation.ts';
@@ -34,12 +34,12 @@ test('Miller has directional, not isotropic, local ground factors',()=>{
  assert.ok(Math.abs(m.northSouth*dz-step*WORLD_SCALE)<1e-10);
  assert.deepEqual(groundMetric(0),{eastWest:1,northSouth:1});
 });
-test('Miller finite bounds contain all vertices; global camera fits multiple aspect ratios',()=>{
- const {left,right,top,bottom}=WORLD_BOUNDS;
+test('Full Miller projection retains all source vertices; cropped camera fits multiple aspect ratios',()=>{
+ const {left,right,top,bottom}=PROJECTION_BOUNDS;
  for(const p of MAP)for(const part of p.parts)for(const ring of part)for(const point of ring){assert.ok(point.x>=left-1e-7&&point.x<=right+1e-7);assert.ok(point.z>=top-1e-7&&point.z<=bottom+1e-7);}
  for(const aspect of [9/16,1,1.5,16/9,21/9]){
   const distance=worldViewDistance(aspect),height=2*distance*Math.tan(20*Math.PI/180)*0.8;
-  assert.ok(height>=bottom-top-1e-8);assert.ok(height*aspect>=right-left-1e-8);
+  assert.ok(height>=WORLD_BOUNDS.bottom-WORLD_BOUNDS.top-1e-8);assert.ok(height*aspect>=WORLD_BOUNDS.right-WORLD_BOUNDS.left-1e-8);
  }
  assert.throws(()=>worldViewDistance(0));assert.throws(()=>worldViewDistance(Infinity));assert.throws(()=>worldViewDistance(1,180));
 });
