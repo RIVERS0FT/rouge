@@ -1,0 +1,36 @@
+name: Prototype checks
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install exact direct dependencies
+        run: npm install --no-audit --no-fund
+      - name: Core and LAN tests
+        run: npm test
+      - name: Type check and production build
+        run: npm run build
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke test
+        run: npm run test:e2e
+      - name: Upload build and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-prototype
+          path: |
+            dist/
+            artifacts/
+            test-results/
+            package-lock.json

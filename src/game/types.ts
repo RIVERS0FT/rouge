@@ -1,0 +1,19 @@
+export type Vec2 = { x:number; z:number };
+export type Kind = 'infantry' | 'cavalry' | 'artillery' | 'engineer';
+export type Leader = 'warden' | 'vanguard' | 'steward';
+export type Upgrade = 'attack' | 'health' | 'speed';
+export type Terrain = 'plain' | 'forest' | 'highland';
+export interface ProvinceDef { id:number; name:[string,string]; center:Vec2; polygon:Vec2[]; neighbors:number[]; terrain:Terrain }
+export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number }
+export interface Unit { id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; cooldown:number }
+export interface Player { id:number; name:string; leader:Leader; loadout:Kind[]; ai:boolean; gold:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerolls:number }
+export interface GameEvent { tick:number; key:'capture'|'level'|'victory'; player:number; province?:number }
+export interface GameState { version:1; map:'frontier-32-v1'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[] }
+export interface PlayerSetup { name:string; leader:Leader; loadout:Kind[]; ai?:boolean }
+export type Command =
+  | {type:'march';from:number;to:number;fraction:number}
+  | {type:'production';province:number;kind:Kind}
+  | {type:'upgrade';kind:Kind;stat:Upgrade}
+  | {type:'talent';id:string}
+  | {type:'reroll'};
+export type Result = {ok:true} | {ok:false;error:string};
