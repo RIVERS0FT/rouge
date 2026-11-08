@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('two isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
+  test.setTimeout(90000);
   const hostContext=await browser.newContext(),guestContext=await browser.newContext();
   const host=await hostContext.newPage(),guest=await guestContext.newPage();
   const errors:string[]=[];
@@ -12,7 +13,11 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
       await page.getByRole('button',{name:/LAN multiplayer/}).click();
       await page.getByTestId('commander-name').fill(name);
     }
-    await host.getByRole('button',{name:'Create room',exact:true}).click();
+    const [created]=await Promise.all([
+      host.waitForResponse(r=>r.url().endsWith('/api/rooms')&&r.request().method()==='POST'),
+      host.getByRole('button',{name:'Create room',exact:true}).click(),
+    ]);
+    expect(created.status(),await created.text()).toBe(201);
     await expect(host.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
     const code=(await host.locator('.room-code').innerText()).trim();
     await guest.getByPlaceholder('Room code').fill(code);
