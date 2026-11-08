@@ -21,7 +21,7 @@
 .commander-rank{position:absolute;top:16px;left:18px;display:flex;flex-direction:column;align-items:center;color:#dac18b;gap:2px}
 .commander-rank small{font-size:9px;letter-spacing:.15em}
 .commander-rank b{font-family:var(--serif);font-size:26px;font-weight:400}
-.commander-portrait-copy{position:absolute;z-index:3;left:20px;bottom:21px;max-width:calc(100% - 150px)}
+.commander-portrait-copy{position:absolute;z-index:3;left:20px;bottom:21px;max-width:calc(100% - 160px)}
 .commander-portrait-copy .eyebrow{font-size:8px;color:#b8b19b;letter-spacing:.18em}
 .commander-portrait-copy h2{font-family:var(--serif);font-size:22px;line-height:1.2;font-weight:400;margin:5px 0 7px;color:#ecdfbf;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .commander-player{display:flex;align-items:center;gap:7px;color:#b6c2b7;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

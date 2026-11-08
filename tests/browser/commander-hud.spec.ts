@@ -43,6 +43,7 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await page.getByRole('button',{name:'English',exact:true}).click();
     await expect(page.getByTestId('country-flag')).toHaveAccessibleName('Germany · National flag');
+    await assertLayout(page);
     await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.setViewportSize({width:1280,height:720});await assertLayout(page);
