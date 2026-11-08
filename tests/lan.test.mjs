@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MAP_ID } from '../src/game/content.ts';
+import { MAP_ID, VERSION } from '../src/game/content.ts';
 import { createLanServer } from '../server/lan.ts';
 const setup={name:'Human',leader:'warden',loadout:['infantry','cavalry']};
 test('real HTTP LAN: two seats, host-only start, token-bound commands and streamed snapshots',async()=>{
@@ -22,7 +22,7 @@ test('LAN rejects missing or mismatched map identity before creating or accessin
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}`;
  try{
-  const health=await(await fetch(base+'/api/health')).json();assert.equal(health.map,MAP_ID);assert.equal(health.version,'0.4.0');
+  const health=await(await fetch(base+'/api/health')).json();assert.equal(health.map,MAP_ID);assert.equal(health.version,VERSION);
   for(const map of [undefined,'earth-admin1-mercator-v1']){
    const headers={'Content-Type':'application/json',...(map?{'X-Rouge-Map':map}:{})};
    const r=await fetch(base+'/api/rooms',{method:'POST',headers,body:JSON.stringify({setup})});

@@ -2,7 +2,7 @@ name: Integrate commander identity HUD
 on:
   push:
     branches: [feat/commander-hud]
-    paths: [.changes/hud.b64, .github/workflows/apply-hud.yml]
+    paths: [.changes/hud.b64, .github/workflows/apply-hud.yml, tests/lan.test.mjs]
 permissions:
   contents: write
 jobs:
@@ -67,12 +67,3 @@ jobs:
             dist/
             artifacts/
             test-results/
-      - name: Export dependency cache for local verification
-        if: always()
-        run: test ! -d node_modules || tar -czf /tmp/rouge-hud-node-modules.tar.gz node_modules
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: rouge-hud-development-cache
-          path: /tmp/rouge-hud-node-modules.tar.gz
-          retention-days: 1
