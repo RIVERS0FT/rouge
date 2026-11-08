@@ -127,14 +127,15 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
-          import { chromium, expect } from '@playwright/test';
+          import { chromium, expect as baseExpect } from '@playwright/test';
+          const expect = baseExpect.configure({timeout:45000});
           const site = process.env.SITE_URL.replace(/\/?$/, '/');
           const errors = [];
           const failedResources = [];
           let info;
           for (let attempt = 0; attempt < 18; attempt++) {
             try {
-              const res = await fetch(`${site}build-info.json?check=${Date.now()}`);
+              const res = await fetch(`${site}build-info.json?check=${Date.now()}`, {signal:AbortSignal.timeout(15000)});
               if (res.ok) {
                 info = await res.json();
                 if (info.sourceCommit === process.env.SOURCE_COMMIT) break;
@@ -176,7 +177,7 @@ jobs:
             await page.screenshot({path:'artifacts/pages-live-battle.png'});
             await page.getByTestId('open-settings').click();
             await page.getByTestId('settings-save').click();
-            await page.locator('[role="dialog"] input[type="text"]').fill('Pages verification');
+            await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
             await page.getByTestId('create-save').click();
             await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
             await page.reload({waitUntil:'networkidle'});
