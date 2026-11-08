@@ -27,12 +27,12 @@ jobs:
         run: npm run test:e2e
       - name: Archive tested source
         if: always()
-        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-world-miller-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-world-miller-source.tar.gz artifacts/
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-world-miller-crop-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-world-miller-crop-source.tar.gz artifacts/
       - name: Upload build and browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rouge-world-miller
+          name: rouge-world-miller-crop
           path: |
             dist/
             artifacts/
@@ -40,3 +40,4 @@ jobs:
             package-lock.json
             src/generated/world.json
             docs/WORLD_MAP.md
+            docs/MAP_CROP.md
