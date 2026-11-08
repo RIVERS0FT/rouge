@@ -40,7 +40,7 @@ export function CommanderPortrait({ player, language, color, onTalents }: { play
     data-testid="commander-portrait" data-leader={player.leader} data-actor={player.id} aria-label={`${leaderName} · ${label(language, 'portrait')}`}>
     <div className="commander-art"><LeaderBust leader={player.leader} label={`${leaderName} · ${label(language, 'portrait')}`}/></div>
     <div className="commander-rank" title={`${t(language, 'level')} ${player.level}`}><small>LV</small><b>{player.level}</b></div>
-    <div className="commander-portrait-copy"><span className="eyebrow">{t(language, 'commander')}</span><h2>{leaderName}</h2>
+    <div className="commander-portrait-copy"><span className="eyebrow">{t(language, 'commander')}</span><h2 title={leaderName}>{leaderName}</h2>
       <span className="commander-player" title={player.name}><i/>{player.name}</span>
     </div>
     <button className="commander-talents" data-testid="portrait-talents" onClick={onTalents} title={label(language, pending ? 'choose' : 'open')}

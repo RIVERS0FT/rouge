@@ -5,6 +5,8 @@ async function assertLayout(page: Page) {
   const portrait=await page.getByTestId('commander-portrait').boundingBox();
   const panel=await page.locator('.province-panel').boundingBox();
   const footer=await page.locator('.hud-bottom').boundingBox();
+  const name=await page.locator('.commander-portrait-copy h2').boundingBox();
+  const talent=await page.getByTestId('portrait-talents').boundingBox();
   const viewport=page.viewportSize()!;
   expect(flag).not.toBeNull();expect(portrait).not.toBeNull();expect(panel).not.toBeNull();expect(footer).not.toBeNull();
   expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
@@ -12,9 +14,12 @@ async function assertLayout(page: Page) {
   expect(panel!.y+panel!.height).toBeLessThanOrEqual(portrait!.y-10);
   expect(portrait!.y+portrait!.height).toBeLessThanOrEqual(footer!.y-8);
   expect(portrait!.x+portrait!.width).toBeLessThan(viewport.width);
+  expect(name).not.toBeNull();expect(talent).not.toBeNull();
+  expect(name!.x+name!.width).toBeLessThanOrEqual(talent!.x-8);
+  await expect(page.locator('.commander-portrait-copy h2')).toHaveAttribute('title',/\S/);
 }
 
-for (const [leader,index,name] of [['warden',0,'Iron Warden'],['vanguard',1,'Vanguard'],['steward',2,'Quartermaster']] as const) {
+for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as const) {
   test(`HUD ${leader}: half-body portrait, stable flag, responsive layout and talent entry`,async({page})=>{
     test.setTimeout(150000);
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
