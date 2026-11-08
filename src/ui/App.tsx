@@ -10,8 +10,9 @@ import {World} from './World.tsx';
 import {CountryIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,type Language} from './i18n.ts';
 import {ModalDialog} from './ModalDialog.tsx';
+import {STATIC_HOST,HostingNotice,hostingMessage} from './HostingNotice.tsx';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
-function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.crop.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
+function storedTicket():Ticket|null{if(STATIC_HOST)return null;try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.miller.crop.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
 const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',warden:'▱',vanguard:'↗',steward:'◇'};
 export function App(){
  const[mapQuery,setMapQuery]=useState('');
@@ -51,12 +52,13 @@ export function App(){
   try{const seed=crypto.getRandomValues(new Uint32Array(1))[0];launchLocal(createGame([setup(),{name:text('eastAI'),leader:'vanguard',loadout:['infantry','cavalry','engineer'],ai:true},{name:text('southAI'),leader:'steward',loadout:['infantry','artillery','engineer'],ai:true}],seed,crypto.randomUUID()));}catch(e){report(e);}
  }
  function connect(ticket:Ticket){
+  if(STATIC_HOST)return;
   session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket.miller.crop.v1',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}
   setGame(null);setActor(ticket.actor);setRoom(null);setScreen('lobby');setModal(null);setNetwork('reconnecting');
   let initialized=false;
   session.current=remoteSession(ticket,value=>{setGame(value);setScreen('game');if(!initialized){setSelected(value.provinces.find(p=>p.owner===ticket.actor)?.id??0);initialized=true;}},setRoom,setNetwork,notifyResult);
  }
- async function roomAction(join:boolean){setBusy(true);try{connect(await(join?joinRoom(code,setup()):createRoom(setup())));}catch(e){report(e);}finally{setBusy(false);}}
+ async function roomAction(join:boolean){if(STATIC_HOST)return;setBusy(true);try{connect(await(join?joinRoom(code,setup()):createRoom(setup())));}catch(e){report(e);}finally{setBusy(false);}}
  async function beginMatch(){if(!ticket)return;setBusy(true);try{await api(`/rooms/${ticket.code}/start`,{},ticket.token);}catch(e){report(e);}finally{setBusy(false);}}
  function issue(command:Command){session.current?.command(command);}
  function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
@@ -91,8 +93,8 @@ export function App(){
   {screen==='menu'&&<main className="main-menu">
     <div className="menu-top"><span className="brand-mark">R</span><span className="eyebrow">RIVERSOFT / STRATEGY LAB</span></div>
     <section className="menu-content"><div className="eyebrow gold">{text('prototype')}</div><h1>ROUGE<span>{text('title')}</span></h1><p className="menu-description">{text('menuBrief')}</p>
-      <nav className="menu-actions"><button className="primary large" onClick={()=>setModal('setupSolo')} data-testid="single-player"><span>01</span>{text('single')}<b>↗</b></button><button className="menu-button" onClick={()=>setModal('setupLan')}><span>02</span>{text('multiplayer')}<b>→</b></button><button className="menu-button" onClick={showSaves} data-testid="open-saves"><span>03</span>{text('saves')}<b>→</b></button>{ticket&&<button className="quiet" onClick={()=>connect(ticket)}>{text('resumeLan')} · {ticket.code}</button>}</nav>
-      <p className="small muted">{text('offlineHint')}</p><div className="platform-note">{text('platformPending')}</div>
+      <nav className="menu-actions"><button className="primary large" onClick={()=>setModal('setupSolo')} data-testid="single-player"><span>01</span>{text('single')}<b>↗</b></button><button className="menu-button" data-testid="multiplayer" disabled={STATIC_HOST} title={STATIC_HOST?hostingMessage(language):undefined} onClick={()=>setModal('setupLan')}><span>02</span>{text('multiplayer')}<b>→</b></button><button className="menu-button" onClick={showSaves} data-testid="open-saves"><span>03</span>{text('saves')}<b>→</b></button>{ticket&&<button className="quiet" onClick={()=>connect(ticket)}>{text('resumeLan')} · {ticket.code}</button>}</nav>
+      {STATIC_HOST?<HostingNotice language={language}/>:<p className="small muted">{text('offlineHint')}</p>}<div className="platform-note">{text('platformPending')}</div>
     </section>
     <footer className="menu-footer"><div className="gold-line"/><span>{text('theatre')}</span><p>{text('theatreSub')}</p></footer>
     <div className="map-caption"><span className="map-caption-rule"/><div className="eyebrow">THE FRONTIER / 01</div><h2>{text('subtitle')}</h2><p>{text('controls')}</p></div>

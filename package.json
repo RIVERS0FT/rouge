@@ -18,7 +18,9 @@
     "predev": "npm run prepare:map",
     "prebuild": "npm run prepare:map",
     "pretest": "npm run prepare:map",
-    "prelan": "npm run prepare:map"
+    "prelan": "npm run prepare:map",
+    "build:pages": "npm run prepare:map && tsc --noEmit && vite build --mode pages",
+    "test:pages": "node scripts/smoke-pages.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

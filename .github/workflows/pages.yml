@@ -1,0 +1,86 @@
+name: Deploy playable game to GitHub Pages
+on:
+  push:
+    branches: [feat/github-pages]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: rouge-github-pages
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Core regressions
+        run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
+      - name: Build static Pages profile
+        run: npm run build:pages && node scripts/write-build-info.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Test actual production build under /rouge/
+        run: npm run test:pages | tee artifacts/static-smoke.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pages-build-evidence
+          path: artifacts/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Read Pages publishing configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api repos/$GITHUB_REPOSITORY/pages --jq '{html_url,build_type,source}'
+      - uses: actions/configure-pages@v5
+      - name: Publish playable build
+        id: deployment
+        uses: actions/deploy-pages@v4
+  verify:
+    needs: deploy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Verify public game, Worker and save reload
+        env:
+          PAGES_URL: ${{ needs.deploy.outputs.page_url }}
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          mkdir -p artifacts
+          npm run test:pages | tee artifacts/published-smoke.log
+          curl --fail --retry 5 "${PAGES_URL%/}/build-info.json" -o artifacts/published-build-info.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pages-live-evidence
+          path: artifacts/
