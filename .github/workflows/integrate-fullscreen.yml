@@ -1,0 +1,71 @@
+name: Integrate fullscreen HUD
+on:
+  push:
+    branches: [feat/fullscreen-hud]
+    paths: [.changes/fullscreen-1.b64, .changes/fullscreen-2.b64, .github/workflows/integrate-fullscreen.yml]
+permissions:
+  contents: write
+defaults:
+  run:
+    shell: bash
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify source and apply fullscreen HUD
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import zlib from 'node:zlib';
+          const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const archive=Buffer.from([1,2].map(i=>fs.readFileSync(`.changes/fullscreen-${i}.b64`,'utf8')).join(''),'base64');
+          if(hash(archive)!=='46de23aa0854b4beed5cb671de7f9a320dbf041c571a6101a65760b8684dba79')throw Error('Patch checksum mismatch');
+          const results=[];
+          for(const edit of JSON.parse(zlib.brotliDecompressSync(archive))){
+            if(edit.path.startsWith('/')||edit.path.split('/').includes('..')||edit.path.startsWith('.git'))throw Error('Unsafe path');
+            const old=fs.existsSync(edit.path)?fs.readFileSync(edit.path):null;
+            if((old?hash(old):null)!==edit.base)throw Error(`Baseline mismatch: ${edit.path}`);
+            const chars=Array.from(old?.toString()||'');
+            for(const[start,end,text]of [...edit.edits].reverse())chars.splice(start,end-start,text);
+            const result=chars.join('');
+            if(hash(result)!==edit.result)throw Error(`Result mismatch: ${edit.path}`);
+            results.push([edit.path,result]);
+          }
+          for(const[path,content]of results){fs.mkdirSync(path.split('/').slice(0,-1).join('/')||'.',{recursive:true});fs.writeFileSync(path,content);}
+          NODE
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Core and viewport regression tests
+        run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
+      - name: Type check and production build
+        run: npm run build | tee artifacts/build.log
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance and actual screenshots
+        run: npm run test:e2e | tee artifacts/browser-tests.log
+      - name: Commit verified implementation
+        run: |
+          rm -f .changes/fullscreen-1.b64 .changes/fullscreen-2.b64
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: edge-to-edge map, top-right settings and floating army controls'
+          git push origin HEAD:feat/fullscreen-hud
+      - name: Archive tested source
+        if: always()
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache --exclude=.changes -czf /tmp/rouge-fullscreen-hud-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-fullscreen-hud-source.tar.gz artifacts/
+      - name: Export build and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-fullscreen-integration
+          path: |
+            dist/
+            artifacts/
+            test-results/
