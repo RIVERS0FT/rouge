@@ -1,7 +1,8 @@
 import {test,expect} from '@playwright/test';
 
 test('two isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
-  test.setTimeout(90000);
+  // Two independent software-rendered world maps plus a full reload in CI.
+  test.setTimeout(180000);
   const hostContext=await browser.newContext(),guestContext=await browser.newContext();
   const host=await hostContext.newPage(),guest=await guestContext.newPage();
   const errors:string[]=[];

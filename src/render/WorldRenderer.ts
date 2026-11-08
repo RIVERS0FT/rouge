@@ -34,6 +34,7 @@ export class WorldRenderer {
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
   private observer:ResizeObserver;private animation=0;private last=0;
   private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(0,0,-170);
+  private invalidated=true;private lastRender=0;
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number}|null=null;
   private smoothed=new Map<number,Vec2>();
@@ -101,7 +102,7 @@ export class WorldRenderer {
     material.customProgramCacheKey=()=> 'earth-relief-v1';
   }
   update(state:GameState,selected:number,lang:'zh'|'en') {
-    this.state=state;this.lang=lang;
+    this.state=state;if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);}
     if(selected!==this.selected){if(this.selected>=0)this.dirty.add(this.selected);this.selected=selected;if(selected>=0)this.dirty.add(selected);this.drawSelection();this.lastLabels=0;}
   }
@@ -112,14 +113,15 @@ export class WorldRenderer {
   }
   zoom(delta:number){this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,6500);}
   view(mode:'strategic'|'terrain') {
+    this.invalidated=true;
     if(mode==='strategic'){this.focus.set(0,0,-170);this.desiredDistance=4400;}
     else if(this.selected>=0)this.focusProvince(this.selected);
   }
   focusProvince(id:number) {
-    const p=MAP[id];if(!p)return;this.focus.set(p.center.x,0,p.center.z);
+    const p=MAP[id];if(!p)return;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();};
+  private resize=()=>{this.invalidated=true;const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();};
   private pick(e:PointerEvent):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -131,7 +133,7 @@ export class WorldRenderer {
   }
   private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
   private pointerMove=(e:PointerEvent)=>{
-    if(this.down&&this.down.button!==2){const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+    if(this.down&&this.down.button!==2){this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
       this.focus.x=THREE.MathUtils.clamp(this.down.fx-(e.clientX-this.down.x)*scale,BOUNDS.left,BOUNDS.right);this.focus.z=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
   };
   private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
@@ -144,7 +146,7 @@ export class WorldRenderer {
     const occupied:{x:number;y:number}[]=[];let n=0,townCount=0;
     const paint=(name:string,x:number,z:number,ocean=false)=>{
       const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.host.clientWidth/2,sy=(1-screen.y)*this.host.clientHeight/2;
-      if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>Math.abs(p.x-sx)<95&&Math.abs(p.y-sy)<27)||n>=48)return;
+      if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>Math.abs(p.x-sx)<130&&Math.abs(p.y-sy)<27)||n>=48)return;
       occupied.push({x:sx,y:sy});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
         ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#8ca7ac':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
@@ -159,8 +161,17 @@ export class WorldRenderer {
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
   }
   private frame=(time:number)=>{
+    this.animation=requestAnimationFrame(this.frame);
+    if(document.hidden)return;
+    const moving=Math.abs(this.distance-this.desiredDistance)>0.01;
+    // A stationary strategic map has no animated units. Render only when invalidated.
+    if(!moving&&!this.invalidated&&!this.dirty.size&&this.blend<0.1)return;
+    if(time-this.lastRender<(this.distance>320?100:1000/30))return;
+    this.lastRender=time;this.invalidated=false;
     const dt=Math.min((time-this.last)/1000||0.016,0.1);this.last=time;this.distance+=(this.desiredDistance-this.distance)*(1-Math.exp(-dt*9));
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
+    // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
+    this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle)+0.001);this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.16:this.distance>300?0.28:0.55;
@@ -179,7 +190,6 @@ export class WorldRenderer {
     this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
     this.drawLabels(time);this.renderer.render(this.scene,this.camera);
     this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection='EPSG:3857';this.renderer.domElement.dataset.provinces=String(MAP.length);
-    this.animation=requestAnimationFrame(this.frame);
   };
   dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     this.scene.traverse(o=>{const m=o as THREE.Mesh;m.geometry?.dispose();if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])material.dispose();});for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
