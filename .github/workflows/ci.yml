@@ -14,23 +14,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      - name: Install exact direct dependencies
-        run: npm install --no-audit --no-fund
-      - name: Core and LAN tests
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Core, geography and LAN tests
         run: npm test
       - name: Type check and production build
         run: npm run build
       - name: Install test browser
         run: npx playwright install --with-deps chromium
-      - name: Browser smoke test
+      - name: Browser acceptance
         run: npm run test:e2e
       - name: Upload build and browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rouge-prototype
+          name: rouge-world-mercator
           path: |
             dist/
             artifacts/
             test-results/
             package-lock.json
+            src/generated/world.json
+            docs/WORLD_MAP.md
