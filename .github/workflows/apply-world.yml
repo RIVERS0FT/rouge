@@ -56,7 +56,8 @@ jobs:
         run: npm run build
       - name: Commit verified source and offline data
         run: |
-          rm -f .changes/mercator-*.b64 .changes/mercator-ready .github/workflows/apply-world.yml .github/workflows/world-data.yml
+          rm -f .changes/mercator-*.b64 .changes/mercator-ready
+          git restore --source=HEAD --worktree --staged .github/workflows
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
