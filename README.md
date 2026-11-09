@@ -21,7 +21,7 @@ v0.5.0 使用新地图和 GameState v5，需要新建战役。旧 v0.4.x 浏览�
 
 ### 地图来源说明
 
-地图采用固定 Victoria 3 1.13.7 州区域参考的转换边界，非 Natural Earth 的公共领域行政区数据。独立游戏再发行授权尚未核实；本次部署不代表已获得相应授权。见游戏分支的 `docs/STATE_REGIONS.md`、线上 `MAP_DATA_SOURCE.md` 和 `THIRD_PARTY_NOTICES.txt`。
+地图采用固定 Victoria 3 1.13.7 州区域参考的转换边界，非 Natural Earth 的公共领域行政区数据。独立游戏再发行授权尚未核实；本次部署不代表已获得相应授权。见本仓库的 `docs/STATE_REGIONS.md`、线上 `MAP_DATA_SOURCE.md` 和 `THIRD_PARTY_NOTICES.txt`。
 
 ## 发布与验证
 
@@ -33,14 +33,14 @@ v0.5.0 使用新地图和 GameState v5，需要新建战役。旧 v0.4.x 浏览�
 
 `.github/workflows/cleanup-merged-branches.yml` 通过 **GitHub Actions** 实现；没有修改仓库原生 `delete_branch_on_merge` 设置。
 
-合并 PR 后自动检查，并每天补查；也可手动运行（默认仅预览）。只处理本仓库已经实际合并的 PR 源分支。以下分支不会删除：默认/长期/受保护分支，未合并分支，仍被开放 PR 用作源或目标的分支，以及合并后有新提交的分支。
+合并 PR 后自动预览，并每天预览；自动触发不删除分支。也可手动运行（默认仅预览；明确关闭预览才会实际删除）。只处理本仓库已经实际合并的 PR 源分支。以下分支不会删除：默认/长期/受保护分支，未合并分支，仍被开放 PR 用作源或目标的分支，以及合并后有新提交的分支。
 
 删除前确认合并结果仍在目标或默认分支中，并用 Git 精确 SHA lease 删除，避免并发推送造成误删。没有未核实的批量删除，也不会自动合并任何 PR。执行报告位于 Actions 附件 `merged-branch-cleanup-report`。
 
 ## 本地运行
 
 ```bash
-git clone --branch feat/state-regions-routing https://github.com/RIVERS0FT/rouge.git
+git clone --branch main https://github.com/RIVERS0FT/rouge.git
 cd rouge
 npm ci
 npm run dev
@@ -48,4 +48,21 @@ npm run dev
 
 需要 Node.js 22.16 或以上。局域网主机执行 `npm run build && npm run lan`。
 
-`main` 当前存放部署和维护入口；游戏功能 PR 保持未合并。
+`main` 是游戏开发主线，已整合线上 v0.5.0 源码。Pages 仍固定发布上述已验收 SHA；手机横屏等后续功能尚未纳入。
+
+左键选地块，拖动平移，滚轮缩放；选中己方地块后右键目标下令，也可在左侧搜索/选择目标。Esc 打开右上设置，保存入口在设置中；单位升级在右侧，天赋在左下领袖像中。
+
+新地图需要新战役，旧 v0.4.x 存档不覆盖、不迁移。界面简中/英语，未提供中文地名的地区使用英文回退。肖像及地形仍为占位资源。
+
+## 测试
+
+```bash
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+边界来源、转换审计、容量语义、路线与存档见 **docs/STATE_REGIONS.md**。原版参考边界的独立游戏再发行授权尚未核实，不能把原版素材或其转换标记为公共领域。不要将本分支的参考地图直接当作已完成发行授权的素材。
+
+其余 docs 中的 v0.4 及以前实现说明仅作历史记录，新地图规则以 STATE_REGIONS.md 为准。

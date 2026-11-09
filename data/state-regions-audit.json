@@ -1,0 +1,35 @@
+{
+  "regions": 675,
+  "vertices": 335969,
+  "rasterSize": [
+    8192,
+    3616
+  ],
+  "coverageValid": true,
+  "outputSha256": "854f3b999cce9a0a7f85968cfe0ec95d4c4cb52a8e9c9bb5c5ef8c17b86b8449",
+  "sourceHashes": {
+    "00_west_europe.txt": "272b757789390d16eb34a083c15eddfc8c471b3121198e4c634b57f9615e40e8",
+    "01_south_europe.txt": "58696373b74282d35c65f197b04c04aa7eb9ee76ebc9614e5e036d19a7b4f050",
+    "02_east_europe.txt": "b95e7a48ae3d93a9f0da478a7b60dd6780656c407ed1380d9095225819a866c2",
+    "03_north_africa.txt": "35390b56ccfd815b0dabdcaf72b5b89e780479ec457211013501bda2bb0a1672",
+    "04_subsaharan_africa.txt": "99ac6e11396735e0eb070d31c15325aa4166316f3f980285ffaf72c8fe4a6151",
+    "05_north_america.txt": "4b41e1068da7187edf34a6c932354d51779e36233d43c102f61e7fc72909eb42",
+    "06_central_america.txt": "1af1dde732e86f99bdd87515515ac2afdb269367865c9ab18fea64a655620744",
+    "07_south_america.txt": "968b43822d26349e80b217f1b4c649dce1a8c4d53a77609065c4e59f5d0835a8",
+    "08_middle_east.txt": "387a7b55074b79adf704777c17493713f3b23dc1983d762c42c5ac44bb6678de",
+    "09_central_asia.txt": "15c851737a45cb087710494afa4a7ceb2452d923bb6b602c7bcfbd13d1e4e07c",
+    "10_india.txt": "6eafe34aaed4f8c5044e5713eb84bb4307e93acb402d16d8a910f594d65b2766",
+    "11_east_asia.txt": "8588c13c575b02b4e8325cb92643334d638c54fb0847875e897b9ba03df9939c",
+    "12_indonesia.txt": "b0c7f911d9bfa762135871e572c8c96e7b0f05a3f514939fd239b93940e15612",
+    "13_australasia.txt": "a6b5659472b2e92958b8233d82ee3eab125c12f4ee76de86858eb10a30b2550d",
+    "14_siberia.txt": "20f80975d229968f10f9c1088b399286e57ac15a83a986a69b602947b847d44d",
+    "15_russia.txt": "cbfcbccfb8d5a9d760bbedd55a12804fdf88678995ee774d217ce353d0a985c8",
+    "99_seas.txt": "9c40fdbce7c7c2a5715c4e84a11291f8b7a04a8c5eee891381b3de8fe610a383",
+    "provinces.png": "e3911fd80a40c6b297a68f66e898d9b187863b64483a9608123606143ee2ea78"
+  },
+  "sourceVersion": "1.13.7",
+  "sourceRevision": "5138a546c6607137ed3d7797b0d1154d8006dc5f",
+  "untranslated": 550,
+  "excludedSeaRegions": 106,
+  "simplificationTolerancePixels": 0.65
+}

@@ -1,0 +1,29 @@
+name: Rebuild management-region reference
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: pip install numpy==2.2.6 pillow==11.3.0 rasterio==1.4.3 shapely==2.1.2
+      - run: python scripts/prepare-state-reference.py
+      - run: python scripts/normalize-state-atlas.py --input artifacts/state-reference --output data
+      - name: Verify pinned final atlas
+        run: node scripts/build-world.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebuilt-management-atlas
+          path: |
+            data/state-regions-1.13.7.json.gz
+            data/state-regions-audit.json
+          retention-days: 30

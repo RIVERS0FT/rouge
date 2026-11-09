@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.env*
+!.env.example
+*.log
+.DS_Store
+artifacts/
+test-results/
+playwright-report/
+
+.cache/
+src/generated/world.json

@@ -1,0 +1,50 @@
+name: Prototype checks
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Core, geography and LAN tests
+        run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
+      - name: Type check and production build
+        run: npm run build | tee artifacts/build.log
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance
+        run: npm run test:e2e | tee artifacts/browser-tests.log
+      - name: Archive tested source
+        if: always()
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-state-regions-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-state-regions-source.tar.gz artifacts/
+      - name: Upload build and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-state-regions
+          path: |
+            dist/
+            artifacts/
+            test-results/
+            package-lock.json
+            src/generated/world.json
+            docs/WORLD_MAP.md
+            docs/MAP_CROP.md
+            docs/HUD_IDENTITY.md
+            docs/FULLSCREEN_HUD.md
+            docs/STATE_REGIONS.md
+            data/state-regions-audit.json
