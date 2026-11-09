@@ -14,7 +14,7 @@ import {t,timeLabel,type Language} from './i18n.ts';
 import {ModalDialog} from './ModalDialog.tsx';
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
 function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.state-regions.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
-const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',warden:'▱',vanguard:'↗',steward:'◇'};
+const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',skirmisher:'Ⅴ',grenadier:'Ⅵ',heavyCavalry:'Ⅶ',horseArtillery:'Ⅷ',warden:'▱',vanguard:'↗',steward:'◇'};
 function UnitAttributes({values,language}:{values:UnitStats;language:Language}){
  return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerSecond')}`:key==='train'?` ${t(language,'gameSeconds')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerSecond')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
 }
@@ -57,7 +57,7 @@ export function App(){
  function launchLocal(value:GameState){session.current?.dispose();setActor(0);setGame(value);setSelected(value.provinces.find(p=>p.owner===0)?.id??0);setScreen('game');setModal(null);setPaused(false);setSpeed(1);autoTick.current=value.tick;session.current=localSession(value,setGame,notifyResult);}
  function setup():PlayerSetup{return{name:name.trim(),leader,loadout};}
  function startSolo(){
-  try{const seed=crypto.getRandomValues(new Uint32Array(1))[0];launchLocal(createGame([setup(),{name:text('eastAI'),leader:'vanguard',loadout:['cavalry'],ai:true},{name:text('southAI'),leader:'steward',loadout:['artillery'],ai:true}],seed,crypto.randomUUID()));}catch(e){report(e);}
+  try{const seed=crypto.getRandomValues(new Uint32Array(1))[0];launchLocal(createGame([setup(),{name:text('eastAI'),leader:'vanguard',loadout:[KINDS[seed%KINDS.length]],ai:true},{name:text('southAI'),leader:'steward',loadout:[KINDS[(seed%KINDS.length+1+Math.floor(seed/KINDS.length)%(KINDS.length-1))%KINDS.length]],ai:true}],seed,crypto.randomUUID()));}catch(e){report(e);}
  }
  function connect(ticket:Ticket){
   session.current?.dispose();setTicket(ticket);try{sessionStorage.setItem('rouge.ticket.state-regions.v1',JSON.stringify(ticket));}catch{/* Reconnection still works in this tab. */}

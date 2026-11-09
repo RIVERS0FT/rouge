@@ -1,5 +1,5 @@
 export type Vec2 = { x:number; z:number };
-export type Kind = 'infantry' | 'cavalry' | 'artillery' | 'engineer';
+export type Kind = 'infantry' | 'cavalry' | 'artillery' | 'engineer' | 'skirmisher' | 'grenadier' | 'heavyCavalry' | 'horseArtillery';
 export type Leader = 'warden' | 'vanguard' | 'steward';
 export type Upgrade = 'attack' | 'health' | 'speed';
 export type Terrain = 'plain' | 'forest' | 'highland';
