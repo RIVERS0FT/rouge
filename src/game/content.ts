@@ -1,8 +1,9 @@
+import { validFlag } from './flags.ts';
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION='0.5.0';
 // Network protocol identity; independent of backwards-compatible local save schema.
-export const RULES_ID='eight-unit-roster-sea-transport-v1';
+export const RULES_ID='cosmetic-leaders-flags-v1';
 export const MAP_ID='earth-state-regions-1137-v1' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
@@ -37,7 +38,7 @@ export function stats(p:Player|undefined,kind:Kind):UnitStats {
     ...b,
     hp:b.hp+(u?.health??0)*12,
     attack:(b.attack+(u?.attack??0)*2)*(has('veterans')?1.12:1)*(UNIT_FAMILY[kind]==='cavalry'&&has('charge')?1.25:1)*(UNIT_FAMILY[kind]==='artillery'&&has('barrage')?1.25:1),
-    speed:(b.speed+(u?.speed??0)*0.16)*(p?.leader==='vanguard'?1.12:1)*(has('forcedMarch')?1.2:1),
+    speed:(b.speed+(u?.speed??0)*0.16)*(has('forcedMarch')?1.2:1),
     range:b.range,
   };
 }
@@ -46,5 +47,6 @@ export function validateSetup(value:unknown):value is {name:string;leader:Leader
   return typeof v.name==='string'&&v.name.trim().length>0&&v.name.length<=24
     &&LEADERS.includes(v.leader as Leader)&&Array.isArray(v.loadout)
     &&v.loadout.length===1&&v.loadout.every(k=>KINDS.includes(k))
+    &&(v.flag===undefined||validFlag(v.flag))
     &&(v.ai===undefined||typeof v.ai==='boolean');
 }

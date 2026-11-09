@@ -2,13 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
 import { createLanServer } from '../server/lan.ts';
-const setup={name:'Human',leader:'warden',loadout:['infantry']};
+const setup={name:'Human',leader:'warden',loadout:['infantry'],flag:{type:'custom',pattern:'vertical',colors:['#123456','#abcdef','#ffffff']}};
 test('real HTTP LAN: two seats, host-only start, token-bound commands and streamed snapshots',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${host.server.address().port}`;
  const request=async(path,body,token)=>{const r=await fetch(base+'/api'+path,{method:body===undefined?'GET':'POST',headers:{'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return{status:r.status,data:await r.json()};};
  try{
   assert.equal((await request('/rooms',{setup:{...setup,loadout:['infantry','cavalry']}})).status,400);
   const a=(await request('/rooms',{setup})).data,b=(await request(`/rooms/${a.code}/join`,{setup:{...setup,name:'Second',loadout:['engineer']}})).data;assert.equal(a.actor,0);assert.equal(b.actor,1);
+  const info=(await request(`/rooms/${a.code}/info`,undefined,a.token)).data;assert.deepEqual(info.seats[0].flag,setup.flag);
   assert.equal((await request(`/rooms/${a.code}/start`,{},b.token)).status,403);
   assert.equal((await request(`/rooms/${a.code}/start`,{},a.token)).status,200);
   assert.equal((await request(`/rooms/${a.code}/command`,{actor:0,command:{type:'production',province:0,kind:'cavalry'}},b.token)).status,400);

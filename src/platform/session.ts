@@ -1,7 +1,8 @@
+import type { Flag } from '../game/flags.ts';
 import { applyFrame } from './replication.ts';
 import { MAP_ID, RULES_ID } from '../game/content.ts';
 import type { Command, GameState, Result, PlayerSetup } from '../game/types.ts';
-export interface Seat {id:number;name:string;leader:string;loadout:string[]}
+export interface Seat {id:number;name:string;flag?:Flag;leader:string;loadout:string[]}
 export interface RoomInfo {code:string;host:number;started:boolean;seats:Seat[]}
 export interface Ticket {code:string;token:string;actor:number}
 export interface Session {
