@@ -59,7 +59,7 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('role','img');
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
-    await page.keyboard.press('Space');await page.getByRole('button',{name:'2D',exact:true}).click();
+    await page.keyboard.press('Space');await page.locator('canvas').focus();await page.keyboard.press('Home');
     await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
     await assertLayout(page);await page.screenshot({path:`artifacts/hud-${leader}-1440.png`});
     // Browsing another country must not change either local-player identity element.

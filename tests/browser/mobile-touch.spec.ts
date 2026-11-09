@@ -15,7 +15,7 @@ test('phone portrait and landscape keep setup, HUD and scrollable dialogs reacha
   await page.getByTestId('begin-campaign').tap();await expect(page.getByTestId('open-settings')).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
   expect(await page.locator('canvas').boundingBox()).toEqual({x:0,y:0,width,height});
-  for(const sel of ['[data-testid=open-settings]','[data-testid=open-upgrades]','.view-controls'])await fit(page,sel,width,height);
+  for(const sel of ['[data-testid=open-settings]','[data-testid=open-upgrades]','[data-testid=toggle-province-panel]'])await fit(page,sel,width,height);
   expect(await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}))).toEqual({width,height});
   await page.getByTestId('toggle-province-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','true');await fit(page,'#province-panel',width,height);
   await page.getByTestId('toggle-strategic-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');await expect(page.getByTestId('toggle-strategic-panel')).toHaveAttribute('aria-expanded','true');
@@ -30,8 +30,9 @@ test('phone portrait and landscape keep setup, HUD and scrollable dialogs reacha
 test('pinch zoom, one-finger drag and cancellation do not cause accidental selection',async({page,context})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/');
  await page.getByTestId('single-player').tap();await page.getByTestId('begin-campaign').tap();
+ await expect(page.locator('.view-controls')).toHaveCount(0);
  const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-ready','true');
- await page.getByRole('button',{name:'2D',exact:true}).tap();await expect(canvas).toHaveAttribute('data-settled','true');
+ await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true');
  const distance=Number(await canvas.getAttribute('data-distance'));
  const cdp=await context.newCDPSession(page);
  const touch=async(type:string,points:{x:number;y:number;id:number}[])=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points});
@@ -49,7 +50,7 @@ test('pinch zoom, one-finger drag and cancellation do not cause accidental selec
  await canvas.dispatchEvent('pointermove',{pointerId:1,pointerType:'touch',clientX:300,clientY:500});
  expect(await canvas.getAttribute('data-focus-x')).toBe(before);
  await page.setViewportSize({width:844,height:390});await expect(canvas).toHaveAttribute('data-viewport-width','844');
- await fit(page,'.view-controls',844,390);await cdp.detach();
+ await fit(page,'[data-testid=toggle-province-panel]',844,390);await cdp.detach();
 });
 test('hybrid touch laptop switches hints by intent and modal context blocks all map actions',async({page})=>{
  await page.setViewportSize({width:1280,height:800});await page.goto('/');
@@ -59,13 +60,13 @@ test('hybrid touch laptop switches hints by intent and modal context blocks all 
  await canvas.dispatchEvent('pointerdown',{pointerId:10,pointerType:'touch',clientX:600,clientY:400});
  await canvas.dispatchEvent('pointercancel',{pointerId:10,pointerType:'touch'});
  await expect(app).toHaveAttribute('data-input-device','touch');
- const touchHint=await page.getByTestId('input-hint').textContent();
+ await expect(page.getByTestId('input-hint')).toHaveCount(0);
  await canvas.dispatchEvent('pointerdown',{pointerId:11,pointerType:'mouse',clientX:600,clientY:400});
  await canvas.dispatchEvent('pointercancel',{pointerId:11,pointerType:'mouse'});
  await expect(app).toHaveAttribute('data-input-device','touch');
  await page.keyboard.press('Shift');await expect(app).toHaveAttribute('data-input-device','touch');
  await page.keyboard.press('ArrowLeft');await expect(app).toHaveAttribute('data-input-device','mouse');
- expect(await page.getByTestId('input-hint').textContent()).not.toEqual(touchHint);
+ await expect(page.getByTestId('input-hint')).toHaveCount(0);
  await page.getByTestId('open-settings').click();await expect(canvas).toHaveAttribute('data-input-context','blocked');
  await expect(canvas).toHaveAttribute('data-settled','true');
  const before=await canvas.evaluate(el=>[el.getAttribute('data-distance'),el.getAttribute('data-focus-x')]);

@@ -65,16 +65,16 @@ test('Miller saves keep high IDs and reject both legacy coordinate systems',()=>
 });
 test('isolated islands have no fabricated neighbor across the sea',()=>{
  const hawaii=MAP.find(p=>p.code==='STATE_HAWAIIAN_ISLANDS');assert.ok(hawaii);assert.equal(hawaii.neighbors.length,0);
- const e=new Engine(createGame(setup));assert.equal(e.navigation.route(e.state,0,STARTS[0],hawaii.id,false),null);
- const path=e.navigation.route(e.state,0,STARTS[0],hawaii.id);assert.ok(path);
+ const e=new Engine(createGame(setup));const home=e.state.provinces.find(p=>p.owner===0).id;assert.equal(e.navigation.route(e.state,0,home,hawaii.id,false),null);
+ const path=e.navigation.route(e.state,0,home,hawaii.id);assert.ok(path);
  const seaLegs=path.slice(1).map((to,i)=>[path[i],to]).filter(([from,to])=>!MAP[from].neighbors.includes(to));
  assert.ok(seaLegs.length>0);for(const [from,to]of seaLegs)assert.ok(seaRoute(from,to),'Each non-land edge must have a certified sea route');
  const positions=e.state.units.map(u=>[u.id,u.x,u.z,u.province]);
- assert.equal(e.command(0,{type:'march',from:STARTS[0],to:hawaii.id,fraction:1}).ok,true);
+ assert.equal(e.command(0,{type:'march',from:home,to:hawaii.id,fraction:1}).ok,true);
  assert.deepEqual(e.state.units.map(u=>[u.id,u.x,u.z,u.province]),positions,'Dispatch must not teleport troops');
 });
 test('local flow is shared, land-bounded, and orders preserve map positions',()=>{
- const e=new Engine(createGame(setup));const from=STARTS[0],target=MAP[from].neighbors.find(n=>e.state.provinces[n].owner<0);
+ const e=new Engine(createGame(setup));const from=e.state.provinces.find(p=>p.owner===0).id,target=MAP[from].neighbors.find(n=>e.state.provinces[n].owner<0);
  const flow=e.navigation.get(e.state,0,target,from);assert.equal(flow,e.navigation.get(e.state,0,target,from));assert.ok(flow.width*flow.height<50000);
  assert.equal(e.command(0,{type:'march',from,to:target,fraction:1}).ok,true);
  e.step(300);for(const u of e.state.units)assert.ok(pointInProvince(u.province,u.x,u.z),`unit ${u.id}`);

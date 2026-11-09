@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+test('zero-territory player sees defeat before a global winner and can spectate without issuing orders',async({page})=>{
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-eliminated-fixture.mjs'],{encoding:'utf8'}));
+ await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
+ await page.goto('/');await page.getByTestId('open-saves').click();
+ await page.locator('.save-card').filter({hasText:'Eliminated faction fixture'}).getByRole('button',{name:'载入',exact:true}).click();
+ await expect(page.locator('.app')).toHaveAttribute('data-eliminated','true');
+ await expect(page.getByTestId('elimination-result')).toContainText('你已被淘汰');
+ await expect(page.getByTestId('eliminated-return-menu')).toBeVisible();
+ await expect(page.getByTestId('army-total')).toHaveText('0');
+ await page.getByTestId('spectate-match').click();
+ await expect(page.getByTestId('elimination-result')).toHaveCount(0);
+ await expect(page.getByTestId('spectating-status')).toBeVisible();
+ const tick=Number(await page.getByTestId('game-clock').getAttribute('data-tick'));
+ await expect.poll(async()=>Number(await page.getByTestId('game-clock').getAttribute('data-tick'))).toBeGreaterThan(tick);
+ await page.getByTestId('open-upgrades').click();
+ await expect(page.getByTestId('upgrade-infantry-attack')).toBeDisabled();
+ await page.keyboard.press('Escape');await page.getByTestId('portrait-talents').click();
+ await expect(page.locator('.talent-card')).toBeDisabled();
+ await page.keyboard.press('Escape');await page.getByTestId('open-settings').click();
+ await expect(page.getByTestId('settings-resume')).toBeEnabled();
+});

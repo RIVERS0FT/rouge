@@ -69,7 +69,7 @@ test('state-region flow cannot escape crop or cross a polar sea gap',()=>{
 test('nonexistent regions cannot produce or receive orders and victory counts only management regions',()=>{
  const e=new Engine(createGame(setups));
  assert.equal(e.command(0,{type:'production',province:MAP.length,kind:'infantry'}).ok,false);
- assert.equal(e.command(0,{type:'march',from:STARTS[0],to:MAP.length,fraction:1}).ok,false);
+ assert.equal(e.command(0,{type:'march',from:e.state.provinces.find(p=>p.owner===0).id,to:MAP.length,fraction:1}).ok,false);
  const v=new Engine(createGame(setups));for(const p of v.state.provinces)p.owner=0;
  v.state.units=v.state.units.filter(u=>u.owner===0);v.step();assert.equal(v.state.winner,0);
 });

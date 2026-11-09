@@ -1,7 +1,16 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ eliminatedTitle:['你已被淘汰','You have been eliminated'],eliminatedDescription:['你已失去全部领土，无法再下达军队指令。其余阵营继续战斗，你可以观战或返回菜单。','You have lost all territory and can no longer issue army commands. The remaining factions keep fighting. You can spectate or return to the menu.'],
+ spectate:['继续观战','Spectate'],eliminatedSpectating:['已淘汰 · 正在观战','Eliminated · Spectating'],'error.eliminated':['你已被淘汰，无法再下达军队指令。','You are eliminated and can no longer issue army commands.'],
+ aiCount:['AI 数量','AI opponents'],aiPlayer:['电脑玩家','Computer player'],
+ aiSoloHint:['选择1–3名AI，所有阵营拥有相同初始资源和两块领地。','Choose 1–3 AI opponents. Every faction starts with equal resources and two regions.'],
+ aiCreateHint:['创建房间时预留AI席位；加入别人的房间不改变其设置。','AI seats are reserved when creating a room. Joining another room does not change its settings.'],
+ aiRoomHint:['仅房主可调整。真人与AI合计最多4名，至少2名才能开始。','Only the host can change this. Up to 4 humans and AI combined; at least 2 to start.'],
+ preferencesHint:['领袖与旗帜会保存在此浏览器，下一次自动沿用；不改变已保存的战役。','Leader and flag are remembered in this browser for next time, without changing existing campaigns.'],
+ 'error.invalidAI':['AI数量无效或超过房间空位','Invalid AI count or not enough room slots'],
+
  controlsTouch:['单指拖动 · 双指缩放 · 点击选地块','Drag with one finger · Pinch to zoom · Tap to select a region'],
- controlsMouse:['拖动平移 · 滚轮缩放 · 右键派遣；聚焦地图可用方向键/±','Drag / scroll / right-click; focus map for arrow keys / ±'],
+ controlsMouse:['拖动平移 · 滚轮缩放 · 右键派遣；聚焦地图可用方向键/±，Home全图、End聚焦','Drag / scroll / right-click; focus map for arrow keys / ±, Home world / End focus'],
  mobileActions:['手机战场操作','Mobile battlefield controls'],showProvince:['地块 / 调兵','Region / march'],hideProvince:['收起地块','Hide region'],showIntel:['战况','Situation'],hideIntel:['收起战况','Hide situation'],
  'error.incompatibleRules':['战斗与海运规则版本不一致，请刷新页面并使用同版本主机。','Combat and sea transport rules differ. Reload and use a matching host build.'],
  'attribute.hp':['生命','Health'],'attribute.attack':['单次攻击','Attack / hit'],'attribute.defense':['防御','Defense'],
