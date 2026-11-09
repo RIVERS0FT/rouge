@@ -22,7 +22,7 @@
  .settings-trigger>span:first-child{font-size:22px}
  .settings-trigger>span:last-child{display:none}
  .is-game .map-search{top:calc(var(--mobile-top) + 76px);left:var(--mobile-left);right:calc(var(--mobile-right) + 52px);transform:none;width:auto;max-width:none;z-index:13}
- .is-game .map-search input{padding:10px 12px;font-size:16px}
+ .is-game .map-search input{min-height:44px;padding:10px 12px;font-size:16px}
  .is-game .map-search-results{max-height:40dvh;overflow:auto}
  .is-game .map-search-results button{font-size:14px;padding:8px 12px}
  .is-game .map-search-results small{font-size:11px}
