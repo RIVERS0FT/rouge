@@ -8,7 +8,7 @@ import {STARTS,MAP} from '../src/game/map.ts';
 const setup=['warden','vanguard','steward','warden'].map((leader,i)=>({name:`Seat ${i}`,leader,loadout:['infantry']}));
 test('player identity has no country; changing ownership never changes the local faction',()=>{
  const state=createGame(setup),before=JSON.stringify(state);
- state.players.forEach(p=>{const identity=commanderIdentity(p.id);assert.equal(identity.home,STARTS[p.id]);assert.equal(identity.actor,p.id);assert.equal('country' in identity,false);});
+ state.players.forEach(p=>{const identity=commanderIdentity(p.id);assert.equal(identity.home,null);assert.equal(identity.actor,p.id);assert.equal('country' in identity,false);});
  assert.equal(JSON.stringify(state),before);state.provinces[STARTS[0]].owner=1;
  assert.equal(commanderIdentity(0).names[1],'Faction 1');assert.equal(commanderIdentity(2).names[0],'阵营 3');
 });

@@ -3,6 +3,19 @@ import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 const atlas=JSON.parse(readFileSync('src/generated/world.json','utf8'));
 const region=(code:string)=>atlas.provinces.findIndex((p:{code:string})=>p.code===code);
+async function chooseRemoteRoute(page:any){
+ const sourceCode=(await page.locator('.panel-kicker').textContent()).match(/STATE_[A-Z0-9_]+/)[0];
+ const source=region(sourceCode),distance=new Map([[source,0]]),queue=[source];
+ for(let i=0;i<queue.length;i++)for(const next of atlas.provinces[queue[i]].neighbors)if(!distance.has(next)){distance.set(next,distance.get(queue[i])+1);queue.push(next);}
+ for(const target of queue.filter(id=>distance.get(id)>=3).slice(0,40)){
+  await page.getByTestId('destination-search').fill(atlas.provinces[target].code);
+  await page.getByTestId('destination').selectOption(String(target));
+  const route=(await page.getByTestId('route-preview').getAttribute('data-route')).split(',');
+  if(route.length>=4&&route[0]===sourceCode&&route.at(-1)===atlas.provinces[target].code&&await page.getByTestId('dispatch').isEnabled())return {source,target,route};
+ }
+ throw new Error('No verified multi-leg route from the allocated player start');
+}
+
 
 test('management regions only: no countries, UK detail, remote dispatch UI and persisted route',async({page})=>{
  test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -13,17 +26,16 @@ test('management regions only: no countries, UK detail, remote dispatch UI and p
  await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();await page.getByTestId('toggle-pause').click();
  await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('country-identity')).toHaveCount(0);
  await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
- await page.getByRole('button',{name:'2D',exact:true}).click();await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+ const sourceCode=(await page.locator('.panel-kicker').textContent())!.match(/STATE_[A-Z0-9_]+/)![0];
+ await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-world.png'});
  await page.getByTestId('map-search').fill('STATE_MIDLANDS');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText('中部地区');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  // Pull back from a single region to view the British region boundaries together.
  await page.mouse.move(740,440);await page.mouse.wheel(0,85);await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-britain.png'});
- await page.getByTestId('map-search').fill('STATE_BRANDENBURG');await page.locator('.map-search-results button').first().click();
- await expect(page.locator('.province-panel h2')).toContainText('勃兰登堡');
- await page.getByTestId('destination-search').fill('巴伐利亚');await page.getByTestId('destination').selectOption(String(region('STATE_BAVARIA')));
- await expect(page.getByTestId('route-preview')).toHaveAttribute('data-route',/STATE_BRANDENBURG,STATE_SAXONY,STATE_FRANCONIA,STATE_BAVARIA/);
+ await page.getByTestId('map-search').fill(sourceCode);await page.locator('.map-search-results button').first().click();
+ const plan=await chooseRemoteRoute(page);
  await expect(page.getByTestId('region-capacity')).toContainText('/ 12');
  await page.getByTestId('dispatch').click();await expect(page.getByTestId('destination-capacity')).toContainText('在途预留');
  await page.screenshot({path:'artifacts/remote-order.png'});
@@ -35,7 +47,7 @@ test('management regions only: no countries, UK detail, remote dispatch UI and p
   const state=JSON.parse(JSON.parse(localStorage.getItem(key)!).body);
   return state.units.filter((u:any)=>u.owner===0&&u.destination!==null).map((u:any)=>({origin:u.origin,destination:u.destination,route:u.route,province:u.province}));
  });
- expect(routes.length).toBeGreaterThan(0);expect(routes.every(r=>r.destination===region('STATE_BAVARIA')&&r.route.length>=2&&r.province===region('STATE_BRANDENBURG'))).toBe(true);
+ expect(routes.length).toBeGreaterThan(0);expect(routes.every(r=>r.destination===plan.target&&r.route.length>=2&&r.province===plan.source)).toBe(true);
  await page.reload();await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Remote order'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.getByTestId('open-settings')).toBeVisible();expect(errors).toEqual([]);
 });
@@ -47,7 +59,7 @@ test('valid 480-battalion player save loads and GPU buffers grow beyond the remo
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Capacity regression fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.getByTestId('army-total')).toHaveText('480');await page.getByTestId('toggle-pause').click();
- await page.getByRole('button',{name:'3D',exact:true}).click();await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+ await page.locator('canvas').focus();await page.keyboard.press('End');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  const capacity=Number(await page.locator('canvas').getAttribute('data-unit-capacity'));
  expect(capacity).toBeGreaterThanOrEqual(492*3);
  expect(Number(await page.locator('canvas').getAttribute('data-total-units'))).toBe(492);

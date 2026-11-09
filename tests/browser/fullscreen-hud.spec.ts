@@ -84,7 +84,7 @@ test('full-screen HUD: settings, archives, focus, pause preservation and respons
  // Pan to both latitude limits and zoom out: no blank polar bands appear.
  for(const y of [930,190]){
   await page.mouse.move(760,550);await page.mouse.down();await page.mouse.move(760,y,{steps:10});await page.mouse.up();
-  await page.getByRole('button',{name:'Zoom out',exact:true}).click();await assertFullscreen(page);
+  await page.locator('canvas').focus();await page.keyboard.press('-');await assertFullscreen(page);
  }
  await page.reload();await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Fullscreen slot'}).getByRole('button',{name:'Load',exact:true}).click();

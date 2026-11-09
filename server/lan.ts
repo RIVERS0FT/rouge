@@ -3,17 +3,18 @@ import { randomBytes } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { makeAISetups } from '../src/game/spawns.ts';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { encodeFrame, type SnapshotBase } from '../src/platform/replication.ts';
 import { validateSetup, LEADERS, MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
 import type { PlayerSetup } from '../src/game/types.ts';
 interface Seat {id:number;setup:PlayerSetup;token:string;requests:number;window:number}
-interface Room {code:string;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
+interface Room {code:string;aiCount:number;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
 const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json'};
 export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
   const bases=new WeakMap<ServerResponse,SnapshotBase>();
   const rooms=new Map<string,Room>(),dist=resolve(options.dist??fileURLToPath(new URL('../dist',import.meta.url)));
-  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),seats:r.seats.map(s=>({id:s.id,name:s.setup.name,leader:s.setup.leader,...(s.setup.flag?{flag:s.setup.flag}:{}),loadout:s.setup.loadout}))});
+  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),aiCount:r.aiCount,seats:r.seats.map(s=>({id:s.id,name:s.setup.name,leader:s.setup.leader,...(s.setup.flag?{flag:s.setup.flag}:{}),loadout:s.setup.loadout}))});
   function json(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
   function emit(res:ServerResponse,event:unknown){if(!res.destroyed&&res.writableLength<1_000_000)res.write(`data: ${JSON.stringify(event)}\n\n`);else res.destroy();}
   function broadcast(room:Room){for(const res of room.streams.values())emit(res,{type:'room',room:info(room)});}
@@ -29,18 +30,22 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
       if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-rules']!==RULES_ID){json(res,409,{error:'incompatibleRules'});return;}
       if(req.method==='POST'&&url.pathname==='/api/rooms'){
         if(rooms.size>=(options.maxRooms??16)){json(res,503,{error:'serverFull'});return;}
-        const input=await body(req);if(!validateSetup(input?.setup)){json(res,400,{error:'invalidSetup'});return;}
+        const input=await body(req);if(!validateSetup(input?.setup)||input.setup.ai===true){json(res,400,{error:'invalidSetup'});return;}
+        const aiCount=input.aiCount===undefined?0:input.aiCount;if(!Number.isInteger(aiCount)||aiCount<0||aiCount>3){json(res,400,{error:'invalidAI'});return;}
+        if(rooms.size>=(options.maxRooms??16)){json(res,503,{error:'serverFull'});return;}
         let code:string;do{code=randomBytes(3).toString('hex').toUpperCase();}while(rooms.has(code));
-        const token=randomBytes(24).toString('hex'),room:Room={code,seats:[{id:0,setup:{...input.setup,ai:false},token,requests:0,window:Date.now()}],engine:null,streams:new Map(),touched:Date.now()};rooms.set(code,room);
+        const token=randomBytes(24).toString('hex'),room:Room={code,aiCount,seats:[{id:0,setup:{...input.setup,ai:false},token,requests:0,window:Date.now()}],engine:null,streams:new Map(),touched:Date.now()};rooms.set(code,room);
         json(res,201,{code,token,actor:0});return;
       }
-      const match=url.pathname.match(/^\/api\/rooms\/([A-F0-9]{6})\/(join|events|start|command|info)$/);
+      const match=url.pathname.match(/^\/api\/rooms\/([A-F0-9]{6})\/(join|events|start|command|info|config)$/);
       if(match){
         const room=rooms.get(match[1]);if(!room){json(res,404,{error:'roomMissing'});return;}
         const action=match[2];room.touched=Date.now();
         if(action==='join'&&req.method==='POST'){
-          if(room.engine||room.seats.length>=4){json(res,409,{error:'roomClosed'});return;}
-          const input=await body(req);if(!validateSetup(input?.setup)){json(res,400,{error:'invalidSetup'});return;}
+          if(room.engine||room.seats.length+room.aiCount>=4){json(res,409,{error:'roomClosed'});return;}
+          const input=await body(req);if(!validateSetup(input?.setup)||input.setup.ai===true){json(res,400,{error:'invalidSetup'});return;}
+          // Body parsing yields to other joins/config/start: recheck at mutation time.
+          if(room.engine||room.seats.length+room.aiCount>=4){json(res,409,{error:'roomClosed'});return;}
           const token=randomBytes(24).toString('hex'),id=room.seats.length;room.seats.push({id,setup:{...input.setup,ai:false},token,requests:0,window:Date.now()});json(res,201,{code:room.code,token,actor:id});broadcast(room);return;
         }
         const token=req.headers.authorization?.replace(/^Bearer /,''),seat=room.seats.find(s=>s.token===token);
@@ -52,11 +57,21 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
           room.streams.get(seat.id)?.end();res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','Connection':'keep-alive','X-Accel-Buffering':'no'});res.flushHeaders();room.streams.set(seat.id,res);emit(res,{type:'room',room:info(room)});snapshot(room);
           req.on('close',()=>{if(room.streams.get(seat.id)===res)room.streams.delete(seat.id);});return;
         }
+        if(action==='config'&&req.method==='POST'){
+          if(seat.id!==0){json(res,403,{error:'hostOnly'});return;}
+          if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
+          const input=await body(req),aiCount=input?.aiCount;
+          if(!Number.isInteger(aiCount)||aiCount<0||aiCount>3){json(res,400,{error:'invalidAI'});return;}
+          if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
+          if(room.seats.length+aiCount>4){json(res,409,{error:'roomClosed'});return;}
+          room.aiCount=aiCount;broadcast(room);json(res,200,info(room));return;
+        }
         if(action==='start'&&req.method==='POST'){
           if(seat.id!==0){json(res,403,{error:'hostOnly'});return;}
           if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
-          if(room.seats.length<2){json(res,409,{error:'needPlayers'});return;}
-          const setups=room.seats.map(s=>s.setup);
+          if(room.seats.length+room.aiCount<2){json(res,409,{error:'needPlayers'});return;}
+          if(room.seats.length+room.aiCount>4){json(res,409,{error:'roomClosed'});return;}
+          const setups=[...room.seats.map(s=>s.setup),...makeAISetups(room.aiCount)];
           room.engine=new Engine(createGame(setups,randomBytes(4).readUInt32LE(),`lan-${room.code}`));broadcast(room);snapshot(room);json(res,200,{ok:true});return;
         }
         if(action==='command'&&req.method==='POST'){

@@ -3,7 +3,7 @@ import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION='0.5.0';
 // Network protocol identity; independent of backwards-compatible local save schema.
-export const RULES_ID='cosmetic-leaders-flags-v1';
+export const RULES_ID='distributed-starts-ai-shaped-flags-elimination-v2';
 export const MAP_ID='earth-state-regions-1137-v1' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;

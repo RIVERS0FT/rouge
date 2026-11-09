@@ -13,7 +13,7 @@ test('menu → setup → real WebGL game → order → upgrade → multi-slot sa
  await page.getByPlaceholder('Save name').fill('First slot');await page.getByTestId('create-save').click();
  await page.getByPlaceholder('Save name').fill('Second slot');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card')).toHaveCount(2);await page.getByRole('button',{name:'Close',exact:true}).first().click();
- await page.getByRole('button',{name:'3D',exact:true}).click();await page.waitForTimeout(1500);await page.screenshot({path:'artifacts/game-3d.png'});
+ await page.locator('canvas').focus();await page.keyboard.press('End');await page.waitForTimeout(1500);await page.screenshot({path:'artifacts/game-3d.png'});
  await page.reload();await page.getByTestId('open-saves').click();await expect(page.locator('.save-card')).toHaveCount(2);await page.locator('.save-card').filter({hasText:'First slot'}).getByRole('button',{name:'Load',exact:true}).click();
  await expect(page.locator('.hud-top')).toContainText('E2E Commander');expect(errors).toEqual([]);
 });

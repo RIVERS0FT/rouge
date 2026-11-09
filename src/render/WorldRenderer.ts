@@ -1,3 +1,4 @@
+import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import * as THREE from 'three';
 import {MapInputController,type MapInputContext} from './mapInput.ts';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
@@ -21,6 +22,8 @@ export class WorldRenderer {
   private land:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>;
   private admin:THREE.LineSegments;
   private selection:THREE.LineSegments;
+  private selectionGlow:THREE.Mesh<THREE.BufferGeometry,THREE.MeshBasicMaterial>;
+  private selectionGlowWorker:Worker|null=null;
   private ranges:Range[]=[];
   private colors:THREE.Float32BufferAttribute;
   private labels:Label[]=[];
@@ -95,7 +98,20 @@ export class WorldRenderer {
     const outlines=this.lines(coasts,0x233f39,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
     this.renderer.domElement.dataset.boundaryMode='management-regions-only';
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
-    this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.atlas.add(this.selection);
+    this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
+    const glowMaterial=new THREE.MeshBasicMaterial({color:0xf9df9b,transparent:true,opacity:0.38,depthWrite:false,side:THREE.DoubleSide});
+    this.relief(glowMaterial);const reliefCompile=glowMaterial.onBeforeCompile;
+    glowMaterial.onBeforeCompile=(shader,renderer)=>{
+      reliefCompile(shader,renderer);
+      shader.uniforms.uGlowWidth={value:SELECTION_GLOW_WIDTH};
+      shader.vertexShader='attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance;');
+      shader.fragmentShader='uniform float uGlowWidth; varying float vEdgeDistance;\n'+shader.fragmentShader;
+      shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.a *= 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);');
+    };
+    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v1';
+    const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));
+    this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.atlas.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
     // canonical entity positions and province IDs never duplicate.
     for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.atlas.clone(true);copy.position.x=offset;copy.visible=false;this.repeats.push(copy);this.scene.add(copy);}
@@ -135,15 +151,40 @@ export class WorldRenderer {
   update(state:GameState,selected:number,lang:'zh'|'en') {
     this.state=state;if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);}
-    if(selected!==this.selected){if(this.selected>=0)this.dirty.add(this.selected);this.selected=selected;if(selected>=0)this.dirty.add(selected);this.drawSelection();this.lastLabels=0;}
+    if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.invalidated=true;}
   }
   private drawSelection() {
-    const points:number[]=[];
+    const points:number[]=[],segments:[Vec2,Vec2][]=[];
     if(this.selected>=0&&MAP[this.selected].visible)for(const part of MAP[this.selected].parts)for(const ring of part)for(let i=0;i<ring.length;i++){
-      const segment=clipSegment(ring[i],ring[(i+1)%ring.length],BOUNDS);if(!segment)continue;const [a,b]=segment;points.push(a.x,0.32,a.z,b.x,0.32,b.z);
+      const segment=clipSegment(ring[i],ring[(i+1)%ring.length],BOUNDS);if(!segment)continue;const [a,b]=segment;segments.push([a,b]);points.push(a.x,0.32,a.z,b.x,0.32,b.z);
     }
     this.selection.geometry.dispose();this.selection.geometry=new THREE.BufferGeometry();this.selection.geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
     for(const copy of this.repeats)(copy.getObjectByName('selected-border') as THREE.LineSegments).geometry=this.selection.geometry;
+    this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;
+    const replaceGlow=(geometry:THREE.BufferGeometry)=>{this.selectionGlow.geometry.dispose();this.selectionGlow.geometry=geometry;for(const copy of this.repeats)(copy.getObjectByName('selected-inner-glow') as THREE.Mesh).geometry=geometry;};
+    const empty=new THREE.BufferGeometry();empty.setAttribute('position',new THREE.Float32BufferAttribute([],3));empty.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));replaceGlow(empty);
+    this.renderer.domElement.dataset.selectionStyle='outline-inner-glow';
+    this.renderer.domElement.dataset.selectionGlowVertices='0';this.renderer.domElement.dataset.selectionGlowPending='false';delete this.renderer.domElement.dataset.selectionGlowError;
+    this.renderer.domElement.dataset.selectionGlowWidth=String(SELECTION_GLOW_WIDTH);
+    this.renderer.domElement.dataset.selectedRegion=String(this.selected);
+    const range=this.ranges[this.selected];if(!range?.count||!segments.length)return;
+    // Large coastlines are rebuilt off-thread; only tiny bounded buffers are copied
+    // on selection. A newer selection cancels stale work instead of queuing it.
+    const land=(this.land.geometry.getAttribute('position').array as Float32Array).slice(range.start*3,(range.start+range.count)*3);
+    const edges=Float64Array.from(segments.flatMap(([a,b])=>[a.x,a.z,b.x,b.z]));
+    try{
+      const worker=new Worker(new URL('./selectionGlow.worker.ts',import.meta.url),{type:'module'});this.selectionGlowWorker=worker;
+      this.renderer.domElement.dataset.selectionGlowPending='true';
+      worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;elapsed:number}})=>{
+        if(this.selectionGlowWorker!==worker)return;
+        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));replaceGlow(geometry);
+        this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.invalidated=true;
+        worker.terminate();this.selectionGlowWorker=null;
+      };
+      worker.onerror=()=>{if(this.selectionGlowWorker===worker){this.renderer.domElement.dataset.selectionGlowPending='false';this.renderer.domElement.dataset.selectionGlowError='workerFailed';worker.terminate();this.selectionGlowWorker=null;}};
+      worker.postMessage({land,edges,width:SELECTION_GLOW_WIDTH},[land.buffer,edges.buffer]);
+    }catch{this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;this.renderer.domElement.dataset.selectionGlowPending='false';this.renderer.domElement.dataset.selectionGlowError='workerUnavailable';}
+
   }
   zoom(delta:number){this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(delta*0.008)});}
   view(mode:'strategic'|'terrain') {
@@ -225,6 +266,7 @@ export class WorldRenderer {
   private wheel=(e:WheelEvent)=>{if(!this.mapInput.active)return;e.preventDefault();this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(e.deltaY*0.12*0.008)});};
   private keyDown=(e:KeyboardEvent)=>{
     if(!this.mapInput.active||e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key==='Home'||e.key==='End'){e.preventDefault();this.view(e.key==='Home'?'strategic':'terrain');return;}
     const step=this.desiredDistance*0.08;
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
       e.preventDefault();this.mapInput.dispatch({type:'pan',x:this.focus.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),z:this.desiredFocusZ+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0)});
@@ -269,7 +311,9 @@ export class WorldRenderer {
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.45:this.distance>300?0.55:0.65;
-    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(OWNER[owner]);if(id===this.selected)color.lerp(new THREE.Color(0xf4d38c),0.45);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(OWNER[owner]);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    const selectedRange=this.ranges[this.selected];
+    if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(OWNER[this.ownerIds[this.selected]])).getHexString();}
     if(this.blend>0.1)this.ensureUnitCapacity((this.state?.units.length??0)*3);
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
@@ -290,6 +334,6 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='false';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+  dispose(){this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
 }

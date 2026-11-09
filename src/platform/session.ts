@@ -3,7 +3,7 @@ import { applyFrame } from './replication.ts';
 import { MAP_ID, RULES_ID } from '../game/content.ts';
 import type { Command, GameState, Result, PlayerSetup } from '../game/types.ts';
 export interface Seat {id:number;name:string;flag?:Flag;leader:string;loadout:string[]}
-export interface RoomInfo {code:string;host:number;started:boolean;seats:Seat[]}
+export interface RoomInfo {code:string;host:number;started:boolean;aiCount:number;seats:Seat[]}
 export interface Ticket {code:string;token:string;actor:number}
 export interface Session {
   mode:'solo'|'lan'; actor:number;
@@ -24,7 +24,8 @@ export async function api(path:string,body?:unknown,token?:string):Promise<any>{
   let data;try{data=await response.json();}catch{throw new Error('serverOffline');}
   if(!response.ok)throw new Error(data.error??'networkError');return data;
 }
-export async function createRoom(setup:PlayerSetup):Promise<Ticket>{return api('/rooms',{setup});}
+export async function createRoom(setup:PlayerSetup,aiCount=0):Promise<Ticket>{return api('/rooms',{setup,aiCount});}
+export async function configureRoom(ticket:Ticket,aiCount:number):Promise<RoomInfo>{return api(`/rooms/${ticket.code}/config`,{aiCount},ticket.token);}
 export async function joinRoom(code:string,setup:PlayerSetup):Promise<Ticket>{return api(`/rooms/${code.toUpperCase()}/join`,{setup});}
 export function remoteSession(ticket:Ticket,onState:(s:GameState)=>void,onRoom:(r:RoomInfo)=>void,onStatus:(s:'connected'|'reconnecting')=>void,onResult:(r:Result)=>void):Session{
   let closed=false,current:GameState|null=null;const controller=new AbortController();let retry:ReturnType<typeof setTimeout>|undefined;

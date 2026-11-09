@@ -8,7 +8,7 @@ import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
 const fresh=()=>new Engine(createGame(setups,1234,'test'));
-const HOME=STARTS[0],ALLY=MAP[HOME].neighbors.find(n=>!STARTS.includes(n)),TARGET=MAP[HOME].neighbors.find(n=>n!==ALLY&&!STARTS.includes(n));
+const initial=fresh().state,HOME=initial.provinces.find(p=>p.owner===0).id,ALLY=initial.provinces.find(p=>p.owner===0&&p.id!==HOME).id,TARGET=MAP[HOME].neighbors.find(n=>initial.provinces[n].owner===-1);
 test('675 management regions have valid anchors and symmetric land adjacency',()=>{
  assert.equal(MAP.length,675);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
  for(const p of MAP){assert.ok(p.parts.length>0);if(p.playable)assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);for(const n of p.neighbors){assert.ok(MAP[n].neighbors.includes(p.id));assert.notEqual(n,p.id);}}

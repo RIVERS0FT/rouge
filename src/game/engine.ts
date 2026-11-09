@@ -1,4 +1,7 @@
-import { MAP, provinceAt, pointInProvince, STARTS, PLAYABLE_COUNT } from './map.ts';
+import { isEliminated, settleEliminations } from './elimination.ts';
+export { isEliminated } from './elimination.ts';
+import { chooseSpawnPairs } from './spawns.ts';
+import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import { Navigator, cellAt, cellCenter } from './navigation.ts';
 import { seaRoute, seaPorts, type SeaLeg } from './sea.ts';
 import { destinationRoom } from './capacity.ts';
@@ -10,12 +13,10 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
-  // Each commander starts with a management region and one available land neighbor.
-  for (let actor=0;actor<setups.length;actor++) {
-    const id=STARTS[actor];s.provinces[id].owner=actor;
-    const other=MAP[id].neighbors.find(n=>s.provinces[n].owner<0&&!STARTS.includes(n)&&MAP[n].playable);
-    if(other!==undefined)s.provinces[other].owner=actor;
-  }
+  // Human and AI seats use the same seeded, separated two-region allocation.
+  chooseSpawnPairs(seed,setups.length,s).forEach((pair,actor)=>{
+    for(const id of pair)s.provinces[id].owner=actor;
+  });
   const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
   for(const p of s.provinces) {
     const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?2:0;
@@ -46,10 +47,10 @@ export class Engine{
   private sea(from:number,to:number):SeaLeg|null {
     const key=`${from}:${to}`;if(!this.seaLegs.has(key)){if(this.seaLegs.size>=128)this.seaLegs.delete(this.seaLegs.keys().next().value!);this.seaLegs.set(key,seaRoute(from,to));}return this.seaLegs.get(key)!;
   }
-  constructor(state:GameState){this.state=structuredClone(state);}
+  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
-    if(!p||s.winner!==null)return fail('notPlaying');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
+    if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
     switch(c.type){
       case 'march':{
         if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!Number.isFinite(c.fraction)||c.fraction<0.25||c.fraction>1)return fail('invalidCommand');
@@ -177,6 +178,8 @@ export class Engine{
       province.production+=DT*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;spawn(s,province.id,province.kind);}
     }
+    // All captures have settled: losing then gaining a region in this tick is not defeat.
+    settleEliminations(s);
     if(s.tick%80===0)this.ai();
     for(const p of s.players){
       const owned=s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
@@ -196,7 +199,7 @@ export class Engine{
   }
   private ai():void{
     const s=this.state;
-    for(const p of s.players.filter(p=>p.ai)){
+    for(const p of s.players.filter(p=>p.ai&&!isEliminated(s,p.id))){
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const province of s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id)){

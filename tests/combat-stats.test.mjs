@@ -6,7 +6,7 @@ import {MAP,STARTS} from '../src/game/map.ts';
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-7,`${actual} != ${expected}`);
 function battle(kind='infantry') {
  const e=new Engine(createGame([{name:'Attacker',leader:'steward',loadout:[kind]},{name:'Defender',leader:'steward',loadout:['infantry']}],42));
- const s=e.state,province=STARTS[0],center=MAP[province].center;
+ const s=e.state,province=e.state.provinces.find(p=>p.owner===0).id,center=MAP[province].center;
  const unit=(id,owner,k,x=0,z=0)=>({id,owner,kind:k,x:center.x+x,z:center.z+z,hp:10000,province,origin:province,target:null,destination:null,route:[],cooldown:owner===0?0:1000});
  s.units=[unit(1,0,kind),unit(2,1,'infantry',1)];s.nextId=100;
  return {e,s,unit,attacker:s.units[0],defender:s.units[1]};

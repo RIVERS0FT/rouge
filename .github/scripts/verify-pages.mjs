@@ -11,8 +11,21 @@ const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
 const atlas=JSON.parse(fs.readFileSync('game/src/generated/world.json','utf8'));
 const regions=atlas.landRegionsOnly===true;
 const region=code=>atlas.provinces.findIndex(p=>p.code===code);
+async function chooseRemoteRoute(page){
+ const sourceCode=(await page.locator('.panel-kicker').textContent()).match(/STATE_[A-Z0-9_]+/)[0];
+ const source=region(sourceCode),distance=new Map([[source,0]]),queue=[source];
+ for(let i=0;i<queue.length;i++)for(const next of atlas.provinces[queue[i]].neighbors)if(!distance.has(next)){distance.set(next,distance.get(queue[i])+1);queue.push(next);}
+ for(const target of queue.filter(id=>distance.get(id)>=3).slice(0,40)){
+  await page.getByTestId('destination-search').fill(atlas.provinces[target].code);
+  await page.getByTestId('destination').selectOption(String(target));
+  const route=(await page.getByTestId('route-preview').getAttribute('data-route')).split(',');
+  if(route.length>=4&&route[0]===sourceCode&&route.at(-1)===atlas.provinces[target].code&&await page.getByTestId('dispatch').isEnabled())return {source,target,route};
+ }
+ throw new Error('No verified multi-leg route from the allocated player start');
+}
+
 fs.mkdirSync('artifacts',{recursive:true});
-let info;
+let info,routePlan;
 for(let n=0;n<24;n++){
  try {
   const r=await fetch(`${site}build-info.json?check=${Date.now()}`,{signal:AbortSignal.timeout(15000)});
@@ -58,11 +71,7 @@ try{
  if(regions){
   await expect(page.getByTestId('faction-identity')).toBeVisible();
   await expect(page.getByTestId('country-flag')).toHaveCount(0);
-  await page.getByTestId('map-search').fill('STATE_BRANDENBURG');
-  await page.locator('.map-search-results button').first().click();
-  await page.getByTestId('destination-search').fill('STATE_BAVARIA');
-  await page.getByTestId('destination').selectOption(String(region('STATE_BAVARIA')));
-  await expect(page.getByTestId('route-preview')).toHaveAttribute('data-route','STATE_BRANDENBURG,STATE_SAXONY,STATE_FRANCONIA,STATE_BAVARIA');
+  routePlan=await chooseRemoteRoute(page);
   await expect(page.getByTestId('region-capacity')).toContainText('/ 12');
  }
  await page.getByTestId('dispatch').click();
@@ -70,10 +79,10 @@ try{
  await page.getByTestId('upgrade-infantry-attack').click();
  await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
  await page.keyboard.press('Escape');
- await page.getByRole('button',{name:'2D',exact:true}).click();
+ await page.locator('canvas').focus();await page.keyboard.press('Home');
  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
  await page.screenshot({path:'artifacts/pages-live-battle.png'});
- checks.push(regions?'non-adjacent dispatch through four regions, per-region capacity':'dispatch');
+ checks.push(regions?'non-adjacent dispatch from allocated start through at least four regions, per-region capacity':'dispatch');
  checks.push('unit upgrade');
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
@@ -89,7 +98,7 @@ try{
   });
   assert.equal(routes.version,5);
   assert.ok(routes.units.length>0);
-  assert.ok(routes.units.every(u=>u.destination===region('STATE_BAVARIA')&&u.route.length>=2));
+  assert.ok(routes.units.every(u=>u.destination===routePlan.target&&u.route.length>=2));
   fs.writeFileSync('artifacts/remote-route-verification.json',JSON.stringify(routes,null,2));
   checks.push('v5 saved non-adjacent orders and remaining route');
  }

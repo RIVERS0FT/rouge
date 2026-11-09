@@ -1,3 +1,4 @@
+import { settleEliminations } from './elimination.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
 import { seaRoute } from './sea.ts';
@@ -74,7 +75,7 @@ export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);migrateLegacyRoster(state);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch{throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);migrateLegacyRoster(state);if(!validateState(state))throw new Error();settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch{throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{

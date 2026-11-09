@@ -10,7 +10,7 @@ const setup=k=>({name:k,leader:'steward',loadout:[k]});
 const fresh=k=>new Engine(createGame([setup(k),setup('infantry')],42));
 for(const kind of NEW)test(kind+': single-choice campaign, production, upgrades, save and replication',()=>{
  assert.ok(validateSetup(setup(kind)));assert.equal(validateSetup({...setup(kind),loadout:[kind,'infantry']}),false);
- const e=fresh(kind),p=e.state.players[0],home=STARTS[0];
+ const e=fresh(kind),p=e.state.players[0],home=e.state.provinces.find(v=>v.owner===0).id;
  assert.ok(e.state.units.filter(u=>u.owner===0).every(u=>u.kind===kind));
  assert.ok(e.state.provinces.filter(p=>p.owner===0).every(p=>p.kind===kind));
  const wounded=e.state.units.find(u=>u.owner===0);wounded.hp/=2;

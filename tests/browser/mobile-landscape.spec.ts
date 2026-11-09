@@ -13,7 +13,7 @@ test('mobile landscape: battle HUD and dialogs fit common phone viewports',async
   await expect(page.getByTestId('open-settings')).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
   const canvas=await page.locator('canvas').boundingBox();expect(canvas).toEqual({x:0,y:0,width,height});
-  for(const selector of ['[data-testid="open-settings"]','[data-testid="open-upgrades"]','.commander-portrait','.view-controls']){
+  for(const selector of ['[data-testid="open-settings"]','[data-testid="open-upgrades"]','.commander-portrait','[data-testid=toggle-province-panel]']){
    const box=await page.locator(selector).boundingBox();expect(box).not.toBeNull();
    expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.y).toBeGreaterThanOrEqual(0);
    expect(box!.x+box!.width).toBeLessThanOrEqual(width);expect(box!.y+box!.height).toBeLessThanOrEqual(height);

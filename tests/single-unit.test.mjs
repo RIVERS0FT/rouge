@@ -24,10 +24,10 @@ for(const kind of KINDS)test(kind+': starting army, production, upgrades, captur
  assert.equal(e.command(0,{type:'upgrade',kind,stat:'health'}).ok,true);
  assert.equal(u.hp/stats(state.players[0],kind).hp,0.5);
  const other=KINDS.find(k=>k!==kind);
- assert.equal(e.command(0,{type:'production',province:STARTS[0],kind:other}).ok,false);
+ assert.equal(e.command(0,{type:'production',province:e.state.provinces.find(v=>v.owner===0).id,kind:other}).ok,false);
  assert.equal(e.command(0,{type:'upgrade',kind:other,stat:'attack'}).ok,false);
  // Place one valid battalion in an undefended adjacent region to isolate capture behavior.
- const target=MAP[STARTS[0]].neighbors.find(id=>state.provinces[id].owner===-1);
+ const target=MAP[state.provinces.find(v=>v.owner===0).id].neighbors.find(id=>state.provinces[id].owner===-1);
  assert.notEqual(target,undefined);
  state.units=state.units.filter(v=>v.province!==target);
  Object.assign(u,{x:MAP[target].center.x,z:MAP[target].center.z,province:target,origin:target,target:null,destination:null,route:[]});
@@ -43,7 +43,7 @@ test('existing multi-unit v5 saves remain loadable without broadening new campai
  assert.ok(validateState(state));
  const restored=decodeSave(encodeSave(state,'Legacy')).state;
  const e=new Engine(restored);
- assert.equal(e.command(0,{type:'production',province:STARTS[0],kind:'cavalry'}).ok,true);
+ assert.equal(e.command(0,{type:'production',province:e.state.provinces.find(v=>v.owner===0).id,kind:'cavalry'}).ok,true);
  assert.equal(e.command(0,{type:'upgrade',kind:'cavalry',stat:'attack'}).ok,true);
  state.players[0].loadout=['cavalry','artillery'];
  assert.equal(validateState(state),false);
