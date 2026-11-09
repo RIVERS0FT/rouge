@@ -5,7 +5,7 @@ import { MAP, provinceAt, STARTS, pointInProvince } from '../src/game/map.ts';
 import { buildFlow } from '../src/game/navigation.ts';
 import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX } from '../src/game/save.ts';
 import { stats } from '../src/game/content.ts';
-const setups=[{name:'Player',leader:'warden',loadout:['infantry','cavalry','artillery']},{name:'AI',leader:'steward',loadout:['infantry','engineer'],ai:true}];
+const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
 const fresh=()=>new Engine(createGame(setups,1234,'test'));
 const HOME=STARTS[0],ALLY=MAP[HOME].neighbors.find(n=>!STARTS.includes(n)),TARGET=MAP[HOME].neighbors.find(n=>n!==ALLY&&!STARTS.includes(n));

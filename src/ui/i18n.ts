@@ -17,7 +17,7 @@ export const STRINGS:Record<string,[string,string]>={
  menuBrief:['占领地块，集结军队，以战养战。用单位升级与领袖天赋，构筑你的征服之路。','Claim provinces. Raise armies. Forge a conquest through permanent-in-run upgrades and changing leader talents.'],
  theatre:['世界战场','World theatre'],theatreSub:['州区域地块 · 无国家边界 · 米勒投影 · 肉鸽战略','State regions · No national borders · Miller projection · Roguelike strategy'],
  platformPending:['Steam / Epic：尚未接入','Steam / Epic: not integrated'],offlineHint:['单人无需账号；联机需先启动局域网服务器。','No account for solo. Multiplayer requires a running LAN server.'],
- chooseLeader:['选择你的领袖','Choose your leader'],chooseUnits:['编成初始军团','Assemble your army'],chooseHint:['基础步兵必选，最多携带三种兵种。选择影响本局生产与天赋池。','Infantry is required. Bring up to three unit types; your selection shapes production and talents.'],
+ chooseLeader:['选择你的领袖','Choose your leader'],chooseUnits:['编成初始军团','Assemble your army'],chooseHint:['四种兵种任选一种出征。选择影响本局生产、升级与天赋池。','Choose exactly one of the four unit types; your selection shapes production, upgrades and talents.'],
  commander:['指挥官名号','Commander name'],yourName:['指挥官','Commander'],setup:['战役部署','Campaign deployment'],loadout:['出征配置','Army loadout'],
  warden:['铁壁统帅','The Warden'],vanguard:['机动先锋','The Vanguard'],steward:['军需总监','The Quartermaster'],
  'warden.desc':['在己方地块作战时，受到的伤害降低 10%。','Take 10% less damage while fighting in your own provinces.'],

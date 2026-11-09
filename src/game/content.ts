@@ -32,7 +32,6 @@ export function validateSetup(value:unknown):value is {name:string;leader:Leader
   if(!value||typeof value!=='object')return false;const v=value as Record<string,unknown>;
   return typeof v.name==='string'&&v.name.trim().length>0&&v.name.length<=24
     &&LEADERS.includes(v.leader as Leader)&&Array.isArray(v.loadout)
-    &&v.loadout.length>=1&&v.loadout.length<=3&&new Set(v.loadout).size===v.loadout.length
-    &&v.loadout.includes('infantry')&&v.loadout.every(k=>KINDS.includes(k))
+    &&v.loadout.length===1&&v.loadout.every(k=>KINDS.includes(k))
     &&(v.ai===undefined||typeof v.ai==='boolean');
 }
