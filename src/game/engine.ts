@@ -18,7 +18,8 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
   for(const p of s.provinces) {
     const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?2:0;
-    for(let i=0;i<count;i++)spawn(s,p.id,'infantry');
+    if(p.owner>=0)p.kind=s.players[p.owner].loadout[0];
+    for(let i=0;i<count;i++)spawn(s,p.id,p.kind);
   }
   return s;
 }
@@ -124,7 +125,7 @@ export class Engine{
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
         const player=s.players[attacker],engineers=nearby.some(u=>u.kind==='engineer');
         province.capture+=DT*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
-        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=15;province.production=0;province.kind='infantry';s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=15;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
       if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5;province.recovery=Math.max(0,province.recovery-DT*(owner.leader==='steward'?1.5:1));
       if(owners.some(id=>id!==province.owner))continue;
