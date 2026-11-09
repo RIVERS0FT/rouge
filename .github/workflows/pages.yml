@@ -1,8 +1,6 @@
 name: Publish ROUGE to GitHub Pages
 on:
-  workflow_run:
-    workflows: [Prototype checks]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
 permissions:
@@ -16,7 +14,6 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      actions: read
       pull-requests: read
     outputs:
       sha: ${{ steps.source.outputs.sha }}
@@ -34,7 +31,7 @@ jobs:
             const {selectSource} = require('./.github/scripts/pages-source.cjs');
             const sha = await selectSource({github, context});
             core.setOutput('sha', sha || '');
-            if (!sha) core.notice('Skipping unsuccessful, non-PR, untrusted or superseded checks.');
+            if (!sha) core.notice('Skipping non-PR, untrusted or superseded source.');
   build:
     needs: source
     if: needs.source.outputs.sha != ''
@@ -48,7 +45,7 @@ jobs:
     steps:
       - uses: actions/configure-pages@v5
         id: pages
-      - name: Checkout tested game source
+      - name: Checkout exact game source
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.source.outputs.sha }}
@@ -61,8 +58,6 @@ jobs:
           node-version: '22.16.0'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Test game rules, regional capacity and long-range routing
-        run: npm test
       - name: Type check and build for the Pages subpath
         env:
           SITE_BASE: ${{ steps.pages.outputs.base_path }}/
@@ -113,7 +108,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
-      deployed: ${{ steps.current.outputs.current }}
+      deployed: ${{ steps.current.outputs.current == 'true' && steps.deployment.outcome == 'success' }}
     steps:
       - name: Checkout trusted release policy
         uses: actions/checkout@v4
@@ -135,9 +130,16 @@ jobs:
         if: steps.current.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
-  verify:
+  checks:
     needs: [build, deploy]
     if: needs.deploy.outputs.deployed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      source_sha: ${{ needs.build.outputs.source_sha }}
+  verify:
+    needs: [build, deploy, checks]
+    # Test failures must not skip live evidence or roll back the published game.
+    if: always() && needs.deploy.outputs.deployed == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
