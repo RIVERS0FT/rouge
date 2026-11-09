@@ -17,7 +17,7 @@
 .commander-portrait::before{content:'';position:absolute;z-index:2;inset:6px;border:1px solid #bca77826;pointer-events:none}
 .commander-portrait::after{content:'';position:absolute;z-index:1;inset:0;background:linear-gradient(0deg,#0b1c22 0%,#0d2026d9 19%,transparent 53%);pointer-events:none}
 .commander-art{position:absolute;inset:0;pointer-events:none}
-.leader-bust{display:block;height:100%;width:100%;user-select:none}
+.leader-bust{display:block;height:100%;width:100%;object-fit:contain;object-position:center bottom;user-select:none;-webkit-user-drag:none}
 .commander-rank{position:absolute;top:16px;left:18px;display:flex;flex-direction:column;align-items:center;color:#dac18b;gap:2px}
 .commander-rank small{font-size:9px;letter-spacing:.15em}
 .commander-rank b{font-family:var(--serif);font-size:26px;font-weight:400}
