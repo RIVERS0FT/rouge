@@ -57,6 +57,10 @@ for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as cons
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('role','img');
+    await expect(page.getByTestId('leader-bust')).toHaveAttribute('src',new RegExp(`${leader}.*\\.webp`));
+    await expect(page.getByTestId('leader-bust')).toHaveJSProperty('complete',true);
+    await expect(page.getByTestId('leader-bust')).toHaveJSProperty('naturalWidth',720);
+    await expect(page.getByTestId('leader-bust')).toHaveAttribute('alt',/\S/);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
     await page.keyboard.press('Space');await page.locator('canvas').focus();await page.keyboard.press('Home');
