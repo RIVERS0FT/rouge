@@ -53,3 +53,21 @@ test('LAN rejects missing and obsolete rules for every room endpoint without mut
   assert.equal(info.status,200);
  }finally{await host.close();}
 });
+
+test('LAN admits all four new kinds, starts and accepts only their own upgrades',async()=>{
+ const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
+ const base='http://127.0.0.1:'+host.server.address().port+'/api';
+ const req=async(path,body,token)=>{const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});return {status:r.status,data:await r.json()};};
+ try{
+  const kinds=['skirmisher','grenadier','heavyCavalry','horseArtillery'];
+  const a=await req('/rooms',{setup:{...setup,loadout:[kinds[0]]}});assert.equal(a.status,201);
+  const tickets=[a.data];
+  for(const kind of kinds.slice(1)){const r=await req('/rooms/'+a.data.code+'/join',{setup:{...setup,name:kind,loadout:[kind]}});assert.equal(r.status,201);tickets.push(r.data);}
+  assert.equal((await req('/rooms/'+a.data.code+'/start',{},a.data.token)).status,200);
+  for(let i=0;i<4;i++){
+   const path='/rooms/'+a.data.code+'/command';
+   assert.equal((await req(path,{command:{type:'upgrade',kind:kinds[i],stat:'attack'}},tickets[i].token)).status,200);
+   assert.equal((await req(path,{command:{type:'upgrade',kind:'infantry',stat:'attack'}},tickets[i].token)).status,400);
+  }
+ }finally{await host.close();}
+});

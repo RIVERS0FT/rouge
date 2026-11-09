@@ -2,11 +2,15 @@ import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION='0.5.0';
 // Network protocol identity; independent of backwards-compatible local save schema.
-export const RULES_ID='nine-attributes-sea-transport-v1';
+export const RULES_ID='eight-unit-roster-sea-transport-v1';
 export const MAP_ID='earth-state-regions-1137-v1' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
-export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer'];
+export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];
+export const LEGACY_KINDS:Kind[]=['infantry','cavalry','artillery','engineer'];
+export type UnitFamily='infantry'|'cavalry'|'artillery'|'engineer';
+export const UNIT_FAMILY:Record<Kind,UnitFamily>={infantry:'infantry',cavalry:'cavalry',artillery:'artillery',engineer:'engineer',skirmisher:'infantry',grenadier:'infantry',heavyCavalry:'cavalry',horseArtillery:'artillery'};
+export function talentApplies(t:{kind?:Kind},loadout:Kind[]):boolean{return !t.kind||loadout.some(k=>UNIT_FAMILY[k]===UNIT_FAMILY[t.kind!]);}
 export const LEADERS:Leader[]=['warden','vanguard','steward'];
 export const STATS:Upgrade[]=['attack','health','speed'];
 export interface UnitStats {hp:number;attack:number;defense:number;attackSpeed:number;splash:number;range:number;train:number;speed:number;seaSpeed:number}
@@ -16,6 +20,10 @@ export const UNITS:Record<Kind,UnitStats>={
   cavalry:{hp:120,attack:24,defense:15,attackSpeed:0.8,splash:0,range:1.8,train:22,speed:4,seaSpeed:3},
   artillery:{hp:80,attack:40,defense:0,attackSpeed:0.5,splash:1.2,range:7.2,train:28,speed:1.8,seaSpeed:3},
   engineer:{hp:100,attack:12,defense:10,attackSpeed:1,splash:0,range:2.6,train:18,speed:2.5,seaSpeed:3},
+  skirmisher:{hp:75,attack:12,defense:0,attackSpeed:1,splash:0,range:4.6,train:18,speed:3,seaSpeed:3},
+  grenadier:{hp:130,attack:18,defense:20,attackSpeed:0.8,splash:0.7,range:2.3,train:24,speed:2.2,seaSpeed:3},
+  heavyCavalry:{hp:155,attack:30,defense:25,attackSpeed:0.65,splash:0,range:1.6,train:32,speed:3.4,seaSpeed:3},
+  horseArtillery:{hp:70,attack:28,defense:0,attackSpeed:0.55,splash:0.8,range:5.8,train:30,speed:2.8,seaSpeed:3},
 };
 export const TALENTS:{id:string;kind?:Kind}[]=[
   {id:'industry'},{id:'forcedMarch'},{id:'entrenchment'},{id:'veterans'},
@@ -28,7 +36,7 @@ export function stats(p:Player|undefined,kind:Kind):UnitStats {
   return {
     ...b,
     hp:b.hp+(u?.health??0)*12,
-    attack:(b.attack+(u?.attack??0)*2)*(has('veterans')?1.12:1)*(kind==='cavalry'&&has('charge')?1.25:1)*(kind==='artillery'&&has('barrage')?1.25:1),
+    attack:(b.attack+(u?.attack??0)*2)*(has('veterans')?1.12:1)*(UNIT_FAMILY[kind]==='cavalry'&&has('charge')?1.25:1)*(UNIT_FAMILY[kind]==='artillery'&&has('barrage')?1.25:1),
     speed:(b.speed+(u?.speed??0)*0.16)*(p?.leader==='vanguard'?1.12:1)*(has('forcedMarch')?1.2:1),
     range:b.range,
   };

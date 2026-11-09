@@ -1,4 +1,4 @@
-import { KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
+import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
 import { seaRoute } from './sea.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
 import type { GameState } from './types.ts';
@@ -55,12 +55,25 @@ export function validateState(value:unknown):value is GameState{
   }
   return s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
 }
+// Only old four-kind saves may gain zeroed upgrade entries. Validate strictly afterwards.
+function migrateLegacyRoster(value:unknown):void {
+  if(!value||typeof value!=='object')return;
+  const s=value as GameState;
+  if(s.version!==5||!Array.isArray(s.players)||!Array.isArray(s.units)||!Array.isArray(s.provinces))return;
+  if(!s.players.every(p=>p&&Array.isArray(p.loadout)&&p.loadout.every(k=>LEGACY_KINDS.includes(k)))
+    ||!s.units.every(u=>u&&LEGACY_KINDS.includes(u.kind))
+    ||!s.provinces.every(p=>p&&LEGACY_KINDS.includes(p.kind)))return;
+  for(const p of s.players){
+    if(!p.upgrades||typeof p.upgrades!=='object'||!LEGACY_KINDS.every(k=>p.upgrades[k]))continue;
+    for(const k of KINDS)if(!LEGACY_KINDS.includes(k)&&!Object.hasOwn(p.upgrades,k))p.upgrades[k]={attack:0,health:0,speed:0};
+  }
+}
 // Integrity checksum only, not an anti-cheat signature.
 export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch{throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);migrateLegacyRoster(state);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch{throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{

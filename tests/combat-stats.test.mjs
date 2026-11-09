@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine} from '../src/game/engine.ts';
-import {DT,UNITS} from '../src/game/content.ts';
+import {DT,UNITS,KINDS} from '../src/game/content.ts';
 import {MAP,STARTS} from '../src/game/map.ts';
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-7,`${actual} != ${expected}`);
 function battle(kind='infantry') {
@@ -11,10 +11,10 @@ function battle(kind='infantry') {
  s.units=[unit(1,0,kind),unit(2,1,'infantry',1)];s.nextId=100;
  return {e,s,unit,attacker:s.units[0],defender:s.units[1]};
 }
-for(const kind of ['infantry','cavalry','artillery','engineer'])test(`${kind}: single-hit attack, defense and multi-second rate`,()=>{
+for(const kind of KINDS)test(`${kind}: single-hit attack, defense and multi-second rate`,()=>{
  const {e,defender}=battle(kind),hp=defender.hp,base=UNITS[kind];
  e.step(1);close(hp-defender.hp,base.attack*100/110);
- // Ten game seconds contain 10, 8, 5 and 10 attacks respectively. No wall-clock timing.
+ // Fractional rates preserve cooldown remainder; no wall-clock timing.
  e.step(199);close(hp-defender.hp,base.attack*100/110*Math.ceil(10*base.attackSpeed));
 });
 test('attack cooldown expires at exactly one interval measured in simulation seconds',()=>{
@@ -48,7 +48,7 @@ test('non-artillery attacks remain single target even with clustered enemies',()
  close(10000-s.units.find(u=>u.id===2).hp,14*100/110);close(s.units.find(u=>u.id===3).hp,10000);
 });
 test('attack upgrade and unit talents retain multipliers before defender armor',()=>{
- for(const [kind,talent]of [['cavalry','charge'],['artillery','barrage']]){
+ for(const [kind,talent]of [['cavalry','charge'],['heavyCavalry','charge'],['artillery','barrage'],['horseArtillery','barrage']]){
   const {e,s,defender}=battle(kind);s.players[0].talents=['veterans',talent];
   assert.equal(e.command(0,{type:'upgrade',kind,stat:'attack'}).ok,true);
   const hp=defender.hp;e.step(1);close(hp-defender.hp,(UNITS[kind].attack+2)*1.12*1.25*100/110);
@@ -61,4 +61,17 @@ test('engineers keep 1.5 capture multiplier and existing multiplicative capture 
   e.step(20);return s.provinces[target].capture;
  }
  close(capture('infantry'),1);close(capture('engineer'),1.5);close(capture('engineer',['conqueror','sappers']),1.5*1.3*1.3);
+});
+
+for(const kind of ['grenadier','horseArtillery'])test(kind+': bounded splash shares combat formula',()=>{
+ const {e,s,unit}=battle(kind);s.units.push(unit(3,1,'infantry',1,.2),unit(4,1,'infantry',1,.3),unit(5,1,'infantry',1,.4));
+ e.step();close(10000-s.units.find(u=>u.id===2).hp,UNITS[kind].attack/1.1);
+ for(const id of [3,4])close(10000-s.units.find(u=>u.id===id).hp,UNITS[kind].attack*.35/1.1);
+ close(s.units.find(u=>u.id===5).hp,10000);
+});
+test('fractional attack rates do not drift over sixty game seconds',()=>{
+ for(const kind of ['heavyCavalry','horseArtillery']){
+  const {e,defender}=battle(kind);const hp=defender.hp;e.step(1200);
+  close(hp-defender.hp,UNITS[kind].attack/1.1*Math.ceil(60*UNITS[kind].attackSpeed));
+ }
 });

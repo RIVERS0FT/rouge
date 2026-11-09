@@ -2,7 +2,7 @@ import { MAP, provinceAt, pointInProvince, STARTS, PLAYABLE_COUNT } from './map.
 import { Navigator, cellAt, cellCenter } from './navigation.ts';
 import { seaRoute, seaPorts, type SeaLeg } from './sea.ts';
 import { destinationRoom } from './capacity.ts';
-import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
+import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
@@ -32,7 +32,7 @@ function spawn(s:GameState,province:number,kind:Kind):void{
 }
 function draft(s:GameState,p:Player):void{
   if(p.choices.length||p.drafts<=0)return;
-  const available=TALENTS.filter(t=>!p.talents.includes(t.id)&&(!t.kind||p.loadout.includes(t.kind))).map(t=>t.id);
+  const available=TALENTS.filter(t=>!p.talents.includes(t.id)&&talentApplies(t,p.loadout)).map(t=>t.id);
   for(let i=available.length-1;i>0;i--){const j=Math.floor(random(s)*(i+1));[available[i],available[j]]=[available[j],available[i]];}
   p.choices=available.slice(0,3);if(!p.choices.length)p.drafts=0;
 }
@@ -107,11 +107,12 @@ export class Engine{
         }
         continue;
       }
-      u.cooldown=Math.max(0,u.cooldown-DT);let enemy:Unit|undefined,nearest=st.range*st.range;
+      // Carry sub-tick remainder during continuous fire (e.g. 0.65 attacks/s).
+      u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,nearest=st.range*st.range;
       const bx=Math.floor(u.x/8),bz=Math.floor(u.z/8);
       for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(v.transport?.embarked||v.owner===u.owner||(!MAP[u.province].neighbors.includes(v.province)&&u.province!==v.province))continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest||(d===nearest&&enemy&&v.id<enemy.id)){nearest=d;enemy=v;}}
       if(enemy){
-        if(u.cooldown<=0){
+        if(u.cooldown<=1e-9){
           const targets=[enemy];
           if(st.splash>0){
             const nearby:Unit[]=[];const ex=Math.floor(enemy.x/8),ez=Math.floor(enemy.z/8);
@@ -128,9 +129,10 @@ export class Engine{
             const amount=st.attack*(i===0?1:0.35)*100/(100+stats(defender,target.kind).defense)*(1-reduction),old=damage.get(target.id);
             damage.set(target.id,{amount:(old?.amount??0)+amount,attacker:u.owner});
           }
-          u.cooldown=1/st.attackSpeed;
+          u.cooldown+=1/st.attackSpeed;
         }continue;
       }
+      u.cooldown=Math.max(0,u.cooldown);
       if(u.target===null)continue;
       // Follow a local flow field; closing with a defender is allowed only along land.
       const sea=u.transport?this.sea(u.transport.from,u.transport.to):null;
