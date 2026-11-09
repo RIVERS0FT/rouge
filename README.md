@@ -25,13 +25,15 @@ v0.5.0 使用新地图和 GameState v5，需要新建战役。旧 v0.4.x 浏览�
 
 ## 发布与验证
 
-`.github/workflows/pages.yml` 等待 `Prototype checks` 在本仓库 `main` push 上成功结束，再发布该次检查的精确 SHA。自动发布还要求它是已合并到 `main` 的 PR 对应的单父提交（仓库仅允许 squash 合并），且仍为当前 `main` HEAD。失败、PR 检查、其他分支、未关联合并 PR 或过时的检查均不会发布。
+流程固定为 **PR 压缩合并 → main 构建并部署 → 同一已部署 SHA 测试 → 线上验收**。PR 和功能分支不触发 CI，测试不作为合并或部署前门槛。仓库仍要求 PR、仅允许 squash、线性历史、解决讨论并禁止强推/删除 main；分支保护不再要求 `validate` 检查。
 
-整个发布流程使用同一 concurrency group，`cancel-in-progress: false`，不取消正在发布的任务。构建后、部署前再次确认 `main` HEAD；旧任务不会覆盖更新版本。GitHub concurrency 只保留一个 pending run，并不保证 FIFO，过时任务会跳过，最新成功检查会发布。部署前检查之后若 `main` 又前进，已开始的部署仍可完成，后续成功检查会发布新版。
+`.github/workflows/pages.yml` 由本仓库 `main` push 或手动触发，解析精确当前 HEAD，并要求它是已合并到 main 的 PR 对应的单父提交。其他分支、未合并 PR、非 PR 提交和过时 push 不发布。部署前只安装锁定依赖、类型检查并构建，构建失败不会上线，也不会运行后置测试。
 
-手动恢复入口仍为 Actions → Publish ROUGE to GitHub Pages → Run workflow，但只允许从 `main` 运行，解析为精确 HEAD，并要求该 SHA 已通过完整的 push CI。它不接受任意旧 ref，也不会构建未合并 PR。需要回滚时通过 PR revert 到 `main` 后正常测试、压缩合并和发布。
+部署成功才调用 `ci.yml` 的 `workflow_call`，传入实际部署 SHA，执行完整单元、类型/构建和浏览器测试（20 分钟上限）。CI 没有独立 push/PR/workflow_run 触发，因此不形成循环，也不会错误测试已前进的 main。测试结束后（包括测试失败）仍使用 Chromium 验收同一已部署版本的实际 HTTPS 网站，归档截图及报告。测试或验收失败会标红，**不会自动回滚已上线内容**；构建、部署、测试和验收错误需分别查看对应 job。
 
-每次发布先测试、类型检查、构建，再通过官方 Pages Actions 上线；之后使用 Chromium 访问实际 HTTPS 网站，验证地块图层、Worker、非相邻调兵、升级、保存和刷新读档，归档截图及报告。
+整个部署、后置测试和线上验收共用 `github-pages` concurrency group，`cancel-in-progress: false`，避免下一部署覆盖正在验收的网站。构建后、部署前再次确认 main HEAD，过时任务跳过部署和后置测试。GitHub concurrency 只保留一个 pending run、不保证 FIFO；部署开始后 main 又前进时，本次仍测试其实际部署 SHA，后续任务发布新版。
+
+手动入口为 Actions → Publish ROUGE to GitHub Pages → Run workflow，仅允许从 main 运行，发布其当前已合并 PR 的精确 HEAD，不等待 CI，也不接受任意旧 ref。需要回滚时通过 revert PR 压缩合并到 main，再走同一部署后测试流程。
 
 ## 自动清理已合并分支
 
