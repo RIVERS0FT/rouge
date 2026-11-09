@@ -42,6 +42,9 @@ try{
  }
  await page.screenshot({path:'artifacts/pages-main-menu.png'});
  await page.getByTestId('single-player').click();
+ await expect(page.locator('.unit-card[aria-pressed="true"]')).toHaveCount(1);
+ await expect(page.getByTestId('choose-unit-infantry')).toHaveAttribute('aria-pressed','true');
+ checks.push('single-unit setup defaults to infantry');
  await page.getByTestId('commander-name').fill('Pages v0.5 verification');
  await page.getByTestId('begin-campaign').click();
  await expect(page.getByTestId('open-settings')).toBeVisible();
