@@ -15,7 +15,20 @@ async function assertFullscreen(page:Page){
  const upgrade=await page.getByTestId('open-upgrades').boundingBox();
  const search=await page.getByTestId('map-search').boundingBox();
  expect(upgrade!.x).toBeGreaterThan(view.width*.6);expect(upgrade!.y).toBeGreaterThan(settings!.y+settings!.height+5);
- expect(search!.x+search!.width).toBeLessThan(upgrade!.x-5);
+ if(await page.getByTestId('toggle-province-panel').isVisible()){
+  // Compact search is at the top, upgrades at the bottom: horizontal overlap
+  // is harmless, but actual rectangles must stay separated and on-screen.
+  for(const rect of [settings,upgrade,search]){
+   expect(rect).not.toBeNull();expect(rect!.x).toBeGreaterThanOrEqual(0);expect(rect!.y).toBeGreaterThanOrEqual(0);
+   expect(rect!.x+rect!.width).toBeLessThanOrEqual(view.width);expect(rect!.y+rect!.height).toBeLessThanOrEqual(view.height);
+   expect(rect!.height).toBeGreaterThanOrEqual(44);
+  }
+  const separated=search!.x+search!.width<=upgrade!.x-5||upgrade!.x+upgrade!.width<=search!.x-5||
+   search!.y+search!.height<=upgrade!.y-5||upgrade!.y+upgrade!.height<=search!.y-5;
+  expect(separated).toBe(true);
+  await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');
+  await expect(page.locator('.province-panel')).toBeHidden();
+ }else expect(search!.x+search!.width).toBeLessThan(upgrade!.x-5);
  const d=Number(await canvas.getAttribute('data-distance')),height=2*d*Math.tan(Math.PI/9);
  expect(height).toBeLessThanOrEqual(1589.0625+1);
  expect(height*view.width/view.height).toBeLessThanOrEqual(3601);

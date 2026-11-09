@@ -1,5 +1,8 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ controlsTouch:['单指拖动 · 双指缩放 · 点击选地块','Drag with one finger · Pinch to zoom · Tap to select a region'],
+ controlsMouse:['拖动平移 · 滚轮缩放 · 右键派遣；聚焦地图可用方向键/±','Drag / scroll / right-click; focus map for arrow keys / ±'],
+ mobileActions:['手机战场操作','Mobile battlefield controls'],showProvince:['地块 / 调兵','Region / march'],hideProvince:['收起地块','Hide region'],showIntel:['战况','Situation'],hideIntel:['收起战况','Hide situation'],
  'error.incompatibleRules':['战斗与海运规则版本不一致，请刷新页面并使用同版本主机。','Combat and sea transport rules differ. Reload and use a matching host build.'],
  'attribute.hp':['生命','Health'],'attribute.attack':['单次攻击','Attack / hit'],'attribute.defense':['防御','Defense'],
  'attribute.attackSpeed':['攻击速度','Attack rate'],'attribute.splash':['溅射半径','Splash radius'],'attribute.range':['攻击距离','Attack range'],

@@ -8,7 +8,33 @@ async function assertLayout(page: Page) {
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
   const viewport=page.viewportSize()!;
-  expect(flag).not.toBeNull();expect(portrait).not.toBeNull();expect(panel).not.toBeNull();
+  expect(flag).not.toBeNull();expect(portrait).not.toBeNull();
+  if(await page.getByTestId('toggle-province-panel').isVisible()){
+    // Compact layouts intentionally collapse the side panel and move the portrait
+    // beside search. Verify reachable functionality, not desktop-only placement.
+    const toggle=page.getByTestId('toggle-province-panel');
+    await expect(toggle).toHaveAttribute('aria-expanded','false');
+    await expect(page.locator('.province-panel')).toBeHidden();
+    expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
+    for(const locator of [page.getByTestId('commander-portrait'),page.getByTestId('portrait-talents'),page.getByTestId('mobile-talents'),toggle]){
+      const box=await locator.boundingBox();expect(box).not.toBeNull();
+      expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.x+box!.width).toBeLessThanOrEqual(viewport.width);
+      expect(box!.y+box!.height).toBeLessThanOrEqual(viewport.height);
+    }
+    await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true');
+    await expect(page.locator('.province-panel')).toBeVisible();
+    const expanded=await page.locator('.province-panel').boundingBox(),control=await toggle.boundingBox();
+    expect(expanded!.x).toBeGreaterThanOrEqual(0);expect(expanded!.y).toBeGreaterThanOrEqual(0);
+    expect(expanded!.x+expanded!.width).toBeLessThanOrEqual(viewport.width);
+    expect(expanded!.y+expanded!.height).toBeLessThanOrEqual(control!.y);
+    await toggle.click();await expect(page.locator('.province-panel')).toBeHidden();
+    await page.getByTestId('mobile-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+    return;
+  }
+  expect(panel).not.toBeNull();
   expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
   expect(portrait!.x).toBeLessThan(40);expect(portrait!.y).toBeGreaterThan(viewport.height*.5);
   expect(panel!.y+panel!.height).toBeLessThanOrEqual(portrait!.y-10);
