@@ -1,0 +1,132 @@
+/* Mobile landscape HUD: compact controls over an edge-to-edge map. */
+@media (orientation:landscape) and (max-height:560px) and (max-width:1100px){
+ .app,.app.is-game{min-height:0;height:100dvh;max-height:100dvh;overflow:hidden}
+ .is-game .hud-top{top:6px;left:7px;right:62px;height:46px;padding:0 8px;gap:9px;border-radius:4px}
+ .is-game .faction-emblem-frame{width:43px;height:30px;padding:2px}
+ .is-game .hud-brand{display:none}
+ .is-game .faction-identity{gap:5px}
+ .is-game .faction-copy{display:none}
+ .is-game .hud-top .commander-badge{display:flex;min-width:0;max-width:95px;padding:0 7px 0 0;gap:6px}
+ .is-game .commander-badge b{font-size:10px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .is-game .commander-badge small{font-size:8px}
+ .is-game .resource{min-width:34px}
+ .is-game .resource>span{font-size:8px;margin-bottom:1px}
+ .is-game .resource strong{font-size:13px}
+ .is-game .resource strong small{font-size:8px}
+ .is-game .resource.level-resource{display:none}
+ .is-game .clock{font-size:11px;margin-left:auto}
+ .is-game .clock-controls{gap:3px}
+ .is-game .clock-controls button{min-width:27px;min-height:30px}
+ .settings-trigger{top:6px;right:7px;width:48px;height:46px;padding:0;gap:0;font-size:0;border-radius:4px}
+ .settings-trigger>span:first-child{font-size:19px}
+ .settings-trigger>span:last-child{display:none}
+ .is-game .map-search{top:58px;left:50%;right:auto;transform:translateX(-50%);width:min(230px,34vw);max-width:none}
+ .is-game .map-search input{min-height:36px;padding:7px 9px;font-size:10px}
+ .is-game .map-search-results{max-height:34dvh}
+ .army-actions{top:58px;right:7px;width:132px}
+ .upgrade-trigger{min-height:36px;padding:6px 8px;gap:5px;font-size:9px}
+ .upgrade-icon{width:18px;height:20px;font-size:17px}
+ .is-game .province-panel{top:58px;left:7px;width:clamp(176px,25vw,224px);max-height:calc(100dvh - 174px);padding:9px 10px;border-radius:4px}
+ .is-game .province-panel h2{font-size:17px;margin:3px 0}
+ .is-game .province-meta{font-size:8px;gap:5px}
+ .is-game .province-owner{padding:7px 0 6px;margin-bottom:6px;font-size:9px}
+ .is-game .province-owner b{font-size:15px}
+ .is-game .field-label{font-size:8px;margin:6px 0 4px}
+ .is-game .province-panel select,.is-game .destination-search{font-size:9px;padding:6px}
+ .is-game .production-line{margin-top:5px;gap:5px}
+ .is-game .production-line>span{font-size:8px}
+ .is-game .section-divider{margin:8px 0 6px}
+ .is-game .province-panel h3{font-size:10px;margin-bottom:4px}
+ .is-game .route-preview{font-size:8px}
+ .is-game .capacity-note,.is-game .province-panel .small{font-size:8px;line-height:1.35;margin:5px 0 0}
+ .is-game .fraction-picker{margin:6px 0}
+ .is-game .fraction-picker button{min-height:30px;font-size:8px}
+ .is-game .province-panel .primary{min-height:34px;padding:6px 8px;font-size:9px}
+ .app.is-game{--leader-left:7px;--leader-bottom:6px;--leader-width:142px;--leader-height:102px;--province-top:58px}
+ .is-game .commander-portrait{left:7px;bottom:6px;width:142px;height:102px;border-radius:4px}
+ .is-game .commander-portrait::before{inset:3px}
+ .is-game .commander-rank{top:5px;left:7px;gap:0}
+ .is-game .commander-rank small{font-size:6px}
+ .is-game .commander-rank b{font-size:15px}
+ .is-game .commander-portrait-copy{left:8px;bottom:7px;max-width:calc(100% - 58px)}
+ .is-game .commander-portrait-copy .eyebrow{font-size:6px}
+ .is-game .commander-portrait-copy h2{font-size:11px;margin:2px 0;max-width:100%}
+ .is-game .commander-player{font-size:7px;gap:4px}
+ .is-game .commander-talents{right:5px;bottom:8px;padding:4px;color:#d7c18e;font-size:7px;gap:2px}
+ .is-game .commander-talents>span:first-child{font-size:12px}
+ .is-game .commander-talents b{width:12px;height:12px;line-height:12px;font-size:8px}
+ .is-game .commander-experience{height:2px}
+ .is-game .strategic-panel{display:none}
+ .is-game .view-controls{right:8px;bottom:8px;gap:3px}
+ .is-game .view-controls button{width:32px;height:32px;min-width:32px;min-height:32px;font-size:10px}
+ .is-game .view-controls .compass,.is-game .view-controls small{display:none}
+ .is-game .atlas-credit{display:none}
+ .is-game .pause-banner{top:58px;padding:5px 12px;font-size:9px}
+ .is-game .toast{bottom:8px;font-size:10px;padding:7px 10px;max-width:48vw}
+ .modal-backdrop{padding:8px;align-items:center}
+ .modal{max-height:calc(100dvh - 16px);padding:16px 18px;overflow:auto}
+ .modal h2{font-size:20px;margin:5px 0 8px}
+ .modal h3{font-size:12px}
+ .modal p,.modal .muted{font-size:9px;line-height:1.5}
+ .setup-modal{width:min(760px,100%)}
+ .leader-grid{gap:7px}
+ .leader-art{height:65px}
+ .leader-insignia{font-size:34px}
+ .leader-copy{padding:7px}
+ .leader-copy>b{font-size:12px}
+ .leader-copy p{font-size:8px;min-height:26px;margin:4px 0}
+ .unit-grid{gap:6px}
+ .unit-card{padding:6px;gap:6px}
+ .unit-card b{font-size:9px}
+ .unit-card small{font-size:8px;margin-top:2px}
+ .setup-subheading{margin-top:8px}
+ .setup-subheading h3{font-size:13px;margin:3px 0}
+ .setup-footer{margin-top:8px;padding-top:8px;gap:10px}
+ .setup-footer label{font-size:8px;gap:4px}
+ .setup-footer input{padding:7px;font-size:9px}
+ .primary.large,.primary{padding:8px 12px;font-size:10px}
+ .talent-grid{gap:7px;margin:10px 0}
+ .talent-card{min-height:0;padding:10px 8px}
+ .talent-number{top:6px;left:7px;font-size:7px}
+ .talent-symbol{font-size:30px;margin:7px 0}
+ .talent-card h3{font-size:12px}
+ .talent-card p{font-size:8px;line-height:1.45}
+ .talent-select{font-size:8px;padding-top:7px;margin-top:7px}
+ .settings-modal{width:min(520px,100%);padding:15px 18px}
+ .settings-status{font-size:9px;margin-bottom:8px}
+ .settings-language{padding:8px 0;margin-bottom:8px}
+ .settings-language h3{font-size:10px}
+ .settings-language-options button{padding:7px 9px;font-size:9px}
+ .settings-actions{gap:7px}
+ .settings-save{padding:8px;gap:7px}
+ .settings-save>span{font-size:16px}
+ .settings-save strong{font-size:10px}
+ .settings-save small{font-size:8px;margin-top:2px}
+ .settings-controls{font-size:8px;margin:7px 0 0}
+ .settings-modal .save-list{max-height:38dvh}
+ .settings-modal .save-card{padding:7px;gap:6px}
+ .settings-modal .save-actions{gap:3px}
+ .settings-modal .save-actions .secondary{padding:5px;font-size:8px}
+ .settings-modal .new-save{margin:8px 0}
+ .settings-modal .new-save input{width:90px;padding:6px;font-size:9px}
+ .result-modal{padding:22px;width:min(420px,100%)}
+ .victory-symbol{font-size:38px;margin-bottom:8px}
+}
+@media (orientation:landscape) and (max-height:430px) and (max-width:740px){
+ .is-game .hud-top{right:56px;gap:6px}
+ .is-game .hud-top .commander-badge{display:none}
+ .is-game .resource{min-width:29px}
+ .is-game .clock{font-size:9px}
+ .is-game .map-search{left:50%;width:31vw}
+ .army-actions{width:112px}
+ .upgrade-trigger{font-size:8px;gap:3px}
+ .is-game .province-panel{width:164px;max-height:calc(100dvh - 164px);padding:7px}
+ .app.is-game{--leader-width:116px;--leader-height:82px}
+ .is-game .commander-portrait{width:116px;height:82px}
+ .is-game .commander-portrait-copy{max-width:calc(100% - 42px)}
+ .is-game .commander-portrait-copy h2{font-size:9px}
+ .is-game .commander-talents{right:3px;bottom:5px}
+ .is-game .view-controls button{width:29px;height:29px;min-width:29px;min-height:29px}
+ .modal-backdrop{padding:5px}
+ .modal{max-height:calc(100dvh - 10px);padding:11px}
+}
