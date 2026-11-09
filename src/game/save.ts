@@ -1,4 +1,5 @@
 import { KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
+import { seaRoute } from './sea.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
 import type { GameState } from './types.ts';
 export interface StorageLike{readonly length:number;key(index:number):string|null;getItem(key:string):string|null;setItem(key:string,value:string):void;removeItem(key:string):void}
@@ -26,17 +27,29 @@ export function validateState(value:unknown):value is GameState{
   for(const[i,p]of s.provinces.entries())if(!p||p.id!==i||!integer(p.owner,-1,s.players.length-1)||!KINDS.includes(p.kind)||!number(p.production,0,100)||!number(p.recovery,0,15)||!integer(p.captor,-1,s.players.length-1)||!number(p.capture,0,8.1)||(!MAP[i].playable&&(p.owner!==-1||p.production!==0||p.captor!==-1||p.capture!==0||p.recovery!==0))||(p.owner>=0&&!s.players[p.owner].loadout.includes(p.kind)))return false;
   const ids=new Set<number>(),population=new Map<string,number>();
   for(const u of s.units){
-    if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,1.01))return false;
-    if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||!pointInProvince(u.province,u.x,u.z))return false;
+    if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
+    if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
+    if(u.transport!==undefined){
+      const t=u.transport;if(!t||typeof t.embarked!=='boolean'||t.from!==u.origin||t.to!==u.target||u.province!==u.origin)return false;
+      const sea=seaRoute(t.from,t.to);if(!sea)return false;
+      if(t.embarked){
+        if(!integer(t.index,1,sea.waypoints.length-1))return false;
+        const a=sea.waypoints[t.index-1],b=sea.waypoints[t.index],dx=b.x-a.x,dz=b.z-a.z,length=dx*dx+dz*dz;
+        const f=length?Math.max(0,Math.min(1,((u.x-a.x)*dx+(u.z-a.z)*dz)/length)):0;
+        if(Math.hypot(u.x-(a.x+f*dx),u.z-(a.z+f*dz))>0.001)return false;
+      }else if(t.index!==0)return false;
+    }
     if(!Array.isArray(u.route)||u.route.length>MAP.length||!u.route.every(id=>integer(id,0,MAP.length-1)&&MAP[id].playable))return false;
-    if(u.target===null){if(u.destination!==null||u.route.length!==0||u.origin!==u.province)return false;}
+    if(u.target===null){if(u.transport||u.destination!==null||u.route.length!==0||u.origin!==u.province)return false;}
     else {
       if(u.province!==u.origin&&u.province!==u.target)return false;
-      if(!integer(u.destination,0,MAP.length-1)||!MAP[u.destination!].playable||!MAP[u.origin].neighbors.includes(u.target))return false;
+      if(!integer(u.destination,0,MAP.length-1)||!MAP[u.destination!].playable||(!MAP[u.origin].neighbors.includes(u.target)&&!seaRoute(u.origin,u.target)))return false;
+      if(!MAP[u.origin].neighbors.includes(u.target)&&u.province===u.origin&&!u.transport)return false;
       const legs=[u.target,...u.route];
       if(legs[legs.length-1]!==u.destination||new Set(legs).size!==legs.length||legs.includes(u.origin))return false;
-      for(let i=1;i<legs.length;i++)if(!MAP[legs[i-1]].neighbors.includes(legs[i]))return false;
+      for(let i=1;i<legs.length;i++)if(!MAP[legs[i-1]].neighbors.includes(legs[i])&&!seaRoute(legs[i-1],legs[i]))return false;
     }
+    if(u.transport?.embarked){ids.add(u.id);continue;}
     const key=`${u.owner}:${u.province}`,count=(population.get(key)??0)+1;
     if(count>PROVINCE_CAP)return false;population.set(key,count);ids.add(u.id);
   }

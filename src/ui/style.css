@@ -17,3 +17,13 @@
 .map-search-results b{display:block;font-size:13px;font-weight:500}
 .map-search-results small{display:block;color:#9cb2a9;font-size:10px;margin-top:4px}
 @media(max-width:1050px){.map-search{left:auto;right:20px;transform:none;top:85px;width:240px}.strategic-panel{top:145px}.atlas-credit{font-size:8px;bottom:72px}}
+
+/* Nine-stat cards remain readable without changing the single-choice control. */
+.unit-attributes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;margin:12px 0;text-align:left}
+.unit-attribute{display:flex;flex-direction:column;gap:3px;min-width:0;font-variant-numeric:tabular-nums}
+.unit-attribute>span{font-size:10px;color:var(--muted);line-height:1.4}
+.unit-attribute>strong{font-size:11px;font-weight:500;line-height:1.5;color:#e4e7dc;overflow-wrap:anywhere}
+.unit-card:has(.unit-attributes){align-items:flex-start}
+.unit-card:has(.unit-attributes)>div{min-width:0}
+.unit-card .unit-attributes{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:600px){.unit-grid:has(.unit-attributes){grid-template-columns:1fr}.unit-attributes{gap:6px}}

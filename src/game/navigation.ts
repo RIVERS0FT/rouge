@@ -1,5 +1,6 @@
 import { MAP, navigableInProvince } from './map.ts';
-import type { GameState } from './types.ts';
+import { seaPorts, seaRoute } from './sea.ts';
+import type { Vec2, GameState } from './types.ts';
 export interface Grid {width:number;height:number;costs:Float32Array}
 export interface Flow {width:number;height:number;goal:number;distance:Float32Array;next:Int32Array}
 const DIRECTIONS=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
@@ -54,11 +55,19 @@ export function findRegionRoute(from:number,target:number,blocked:ReadonlySet<st
 export class Navigator {
   cache=new Map<string,LocalFlow>();builds=0;
   private invalidEdges=new Set<string>();
+  private routeCache=new Map<string,number[]|null>();
   /** Validate every local leg before accepting a remote order. Lazy checks avoid
    * rasterizing the entire world; impassable candidates are removed and replanned. */
-  route(state:GameState,owner:number,from:number,target:number):number[]|null {
+  route(state:GameState,owner:number,from:number,target:number,allowSea=true):number[]|null {
+    const key=`${from}:${target}:${allowSea}`;
+    if(this.routeCache.has(key)){const cached=this.routeCache.get(key);return cached?[...cached]:null;}
+    const result=this.plan(state,owner,from,target,allowSea);
+    if(this.routeCache.size>=128)this.routeCache.delete(this.routeCache.keys().next().value!);
+    this.routeCache.set(key,result);return result?[...result]:null;
+  }
+  private plan(state:GameState,owner:number,from:number,target:number,allowSea:boolean):number[]|null {
     for(;;){
-      const path=findRegionRoute(from,target,this.invalidEdges);if(!path)return null;
+      const path=findRegionRoute(from,target,this.invalidEdges);if(!path)return allowSea?this.seaRoute(state,owner,from,target):null;
       let valid=true;
       for(let i=1;i<path.length;i++){
         const flow=this.get(state,owner,path[i],path[i-1]),center=MAP[path[i-1]].center,cell=cellAt(center.x,center.z,flow);
@@ -67,8 +76,25 @@ export class Navigator {
       if(valid)return path;
     }
   }
-  get(state:GameState,owner:number,target:number,from:number):LocalFlow {
-    const key=`${from}:${target}`,cached=this.cache.get(key);if(cached)return cached;
+  private seaRoute(state:GameState,owner:number,from:number,target:number):number[]|null {
+    // Land routes always win. Only bridge otherwise disconnected land components.
+    const ports=MAP.filter(p=>p.playable&&seaPorts(p.id).length);
+    const starts=ports.map(p=>({id:p.id,path:findRegionRoute(from,p.id,this.invalidEdges)})).filter(p=>p.path)
+      .sort((a,b)=>a.path!.length-b.path!.length||a.id-b.id).slice(0,8);
+    const ends=ports.map(p=>({id:p.id,path:findRegionRoute(p.id,target,this.invalidEdges)})).filter(p=>p.path)
+      .sort((a,b)=>a.path!.length-b.path!.length||a.id-b.id).slice(0,8);
+    for(const a of starts)for(const b of ends){
+      const first=this.route(state,owner,from,a.id,false),last=this.route(state,owner,b.id,target,false);if(!first||!last)continue;
+      const sea=seaRoute(a.id,b.id);if(!sea)continue;
+      const depart=this.get(state,owner,a.id,a.id,sea.depart),arrive=this.get(state,owner,b.id,b.id);
+      const start=MAP[a.id].center,sc=cellAt(start.x,start.z,depart),ec=cellAt(sea.arrive.x,sea.arrive.z,arrive);
+      if(sc<0||ec<0||!Number.isFinite(depart.distance[sc])||!Number.isFinite(arrive.distance[ec]))continue;
+      return [...first,...last];
+    }
+    return null;
+  }
+  get(state:GameState,owner:number,target:number,from:number,goalPoint?:Vec2):LocalFlow {
+    const key=`${from}:${target}:${goalPoint?.x??""}:${goalPoint?.z??""}`,cached=this.cache.get(key);if(cached)return cached;
     // A local land corridor, not a global coarse raster. Disjoint islands are not bridges.
     const a=MAP[from],b=MAP[target];if(!a?.playable||!b?.playable)throw new Error('unreachable');
     const bounds={left:Math.min(a.bounds.left,b.bounds.left),right:Math.max(a.bounds.right,b.bounds.right),top:Math.min(a.bounds.top,b.bounds.top),bottom:Math.max(a.bounds.bottom,b.bounds.bottom)};
@@ -81,7 +107,7 @@ export class Navigator {
       const x=left+(i%width+0.5)*cellSize,z=top+(Math.floor(i/width)+0.5)*cellSize;
       const inTarget=navigableInProvince(target,x,z),inSource=navigableInProvince(from,x,z);
       if(inTarget||inSource)costs[i]=1;
-      const distance=(x-b.center.x)**2+(z-b.center.z)**2;
+      const destination=goalPoint??b.center;const distance=(x-destination.x)**2+(z-destination.z)**2;
       if(inTarget&&distance<nearest){nearest=distance;goal=i;}
     }
     const result={...buildFlow({width,height,costs},goal),...meta};
@@ -97,5 +123,5 @@ export class Navigator {
     }
     return true;
   }
-  clear(){this.cache.clear();}
+  clear(){this.cache.clear();this.routeCache.clear();}
 }

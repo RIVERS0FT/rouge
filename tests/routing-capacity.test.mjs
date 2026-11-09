@@ -49,9 +49,10 @@ test('a remote march fights defenders and captures intermediate enemy regions be
  assert.equal(e.state.provinces[middle].owner,0);assert.equal(e.state.provinces[target].owner,0);
  assert.ok(defenderIDs.every(id=>!e.state.units.some(u=>u.id===id)));assert.ok(e.state.players[0].xp>0||e.state.players[0].level>1);
 });
-test('nonadjacent orders reject disconnected islands, invalid IDs and forged ownership without mutations',()=>{
+test('islands remain disconnected by land; invalid IDs and forged ownership never mutate state',()=>{
  const e=fresh(),before=structuredClone(e.state),from=STARTS[0];
- for(const to of [id('STATE_HOME_COUNTIES'),id('STATE_HAWAIIAN_ISLANDS'),-1,MAP.length,NaN])assert.equal(e.command(0,{type:'march',from,to,fraction:1}).ok,false);
+ for(const to of [id('STATE_HOME_COUNTIES'),id('STATE_HAWAIIAN_ISLANDS')])assert.equal(e.navigation.route(e.state,0,from,to,false),null);
+ for(const to of [-1,MAP.length,NaN])assert.equal(e.command(0,{type:'march',from,to,fraction:1}).ok,false);
  assert.equal(e.command(1,{type:'march',from,to:STARTS[1],fraction:1}).ok,false);
  assert.deepEqual(e.state,before);assert.equal(findRegionRoute(-1,0),null);
 });

@@ -18,11 +18,11 @@ test('fixed seed and command sequence produce identical state',()=>{
  const a=fresh(),b=fresh();const command={type:'march',from:HOME,to:TARGET,fraction:1};assert.equal(a.command(0,command).ok,true);b.command(0,command);a.step(1200);b.step(1200);assert.deepEqual(a.state,b.state);assert.ok(validateState(a.state));
 });
 test('auto-production continues without consuming military funds',()=>{const e=fresh();e.state.players[1].ai=false;e.state.players[0].gold=0;const before=e.state.units.filter(u=>u.owner===0).length;e.step(281);assert.equal(e.state.units.filter(u=>u.owner===0).length,before+2);assert.ok(e.state.players[0].gold>0);});
-test('reject forged ownership, ocean-disconnected targets, NaN and unsupported production',()=>{
- const e=fresh();assert.equal(e.command(1,{type:'march',from:HOME,to:ALLY,fraction:1}).ok,false);assert.equal(e.command(0,{type:'march',from:HOME,to:MAP.find(p=>p.code==='STATE_HAWAIIAN_ISLANDS').id,fraction:1}).ok,false);assert.equal(e.command(0,{type:'march',from:HOME,to:ALLY,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);
+test('reject forged ownership, invalid inputs and unsupported production; islands have no land route',()=>{
+ const e=fresh(),before=structuredClone(e.state);assert.equal(e.command(1,{type:'march',from:HOME,to:ALLY,fraction:1}).ok,false);assert.equal(e.navigation.route(e.state,0,HOME,MAP.find(p=>p.code==='STATE_HAWAIIAN_ISLANDS').id,false),null);assert.equal(e.command(0,{type:'march',from:HOME,to:ALLY,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);assert.deepEqual(e.state,before);
 });
 test('health upgrades preserve wounded health ratio and deduct cost exactly once',()=>{
- const e=fresh(),p=e.state.players[0],u=e.state.units.find(u=>u.owner===0);u.hp=45;const before=p.gold;assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'health'}).ok,true);assert.equal(u.hp/stats(p,'infantry').hp,0.5);assert.equal(p.gold,before-30);
+ const e=fresh(),p=e.state.players[0],u=e.state.units.find(u=>u.owner===0);u.hp=stats(p,'infantry').hp/2;const before=p.gold;assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'health'}).ok,true);assert.equal(u.hp/stats(p,'infantry').hp,0.5);assert.equal(p.gold,before-30);
 });
 test('shared reverse flow goes around walls and forbids diagonal corner cutting',()=>{
  const costs=new Float32Array(25).fill(1);costs[7]=costs[12]=costs[17]=Infinity;const f=buildFlow({width:5,height:5,costs},14);let i=10;const visited=new Set();while(i!==14){assert.ok(i>=0);assert.ok(!visited.has(i));visited.add(i);assert.ok(f.distance[f.next[i]]<f.distance[i]);i=f.next[i];}assert.ok(visited.size>4);

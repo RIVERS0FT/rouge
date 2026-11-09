@@ -1,5 +1,5 @@
 import { applyFrame } from './replication.ts';
-import { MAP_ID } from '../game/content.ts';
+import { MAP_ID, RULES_ID } from '../game/content.ts';
 import type { Command, GameState, Result, PlayerSetup } from '../game/types.ts';
 export interface Seat {id:number;name:string;leader:string;loadout:string[]}
 export interface RoomInfo {code:string;host:number;started:boolean;seats:Seat[]}
@@ -19,7 +19,7 @@ export function localSession(state:GameState,onState:(state:GameState)=>void,onR
   return{mode:'solo',actor:0,command:command=>worker.postMessage({type:'command',command}),pause:value=>worker.postMessage({type:'pause',value}),speed:value=>worker.postMessage({type:'speed',value}),dispose:()=>worker.terminate()};
 }
 export async function api(path:string,body?:unknown,token?:string):Promise<any>{
-  const response=await fetch(`/api${path}`,{method:body===undefined?'GET':'POST',headers:{'X-Rouge-Map':MAP_ID,...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});
+  const response=await fetch(`/api${path}`,{method:body===undefined?'GET':'POST',headers:{'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});
   let data;try{data=await response.json();}catch{throw new Error('serverOffline');}
   if(!response.ok)throw new Error(data.error??'networkError');return data;
 }
@@ -29,8 +29,15 @@ export function remoteSession(ticket:Ticket,onState:(s:GameState)=>void,onRoom:(
   let closed=false,current:GameState|null=null;const controller=new AbortController();let retry:ReturnType<typeof setTimeout>|undefined;
   async function connect(){
     try{
-      const response=await fetch(`/api/rooms/${ticket.code}/events`,{headers:{Authorization:`Bearer ${ticket.token}`,'X-Rouge-Map':MAP_ID},signal:controller.signal});
-      if(!response.ok||!response.body)throw new Error('connectionLost');
+      const response=await fetch(`/api/rooms/${ticket.code}/events`,{headers:{Authorization:`Bearer ${ticket.token}`,'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID},signal:controller.signal});
+      if(!response.ok){
+        const error=await response.json().catch(()=>({error:'connectionLost'}));
+        if(error.error==='incompatibleRules'||error.error==='incompatibleMap'){
+          closed=true;onResult({ok:false,error:error.error});return;
+        }
+        throw new Error('connectionLost');
+      }
+      if(!response.body)throw new Error('connectionLost');
       const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';onStatus('connected');
       while(!closed){const{done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end:number;
         while((end=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,end);buffer=buffer.slice(end+2);const line=chunk.split('\n').find(l=>l.startsWith('data: '));if(line){const event=JSON.parse(line.slice(6));if(event.type==='state'||event.type==='delta'){current=applyFrame(current,event);onState(current);}else if(event.type==='room')onRoom(event.room);}}

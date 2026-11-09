@@ -64,7 +64,7 @@ test('state-region flow cannot escape crop or cross a polar sea gap',()=>{
  const flow=nav.get(s,0,b.id,a.id);
  for(let i=0;i<flow.distance.length;i++)if(Number.isFinite(flow.distance[i]))assert.ok(inRect(cellCenter(i,flow),B));
  assert.equal(nav.canMove(flow,a.center.x,a.center.z,a.center.x,B.top-0.01),false);
- const greenland=MAP.find(p=>p.code==='STATE_GREENLAND');assert.equal(nav.route(s,0,a.id,greenland.id),null);
+ const greenland=MAP.find(p=>p.code==='STATE_GREENLAND');assert.equal(nav.route(s,0,a.id,greenland.id,false),null);
 });
 test('nonexistent regions cannot produce or receive orders and victory counts only management regions',()=>{
  const e=new Engine(createGame(setups));
