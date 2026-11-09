@@ -6,7 +6,7 @@
 
 **[打开游戏：https://rivers0ft.github.io/rouge/](https://rivers0ft.github.io/rouge/)**
 
-当前默认发布版本：**v0.5.0**，源码提交 `174af4617f49af8a46c07c3f3e7f11d267548c3a`（`feat/state-regions-routing`）。网站实际发布版本以 `build-info.json` 和 Pages 工作流验收结果为准。
+当前版本：**v0.5.0**。网站随 `main` 中通过检查的压缩合并提交自动发布，实际发布源码以 `build-info.json` 和 Pages 工作流验收结果为准。
 
 - 全球 675 个陆地管理地块，不显示现实国家、国旗或独立国界图层。
 - 可以向非相邻地块下令，沿连续陆路逐段推进，遇敌先战斗、占领。
@@ -25,7 +25,11 @@ v0.5.0 使用新地图和 GameState v5，需要新建战役。旧 v0.4.x 浏览�
 
 ## 发布与验证
 
-`.github/workflows/pages.yml` 固定发布经过测试的源码 SHA；不会因开发分支后来删除而改为发布其他版本。修改工作流或验收脚本推送至 main 时自动运行，也支持 Actions → Publish ROUGE to GitHub Pages → Run workflow 指定其他源码 ref。
+`.github/workflows/pages.yml` 等待 `Prototype checks` 在本仓库 `main` push 上成功结束，再发布该次检查的精确 SHA。自动发布还要求它是已合并到 `main` 的 PR 对应的单父提交（仓库仅允许 squash 合并），且仍为当前 `main` HEAD。失败、PR 检查、其他分支、未关联合并 PR 或过时的检查均不会发布。
+
+整个发布流程使用同一 concurrency group，`cancel-in-progress: false`，不取消正在发布的任务。构建后、部署前再次确认 `main` HEAD；旧任务不会覆盖更新版本。GitHub concurrency 只保留一个 pending run，并不保证 FIFO，过时任务会跳过，最新成功检查会发布。部署前检查之后若 `main` 又前进，已开始的部署仍可完成，后续成功检查会发布新版。
+
+手动恢复入口仍为 Actions → Publish ROUGE to GitHub Pages → Run workflow，但只允许从 `main` 运行，解析为精确 HEAD，并要求该 SHA 已通过完整的 push CI。它不接受任意旧 ref，也不会构建未合并 PR。需要回滚时通过 PR revert 到 `main` 后正常测试、压缩合并和发布。
 
 每次发布先测试、类型检查、构建，再通过官方 Pages Actions 上线；之后使用 Chromium 访问实际 HTTPS 网站，验证地块图层、Worker、非相邻调兵、升级、保存和刷新读档，归档截图及报告。
 
@@ -48,7 +52,7 @@ npm run dev
 
 需要 Node.js 22.16 或以上。局域网主机执行 `npm run build && npm run lan`。
 
-`main` 是游戏开发主线，已整合线上 v0.5.0 源码。Pages 仍固定发布上述已验收 SHA；手机横屏等后续功能尚未纳入。
+`main` 是游戏开发主线，已整合线上 v0.5.0 源码。Pages 自动跟随上述已测试的主线合并提交；手机横屏等后续功能尚未纳入。
 
 左键选地块，拖动平移，滚轮缩放；选中己方地块后右键目标下令，也可在左侧搜索/选择目标。Esc 打开右上设置，保存入口在设置中；单位升级在右侧，天赋在左下领袖像中。
 
