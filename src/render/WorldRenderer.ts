@@ -215,10 +215,10 @@ export class WorldRenderer {
     for(const u of this.state?.units??[]) {
       live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);pos.x+=(u.x-pos.x)*t;pos.z+=(u.z-pos.z)*t;this.smoothed.set(u.id,pos);
       if(this.blend<0.1||!inRect(pos,BOUNDS)||Math.abs(nearestWorldX(pos.x,this.focus.x)-this.focus.x)>this.distance||Math.abs(pos.z-this.focus.z)>this.distance)continue;
-      for(let j=0;j<3;j++){
+      for(let j=0;j<(u.transport?.embarked?1:3);j++){
         const x=pos.x+Math.cos(j*2.1+u.id)*0.3,z=pos.z+Math.sin(j*2.1+u.id)*0.3,y=heightAt(x,z)*this.blend;
-        if(!inRect({x,z},BOUNDS))continue;this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:OWNER[u.owner]));
-        this.dummy.position.y=y+0.68;this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
+        if(!inRect({x,z},BOUNDS))continue;this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:OWNER[u.owner]));
+        this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
       }
     }
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);

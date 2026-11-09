@@ -5,7 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { encodeFrame, type SnapshotBase } from '../src/platform/replication.ts';
-import { validateSetup, LEADERS, MAP_ID, VERSION } from '../src/game/content.ts';
+import { validateSetup, LEADERS, MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
 import type { PlayerSetup } from '../src/game/types.ts';
 interface Seat {id:number;setup:PlayerSetup;token:string;requests:number;window:number}
 interface Room {code:string;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
@@ -24,8 +24,9 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
     try{
       // Same-origin only: the server also serves the built game. No permissive CORS.
       if(req.headers.origin){const origin=new URL(req.headers.origin);if(origin.host!==req.headers.host){json(res,403,{error:'originDenied'});return;}}
-      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:VERSION,map:MAP_ID});return;}
+      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:VERSION,map:MAP_ID,rules:RULES_ID});return;}
       if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-map']!==MAP_ID){json(res,409,{error:'incompatibleMap'});return;}
+      if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-rules']!==RULES_ID){json(res,409,{error:'incompatibleRules'});return;}
       if(req.method==='POST'&&url.pathname==='/api/rooms'){
         if(rooms.size>=(options.maxRooms??16)){json(res,503,{error:'serverFull'});return;}
         const input=await body(req);if(!validateSetup(input?.setup)){json(res,400,{error:'invalidSetup'});return;}

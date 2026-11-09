@@ -1,5 +1,6 @@
 import { MAP, provinceAt, pointInProvince, STARTS, PLAYABLE_COUNT } from './map.ts';
 import { Navigator, cellAt, cellCenter } from './navigation.ts';
+import { seaRoute, seaPorts, type SeaLeg } from './sea.ts';
 import { destinationRoom } from './capacity.ts';
 import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
@@ -41,6 +42,10 @@ function experience(s:GameState,id:number,amount:number):void{
 }
 export class Engine{
   state:GameState;navigation=new Navigator();
+  private seaLegs=new Map<string,SeaLeg|null>();
+  private sea(from:number,to:number):SeaLeg|null {
+    const key=`${from}:${to}`;if(!this.seaLegs.has(key)){if(this.seaLegs.size>=128)this.seaLegs.delete(this.seaLegs.keys().next().value!);this.seaLegs.set(key,seaRoute(from,to));}return this.seaLegs.get(key)!;
+  }
   constructor(state:GameState){this.state=structuredClone(state);}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
@@ -54,8 +59,9 @@ export class Engine{
         const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
         const n=Math.min(requested,destinationRoom(s,actor,c.to));if(n<1)return fail('targetFull');
         const path=this.navigation.route(s,actor,c.from,c.to);if(!path||path.length<2)return fail('unreachable');
-        const flow=this.navigation.get(s,actor,path[1],c.from),reachable=available.filter(u=>{const cell=cellAt(u.x,u.z,flow);return cell>=0&&Number.isFinite(flow.distance[cell]);});
-        if(!reachable.length)return fail('unreachable');for(const u of reachable.slice(0,n)){u.target=path[1];u.origin=c.from;u.destination=c.to;u.route=path.slice(2);}return{ok:true};
+        const sea=MAP[c.from].neighbors.includes(path[1])?null:this.sea(c.from,path[1]);
+        const flow=sea?this.navigation.get(s,actor,c.from,c.from,sea.depart):this.navigation.get(s,actor,path[1],c.from),reachable=available.filter(u=>{const cell=cellAt(u.x,u.z,flow);return cell>=0&&Number.isFinite(flow.distance[cell]);});
+        if(!reachable.length)return fail('unreachable');for(const u of reachable.slice(0,n)){u.target=path[1];u.origin=c.from;u.destination=c.to;u.route=path.slice(2);if(sea)u.transport={from:c.from,to:path[1],index:0,embarked:false};}return{ok:true};
       }
       case 'production':{
         if(!Number.isInteger(c.province)||!KINDS.includes(c.kind)||!p.loadout.includes(c.kind))return fail('invalidCommand');
@@ -86,23 +92,58 @@ export class Engine{
     // so simultaneous arrivals cannot oversubscribe a region in the same tick.
     const population=new Int32Array((s.players.length+1)*MAP.length);
     const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
-    for(const u of s.units)population[popKey(u.owner,u.province)]++;
-    for(const u of s.units){const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
+    for(const u of s.units)if(!u.transport?.embarked)population[popKey(u.owner,u.province)]++;
+    for(const u of s.units){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
     for(const u of s.units){
-      const st=stats(s.players[u.owner],u.kind);u.cooldown=Math.max(0,u.cooldown-DT);let enemy:Unit|undefined,nearest=st.range*st.range;
+      const st=stats(s.players[u.owner],u.kind);
+      if(u.transport?.embarked){
+        const t=u.transport,leg=this.sea(t.from,t.to);if(!leg)throw new Error('invalidSeaRoute');
+        const point=leg.waypoints[t.index];
+        if(t.index===leg.waypoints.length-1&&population[popKey(u.owner,t.to)]>=PROVINCE_CAP)continue;
+        const dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz),move=Math.min(d,st.seaSpeed*DT);
+        if(d>0){u.x+=dx/d*move;u.z+=dz/d*move;}
+        if(d<=move+1e-9){u.x=point.x;u.z=point.z;t.index++;
+          if(t.index===leg.waypoints.length){u.province=t.to;population[popKey(u.owner,t.to)]++;delete u.transport;}
+        }
+        continue;
+      }
+      u.cooldown=Math.max(0,u.cooldown-DT);let enemy:Unit|undefined,nearest=st.range*st.range;
       const bx=Math.floor(u.x/8),bz=Math.floor(u.z/8);
-      for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(v.owner===u.owner||(!MAP[u.province].neighbors.includes(v.province)&&u.province!==v.province))continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest){nearest=d;enemy=v;}}
+      for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(v.transport?.embarked||v.owner===u.owner||(!MAP[u.province].neighbors.includes(v.province)&&u.province!==v.province))continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest||(d===nearest&&enemy&&v.id<enemy.id)){nearest=d;enemy=v;}}
       if(enemy){
-        if(u.cooldown<=0){const defender=s.players[enemy.owner],home=s.provinces[enemy.province]?.owner===enemy.owner,reduction=home?((defender?.leader==='warden'?0.1:0)+(defender?.talents.includes('entrenchment')?0.15:0)):0,old=damage.get(enemy.id);damage.set(enemy.id,{amount:(old?.amount??0)+st.attack*(1-reduction),attacker:u.owner});u.cooldown=1;}continue;
+        if(u.cooldown<=0){
+          const targets=[enemy];
+          if(st.splash>0){
+            const nearby:Unit[]=[];const ex=Math.floor(enemy.x/8),ez=Math.floor(enemy.z/8);
+            for(let x=ex-1;x<=ex+1;x++)for(let z=ez-1;z<=ez+1;z++)nearby.push(...(buckets.get(`${x},${z}`)??[]));
+            const extra=nearby.filter(v=>v.id!==enemy!.id&&v.owner!==u.owner&&!v.transport?.embarked&&
+              (v.province===enemy!.province||MAP[enemy!.province].neighbors.includes(v.province))&&
+              Math.hypot(v.x-enemy!.x,v.z-enemy!.z)<=st.splash)
+              .sort((a,b)=>(a.x-enemy!.x)**2+(a.z-enemy!.z)**2-((b.x-enemy!.x)**2+(b.z-enemy!.z)**2)||a.id-b.id);
+            targets.push(...extra.slice(0,2));
+          }
+          for(const [i,target] of targets.entries()){
+            const defender=s.players[target.owner],home=s.provinces[target.province]?.owner===target.owner;
+            const reduction=home?((defender?.leader==='warden'?0.1:0)+(defender?.talents.includes('entrenchment')?0.15:0)):0;
+            const amount=st.attack*(i===0?1:0.35)*100/(100+stats(defender,target.kind).defense)*(1-reduction),old=damage.get(target.id);
+            damage.set(target.id,{amount:(old?.amount??0)+amount,attacker:u.owner});
+          }
+          u.cooldown=1/st.attackSpeed;
+        }continue;
       }
       if(u.target===null)continue;
       // Follow a local flow field; closing with a defender is allowed only along land.
-      let goal=MAP[u.target].center;
-      if(u.province===u.target){const defenders=s.units.filter(v=>v.owner!==u.owner&&v.province===u.target).sort((a,b)=>Math.hypot(a.x-u.x,a.z-u.z)-Math.hypot(b.x-u.x,b.z-u.z));if(defenders[0])goal=defenders[0];}
+      const sea=u.transport?this.sea(u.transport.from,u.transport.to):null;
+      let goal=sea?sea.depart:MAP[u.target].center;
+      if(sea&&Math.hypot(goal.x-u.x,goal.z-u.z)<0.05){
+        u.x=goal.x;u.z=goal.z;u.transport!.embarked=true;u.transport!.index=1;
+        population[popKey(u.owner,u.province)]--;continue;
+      }
+      if(!sea&&u.province===u.target){const defenders=s.units.filter(v=>v.owner!==u.owner&&v.province===u.target).sort((a,b)=>Math.hypot(a.x-u.x,a.z-u.z)-Math.hypot(b.x-u.x,b.z-u.z));if(defenders[0])goal=defenders[0];}
       const distance=Math.hypot(goal.x-u.x,goal.z-u.z);
       if(distance<0.35&&pointInProvince(u.target,u.x,u.z)){u.province=u.target;if(s.provinces[u.target].owner===u.owner)this.advance(u);continue;}
-      const flow=this.navigation.get(s,u.owner,u.target,u.origin),cell=cellAt(u.x,u.z,flow),next=cell<0?-1:flow.next[cell];
-      if(next<0){this.halt(u);continue;}const direct=this.navigation.canMove(flow,u.x,u.z,goal.x,goal.z),point=(u.province===u.target&&direct)||next===cell?goal:cellCenter(next,flow),dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz);
+      const flow=sea?this.navigation.get(s,u.owner,u.origin,u.origin,sea.depart):this.navigation.get(s,u.owner,u.target,u.province===u.target?u.target:u.origin),cell=cellAt(u.x,u.z,flow),next=cell<0?-1:flow.next[cell];
+      if(next<0){this.halt(u);continue;}const direct=this.navigation.canMove(flow,u.x,u.z,goal.x,goal.z),point=((sea||u.province===u.target)&&direct)||next===cell?goal:cellCenter(next,flow),dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz);
       if(d>1e-6){const terrain=MAP[u.province].terrain,move=Math.min(d,st.speed*DT/(terrain==='highland'?1.4:1));const nx=u.x+dx/d*move,nz=u.z+dz/d*move;if(this.navigation.canMove(flow,u.x,u.z,nx,nz)){
         const id=pointInProvince(u.target,nx,nz)?u.target:provinceAt(nx,nz);
         if(id<0)continue;
@@ -115,7 +156,7 @@ export class Engine{
     const reservations=new Int32Array((s.players.length+1)*MAP.length);
     for(const u of s.units)if(u.destination!==null&&u.province!==u.destination)reservations[popKey(u.owner,u.destination)]++;
     const byProvince=new Map<number,Unit[]>();
-    for(const u of s.units){const group=byProvince.get(u.province)??[];group.push(u);byProvince.set(u.province,group);}
+    for(const u of s.units){if(u.transport?.embarked)continue;const group=byProvince.get(u.province)??[];group.push(u);byProvince.set(u.province,group);}
     for(const province of s.provinces){
       const occupants=byProvince.get(province.id)??[];
       if(!MAP[province.id].playable||(province.owner<0&&!occupants.length))continue;
@@ -142,13 +183,14 @@ export class Engine{
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
-  private halt(unit:Unit):void {unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  private halt(unit:Unit):void {delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   private advance(unit:Unit):void {
     const here=unit.target;if(here===null)return;
     if(!unit.route.length){this.halt(unit);return;}
     const next=unit.route.shift()!;
-    if(!MAP[here].neighbors.includes(next)){this.halt(unit);return;}
-    unit.origin=here;unit.target=next;
+    const sea=MAP[here].neighbors.includes(next)?null:this.sea(here,next);
+    if(!MAP[here].neighbors.includes(next)&&!sea){this.halt(unit);return;}
+    unit.origin=here;unit.target=next;if(sea)unit.transport={from:here,to:next,index:0,embarked:false};
   }
   private ai():void{
     const s=this.state;
@@ -158,7 +200,12 @@ export class Engine{
       for(const province of s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id)){
         const units=s.units.filter(u=>u.owner===p.id&&u.province===province.id&&u.target===null);if(units.length<4)continue;
         const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>s.units.filter(u=>u.province===a).length-s.units.filter(u=>u.province===b).length);
-        const destination=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];
+        let destination:number|undefined=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];
+        if(destination===undefined&&seaPorts(province.id).length){
+          const coastal=MAP.filter(m=>m.playable&&s.provinces[m.id].owner!==p.id&&seaPorts(m.id).length&&!neighbors.includes(m.id))
+            .sort((a,b)=>Math.hypot(a.center.x-MAP[province.id].center.x,a.center.z-MAP[province.id].center.z)-Math.hypot(b.center.x-MAP[province.id].center.x,b.center.z-MAP[province.id].center.z)||a.id-b.id).slice(0,4);
+          destination=coastal.find(m=>this.navigation.route(s,p.id,province.id,m.id))?.id;
+        }
         if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:0.75});
       }
     }

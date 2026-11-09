@@ -5,7 +5,7 @@ import type { GameState } from './types.ts';
  * Hostile factions are counted separately, so enemies cannot deny entry simply
  * by filling a shared cap. A final destination slot is reserved while en route. */
 export function regionTroops(state:GameState,owner:number,region:number):number {
-  return state.units.reduce((n,u)=>n+Number(u.owner===owner&&u.province===region),0);
+  return state.units.reduce((n,u)=>n+Number(u.owner===owner&&!u.transport?.embarked&&u.province===region),0);
 }
 export function regionReservations(state:GameState,owner:number,region:number):number {
   return state.units.reduce((n,u)=>n+Number(u.owner===owner&&u.destination===region&&u.province!==region),0);
