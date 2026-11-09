@@ -1,0 +1,48 @@
+/* These two fixed identity areas belong to the local actor, never to map selection. */
+.app.is-game{--leader-width:282px;--leader-height:276px;--leader-left:24px;--leader-bottom:84px;--province-top:104px}
+.faction-identity{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:0}
+.faction-emblem-frame{width:80px;height:50px;padding:3px;display:flex;align-items:center;justify-content:center;background:#12252b;box-shadow:0 0 0 1px #b4a07160,0 3px 10px #0004;border-radius:2px}
+.faction-emblem{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 2px #0005)}
+.faction-copy{display:flex;flex-direction:column;gap:4px;max-width:90px}
+.faction-copy small{font-size:9px;color:#93a7a1;letter-spacing:.12em;white-space:nowrap}
+.faction-copy b{font-family:var(--serif);font-size:18px;font-weight:500;white-space:nowrap}
+.is-game .hud-top{gap:22px}
+.is-game .hud-brand{font-size:21px;padding:6px;border-left:1px solid var(--line)}
+.is-game .hud-brand span{display:none}
+.is-game .commander-badge{max-width:155px;min-width:90px;flex-shrink:1;padding-right:17px}
+.is-game .commander-badge>div{min-width:0}
+.is-game .commander-badge b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.is-game .province-panel{top:var(--province-top);left:var(--leader-left);width:var(--leader-width);max-height:calc(100% - var(--province-top) - var(--leader-height) - var(--leader-bottom) - 14px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#748979 #10272b}
+.commander-portrait{position:absolute;z-index:8;left:var(--leader-left);bottom:var(--leader-bottom);width:var(--leader-width);height:var(--leader-height);overflow:hidden;isolation:isolate;border:1px solid #bca77866;background:radial-gradient(ellipse at 60% 40%,#3a4944 0%,#182e32 58%,#10242a 100%);box-shadow:0 10px 35px #0004}
+.commander-portrait::before{content:'';position:absolute;z-index:2;inset:6px;border:1px solid #bca77826;pointer-events:none}
+.commander-portrait::after{content:'';position:absolute;z-index:1;inset:0;background:linear-gradient(0deg,#0b1c22 0%,#0d2026d9 19%,transparent 53%);pointer-events:none}
+.commander-art{position:absolute;inset:0;pointer-events:none}
+.leader-bust{display:block;height:100%;width:100%;user-select:none}
+.commander-rank{position:absolute;top:16px;left:18px;display:flex;flex-direction:column;align-items:center;color:#dac18b;gap:2px}
+.commander-rank small{font-size:9px;letter-spacing:.15em}
+.commander-rank b{font-family:var(--serif);font-size:26px;font-weight:400}
+.commander-portrait-copy{position:absolute;z-index:3;left:20px;bottom:21px;max-width:calc(100% - 160px)}
+.commander-portrait-copy .eyebrow{font-size:8px;color:#b8b19b;letter-spacing:.18em}
+.commander-portrait-copy h2{font-family:var(--serif);font-size:22px;line-height:1.2;font-weight:400;margin:5px 0 7px;color:#ecdfbf;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.commander-player{display:flex;align-items:center;gap:7px;color:#b6c2b7;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.commander-player i{width:6px;height:6px;border-radius:50%;background:var(--commander-color);flex-shrink:0;box-shadow:0 0 8px var(--commander-color)}
+.commander-talents{position:absolute;z-index:3;right:16px;bottom:25px;display:flex;align-items:center;gap:5px;padding:8px 9px;color:#d7c18e;font-size:10px;border:1px solid #bca77866;background:#152a2de6}
+.commander-talents>span:first-child{font-size:18px}
+.commander-talents:hover{background:#32413a;border-color:#d9c490}
+.commander-talents:focus-visible{outline:2px solid #f0d9a5;outline-offset:3px}
+.commander-talents b{position:absolute;right:-5px;top:-9px;border-radius:50%;width:16px;height:16px;line-height:16px;background:#d7bd7d;color:#182c31;text-align:center}
+.commander-experience{position:absolute;z-index:4;height:3px;bottom:0;left:0;right:0;background:#10272d}
+.commander-experience i{display:block;height:100%;background:var(--commander-color)}
+.commander-portrait.has-talent{border-color:#d7bd7d}
+.is-game .atlas-credit{left:calc(var(--leader-left) + var(--leader-width) + 16px);max-width:calc(100% - var(--leader-width) - 240px);bottom:84px;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:1150px){.app.is-game{--leader-width:255px;--leader-left:18px}.is-game .hud-top{gap:14px}.faction-copy{display:none}.is-game .commander-badge{padding-right:10px;max-width:135px}}
+@media(max-height:820px){.app.is-game{--leader-height:224px;--province-top:92px}.commander-portrait-copy h2{font-size:19px}.commander-portrait-copy{left:15px;bottom:16px}.commander-talents{right:12px;bottom:20px}.commander-rank{top:10px;left:14px}.is-game .province-panel{padding:15px 18px}}
+@media(max-width:800px){.app.is-game{--leader-width:220px;--leader-left:10px;--leader-bottom:73px;--province-top:82px;--leader-height:200px}.faction-emblem-frame{width:58px;height:38px}.is-game .hud-top{gap:12px}.is-game .hud-brand{display:block;font-size:17px}.is-game .commander-badge{min-width:65px;max-width:95px}.commander-portrait-copy h2{font-size:17px}.commander-portrait-copy{left:13px;bottom:14px}.commander-talents{right:11px;bottom:18px;padding:5px 7px}.is-game .atlas-credit{display:none}}
+@media(max-height:620px){.app.is-game{--leader-height:166px}.commander-portrait-copy .eyebrow{display:none}.commander-portrait-copy h2{font-size:16px}.commander-portrait-copy{bottom:12px}.commander-talents{bottom:15px}.commander-rank b{font-size:20px}}
+
+.faction-emblem-frame{position:relative;display:grid;place-items:center;border-color:var(--faction-color)}
+.faction-emblem{font-size:44px;line-height:1;color:var(--faction-color)}
+.faction-emblem-frame>b{position:absolute;color:var(--faction-color);font-size:14px}
+.route-preview{padding:8px 0;border-top:1px solid #9a8b6133;line-height:1.5;overflow-wrap:anywhere}
+.route-preview strong{color:var(--gold);display:block}.route-preview small{display:block}
+.destination-search{width:100%;margin:4px 0 7px}

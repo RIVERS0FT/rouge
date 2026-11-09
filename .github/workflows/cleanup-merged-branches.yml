@@ -40,7 +40,7 @@ jobs:
       - name: Remove only safely merged branch heads
         env:
           GH_TOKEN: ${{ github.token }}
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          DRY_RUN: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run }}
         run: node .github/scripts/cleanup-merged-branches.mjs
       - name: Archive cleanup report
         if: always()
