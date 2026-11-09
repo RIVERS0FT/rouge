@@ -1,3 +1,4 @@
+import { validFlag } from './flags.ts';
 import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
 import { seaRoute } from './sea.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
@@ -17,7 +18,7 @@ export function validateState(value:unknown):value is GameState{
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.gold,0,1e12)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerolls,0,1))return false;
+    if(!p||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.gold,0,1e12)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerolls,0,1))return false;
     // Preserve legacy multi-unit v5 saves; new campaigns are single-unit only.
     if(!Array.isArray(p.loadout)||p.loadout.length<1||p.loadout.length>3||(p.loadout.length>1&&!p.loadout.includes('infantry'))||new Set(p.loadout).size!==p.loadout.length||!p.loadout.every(k=>KINDS.includes(k)))return false;
     if(!Array.isArray(p.talents)||p.talents.length>7||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;

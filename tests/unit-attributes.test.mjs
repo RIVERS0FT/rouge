@@ -23,7 +23,7 @@ test('upgrades and talents modify health, attack and land speed but not transpor
   const result=stats(player,kind),base=UNITS[kind];
   assert.equal(result.hp,base.hp+36);
   assert.equal(result.attack,(base.attack+4)*1.12*(['cavalry','heavyCavalry','artillery','horseArtillery'].includes(kind)?1.25:1));
-  assert.equal(result.speed,(base.speed+.64)*1.12*1.2);
+  assert.equal(result.speed,(base.speed+.64)*1.2);
   for(const key of ['defense','attackSpeed','splash','range','train','seaSpeed'])assert.equal(result[key],base[key]);
  }
 });

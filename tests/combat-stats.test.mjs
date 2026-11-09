@@ -24,9 +24,9 @@ test('attack cooldown expires at exactly one interval measured in simulation sec
   e.step(1);close(hp-defender.hp,UNITS[kind].attack*100/110);
  }
 });
-test('armor reduction precedes additive home Warden and entrenchment reductions',()=>{
+test('armor reduction precedes entrenchment; Warden is cosmetic',()=>{
  const {e,s,defender}=battle();s.players[1].leader='warden';s.players[1].talents=['entrenchment'];s.provinces[defender.province].owner=1;
- const hp=defender.hp;e.step(1);close(hp-defender.hp,14*100/110*.75);
+ const hp=defender.hp;e.step(1);close(hp-defender.hp,14*100/110*.85);
  const away=battle();away.s.players[1].leader='warden';away.s.players[1].talents=['entrenchment'];
  const awayHp=away.defender.hp;away.e.step(1);close(awayHp-away.defender.hp,14*100/110);
 });

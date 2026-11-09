@@ -27,3 +27,5 @@
 .unit-card:has(.unit-attributes)>div{min-width:0}
 .unit-card .unit-attributes{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:600px){.unit-grid:has(.unit-attributes){grid-template-columns:1fr}.unit-attributes{gap:6px}}
+
+.player-flag{display:block;width:90px;height:60px;flex-shrink:0}.flag-editor{margin:24px 0}.flag-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.flag-controls label{display:grid;gap:6px;font-size:12px}.flag-controls input[type=color]{width:54px;height:40px;padding:3px}.faction-emblem-frame .player-flag{width:100%;height:100%}.seat .player-flag{width:36px;height:24px}

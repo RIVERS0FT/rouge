@@ -84,3 +84,9 @@ npm run test:e2e
 距离为地图单位，速度为地图单位/游戏秒，0 溅射表示单体。伤害按 `单次攻击 × 100 / (100 + 目标防御)` 后再应用原有条件减伤。炮兵主目标承受100%，半径内最多两个额外敌人各35%，按距离与单位ID稳定选择，不友伤。攻击/生命/陆速升级仍分别 +2/+12/+0.16，原天赋倍率与工兵1.5倍占领保留。攻速使用模拟时间，不受界面帧率影响。
 
 开局卡显示基础九属性，升级卡显示当前九属性。海运不受陆速升级影响。优先连续陆路，跨岛行军经合法港口自动换乘统一运输船，海上不能攻击、受到陆军攻击或占领。过窄海峡和内陆湖泊可能保守不可达，详见 [海图来源、能力范围与验证](docs/SEA_TRANSPORT.md)。
+
+### Cosmetic commander identity
+
+The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
+
+Campaign setup includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.

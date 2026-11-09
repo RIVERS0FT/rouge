@@ -13,7 +13,7 @@ const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text
 export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
   const bases=new WeakMap<ServerResponse,SnapshotBase>();
   const rooms=new Map<string,Room>(),dist=resolve(options.dist??fileURLToPath(new URL('../dist',import.meta.url)));
-  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),seats:r.seats.map(s=>({id:s.id,name:s.setup.name,leader:s.setup.leader,loadout:s.setup.loadout}))});
+  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),seats:r.seats.map(s=>({id:s.id,name:s.setup.name,leader:s.setup.leader,...(s.setup.flag?{flag:s.setup.flag}:{}),loadout:s.setup.loadout}))});
   function json(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
   function emit(res:ServerResponse,event:unknown){if(!res.destroyed&&res.writableLength<1_000_000)res.write(`data: ${JSON.stringify(event)}\n\n`);else res.destroy();}
   function broadcast(room:Room){for(const res of room.streams.values())emit(res,{type:'room',room:info(room)});}

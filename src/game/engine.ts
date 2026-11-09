@@ -9,7 +9,7 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   if(setups.length<2||setups.length>4||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
-  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
+  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
   // Each commander starts with a management region and one available land neighbor.
   for (let actor=0;actor<setups.length;actor++) {
     const id=STARTS[actor];s.provinces[id].owner=actor;
@@ -125,7 +125,7 @@ export class Engine{
           }
           for(const [i,target] of targets.entries()){
             const defender=s.players[target.owner],home=s.provinces[target.province]?.owner===target.owner;
-            const reduction=home?((defender?.leader==='warden'?0.1:0)+(defender?.talents.includes('entrenchment')?0.15:0)):0;
+            const reduction=home&&defender?.talents.includes('entrenchment')?0.15:0;
             const amount=st.attack*(i===0?1:0.35)*100/(100+stats(defender,target.kind).defense)*(1-reduction),old=damage.get(target.id);
             damage.set(target.id,{amount:(old?.amount??0)+amount,attacker:u.owner});
           }
@@ -170,7 +170,7 @@ export class Engine{
         province.capture+=DT*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
         if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=15;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
-      if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5;province.recovery=Math.max(0,province.recovery-DT*(owner.leader==='steward'?1.5:1));
+      if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5;province.recovery=Math.max(0,province.recovery-DT);
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
       if(garrison+reservations[popKey(province.owner,province.id)]>=PROVINCE_CAP)continue;
