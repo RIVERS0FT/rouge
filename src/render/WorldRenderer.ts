@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {MapInputController,type MapInputContext} from './mapInput.ts';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
@@ -108,7 +109,7 @@ export class WorldRenderer {
     this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),512);
     this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(0.5,0.6,0.65),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
     for(const mesh of [this.bodies,this.heads,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
-    const c=this.renderer.domElement;c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
+    const c=this.renderer.domElement;c.tabIndex=0;c.addEventListener('keydown',this.keyDown);c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('lostpointercapture',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
     this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
   }
   /** Grow GPU buffers; render allocation must never act as a simulation cap. */
@@ -144,7 +145,7 @@ export class WorldRenderer {
     this.selection.geometry.dispose();this.selection.geometry=new THREE.BufferGeometry();this.selection.geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
     for(const copy of this.repeats)(copy.getObjectByName('selected-border') as THREE.LineSegments).geometry=this.selection.geometry;
   }
-  zoom(delta:number){this.invalidated=true;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.desiredDistance=THREE.MathUtils.clamp(this.desiredDistance*Math.exp(delta*0.008),5,worldCoverDistance(this.camera.aspect));}
+  zoom(delta:number){this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(delta*0.008)});}
   view(mode:'strategic'|'terrain') {
     this.renderer.domElement.dataset.settled='false';this.invalidated=true;
     if(mode==='strategic'){this.globalView=true;this.focus.set(WORLD_CENTER.x,0,WORLD_CENTER.z);this.desiredFocusZ=WORLD_CENTER.z;this.desiredDistance=worldCoverDistance(this.camera.aspect);}
@@ -154,7 +155,7 @@ export class WorldRenderer {
     const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);this.desiredFocusZ=p.center.z;
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
+  private resize=()=>{this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:PointerEvent):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -164,14 +165,73 @@ export class WorldRenderer {
     }
     return provinceAt(viewPickX(point.x,this.globalView),point.z);
   }
-  private pointerDown=(e:PointerEvent)=>{this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};this.renderer.domElement.setPointerCapture(e.pointerId);};
-  private pointerMove=(e:PointerEvent)=>{
-    if(this.down&&this.down.button!==2&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
-      this.focus.x=wrapX(this.down.fx-(e.clientX-this.down.x)*scale);this.desiredFocusZ=THREE.MathUtils.clamp(this.down.fz-(e.clientY-this.down.y)*scale,BOUNDS.top,BOUNDS.bottom);}
+  private mapInput=new MapInputController(action=>{
+    this.invalidated=true;this.renderer.domElement.dataset.settled='false';
+    if(action.type==='select'){this.onPick(action.region,action.attack);return;}
+    this.globalView=false;
+    if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
+    else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
+  });
+  setInputContext(context:MapInputContext){
+    this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
+    this.renderer.domElement.dataset.inputContext=context;
+  }
+  private touches=new Map<number,{x:number;y:number}>();
+  private touchBase:{x:number;y:number;span:number;distance:number;fx:number;fz:number}|null=null;
+  private touchMoved=false;
+  private resetTouchBase(){
+    const points=[...this.touches.values()];if(!points.length){this.touchBase=null;return;}
+    const a=points[0],b=points[1]??a;
+    this.touchBase={x:(a.x+b.x)/2,y:(a.y+b.y)/2,span:Math.hypot(b.x-a.x,b.y-a.y),distance:this.desiredDistance,fx:this.focus.x,fz:this.desiredFocusZ};
+  }
+  private pointerDown=(e:PointerEvent)=>{
+    if(!this.mapInput.active)return;
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      if(!this.touches.size)this.touchMoved=false;
+      this.touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(this.touches.size>1)this.touchMoved=true;
+      this.resetTouchBase();
+    }else this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};
+    try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{/* Synthetic/accessibility events may not hold capture. */}
   };
-  private pointerUp=(e:PointerEvent)=>{if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.onPick(id,e.button===2||e.shiftKey);}this.down=null;};
-  private pointerCancel=()=>{this.down=null;};
-  private wheel=(e:WheelEvent)=>{e.preventDefault();this.zoom(e.deltaY*0.12);};
+  private pointerMove=(e:PointerEvent)=>{
+    if(!this.mapInput.active)return;
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      if(!this.touches.has(e.pointerId)||!this.touchBase)return;
+      this.touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      const points=[...this.touches.values()],a=points[0],b=points[1]??a,base=this.touchBase;
+      const x=(a.x+b.x)/2,y=(a.y+b.y)/2,span=Math.hypot(b.x-a.x,b.y-a.y);
+      if(points.length>1||Math.hypot(x-base.x,y-base.y)>=5)this.touchMoved=true;
+      if(!this.touchMoved)return;
+      if(points.length>1&&base.span>0&&span>0)this.mapInput.dispatch({type:'zoom',distance:base.distance*base.span/span});
+      const scale=2*base.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+      this.mapInput.dispatch({type:'pan',x:base.fx-(x-base.x)*scale,z:base.fz-(y-base.y)*scale});
+      return;
+    }
+    if(this.down&&this.down.button!==2&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+      this.mapInput.dispatch({type:'pan',x:this.down.fx-(e.clientX-this.down.x)*scale,z:this.down.fz-(e.clientY-this.down.y)*scale});}
+  };
+  private pointerUp=(e:PointerEvent)=>{
+    if(!this.mapInput.active)return;
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      if(!this.touches.has(e.pointerId))return;
+      if(this.touchBase&&Math.hypot(e.clientX-this.touchBase.x,e.clientY-this.touchBase.y)>=5)this.touchMoved=true;
+      if(this.touches.size===1&&!this.touchMoved){const id=this.pick(e);if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack:false});}
+      this.touches.delete(e.pointerId);this.resetTouchBase();return;
+    }
+    if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack:e.button===2||e.shiftKey});}this.down=null;
+  };
+  private pointerCancel=(e:PointerEvent)=>{this.down=null;this.touchMoved=true;this.touches.delete(e.pointerId);this.resetTouchBase();};
+  private wheel=(e:WheelEvent)=>{if(!this.mapInput.active)return;e.preventDefault();this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(e.deltaY*0.12*0.008)});};
+  private keyDown=(e:KeyboardEvent)=>{
+    if(!this.mapInput.active||e.altKey||e.ctrlKey||e.metaKey)return;
+    const step=this.desiredDistance*0.08;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();this.mapInput.dispatch({type:'pan',x:this.focus.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),z:this.desiredFocusZ+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0)});
+    }else if(['+','=','-','_'].includes(e.key)){
+      e.preventDefault();this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*(e.key==='-'||e.key==='_'?1.15:1/1.15)});
+    }
+  };
   private contextMenu=(e:Event)=>e.preventDefault();
   private drawLabels(time:number) {
     if(time-this.lastLabels<180)return;this.lastLabels=time;const near=this.distance<500;
@@ -230,6 +290,6 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='false';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+  dispose(){cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
 }

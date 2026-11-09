@@ -90,3 +90,9 @@ npm run test:e2e
 The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
 
 Campaign setup includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
+
+### 手机操作
+
+手机竖屏与横屏使用适配触控的 HUD：单指拖动地图，双指捏合缩放，也可使用 2D/3D 和 ＋/− 按钮。底部“地块”和“战况”按钮展开或收起对应面板，便于看图；“天赋”和升级入口仍可直接操作。地块调兵无需鼠标右键，在地块面板中选择目标并点击派遣。配置、升级和设置弹窗可上下滚动，兼容安全区域与动态视口，不禁用浏览器页面缩放。桌面鼠标操作和游戏规则保持不变。
+
+触屏笔记本无需切换设置：操作提示跟随实际触摸/笔输入、鼠标或键盘事件切换，兼容鼠标事件不会立即覆盖触摸模式。宽屏保持原布局，触摸模式放大触控目标。聚焦地图后可用方向键平移、±缩放；弹窗/菜单打开时地图动作禁用，关闭后恢复，不保留中断的拖动。设备映射统一输出平移、缩放、选择动作，与游戏/界面输入上下文分离。
