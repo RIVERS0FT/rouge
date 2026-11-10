@@ -35,3 +35,8 @@ test('spread army broad-phase work is linear, and pathological stacks have a fix
  assert.ok(crowded.limited>0);assert.ok(crowded.candidates<=stack.length*COLLISION_PASSES*COLLISION_CANDIDATES);
  assert.ok(crowded.constraints<=stack.length*COLLISION_CONSTRAINTS);assert.ok(crowded.constraintLimited>0);
 });
+
+test('a marching footprint displaces a resting neighbor more than itself',()=>{
+ const bodies=[{...body(1),mobility:.15},{...body(2,.6),mobility:1}];separateCircles(bodies,()=>true);
+ assert.ok(Math.abs(bodies[0].x)<bodies[1].x-.6);assert.ok(distance(...bodies)>=.92-1e-6);
+});

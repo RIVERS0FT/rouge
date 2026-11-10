@@ -7,7 +7,7 @@ export const COLLISION_MAX_PUSH=.6;
 export const COLLISION_CANDIDATES=96;
 export const COLLISION_CONSTRAINTS=12;
 export const COLLISION_CELL=1.24; // Maximum diameter: a 3 × 3 neighborhood is enough.
-export interface CircleBody extends Vec2 {id:number;radius:number}
+export interface CircleBody extends Vec2 {id:number;radius:number;mobility?:number}
 export interface CollisionReport {candidates:number;contacts:number;maxPenetration:number;limited:number;constraints:number;constraintLimited:number}
 const key=(x:number,z:number)=>`${x}:${z}`;
 const directions=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQRT1_2],[-1,0],[-Math.SQRT1_2,-Math.SQRT1_2],[0,-1],[Math.SQRT1_2,-Math.SQRT1_2]];
@@ -46,7 +46,8 @@ export function separateCircles<T extends CircleBody>(input:readonly T[],canMove
           report.contacts++;report.maxPenetration=Math.max(report.maxPenetration,overlap);
           const fallback=directions[(Math.imul(a.id,73856093)^Math.imul(b.id,19349663))>>>0&7];
           const x=d>1e-9?dx/d:fallback[0],z=d>1e-9?dz/d:fallback[1];
-          const movedA=push(a,-x,-z,overlap*.5),movedB=push(b,x,z,overlap-movedA);
+          const mobilityA=a.mobility??1,mobilityB=b.mobility??1,share=mobilityA/(mobilityA+mobilityB||1);
+          const movedA=push(a,-x,-z,overlap*share),movedB=push(b,x,z,overlap-movedA);
           // If B hit a wall, A takes the unfulfilled share when space permits.
           if(movedB<overlap-movedA-1e-6)push(a,-x,-z,overlap-movedA-movedB);
         }

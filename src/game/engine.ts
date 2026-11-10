@@ -4,6 +4,7 @@ import { chooseSpawnPairs, getSpawnCapacity } from './spawns.ts';
 import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 import {UNIT_RADIUS,separateCircles,type CollisionReport} from './collision.ts';
+import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
 
@@ -35,19 +36,20 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   }
   s.grouping=reconcileGrouping(s);return s;
 }
-function spawn(s:GameState,province:number,kind:Kind):void{
-  const p=s.provinces[province],id=s.nextId++,c=MAP[province].center,radius=UNIT_RADIUS[kind];
+function spawn(s:GameState,province:number,kind:Kind):boolean{
+  const p=s.provinces[province],id=s.nextId,c=MAP[province].center,radius=UNIT_RADIUS[kind];
   let x=c.x,z=c.z,best=-Infinity;
-  const nearby=s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<4&&Math.abs(u.z-c.z)<4);
+  const nearby=s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9);
   // Search a deterministic small formation; don't spawn every reinforcement on
   // the same center. Tiny islands may still have less room than a full footprint.
-  for(let i=0;i<48;i++){
-    const a=(id+i)*2.399963,r=i===0?0:.45+1.9*Math.sqrt(i/47),candidate={x:c.x+Math.cos(a)*r,z:c.z+Math.sin(a)*r};
-    if(!pointInProvince(province,candidate.x,candidate.z)||terrainAt(candidate,true)<0||!terrainSegment(c,candidate,false))continue;
+  for(let i=0;i<512;i++){
+    const a=(id+i)*2.399963,r=i<384?3*Math.sqrt(i/383):3+5*Math.sqrt((i-384)/127),candidate={x:c.x+Math.cos(a)*r,z:c.z+Math.sin(a)*r};
+    if(!pointInProvince(province,candidate.x,candidate.z)||terrainAt(candidate,true)<0||!terrainSegment(c,candidate,false)||!buildingSegment(candidate,candidate,radius))continue;
     const gap=Math.min(radius,...nearby.map(u=>Math.hypot(u.x-candidate.x,u.z-candidate.z)-UNIT_RADIUS[u.kind]));
     const score=Math.min(gap,terrainClearance(candidate,radius));if(score>best){best=score;x=candidate.x;z=candidate.z;}if(score>=radius-1e-6)break;
   }
-  s.units.push({id,owner:p.owner,kind,x,z,hp:stats(s.players[p.owner],kind).hp,province,target:null,origin:province,destination:null,route:[],cooldown:0});
+  if(!Number.isFinite(best))return false;s.nextId++;
+  s.units.push({id,owner:p.owner,kind,x,z,hp:stats(s.players[p.owner],kind).hp,province,target:null,origin:province,destination:null,route:[],cooldown:0});return true;
 }
 function draft(s:GameState,p:Player):void{
   if(p.choices.length||p.drafts<=0)return;
@@ -62,7 +64,7 @@ function experience(s:GameState,id:number,amount:number):void{
 export class Engine{
   state:GameState;navigation=new TerrainNavigator();
   collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
-  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);}
+  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
     if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
@@ -107,7 +109,7 @@ export class Engine{
   }
   step(count=1):void{for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
   private tick():void{
-    const s=this.state,topologyBefore=s.topology;s.tick++;
+    const s=this.state,topologyBefore=s.topology;s.tick++;this.clearBuildings();
     const damage=new Map<number,{amount:number;attacker:number}>(),buckets=new Map<string,Unit[]>();
     // Reservations and production use locked game-region accounts; transit is unconstrained.
     const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
@@ -139,6 +141,19 @@ export class Engine{
         }continue;
       }
       u.cooldown=Math.max(0,u.cooldown);
+      // The terrain objective stays at the town anchor. Resting/capturing
+      // troops approach it until houses and neighboring footprints stop them;
+      // no ring slots, angles or cosmetic offsets are assigned.
+      if(!u.travel&&!u.transport?.embarked){
+        const center=MAP[u.province].center,dx=center.x-u.x,dz=center.z-u.z,d=Math.hypot(dx,dz),step=Math.min(d,st.speed*DT);
+        const to=d?{x:u.x+dx/d*step,z:u.z+dz/d*step}:u;
+        let crowded=false;
+        for(let x=bx-1;x<=bx+1&&!crowded;x++)for(let z=bz-1;z<=bz+1&&!crowded;z++)for(const v of buckets.get(`${x},${z}`)??[]){
+          if(v.id===u.id)continue;const gap=UNIT_RADIUS[u.kind]+UNIT_RADIUS[v.kind],after=Math.hypot(to.x-v.x,to.z-v.z);
+          if(after<gap-1e-6&&after<Math.hypot(u.x-v.x,u.z-v.z)-1e-8){crowded=true;break;}
+        }
+        if(!crowded&&pointInProvince(u.province,to.x,to.z)&&terrainLocalSegment(u,to)&&buildingSegment(u,to,UNIT_RADIUS[u.kind])&&terrainClearance(to,UNIT_RADIUS[u.kind])+1e-8>=terrainClearance(u,UNIT_RADIUS[u.kind])){u.x=to.x;u.z=to.z;}
+      }
       if(u.target===null)continue;
       const travel=u.travel;
       if(!travel){if(s.provinces[u.target].owner===u.owner)this.halt(u);continue;}
@@ -158,20 +173,22 @@ export class Engine{
       const last=travel.index===travel.points.length-1;
       // A garrison occupies an area, not one exact point. Let arriving troops
       // settle around the objective instead of forever driving into its center.
+      const aheadScale=goalDistance?Math.min(5/goalDistance,1):0,ahead={x:u.x+(point.x-u.x)*aheadScale,z:u.z+(point.z-u.z)*aheadScale};
+      if(!point.sea&&(!buildingSegment(u,{x:nx,z:nz},UNIT_RADIUS[u.kind])||!buildingSegment(u,ahead,UNIT_RADIUS[u.kind]))){
+        const resolved=buildingStep(u,point,UNIT_RADIUS[u.kind],move,(a,b)=>terrainLocalSegment(a,b)&&distanceToTravelSegment(travel,b)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(b,travelCorridorPoint(travel,b)));nx=resolved.x;nz=resolved.z;
+      }
       const nearbyArrival=last&&!point.sea&&goalDistance<=2.3&&pointInProvince(u.target,nx,nz);
-      // A pack can surround an intermediate land waypoint without a single
-      // circle reaching its exact point. Advance only within the certified next
-      // land corridor, never through a coast/sea transition or a terrain wall.
       const candidate={x:nx,z:nz},nextPlan={...travel,index:travel.index+1};
-      const nearbyWaypoint=!last&&!point.sea&&!travel.points[travel.index+1].sea&&goalDistance<=1.2
-        &&distanceToTravelSegment(nextPlan,candidate)<=TRAVEL_LOCAL_OFFSET
-        &&terrainLocalSegment(candidate,travelCorridorPoint(nextPlan,candidate));
+      // Advance only within the next certified land corridor; a house can
+      // occupy the original waypoint, but coast transitions are never skipped.
+      const waypointRadius=buildingSegment(point,point,UNIT_RADIUS[u.kind])?1.2:2.5;
+      const nearbyWaypoint=!last&&!point.sea&&!travel.points[travel.index+1].sea&&goalDistance<=waypointRadius&&distanceToTravelSegment(nextPlan,candidate)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(candidate,travelCorridorPoint(nextPlan,candidate));
       const arrived=goalDistance<=move+1e-9||nearbyArrival||nearbyWaypoint,final=arrived&&last;
       // Administrative capacities limit garrisons, not transit through boundaries.
       if(final&&s.units.filter(v=>v.id!==u.id&&v.owner===u.owner&&v.province===u.target&&!v.travel).length>=regionCapacity(u.target))continue;
       u.x=nx;u.z=nz;const region=provinceAt(nx,nz);if(region>=0)u.province=region;
       if(point.sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};else delete u.transport;
-      if(arrived){if(!nearbyArrival&&!nearbyWaypoint){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
+      if(arrived&&(point.sea||nearbyArrival||nearbyWaypoint||Math.hypot(u.x-point.x,u.z-point.z)<=1e-6)){if(!nearbyArrival&&!nearbyWaypoint){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
     }
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
@@ -197,7 +214,7 @@ export class Engine{
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
       if(garrison+(reservations.get(popKey(province.owner,province.id))??0)>=regionCapacity(province.id))continue;
       province.production+=DT*regionProductionRate(province.id)*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
-      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;spawn(s,province.id,province.kind);}
+      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;}
     }
     // All captures have settled: losing then gaining a region in this tick is not defeat.
     if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
@@ -213,11 +230,33 @@ export class Engine{
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
   private halt(unit:Unit):void {delete unit.travel;delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  /** Repair old saves / newly disembarked units that started inside a house.
+   * Only same-land, same-province (or certified route corridor) candidates count. */
+  private clearBuildings():void {
+    for(const u of [...this.state.units].sort((a,b)=>a.id-b.id)){
+      const radius=UNIT_RADIUS[u.kind];if((u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)||buildingSegment(u,u,radius))continue;
+      const neighbors=this.state.units.filter(v=>v.id!==u.id&&!v.transport?.embarked&&Math.abs(v.x-u.x)<4.3&&Math.abs(v.z-u.z)<4.3),beforeClearance=terrainClearance(u,radius);
+      let found=false,fallback:{x:number;z:number}|undefined,bestGap=-Infinity;
+      for(let ring=1;ring<=15&&!found;ring++)for(let i=0;i<32;i++){
+        const angle=(i+(u.id%32))*Math.PI/16,to={x:u.x+Math.cos(angle)*ring*.2,z:u.z+Math.sin(angle)*ring*.2};
+        if(!buildingSegment(to,to,radius)||!terrainLocalSegment(u,to)||terrainClearance(to,radius)+1e-8<beforeClearance)continue;
+        if(u.travel?(distanceToTravelSegment(u.travel,to)>TRAVEL_LOCAL_OFFSET||!terrainLocalSegment(to,travelCorridorPoint(u.travel,to))):!pointInProvince(u.province,to.x,to.z))continue;
+        const gap=Math.min(radius,...neighbors.map(v=>Math.hypot(v.x-to.x,v.z-to.z)-radius-UNIT_RADIUS[v.kind]));
+        if(gap>bestGap){bestGap=gap;fallback=to;}
+        if(gap<.02)continue;
+        u.x=to.x;u.z=to.z;if(u.travel)u.province=provinceAt(to.x,to.z);found=true;break;
+      }
+      // A physically overcrowded old garrison may have no non-overlapping unit
+      // slot. Never leave it inside a solid house: choose the best legal ground
+      // and let the bounded unit solver continue resolving the softer crowd.
+      if(!found&&fallback){u.x=fallback.x;u.z=fallback.z;if(u.travel)u.province=provinceAt(u.x,u.z);}
+    }
+  }
   private separate():void {
-    const bodies=this.state.units.filter(u=>!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],unit}));
+    const bodies=this.state.units.filter(u=>!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit}));
     const clearance=new Map<number,number>();
     this.collision=separateCircles(bodies,(body,to)=>{
-      const u=body.unit,travel=u.travel;
+      const u=body.unit,travel=u.travel;if(!buildingSegment(body,to,body.radius))return false;
       if(travel){if(distanceToTravelSegment(travel,to)>TRAVEL_LOCAL_OFFSET)return false;}
       else if(!pointInProvince(u.province,to.x,to.z))return false;
       if((travel&&provinceAt(to.x,to.z)<0)||!terrainLocalSegment(body,to))return false;

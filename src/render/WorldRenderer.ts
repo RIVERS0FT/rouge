@@ -1,5 +1,6 @@
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
+import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
 import * as THREE from 'three';
 import {LineSegments2} from 'three/addons/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
@@ -130,7 +131,7 @@ export class WorldRenderer {
     }
     this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),512);
     this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),512);
-    this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(0.5,0.6,0.65),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
+    this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
     for(const mesh of [this.bodies,this.heads,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
     const c=this.renderer.domElement;c.tabIndex=0;c.addEventListener('keydown',this.keyDown);c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('lostpointercapture',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
     this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
@@ -327,8 +328,8 @@ export class WorldRenderer {
     };
     for(const p of candidates){
       paint(p.name[this.lang==='zh'?0:1],p.center.x,p.center.z);
-      if(this.blend>0.1&&townCount<188){for(let i=0;i<4;i++){const x=p.center.x+Math.cos(i*2.3)*0.65,z=p.center.z+Math.sin(i*2.3)*0.65;if(!pointInProvince(p.id,x,z))continue;
-        this.dummy.position.set(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,i,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
+      if(this.blend>0.1&&townCount<188){for(const {x,z,rotation} of TOWNS[p.id]){
+        this.dummy.position.set(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,rotation,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
     }
     if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,72]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
@@ -356,7 +357,9 @@ export class WorldRenderer {
     if(this.blend>0.1)this.ensureUnitCapacity(this.state?.units.length??0);
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
-      live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);pos.x+=(u.x-pos.x)*t;pos.z+=(u.z-pos.z)*t;this.smoothed.set(u.id,pos);
+      live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);const next={x:pos.x+(u.x-pos.x)*t,z:pos.z+(u.z-pos.z)*t};
+      // Interpolation must not cut a corner through a house between safe ticks.
+      if(!u.transport?.embarked&&!buildingSegment(pos,next,UNIT_RADIUS[u.kind])){pos.x=u.x;pos.z=u.z;}else{pos.x=next.x;pos.z=next.z;}this.smoothed.set(u.id,pos);
       if(this.blend<0.1||!inRect(pos,BOUNDS)||Math.abs(nearestWorldX(pos.x,this.focus.x)-this.focus.x)>this.distance||Math.abs(pos.z-this.focus.z)>this.distance)continue;
       // One simulation unit is one model, matching the garrison counter. Keep
       // its actual position rather than adding decorative three-soldier copies.
