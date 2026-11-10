@@ -13,10 +13,9 @@ function fixture(){
  const manifest={version:1,sourceCommit:sha,pageUrl:'https://rivers0ft.github.io/rouge/',runId:100,runAttempt:1};
  const actions={getWorkflowRun:async({run_id})=>({data:run_id===200?{created_at:'2026-11-10T11:00:00Z'}:(state.fresh??state.run)}),
   listJobsForWorkflowRun(){},listWorkflowRunArtifacts(){},listWorkflowRuns(){},
-  cancelWorkflowRun:async({run_id})=>{if(state.cancelError)throw state.cancelError;state.cancelled.push(run_id);if(state.completeOnCancel)for(const run of [...state.acceptance,...state.legacy])if(run.id===run_id)run.status='completed';},
-  forceCancelWorkflowRun:async({run_id})=>state.forced.push(run_id)};
+  cancelWorkflowRun:async({run_id})=>{if(state.cancelError)throw state.cancelError;state.cancelled.push(run_id);if(state.completeOnCancel)for(const run of [...state.acceptance,...state.legacy])if(run.id===run_id)run.status='completed';}};
  const repos={getCommit:async()=>{state.mainCalls++;return{data:{sha:state.advanceAfter&&state.mainCalls>state.advanceAfter?'b'.repeat(40):state.sha,parents:state.parents}};},listPullRequestsAssociatedWithCommit(){}};
- const github={rest:{actions,repos},paginate:async(method,args)=>{
+ const github={rest:{actions,repos},request:async(route,{run_id})=>{assert.equal(route,'POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel');state.forced.push(run_id);},paginate:async(method,args)=>{
   if(method===actions.listJobsForWorkflowRun)return state.jobs;
   if(method===actions.listWorkflowRunArtifacts)return state.artifacts;
   if(method===actions.listWorkflowRuns){if(args.workflow_id==='acceptance.yml'&&state.missingWorkflow)throw{status:404};return args.workflow_id==='acceptance.yml'?state.acceptance:state.legacy;}
