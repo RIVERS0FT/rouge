@@ -8,6 +8,7 @@ const PORTRAITS: Record<Leader, string> = {
   vanguard: new URL('../assets/leaders/vanguard.webp', import.meta.url).href,
   steward: new URL('../assets/leaders/steward.webp', import.meta.url).href,
 };
+export function preloadPortraits():void{for(const src of Object.values(PORTRAITS)){const image=new Image();image.src=src;}}
 
 export const LeaderBust = memo(function LeaderBust({ leader, label }: { leader: Leader; label: string }) {
   return <img className="leader-bust" src={PORTRAITS[leader]} alt={label} role="img"

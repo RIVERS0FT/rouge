@@ -1,17 +1,17 @@
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test('leader artwork and preferences persist while solo AI selection controls faction count',async({page})=>{
- await page.goto('/');await page.getByTestId('edit-player-leader').click();
+ await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();
  await expect(page.locator('.leader-card img[data-testid=leader-bust]')).toHaveCount(3);
  for(const portrait of await page.locator('.leader-card img[data-testid=leader-bust]').all()) {await expect(portrait).toHaveJSProperty('complete',true);await expect(portrait).toHaveJSProperty('naturalWidth',720);}
  await page.getByTestId('choose-leader-steward').click();
  await page.keyboard.press('Escape');await page.getByTestId('edit-player-flag').click();
  await page.getByLabel('旗帜类型').selectOption('jp');
- await page.reload();await page.getByTestId('edit-player-leader').click();
+ await page.reload();await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();
  await expect(page.getByTestId('choose-leader-steward')).toHaveAttribute('aria-pressed','true');
  await page.keyboard.press('Escape');await page.getByTestId('edit-player-flag').click();
  await expect(page.getByLabel('旗帜类型')).toHaveValue('jp');
- await page.keyboard.press('Escape');await page.getByTestId('single-player').click();
+ await page.keyboard.press('Escape');
  await page.getByTestId('setup-ai-count').fill('3');await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await expect(page.locator('.faction-bars>span')).toHaveCount(4);

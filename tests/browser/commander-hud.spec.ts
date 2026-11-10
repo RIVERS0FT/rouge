@@ -52,8 +52,8 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
     await expect(page.getByTestId('commander-portrait')).toHaveCount(0);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);
-    await page.getByTestId('edit-player-leader').click();await page.getByTestId(`choose-leader-${leader}`).click();
-    await page.keyboard.press('Escape');await page.getByTestId('single-player').click();
+    await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();await page.getByTestId(`choose-leader-${leader}`).click();
+    await page.keyboard.press('Escape');
     await page.getByTestId('commander-name').fill(`HUD ${leader}`);await page.getByTestId('begin-campaign').click();
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);

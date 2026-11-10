@@ -91,7 +91,7 @@ npm run test:e2e
 
 The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
 
-The start screen’s top-left flag editor includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
+The game-creation flag editor includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
 
 ### 手机操作
 
@@ -107,7 +107,7 @@ The start screen’s top-left flag editor includes eight real-country flag prese
 
 出生资源上限不代表设备或网络负载保证。大量阵营会增加模拟、路径规划、画面和网络开销，手机与普通局域网建议先从较少人数开始。AI按阵营错峰思考；离线存档与联机状态支持高编号阵营，配色按编号生成。地图数据更新后运行 `npm run prepare:map && node --experimental-strip-types scripts/build-spawn-sites.mjs` 重新生成 `data/spawn-sites.json`；算法在合法双向陆路邻接图上做最大匹配，不使用手写席位上限。详见 [开局容量与性能验证](docs/OPEN_GAME_SETUP.md)。
 
-开始界面左上角显示国旗，左下角显示玩家领袖形象，并提供独立修改入口，沿用战场的视觉锚点与同一原创肖像。国旗和领袖不再在进入单人或多人对局前重复配置；战前仅保留单位、AI、姓名和必要联机设置。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
+国旗与玩家领袖形象在单人和多人创建游戏时设置，使用同一原创肖像，并与单位、AI、姓名及必要联机设置集中展示。修改外观后返回原创建窗口，不丢失未完成的其他选项。已有国旗和领袖偏好会自动填入，无需每次重新选择；开始菜单不再展示外观编辑入口。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
 
 连续升级积累多次待选天赋时，选完一项会继续显示下一组；等待权威状态确认后，最后一项完成才关闭窗口。经验与升级规则不变。
 
@@ -123,10 +123,16 @@ The start screen’s top-left flag editor includes eight real-country flag prese
 
 选中基础行政单元，在管理面板合并己方相邻管理组，或选择完整基础行政单元拆分。两侧不连通时分别形成连通管理组。军队、占领、训练进度与固定资源预算保留在原子行政单元上，操作使用权威revision拒绝过时联机请求。容量下限是新图平衡规则，不宣称与旧675块总预算完全相同。地理数据与初始组覆盖较大，移动设备性能仍需实际验收。
 
-开始界面在手机与桌面保持同一布局：国旗左上、玩家形象左下、标题与主菜单靠右，淡出阴影从右侧展开；首页设置可调整语言及打开存档。单位选择固定四列、形象选择固定三列，不按手机断点重排。使用流式尺寸、必要的局部滚动和至少44px的主要触控目标适配较小视口。
+开始界面在手机与桌面保持同一布局：标题与主菜单靠左，淡出阴影从左侧展开；首页设置可调整语言及打开存档。单位选择固定四列、形象选择固定三列，不按手机断点重排。使用流式尺寸、必要的局部滚动和至少44px的主要触控目标适配较小视口。
 
 ### 简洁界面与语言
 
 开始菜单、战役设置、外观、领土管理和战场仅保留操作控件、必要状态及战斗数值。技术选型、地图来源、内部编码/修订号和操作教学不在游戏界面显示；来源与部署信息仍在本说明、docs 和发布文件中。中文与英文分别显示对应标题、系统生成的电脑玩家名称、等级、经验和时间单位，玩家输入的名称与存档名保持原样。兵种属性继续通过悬停、聚焦或轻点查看。手机与桌面沿用相同菜单布局。
 
 国家疆界按实时玩家归属显示，真人与 AI 使用同一规则：不同阵营之间为醒目的深色粗线，同阵营内部不同管理地块之间为低透明度细线，已合并管理组的内部原子边界继续隐藏。每个中立管理地块独立视为一个国家，中立之间也画国家疆界。占领、合并与拆分后即时更新，不改变实际领土、兵力或地理数据；海岸保留独立轮廓，日期线裁切不额外画接缝。国家与选中描边采用屏幕像素宽度，保持手机、缩放和地形视角下的辨识度。
+
+### 首屏与共享资源
+
+首屏只下载菜单、语言、样式与 React 基础代码；菜单绘制后，后台才加载游戏、Three.js 与地图，随后预取模拟 Worker 和领袖图片。准备期间可操作菜单、切换语言及打开设置。提前进入创建游戏或存档会显示可取消的等待窗口，资源就绪后只继续最新选择；失败会保留可用菜单并提示重新加载，不自动开始对局。
+
+行政地图与地形网格从 JS 中分离为按内容哈希命名的 JSON，每种数据在发布目录只保留一份，主线程与 Worker 请求相同 URL，使用 HTTP 缓存复用，消除重复地图下载。每个线程仍独立解析与维护运行时索引，不要求 SharedArrayBuffer 或跨源隔离。Node/LAN 和测试继续读取同一生成数据。源码地图校验、地图身份、存档与联机协议不变。

@@ -1,5 +1,5 @@
 import {createRoot} from 'react-dom/client';
-import {App} from './ui/App.tsx';
+import {Bootstrap} from './ui/Bootstrap.tsx';
 import {installRandomUUID} from './platform/browserCompat.ts';
 import './ui/style.css';
 import './ui/commander-hud.css';
@@ -7,4 +7,4 @@ import './ui/fullscreen-hud.css';
 import './ui/mobile-landscape.css';
 import './ui/start-screen.css';
 installRandomUUID();
-createRoot(document.getElementById('root')!).render(<App/>);
+createRoot(document.getElementById('root')!).render(<Bootstrap/>);

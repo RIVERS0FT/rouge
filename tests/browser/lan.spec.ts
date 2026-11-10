@@ -11,6 +11,7 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     for(const [page,name] of [[host,'Host'],[guest,'Guest']] as const){
       await page.goto('/');
       await page.getByRole('button',{name:'English',exact:true}).click();
+      await page.getByRole('button',{name:/LAN multiplayer/}).click();
       if(name==='Guest'){
         await page.getByTestId('edit-player-leader').click();
         await page.getByTestId('choose-leader-vanguard').click();
@@ -19,7 +20,6 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
         await page.getByLabel('Flag type',{exact:true}).selectOption('jp');
         await page.keyboard.press('Escape');
       }
-      await page.getByRole('button',{name:/LAN multiplayer/}).click();
       await page.getByTestId('commander-name').fill(name);
       await expect(page.locator('.leader-card')).toHaveCount(0);
       await expect(page.getByTestId('flag-editor')).toHaveCount(0);

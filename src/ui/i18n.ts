@@ -1,5 +1,6 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ backgroundLoading:['正在后台准备游戏…','Preparing game in the background…'],loadingResources:['正在准备游戏资源…','Preparing game resources…'],resourceFailed:['游戏资源未能加载，请检查连接后重新加载。','Game resources could not load. Check your connection and reload.'],reloadResources:['重新加载','Reload'],
  starting:['正在进入战役…','Starting campaign…'],baseStats:['基础属性','Base attributes'],experience:['经验','XP'],levelShort:['等级','LV'],
  playerAppearance:['玩家外观','Player appearance'],playerLeader:['玩家形象','Player portrait'],playerFlag:['国旗','Flag'],editAppearance:['修改外观','Edit appearance'],editPlayerLeader:['修改玩家形象','Edit player portrait'],editPlayerFlag:['修改国旗','Edit flag'],
  identityHint:['外观仅用于识别玩家，不影响能力或出生地。新建单人和多人对局共用此设置。','Appearance identifies you without changing abilities or starting locations. New solo and multiplayer matches use this selection.'],

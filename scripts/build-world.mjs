@@ -11,9 +11,11 @@ const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinc
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);
-// Runtime JS parses one string instead of a huge object AST; small declaration
-// keeps tsc from inferring every coordinate. JSON remains for release metadata.
-const moduleText='export default JSON.parse('+JSON.stringify(raw.toString())+');\n';
+// Node tests and the LAN server read the local JSON without an HTTP dependency.
+// Vite replaces this tiny module with a shared, content-hashed asset fetch in
+// both browser and worker builds; never embed the atlas in either JS bundle.
+// The small declaration keeps tsc from inferring every coordinate.
+const moduleText="import atlas from './world.json' with {type:'json'};\nexport default atlas;\n";
 await writeFile(new URL('src/generated/world.js',root),moduleText);
 await writeFile(new URL('src/generated/world.d.ts',root),"import type {AdminAtlas} from '../game/atlasTypes.ts';\ndeclare const atlas:AdminAtlas;\nexport default atlas;\n");
 console.log(`Natural Earth atlas: ${atlas.provinces.length} complete Admin1 atoms; ${atlas.initialGroups.length} approximate initial groups.`);

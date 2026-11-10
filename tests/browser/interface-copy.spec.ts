@@ -16,6 +16,7 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
  await noTechnicalCopy(page);
  // The language picker intentionally uses each language's own name.
  await expect(page.locator('.main-menu')).not.toContainText(zh?/[A-Za-z]/:/\p{Script=Han}/u);
+ await page.getByTestId('single-player').click();
  await page.getByTestId('edit-player-leader').click();
  await expect(page.locator('.leader-card')).toHaveCount(3);
  await expect(page.locator('.leader-copy p')).toHaveCount(0);
@@ -24,7 +25,7 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
  await page.getByLabel(zh?'旗帜类型':'Flag type',{exact:true}).selectOption('custom');
  await expect(page.getByTestId('flag-drawing-surface')).toBeVisible();
  await expect(page.locator('#flag-drawing-instructions')).toHaveCount(0);
- await page.keyboard.press('Escape');
+ await page.keyboard.press('Escape');await page.keyboard.press('Escape');
  await page.getByTestId('open-saves').click();
  await expect(page.getByRole('dialog')).toContainText(zh?'存档仅保存在当前浏览器':'Saves are stored only in this browser');
  await noTechnicalCopy(page);await page.keyboard.press('Escape');
