@@ -54,18 +54,18 @@ test('ownership border hierarchy, UK detail, remote dispatch UI and persisted ro
  await expect(page.getByTestId('open-settings')).toBeVisible();expect(errors).toEqual([]);
 });
 
-test('valid 480-battalion player save loads and GPU buffers grow beyond the removed global cap',async({page})=>{
+test('valid 600-battalion player save loads and GPU buffers grow beyond the removed global cap',async({page})=>{
  test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-capacity-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Capacity regression fixture'}).getByRole('button',{name:'载入',exact:true}).click();
- await expect(page.getByTestId('army-total')).toHaveText('480');await page.getByTestId('toggle-pause').click();
+ await expect(page.getByTestId('army-total')).toHaveText('600');await page.getByTestId('toggle-pause').click();
  await page.locator('canvas').focus();await page.keyboard.press('End');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  const capacity=Number(await page.locator('canvas').getAttribute('data-unit-capacity'));
- expect(capacity).toBeGreaterThanOrEqual(492*3);
- expect(Number(await page.locator('canvas').getAttribute('data-total-units'))).toBe(492);
+ expect(capacity).toBeGreaterThanOrEqual(612);
+ expect(Number(await page.locator('canvas').getAttribute('data-total-units'))).toBe(612);
  expect(Number(await page.locator('canvas').getAttribute('data-rendered-instances'))).toBeGreaterThan(0);
  await expect(page.getByTestId('region-capacity')).toContainText('12 / 12');
- await page.screenshot({path:'artifacts/capacity-fixture-480.png'});expect(errors).toEqual([]);
+ await page.screenshot({path:'artifacts/capacity-fixture-600.png'});expect(errors).toEqual([]);
 });
