@@ -81,6 +81,9 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
   return()=>{document.removeEventListener('pointerdown',pointer,true);document.removeEventListener('keydown',keyboard,true);};
  },[]);
  useEffect(()=>{world.current?.setInputContext(screen==='game'&&!localStarting&&!modal&&!showDefeat&&game?.winner===null?'game':'blocked');},[screen,localStarting,modal,showDefeat,game?.winner]);
+ // A paused strategic map has no animation loop work. HUD-only changes must
+ // still refresh political label collision rectangles without moving the camera.
+ useEffect(()=>{world.current?.refreshLabelLayout();},[mobilePanel,paused,inputDevice,mapQuery,spectating,toast]);
  useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':'en';document.title=text('title');try{localStorage.setItem('rouge.language',language);}catch{/* Language still works without storage. */}},[language]);
  useEffect(()=>()=>session.current?.dispose(),[]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(''),4500);return()=>clearTimeout(id);},[toast]);

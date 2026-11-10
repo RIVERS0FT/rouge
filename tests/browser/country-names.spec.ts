@@ -19,17 +19,40 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
    for(let a=0;a<labels.length;a++)for(let b=a+1;b<labels.length;b++){const x=labels[a].box,y=labels[b].box;expect(x.right<y.left||x.left>y.right||x.bottom<y.top||x.top>y.bottom).toBe(true);}
    return labels;
   };
-  await check();await page.screenshot({path:`artifacts/country-names-${mobile?'mobile':'desktop'}-world.png`});
+  await check();
+  if(mobile){
+   const camera=await canvas.getAttribute('data-distance'),tick=await page.getByTestId('game-clock').getAttribute('data-tick');
+   for(const open of [true,false]){
+    const revision=Number(await canvas.getAttribute('data-country-label-revision'));
+    await page.getByTestId('toggle-province-panel').tap();
+    await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded',String(open));
+    await expect.poll(async()=>Number(await canvas.getAttribute('data-country-label-revision'))).toBeGreaterThan(revision);
+    await expect(canvas).toHaveAttribute('data-distance',camera!);await expect(page.getByTestId('game-clock')).toHaveAttribute('data-tick',tick!);
+    if(open){
+     const panel=await page.locator('#province-panel').boundingBox();expect(panel).not.toBeNull();
+     for(const label of await check()){const r=label.box;expect(r.right<=panel!.x||r.left>=panel!.x+panel!.width||r.bottom<=panel!.y||r.top>=panel!.y+panel!.height).toBe(true);}
+    }else await expect.poll(()=>page.locator('.country-label:visible').count()).toBeGreaterThan(0);
+   }
+  }
+  await page.screenshot({path:`artifacts/country-names-${mobile?'mobile':'desktop'}-world.png`});
   // Find each of two actual human countries. Their labels must use their own
   // names rather than the local actor's name or a source country label.
   for(const owner of [0,1,2]){
    if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').click();
    await page.getByTestId('map-search').fill(fixture.origins[owner]);await page.locator('.map-search-results button').first().click();
    await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+   // Focus fits each geographic region (16–240), rather than choosing a
+   // universal tactical zoom. Explicitly zoom large regions into close view.
+   const focusedDistance=Number(await canvas.getAttribute('data-distance'));
+   const closeSteps=Math.max(0,Math.ceil(Math.log(focusedDistance/100)/Math.log(1.15)));
+   for(let n=0;n<closeSteps;n++)await page.keyboard.press('+');
+   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect.poll(async()=>Number(await canvas.getAttribute('data-distance'))).toBeLessThan(180);
    await expect(page.locator('.country-label:visible')).toHaveCount(0);
    // Zoom out enough for a strategic country title, leaving province text intact.
-   for(let n=0;n<24;n++)await page.keyboard.press('-');
+   const closeDistance=Number(await canvas.getAttribute('data-distance'));
+   const strategicSteps=Math.ceil(Math.log(800/closeDistance)/Math.log(1.15));
+   for(let n=0;n<strategicSteps;n++)await page.keyboard.press('-');
    await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect(page.locator(`.country-label[data-owner="${owner}"]:visible`)).toHaveCount(1,{timeout:15000});
    await check();
