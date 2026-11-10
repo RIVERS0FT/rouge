@@ -9,7 +9,7 @@ import {MapInputController,type MapInputContext} from './mapInput.ts';
 import {advanceCameraDistance} from './cameraMotion.ts';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
-import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
+import { clipTriangle, inRect } from '../game/crop.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
 import { factionColor, NEUTRAL_LAND_COLOR } from '../game/factionColors.ts';
 export { factionColor, FACTION_COLORS } from '../game/factionColors.ts';
@@ -87,7 +87,8 @@ export class WorldRenderer {
       this.ranges.push({start,count:positions.length/3-start});
     }
     const edges=buildBorderEdges(MAP,BOUNDS),coasts=borderPositions(edges.filter(e=>e.atoms.length===1),0.27);
-    this.boundaryEdges=edges.filter(e=>e.atoms.length>1);
+    // Keep coasts for selection too; political updates classify and skip them.
+    this.boundaryEdges=edges;
     let minLandZ=Infinity,maxLandZ=-Infinity;for(let i=2;i<positions.length;i+=3){minLandZ=Math.min(minLandZ,positions[i]);maxLandZ=Math.max(maxLandZ,positions[i]);}
     this.renderer.domElement.dataset.landMinZ=String(minLandZ);this.renderer.domElement.dataset.landMaxZ=String(maxLandZ);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
@@ -190,8 +191,10 @@ export class WorldRenderer {
   }
   private drawSelection() {
     const points:number[]=[],segments:[Vec2,Vec2][]=[];
-    if(this.selected>=0&&MAP[this.selected].visible)for(const part of MAP[this.selected].parts)for(const ring of part)for(let i=0;i<ring.length;i++){
-      const segment=clipSegment(ring[i],ring[(i+1)%ring.length],BOUNDS);if(!segment)continue;const [a,b]=segment;segments.push([a,b]);points.push(a.x,0.32,a.z,b.x,0.32,b.z);
+    // Reuse dissolved region boundaries for both outline and glow. Source parts
+    // retain administrative geometry, but their shared sides are not game borders.
+    if(this.selected>=0&&MAP[this.selected].visible)for(const edge of this.boundaryEdges)if(edge.atoms.includes(this.selected)){
+      const {a,b}=edge;segments.push([a,b]);points.push(a.x,0.32,a.z,b.x,0.32,b.z);
     }
     this.replaceWideGeometry(this.selection,points);
     this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;

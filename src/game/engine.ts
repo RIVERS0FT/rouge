@@ -16,8 +16,8 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
-  // Equal initial production budgets: two complete source groups and five
-  // troops per group, distributed only into their immutable atom capacities.
+  // Equal initial budgets: two complete locked gameplay regions and five
+  // troops per region.
   const startingTroops=new Map<number,number>();
   chooseSpawnPairs(seed,setups.length,s).forEach((pair,actor)=>{
     for(const representative of pair){
@@ -109,7 +109,7 @@ export class Engine{
   private tick():void{
     const s=this.state,topologyBefore=s.topology;s.tick++;
     const damage=new Map<number,{amount:number;attacker:number}>(),buckets=new Map<string,Unit[]>();
-    // Reservations and production retain atom accounts; transit is unconstrained.
+    // Reservations and production use locked game-region accounts; transit is unconstrained.
     const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
     for(const u of s.units){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
     for(const u of s.units){
@@ -159,12 +159,19 @@ export class Engine{
       // A garrison occupies an area, not one exact point. Let arriving troops
       // settle around the objective instead of forever driving into its center.
       const nearbyArrival=last&&!point.sea&&goalDistance<=2.3&&pointInProvince(u.target,nx,nz);
-      const arrived=goalDistance<=move+1e-9||nearbyArrival,final=arrived&&last;
+      // A pack can surround an intermediate land waypoint without a single
+      // circle reaching its exact point. Advance only within the certified next
+      // land corridor, never through a coast/sea transition or a terrain wall.
+      const candidate={x:nx,z:nz},nextPlan={...travel,index:travel.index+1};
+      const nearbyWaypoint=!last&&!point.sea&&!travel.points[travel.index+1].sea&&goalDistance<=1.2
+        &&distanceToTravelSegment(nextPlan,candidate)<=TRAVEL_LOCAL_OFFSET
+        &&terrainLocalSegment(candidate,travelCorridorPoint(nextPlan,candidate));
+      const arrived=goalDistance<=move+1e-9||nearbyArrival||nearbyWaypoint,final=arrived&&last;
       // Administrative capacities limit garrisons, not transit through boundaries.
       if(final&&s.units.filter(v=>v.id!==u.id&&v.owner===u.owner&&v.province===u.target&&!v.travel).length>=regionCapacity(u.target))continue;
       u.x=nx;u.z=nz;const region=provinceAt(nx,nz);if(region>=0)u.province=region;
       if(point.sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};else delete u.transport;
-      if(arrived){if(!nearbyArrival){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
+      if(arrived){if(!nearbyArrival&&!nearbyWaypoint){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
     }
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);

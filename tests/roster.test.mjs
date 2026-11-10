@@ -5,7 +5,7 @@ import {createGame,Engine} from '../src/game/engine.ts';
 import {encodeSave,decodeSave,checksum,validateState} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
-import {MAP,STARTS} from '../src/game/map.ts';
+import {MAP,provinceByCode,SOURCE_MAP,STARTS} from '../src/game/map.ts';
 const NEW=KINDS.filter(k=>!LEGACY_KINDS.includes(k));
 const setup=k=>({name:k,leader:'steward',loadout:[k]});
 const fresh=k=>new Engine(createGame([setup(k),setup('infantry')],42));
@@ -56,7 +56,7 @@ test('every new kind can capture without engineer bonuses and AI can upgrade its
  }
 });
 for(const kind of NEW)test(kind+': real sea transport, landing and occupation preserve kind and valid save',()=>{
- const e=fresh(kind),s=e.state,from=MAP.find(p=>p.code==='GBR-3409').id,to=MAP.find(p=>p.code==='FRA-5275').id;
+ const e=fresh(kind),s=e.state,from=MAP[provinceByCode('GBR-3409')].id,to=MAP[provinceByCode('FRA-5275')].id;
  for(const p of s.provinces){p.owner=-1;p.production=0;}
  s.provinces[from].owner=0;s.provinces[from].kind=kind;s.provinces[to].owner=1;s.provinces[to].kind='infantry';
  const u=s.units.find(u=>u.owner===0);Object.assign(u,{province:from,origin:from,x:MAP[from].center.x,z:MAP[from].center.z});s.units=[u];s.grouping=reconcileGrouping(s);

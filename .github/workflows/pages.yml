@@ -83,12 +83,13 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const atlas = JSON.parse(fs.readFileSync('src/generated/world.json', 'utf8'));
+          const atlas = JSON.parse(fs.readFileSync('src/generated/gameplay-map.json', 'utf8'));
           fs.writeFileSync('dist/build-info.json', JSON.stringify({
             name:'ROUGE', version:pkg.version, sourceCommit:process.env.SOURCE_COMMIT,
             hosting:'GitHub Pages', multiplayerBackendIncluded:false,
             map:atlas.mapId,
             regionCount:atlas.provinces.length,
+            sourceAtomCount:atlas.sourceAtomCount,
             mapRedistributionAuthorization:'natural-earth-public-domain'
           }, null, 2));
           const notices = ['ROUGE - bundled library notices\n'];

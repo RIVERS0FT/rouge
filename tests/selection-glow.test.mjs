@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import * as THREE from 'three';
+import {buildBorderEdges} from '../src/render/territoryBorders.ts';
 import {innerGlowMesh} from '../src/render/selectionGlow.ts';
 import {MAP,containsPart,BOUNDS} from '../src/game/map.ts';
 import {clipTriangle} from '../src/game/crop.ts';
@@ -22,14 +25,14 @@ test('glow clips to concave land triangles, preserving holes and disconnected is
 });
 test('real cropped polar and date-line selections stay on their land mesh with bounded fade',()=>{
  for(const code of ['GRL-2743','USA-3517','DEU-3487']){
-  const p=MAP.find(p=>p.code===code),triangles=tessellate(p.parts),mesh=innerGlowMesh(triangles,segments(p.parts.flat()),2);
+  const p=MAP.find(p=>p.code===code||p.sourceAtoms?.includes(code)),triangles=tessellate(p.parts),mesh=innerGlowMesh(triangles,buildBorderEdges([p],BOUNDS).map(e=>[e.a,e.b]),2);
   assert.ok(mesh.points.length>0,code);assert.ok(mesh.distance.every(d=>d>=0&&d<=2));
   for(let i=0;i<mesh.points.length;i+=3){const t=mesh.points.slice(i,i+3);for(const v of t)assert.ok(v.x>=BOUNDS.left-1e-6&&v.x<=BOUNDS.right+1e-6&&v.z>=BOUNDS.top-1e-6&&v.z<=BOUNDS.bottom+1e-6);}
  }
 });
 test('largest source boundary has bounded selection rebuild work',()=>{
  const count=p=>p.parts.flat().reduce((n,r)=>n+r.length,0),p=[...MAP].sort((a,b)=>count(b)-count(a))[0];
- const triangles=tessellate(p.parts),started=performance.now(),mesh=innerGlowMesh(triangles,segments(p.parts.flat()),2),elapsed=performance.now()-started;
+ const triangles=tessellate(p.parts),started=performance.now(),mesh=innerGlowMesh(triangles,buildBorderEdges([p],BOUNDS).map(e=>[e.a,e.b]),2),elapsed=performance.now()-started;
  console.log(`Largest selection ${p.code}: ${count(p)} boundary vertices, ${triangles.length} land triangles, ${mesh.points.length} glow vertices, ${elapsed.toFixed(1)} ms`);
  assert.ok(mesh.points.length<1500000,'Bounded overlay geometry');assert.ok(elapsed<5000,'Regression guard, not a mobile frame-time guarantee');
 });
@@ -38,4 +41,43 @@ test('concave notch stays empty instead of bridging an inward corner',()=>{
  const ring=[{x:0,z:0},{x:20,z:0},{x:20,z:5},{x:5,z:5},{x:5,z:20},{x:0,z:20}],parts=[[ring]],mesh=innerGlowMesh(tessellate(parts),segments([ring]),2);
  for(let i=0;i<mesh.points.length;i+=3){const triangle=mesh.points.slice(i,i+3);assert.equal(insideTriangle({x:8,z:8},triangle),false);}
  assert.ok(mesh.points.length>0);
+});
+
+test('selection outline and glow omit seams between preprocessed source parts',()=>{
+ const region={id:0,code:'merged',visible:true,parts:[[square(0,0,20,20)],[square(20,0,20,20)]]};
+ const edges=buildBorderEdges([region],BOUNDS),mesh=innerGlowMesh(tessellate(region.parts),edges.map(e=>[e.a,e.b]),2);
+ assert.equal(edges.some(e=>e.a.x===20&&e.b.x===20),false);
+ assert.ok(mesh.points.length>0);
+ for(let i=0;i<mesh.points.length;i+=3)assert.equal(insideTriangle({x:20,z:10},mesh.points.slice(i,i+3)),false,'No glow along the former internal boundary');
+});
+
+
+test('renderer selection retains island coast edges for outline and glow input',()=>{
+ const source=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(source,/this\.boundaryEdges=edges;/,'Renderer must retain coast edges, not just political borders');
+ const selected=MAP.find(p=>p.visible&&p.neighbors.length===0),allEdges=buildBorderEdges(MAP,BOUNDS);
+ const expected=allEdges.filter(e=>e.atoms.includes(selected.id));
+ assert.ok(expected.length>0);assert.ok(expected.every(e=>e.atoms.length===1));
+ // The renderer constructor uses parameter properties, requiring transform mode
+ // rather than the strip-only mode used by pure game modules in this suite.
+ execFileSync(process.execPath,['--experimental-transform-types','--input-type=module','-e',`
+  import assert from 'node:assert/strict';
+  import * as THREE from 'three';
+  import {WorldRenderer} from './src/render/WorldRenderer.ts';
+  import {MAP,BOUNDS} from './src/game/map.ts';
+  import {buildBorderEdges} from './src/render/territoryBorders.ts';
+  const selected=MAP.find(p=>p.visible&&p.neighbors.length===0),allEdges=buildBorderEdges(MAP,BOUNDS);
+  const expected=allEdges.filter(e=>e.atoms.includes(selected.id));
+  const renderer=Object.create(WorldRenderer.prototype);let outline,glowEdges;
+  globalThis.Worker=class {postMessage(message){glowEdges=message.edges;}terminate(){}};
+  const ranges=[];ranges[selected.id]={start:0,count:3};
+  Object.assign(renderer,{selected:selected.id,boundaryEdges:allEdges,selection:{},selectionGlowWorker:null,selectionGlow:{geometry:new THREE.BufferGeometry()},repeats:[],renderer:{domElement:{dataset:{}}},ranges,land:{geometry:{getAttribute:()=>({array:new Float32Array(9)})}},replaceWideGeometry:(_line,points)=>{outline=points;}});
+  renderer.drawSelection();
+  assert.equal(outline.length,expected.length*6,'Actual renderer includes the whole island coastline');
+  assert.ok(outline.every(Number.isFinite));
+  assert.equal(glowEdges.length,expected.length*4,'Glow worker receives island coast edges');
+  renderer.selectionGlow.geometry.dispose();
+ `],{cwd:new URL('..',import.meta.url),stdio:'pipe'});
+ const mesh=innerGlowMesh(tessellate(selected.parts),expected.map(e=>[e.a,e.b]),2);
+ assert.ok(mesh.points.length>0,'Island coastline produces glow');
 });

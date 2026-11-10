@@ -8,12 +8,12 @@ const expect=baseExpect.configure({timeout:45000});
 const site=process.env.SITE_URL?.replace(/\/?$/,'/');
 assert.ok(site?.startsWith('https://'),'HTTPS Pages URL required');
 const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
-const atlas=JSON.parse(fs.readFileSync('game/src/generated/world.json','utf8'));
-const regions=atlas.mapId==='earth-natural-earth-admin1-511-v1';
-assert.ok(regions,'Expected complete Natural Earth administrative map');
+const atlas=JSON.parse(fs.readFileSync('game/src/generated/gameplay-map.json','utf8'));
+const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v2';
+assert.ok(regions,'Expected preprocessed gameplay-region map');
 const region=code=>atlas.provinces.findIndex(p=>p.id===code);
 async function chooseRemoteRoute(page){
- // Some complete administrative atoms have a one-unit capacity. A 75% order
+ // Some gameplay regions have a one-unit capacity. A 75% order
  // correctly rounds down to zero there, so verify an explicit full dispatch.
  await page.getByRole('button',{name:'100%',exact:true}).click();
  const sourceCode=atlas.provinces[Number(await page.locator('canvas').getAttribute('data-selected-region'))].id;
@@ -57,7 +57,8 @@ try{
   await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','true');
   await expect(page.locator('canvas')).toHaveAttribute('data-neutral-borders','independent-territories');
   assert.ok(Number(await page.locator('canvas').getAttribute('data-country-border-segments'))>0);
-  checks.push('4596 complete administrative atoms, live ownership borders and independent neutral territories');
+  assert.ok(atlas.sourceAtomCount>atlas.provinces.length);
+  checks.push(atlas.provinces.length+' locked gameplay regions from '+atlas.sourceAtomCount+' source areas, live ownership borders and independent neutral territories');
  }
  await page.screenshot({path:'artifacts/pages-main-menu.png'});
  await page.getByTestId('single-player').click();
@@ -88,7 +89,7 @@ try{
  await page.locator('canvas').focus();await page.keyboard.press('Home');
  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
  await page.screenshot({path:'artifacts/pages-live-battle.png'});
- checks.push(regions?'non-adjacent dispatch from allocated start across multiple administrative regions using continuous terrain coordinates, per-region capacity':'dispatch');
+ checks.push(regions?'non-adjacent dispatch from allocated start across multiple gameplay regions using continuous terrain coordinates, per-region capacity':'dispatch');
  checks.push('unit upgrade');
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
@@ -96,7 +97,7 @@ try{
  await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
  if(regions){
   const routes=await page.evaluate(()=>{
-   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.v1.')&&!k.endsWith('.backup'));
+   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v2.')&&!k.endsWith('.backup'));
    const record=records.find(k=>localStorage.getItem(k).includes('Pages verification'));
    if(!record)throw new Error('Verification save missing');
    const s=JSON.parse(JSON.parse(localStorage.getItem(record)).body);

@@ -20,20 +20,13 @@ function fixture(capacity,count){
  for(let i=0;i<count;i++)s.units.push({id:s.nextId++,owner:1,kind:'infantry',...home.center,hp:stats(s.players[1],'infantry').hp,province:home.id,origin:home.id,target:null,destination:null,route:[],cooldown:0});
  return {engine:new Engine(s),home};
 }
-for(const capacity of [1,2,3])test(`AI dispatches from a full capacity-${capacity} atom`,()=>{
- const {engine,home}=fixture(capacity,capacity);
- engine.step(79);assert.ok(engine.state.units.every(u=>u.target===null));
- engine.step();
- const sent=engine.state.units.filter(u=>u.target!==null);
- assert.ok(sent.length>=1,'A full small garrison must not stay permanently idle');
- assert.ok(sent.every(u=>u.origin===home.id&&u.travel&&u.target!==home.id));
- if(capacity===1)assert.equal(sent.length,1);
- assert.ok(validateState(engine.state));
+test('preprocessed game regions have full budgets, never one-slot raw-atom garrisons',()=>{
+ for(const p of MAP)assert.equal(regionCapacity(p.id),p.playable?12:0);
 });
-for(const capacity of [4,12])test(`AI keeps four-troop threshold and 75% dispatch at capacity ${capacity}`,()=>{
- const waiting=fixture(capacity,3).engine;waiting.step(80);
+test('AI keeps four-troop threshold and 75% dispatch at base region capacity 12',()=>{
+ const waiting=fixture(12,3).engine;waiting.step(80);
  assert.ok(waiting.state.units.every(u=>u.target===null));
- const ready=fixture(capacity,4).engine;ready.step(80);
+ const ready=fixture(12,4).engine;ready.step(80);
  assert.equal(ready.state.units.filter(u=>u.target!==null).length,3);
  assert.ok(validateState(ready.state));
 });

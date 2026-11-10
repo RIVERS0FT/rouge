@@ -21,10 +21,12 @@ export function buildBorderEdges(regions:readonly BorderRegion[],bounds:Rect):Bo
   if(Math.abs(a.x-b.x)<1e-7&&(Math.abs(a.x-bounds.left)<1e-7||Math.abs(a.x-bounds.right)<1e-7))continue;
   const ka=pointKey(a),kb=pointKey(b);if(ka===kb)continue;
   const key=ka<kb?`${ka}|${kb}`:`${kb}|${ka}`,edge=edges.get(key);
-  if(edge){if(!edge.atoms.includes(region.id))edge.atoms.push(region.id);}
+  // Each source-part side appears twice inside a preprocessed region.
+  // Cancel that incidence instead of mistaking the surviving region id for coast.
+  if(edge){const at=edge.atoms.indexOf(region.id);if(at<0)edge.atoms.push(region.id);else edge.atoms.splice(at,1);}
   else edges.set(key,{a,b,atoms:[region.id]});
  }
- return [...edges.values()];
+ return [...edges.values()].filter(edge=>edge.atoms.length>0);
 }
 /** Political identity comes only from live ownership, never real-world country
  * metadata or palette color. A neutral management territory is its own country;

@@ -3,8 +3,8 @@ import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION='0.5.0';
 // Network protocol identity; independent of backwards-compatible local save schema.
-export const RULES_ID='admin1-open-factions-two-online-v4';
-export const MAP_ID='earth-natural-earth-admin1-511-v1' as const;
+export const RULES_ID='admin1-locked-game-regions-v5';
+export const MAP_ID='earth-natural-earth-admin1-511-regions-v2' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];

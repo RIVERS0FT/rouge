@@ -49,7 +49,7 @@ test('holes, islands and cropping preserve original segments, without artificial
 test('full atlas has unique, finite borders; neutral groups separate and acquired groups become internal',()=>{
  const edges=buildBorderEdges(MAP,BOUNDS),owners=MAP.map(()=>-1),groups=MAP.map(p=>INITIAL_TERRITORY_GROUPING.atomToGroup[p.code]);
  const shared=edges.filter(e=>e.atoms.length>1),country=shared.filter(e=>classifyBorder(e,owners,groups)==='country'),hidden=shared.filter(e=>classifyBorder(e,owners,groups)==='hidden');
- assert.ok(country.length>10000);assert.ok(hidden.length>10000);assert.equal(country.length+hidden.length,shared.length);
+ assert.ok(country.length>10000);assert.equal(hidden.length,0,'Initial gameplay regions have no exposed source-atom borders');assert.equal(country.length,shared.length);
  const keys=edges.map(e=>[e.a,e.b].map(p=>`${p.x.toFixed(6)},${p.z.toFixed(6)}`).sort().join('|'));assert.equal(new Set(keys).size,edges.length);
  for(const e of edges){assert.ok(e.atoms.length<=2);for(const p of[e.a,e.b])assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.z)&&p.x>=BOUNDS.left&&p.x<=BOUNDS.right&&p.z>=BOUNDS.top&&p.z<=BOUNDS.bottom);}
  const sample=country[0];for(const id of sample.atoms)owners[id]=17;
@@ -69,4 +69,18 @@ test('browser and live HTTPS acceptance assert ownership borders, not the retire
   assert.match(source,/data-neutral-borders','independent-territories'/);
   assert.doesNotMatch(source,/admin1-management-groups|data-country-borders','false'|no country borders/);
  }
+});
+
+test('preprocessed source-part seams disappear while neighboring region borders remain',()=>{
+ const left=region(0,[{x:0,z:0},{x:1,z:0},{x:1,z:1},{x:0,z:1}]);
+ left.parts.push([[{x:1,z:0},{x:2,z:0},{x:2,z:1},{x:1,z:1}]]);
+ const right=region(1,[{x:2,z:0},{x:3,z:0},{x:3,z:1},{x:2,z:1}]);
+ const edges=buildBorderEdges([left,right],rect);
+ assert.equal(edges.length,9);
+ assert.equal(edges.some(e=>e.a.x===1&&e.b.x===1),false,'No coast or selection edge on the preprocessing seam');
+ const border=edges.find(e=>e.a.x===2&&e.b.x===2);
+ assert.deepEqual(border.atoms,[0,1]);
+ assert.equal(classifyBorder(border,[0,1],['a','b']),'country');
+ assert.equal(classifyBorder(border,[0,0],['merged','merged']),'hidden');
+ assert.equal(buildBorderEdges([left],rect).length,6);
 });

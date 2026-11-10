@@ -10,7 +10,7 @@ export interface StorageLike{readonly length:number;key(index:number):string|nul
 export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leader:string;corrupted?:boolean}
 // Import byte guard is a resource-safety check, not a gameplay troop cap.
 export const MAX_SAVE_BYTES=128*1024*1024;
-export const SAVE_PREFIX='rouge.save.natural-earth-admin1.v1.';
+export const SAVE_PREFIX='rouge.save.natural-earth-admin1.regions.v2.';
 const PREFIX=SAVE_PREFIX;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;

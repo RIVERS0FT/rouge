@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine} from '../src/game/engine.ts';
-import {MAP,provinceByCode,pointInProvince} from '../src/game/map.ts';
+import {MAP,SOURCE_MAP,provinceByCode,pointInProvince} from '../src/game/map.ts';
 import {findRegionRoute} from '../src/game/navigation.ts';
 import {validateTravel} from '../src/game/terrain-navigation.ts';
 import {UNITS,stats} from '../src/game/content.ts';
@@ -16,13 +16,13 @@ function add(s,region,owner,n){for(let k=0;k<n;k++){const c=MAP[region].center;s
 function empty(){const e=fresh();e.state.units=[];for(const p of e.state.provinces){p.owner=-1;p.production=0;}e.state.provinces[id('USA-3521')].owner=1;return e;}
 function ready(e){e.state.grouping=reconcileGrouping(e.state);return e;}
 function invariant(s){const counts=new Map();for(const u of s.units){if(!u.travel){const key=`${u.owner}:${u.province}`;counts.set(key,(counts.get(key)??0)+1);assert.ok(counts.get(key)<=regionCapacity(u.province),key);}assert.ok(u.transport?.embarked||pointInProvince(u.province,u.x,u.z));}}
-test('complete administrative atlas retains real UK and Ireland detail, not historical 13-region fiction',()=>{
+test('source atlas retains UK and Ireland detail while gameplay uses locked merged regions',()=>{
  for(const code of ['GBR-3409','GBR-2745','GBR-2764','CHN-1807','CHN-1808'])assert.ok(MAP[id(code)].playable);
- assert.equal(MAP.length,4596);assert.ok(MAP.filter(p=>p.code.startsWith('GBR-')).length>100);assert.ok(MAP.filter(p=>p.code.startsWith('IRL-')).length>=20);
+ assert.equal(MAP.length,1163);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('GBR-')).length>100);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('IRL-')).length>=20);
 });
 test('remote terrain order saves actual waypoints, crosses boundaries without teleporting and restores deterministically',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);
- assert.ok(findRegionRoute(from,target).length>=4);const before=e.state.units.map(u=>({x:u.x,z:u.z}));
+ assert.ok(findRegionRoute(from,target).length>=3);const before=e.state.units.map(u=>({x:u.x,z:u.z}));
  assert.equal(e.command(0,{type:'march',from,to:target,fraction:1}).ok,true);assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
  for(const u of e.state.units){assert.equal(u.destination,target);assert.deepEqual(u.route,[]);assert.ok(validateTravel(u.travel,u,MAP[target].center));}
  const restored=decodeSave(encodeSave(e.state,'Moving')).state;assert.deepEqual(restored,e.state);const other=new Engine(restored);

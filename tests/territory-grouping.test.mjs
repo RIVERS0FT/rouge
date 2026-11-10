@@ -13,7 +13,7 @@ test('stable complete-atom partition round trips JSON; malformed, missing, dupli
 });
 test('merge conserves immutable atomic armies, progress, production rate and capacity, deterministically',()=>{
  const state=createTerritoryGrouping(topology),book=ledger(),before=structuredClone({state,book});
- const result=applyTerritoryGrouping(topology,state,book,0,merge(state,['group:B','group:A']));assert.equal(result.ok,true);assert.deepEqual(result.state.groups[0],{id:'group:A',atoms:['A','B']});assert.equal(result.state.revision,1);
+ const result=applyTerritoryGrouping(topology,state,book,0,merge(state,['group:B','group:A']));assert.equal(result.ok,true);assert.deepEqual(result.state.groups[0],{id:'group:A',atoms:['A','B'],locked:false});assert.equal(result.state.revision,1);
  assert.deepEqual(result.totals,territoryTotals(topology,book));assert.deepEqual({state,book},before);
  assert.deepEqual(result,applyTerritoryGrouping(topology,state,book,0,merge(state,['group:A','group:B'])));
  assert.deepEqual(territoryTotals(topology,book,['A','B']),{troops:3,production:1.5,productionRate:2,capacity:30});
@@ -54,4 +54,19 @@ test('4596 atom grouping stays deterministic and can merge/split without quadrat
  const book=Object.fromEntries(atoms.map(a=>[a.id,{owner:0,troops:2,production:.25,productionRate:.5,capacity:10}]));const state=createTerritoryGrouping(map),start=performance.now();
  const result=applyTerritoryGrouping(map,state,book,0,merge(state,state.groups.map(g=>g.id)));assert.equal(result.ok,true);assert.equal(result.state.groups.length,1);assert.equal(result.totals.troops,9192);assert.equal(validateTerritoryGrouping(map,result.state),true);
  console.log(`4596-atom merge ${Math.round(performance.now()-start)}ms`);assert.ok(performance.now()-start<5000);
+});
+test('one merge mechanism retains preprocessing locks through dynamic merges and splits',()=>{
+ const locked=createTerritoryGrouping(topology,[['A','B'],['C','D'],['ISLAND']],{locked:true}),book=ledger();
+ assert.equal(locked.groups.find(g=>g.id==='group:A').locked,true);
+ assert.equal(applyTerritoryGrouping(topology,locked,book,0,split(locked,'group:A',['A'])).error,'lockedGroup');
+ const united=applyTerritoryGrouping(topology,locked,book,0,merge(locked,['group:A','group:C']));assert.equal(united.ok,true);
+ assert.deepEqual(united.state.lockedParts,locked.lockedParts);assert.equal(united.state.groups[0].locked,false);
+ assert.equal(applyTerritoryGrouping(topology,united.state,book,0,split(united.state,'group:A',['A','C'])).error,'lockedGroup');
+ const restored=applyTerritoryGrouping(topology,united.state,book,0,split(united.state,'group:A',['A','B']));assert.equal(restored.ok,true);
+ assert.deepEqual(restored.state.groups,locked.groups);assert.deepEqual(restored.state.lockedParts,locked.lockedParts);
+ assert.equal(validateTerritoryGrouping(topology,JSON.parse(JSON.stringify(restored.state))),true);
+ const forged=structuredClone(restored.state);forged.groups[0].locked=false;assert.equal(validateTerritoryGrouping(topology,forged),false);
+ // Future rules may deliberately lower the floor using the SAME retained atoms.
+ const unlocked=createTerritoryGrouping(topology,locked.groups.map(g=>g.atoms));
+ assert.equal(applyTerritoryGrouping(topology,unlocked,book,0,split(unlocked,'group:A',['A'])).ok,true);
 });
