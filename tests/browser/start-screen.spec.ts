@@ -50,11 +50,11 @@ test.describe('touch identity and unit selection',()=>{
    const flag=page.getByTestId('edit-player-flag'),leader=page.getByTestId('edit-player-leader');
    await bounds(flag,width,height);const portrait=await bounds(leader,width,height);
    expect(portrait.x).toBeLessThan(24);expect(portrait.y+portrait.height).toBeGreaterThan(height-30);
-   const start=await bounds(page.getByTestId('single-player'),width,height);
-   expect(start.x>=portrait.x+portrait.width||start.y+start.height<=portrait.y).toBe(true);
-   await leader.tap();await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
+   await page.getByTestId('single-player').scrollIntoViewIfNeeded();const start=await bounds(page.getByTestId('single-player'),width,height);
+   expect(start.x).toBeGreaterThan(portrait.x+portrait.width);
+   await leader.tap();expect(await page.locator('.leader-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3);await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
    await page.screenshot({path:`artifacts/start-screen-${width}x${height}.png`});
-   await page.getByTestId('single-player').tap();const card=page.getByTestId('choose-unit-cavalry');await card.tap();
+   await page.getByTestId('single-player').tap();expect(await page.locator('.unit-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(4);const card=page.getByTestId('choose-unit-cavalry');await card.tap();
    await expect(card).toHaveAttribute('aria-pressed','true');const tip=await bounds(page.getByRole('tooltip'),width,height),trigger=await card.boundingBox();
    expect(tip.y+tip.height<=trigger!.y||tip.y>=trigger!.y+trigger!.height).toBe(true);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
    await page.screenshot({path:`artifacts/unit-tooltip-${width}x${height}.png`});

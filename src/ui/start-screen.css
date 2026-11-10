@@ -1,54 +1,50 @@
-/* The same left-hand identity anchors as the battle HUD, separate from match rules. */
-.app.is-menu{--leader-left:18px;--leader-bottom:18px;--leader-width:282px;--leader-height:276px;--menu-content-left:clamp(338px,30vw,460px);min-height:0}
-.menu-flag-entry{position:absolute;z-index:12;top:14px;left:18px;display:flex;align-items:center;gap:12px;min-height:66px;padding:10px 20px;background:#0d2026e6;border:1px solid #b4bd9d50;border-radius:5px;text-align:left;backdrop-filter:blur(12px)}
-.menu-flag-entry .faction-emblem-frame{width:72px;height:44px}
-.menu-identity-label{font-size:14px;color:#e2d3b0}.menu-identity-label small{display:block;font-size:10px;color:#98aaa2;margin-top:5px}
+/* One composition at every viewport: flag upper-left, portrait lower-left,
+   menu to their right. Fluid sizing and scrolling never reorder the elements. */
+.app.is-menu{--leader-left:clamp(8px,1.25vw,18px);--leader-bottom:18px;--leader-width:clamp(94px,19.6vw,282px);--leader-height:calc(var(--leader-width)*.98);--menu-content-left:clamp(148px,30vw,460px);--menu-content-top:clamp(76px,18dvh,180px);min-height:0}
+.is-menu .main-menu{overflow:visible;padding:0;pointer-events:none}
+.menu-flag-entry{position:absolute;z-index:12;top:14px;left:var(--leader-left);display:flex;align-items:center;gap:clamp(7px,1vw,12px);min-height:66px;padding:10px clamp(8px,1.4vw,20px);background:#0d2026e6;border:1px solid #b4bd9d50;border-radius:5px;text-align:left;backdrop-filter:blur(12px)}
+.menu-flag-entry .faction-emblem-frame{width:clamp(40px,5vw,72px);height:clamp(30px,3.1vw,44px)}
+.menu-identity-label{font-size:clamp(12px,1vw,14px);color:#e2d3b0}.menu-identity-label small{display:block;font-size:10px;color:#98aaa2;margin-top:5px}
 .menu-leader-entry{text-align:left;padding:0;border-radius:4px}
-.menu-leader-entry .commander-portrait-copy{max-width:calc(100% - 40px);bottom:20px}
-.menu-leader-name{display:block;font-family:var(--serif);font-size:23px;color:#ecdfbf;margin:6px 0}
-.menu-identity-edit{display:block;font-size:12px;color:var(--gold)}
-.is-menu .menu-top{left:var(--menu-content-left);top:26px}
-.is-menu .menu-content{left:var(--menu-content-left);top:18%;width:350px;max-height:calc(100dvh - 150px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
-.is-menu .menu-footer{left:var(--menu-content-left);bottom:25px}
-.is-menu .map-caption{width:230px;right:4%;bottom:15%;max-width:20%}
-.is-menu .atlas-credit{max-width:calc(100% - 330px);text-align:right}
+.menu-leader-entry .commander-portrait-copy{left:clamp(7px,1.4vw,20px);bottom:clamp(8px,1.4vw,20px);max-width:calc(100% - 14px)}
+.menu-leader-entry .eyebrow{display:block;font-size:clamp(8px,.7vw,10px)}
+.menu-leader-name{display:block;font-family:var(--serif);font-size:clamp(13px,1.6vw,23px);color:#ecdfbf;margin:6px 0}
+.menu-identity-edit{display:block;font-size:clamp(10px,.84vw,12px);color:var(--gold)}
+.is-menu .language-switch{top:14px;right:clamp(8px,2vw,28px);gap:2px;font-size:12px}
+.is-menu .language-switch button{min-width:44px;min-height:44px}
+.is-menu .menu-top{display:flex;left:var(--menu-content-left);top:26px;width:min(320px,calc(100% - var(--menu-content-left) - 120px));gap:8px}
+.is-menu .brand-mark{flex-shrink:0;width:clamp(24px,2.7vw,39px);font-size:clamp(20px,1.8vw,25px)}
+.is-menu .menu-top .eyebrow{font-size:clamp(8px,.7vw,10px);letter-spacing:.12em;overflow-wrap:anywhere}
+.is-menu .menu-content{position:absolute;left:var(--menu-content-left);top:var(--menu-content-top);width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;max-height:calc(100dvh - var(--menu-content-top) - 100px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
+.is-menu .menu-content h1{font-size:clamp(32px,5.4vw,78px);margin:clamp(10px,1.6vw,24px) 0;letter-spacing:.07em}
+.is-menu .menu-content h1 span{font-size:clamp(14px,1.7vw,24px);margin-top:clamp(7px,1.1vw,16px)}
+.is-menu .menu-description{display:block;font-size:13px;line-height:1.8;max-width:none;margin-bottom:14px}
+.is-menu .menu-content>.eyebrow{display:block;font-size:clamp(8px,.7vw,10px)}
+.is-menu .menu-actions{margin:clamp(12px,2.2vw,31px) 0 14px;gap:5px}
+.is-menu .menu-actions button{min-height:48px;font-size:clamp(12px,1.1vw,16px);padding:clamp(10px,1.3vw,18px) clamp(10px,1.5vw,22px);gap:clamp(8px,1.5vw,22px)}
+.is-menu .menu-content>.small{display:block;font-size:11px;margin-bottom:0}.is-menu .platform-note{display:block;font-size:10px}
+.is-menu .menu-footer{position:absolute;left:var(--menu-content-left);bottom:30px;width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;font-size:12px}
+.is-menu .menu-footer p{font-size:10px;line-height:1.5;margin:7px 0 0}.is-menu .gold-line{margin-bottom:8px}
+/* The extra decorative caption is omitted from this composition at every size. */
+.is-menu .map-caption{display:none}
+.is-menu .atlas-credit{display:block;left:var(--menu-content-left);right:16px;bottom:12px;max-width:none;font-size:8px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .identity-saved{margin:22px 0 0}
+/* Identity choices keep the same three-column layout, including on phones. */
+.identity-modal .leader-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(6px,1.1vw,16px)}
+.identity-modal .leader-card{display:block;min-width:0}.identity-modal .leader-art:has(.leader-bust){width:100%;height:clamp(100px,15vw,180px);min-height:0}
+.identity-modal .leader-copy{padding:clamp(7px,1.2vw,17px);min-width:0}.identity-modal .leader-copy>b{font-size:clamp(13px,1.3vw,19px);overflow-wrap:anywhere}.identity-modal .leader-copy p{font-size:11px;line-height:1.6;min-height:0}.identity-modal .selected-dot{display:none}
+.setup-modal .setup-footer{flex-direction:row;align-items:flex-end;gap:12px;overflow-x:auto;overscroll-behavior:contain}
+.setup-modal .setup-footer label{width:auto;max-width:300px;min-width:90px;font-size:12px}.setup-modal .setup-footer .primary{width:auto;min-height:44px;flex-shrink:0}
+.setup-modal .lan-actions,.setup-modal .join-row{flex-direction:row;flex-wrap:nowrap}.setup-modal .lan-actions{flex-shrink:0}
 /* Cards deliberately contain only the name floating over the unit insignia. */
 .setup-modal .unit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .unit-choice{min-width:0}
-.unit-choice .unit-card{position:relative;display:grid;place-items:center;width:100%;height:132px;padding:26px 10px 5px;overflow:hidden;border-radius:4px;background:radial-gradient(ellipse at 50% 100%,#52645445,transparent 75%),#102329;border:1px solid #ffffff28}
+.unit-choice .unit-card{position:relative;display:grid;place-items:center;width:100%;height:clamp(112px,11vw,132px);padding:26px 10px 5px;overflow:hidden;border-radius:4px;background:radial-gradient(ellipse at 50% 100%,#52645445,transparent 75%),#102329;border:1px solid #ffffff28}
 .unit-choice .unit-card.chosen{border:2px solid var(--gold);background:radial-gradient(ellipse at 50% 100%,#aa955d38,transparent 80%),#20332e;box-shadow:inset 0 0 0 2px #d0b67d18}
 .unit-choice .unit-card:focus-visible{outline-offset:3px}
-.unit-choice .unit-name{position:absolute;z-index:1;left:10px;top:10px;padding:3px 5px;max-width:calc(100% - 20px);text-align:left;font-size:13px;font-weight:600;color:#f0e4c7;background:#102329b8;border-radius:2px;line-height:1.4;overflow-wrap:anywhere}
+.unit-choice .unit-name{position:absolute;z-index:1;left:6px;top:6px;padding:3px 4px;max-width:calc(100% - 12px);text-align:left;font-size:clamp(11px,1.1vw,13px);font-weight:600;color:#f0e4c7;background:#102329b8;border-radius:2px;line-height:1.4;overflow-wrap:anywhere}
 .unit-icon{width:100%;height:95px;color:#ceb984;filter:drop-shadow(0 3px 5px #0005)}
 .unit-icon-shield{stroke-opacity:.28;stroke-width:1;fill:#d0b67d08}
 .unit-tooltip{position:fixed;z-index:70;max-width:calc(100vw - 24px);padding:16px;background:#10252afa;border:1px solid #d0b67d99;border-radius:5px;box-shadow:0 10px 36px #0009;color:#e4e7dc;overflow:auto;overscroll-behavior:contain}
 .unit-tooltip>strong{font-family:var(--serif);font-size:18px;color:#e9d4a4;font-weight:500}.unit-tooltip>p{font-size:12px;line-height:1.6;color:#a9b7aa;margin:7px 0}
 .unit-tooltip .unit-attributes{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;margin:12px 0}.unit-tooltip .unit-attribute>span{font-size:11px}.unit-tooltip .unit-attribute>strong{font-size:12px}.unit-tooltip>small{display:block;color:#a9b7aa;font-size:11px;line-height:1.6}
-@media(max-width:1150px){.app.is-menu{--leader-width:255px;--menu-content-left:310px}.is-menu .map-caption{display:none}}
-@media(max-height:820px){.app.is-menu{--leader-height:224px}.is-menu .menu-content{top:105px}.is-menu .menu-content h1{font-size:58px;margin:15px 0}.is-menu .menu-content h1 span{margin-top:10px}.is-menu .menu-actions{margin:20px 0 14px}}
-@media(max-width:800px),(max-width:1000px) and (max-height:500px){
- .app.is-menu{--leader-left:max(10px,env(safe-area-inset-left));--leader-bottom:max(12px,env(safe-area-inset-bottom));--leader-width:146px;--leader-height:166px}
- .is-menu .main-menu{overflow:visible;padding:0;pointer-events:none}
- .menu-flag-entry{left:var(--leader-left);top:max(8px,env(safe-area-inset-top));min-height:60px;padding:8px;gap:9px}
- .menu-flag-entry .faction-emblem-frame{width:58px;height:38px}.menu-identity-label{font-size:13px}.menu-identity-label small{font-size:10px}
- .is-menu .menu-top,.is-menu .menu-footer,.is-menu .atlas-credit{display:none}
- .is-menu .menu-content{position:absolute;top:86px;left:22px;width:calc(100% - 44px);margin:0;max-height:calc(100dvh - 270px);padding:4px}
- .is-menu .menu-content h1{font-size:50px;margin:12px 0}.is-menu .menu-content h1 span{font-size:18px;margin-top:8px}
- .is-menu .menu-description{font-size:13px;line-height:1.7;margin-bottom:12px}
- .is-menu .menu-actions{margin:12px 0;gap:4px}.is-menu .menu-actions button{min-height:48px;font-size:14px;padding:10px 14px}
- .is-menu .platform-note{display:none}.is-menu .menu-content>.eyebrow{font-size:9px}.is-menu .menu-content>.small{font-size:11px;margin-bottom:0}
- .menu-leader-entry .commander-portrait-copy{left:12px;bottom:12px;max-width:calc(100% - 24px)}.menu-leader-entry .eyebrow{display:block;font-size:9px}.menu-leader-name{font-size:18px;margin:4px 0}.menu-identity-edit{font-size:11px}
- .setup-modal .unit-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;clear:both}
- .unit-choice .unit-card{height:120px}.unit-choice .unit-name{font-size:14px}
-}
-@media(max-width:800px) and (max-height:700px) and (orientation:portrait){
- .app.is-menu{--leader-width:125px;--leader-height:134px}.is-menu .menu-content{top:78px;max-height:calc(100dvh - 230px)}.is-menu .menu-content h1{font-size:40px;margin:9px 0}.is-menu .menu-content h1 span{font-size:16px;margin-top:5px}.is-menu .menu-description{display:none}
-}
-@media(orientation:landscape) and (max-width:1000px) and (max-height:500px){
- .app.is-menu{--leader-width:160px;--leader-height:166px}
- .is-menu .menu-content{left:205px;top:62px;width:min(420px,calc(100% - 225px));max-height:calc(100dvh - 74px)}
- .is-menu .menu-content h1{font-size:40px;margin:8px 0}.is-menu .menu-content h1 span{font-size:17px;margin-top:5px}.is-menu .menu-description,.is-menu .menu-content>.eyebrow,.is-menu .menu-content>.small{display:none}
- .is-menu .menu-actions{margin:10px 0 0;gap:2px}.is-menu .menu-actions button{min-height:46px;padding:8px 14px}
- .setup-modal .unit-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.unit-choice .unit-card{height:112px}
-}
