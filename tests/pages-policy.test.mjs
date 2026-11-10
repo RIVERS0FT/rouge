@@ -32,18 +32,30 @@ test('manual Pages resolves only current main PR without CI and rejects alternat
  f.context.ref='refs/heads/feature';await assert.rejects(selectSource(f),/must run from main/);
  f.context.ref='refs/heads/main';f.state.pulls=[];assert.equal(await selectSource(f),null);
 });
-test('workflow serializes deploy then same-SHA tests then live verification without a trigger loop',()=>{
+test('deployment mutex excludes acceptance, which verifies the same deployed SHA without a trigger loop',()=>{
  const pages=fs.readFileSync(new URL('../.github/workflows/pages.yml',import.meta.url),'utf8');
+ const acceptance=fs.readFileSync(new URL('../.github/workflows/acceptance.yml',import.meta.url),'utf8');
  const ci=fs.readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
+ const priority=fs.readFileSync(new URL('../.github/workflows/deployment-priority.yml',import.meta.url),'utf8');
  assert.match(pages,/on:\n  push:\n    branches: \[main\]\n  workflow_dispatch:/);
- assert.doesNotMatch(pages,/workflow_run:|game_ref|pull_request_target|actions: read|run: npm test/);
- assert.match(pages,/group: github-pages\n  cancel-in-progress: false/);
+ assert.doesNotMatch(pages,/workflow_run:|game_ref|pull_request_target|run: npm test|\n  checks:|\n  verify:/);
+ assert.doesNotMatch(pages,/^concurrency:/m);
+ assert.match(pages,/deploy:[\s\S]*?concurrency:\n      group: github-pages\n      cancel-in-progress: false/);
+ assert.match(pages,/queue: max/);
  assert.match(pages,/ref: \$\{\{ needs.source.outputs.sha \}\}/);
  assert.match(pages,/if: steps.current.outputs.current == 'true'/);
- assert.match(pages,/deployed: \$\{\{ steps.current.outputs.current == 'true' && steps.deployment.outcome == 'success' \}\}/);
- assert.match(pages,/checks:\n    needs: \[build, deploy\]\n    if: needs.deploy.outputs.deployed == 'true'\n    uses: .\/\.github\/workflows\/ci.yml\n    with:\n      source_sha: \$\{\{ needs.build.outputs.source_sha \}\}/);
- assert.match(pages,/verify:\n    needs: \[build, deploy, checks\]/);
- assert.match(pages,/if: always\(\) && needs.deploy.outputs.deployed == 'true'/);
+ assert.match(pages,/cancelSupersededAcceptance/);
+ assert.match(priority,/retireSupersededAcceptance/);
+ assert.doesNotMatch(priority,/deploy-pages@|pages: write|id-token: write|github-pages/);
+ assert.match(priority,/group: rouge-deployment-priority/);
+ assert.match(pages,/name: deployed-source-\$\{\{ github.run_attempt \}\}/);
+ assert.match(acceptance,/workflow_run:\n    workflows: \[Publish ROUGE to GitHub Pages\]\n    types: \[completed\]/);
+ assert.match(acceptance,/publishedRun/);assert.match(acceptance,/selectAcceptance/);
+ assert.match(acceptance,/source_sha: \$\{\{ needs.source.outputs.sha \}\}/);
+ assert.match(acceptance,/SOURCE_COMMIT: \$\{\{ needs.source.outputs.sha \}\}/);
+ assert.match(acceptance,/needs.checks.result != 'cancelled'/);
+ assert.match(acceptance,/Skip superseded live verification/);
+ assert.doesNotMatch(acceptance,/pages: write|id-token: write|deploy-pages@|\n  (?:push|workflow_dispatch|pull_request):/);
  assert.match(ci,/on:\n  workflow_call:\n    inputs:\n      source_sha:/);
  assert.doesNotMatch(ci,/\n  (?:push|pull_request|workflow_run|workflow_dispatch):/);
  assert.match(ci,/timeout-minutes: 20/);

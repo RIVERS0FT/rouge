@@ -5,9 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: github-pages
-  cancel-in-progress: false
 jobs:
   source:
     runs-on: ubuntu-24.04
@@ -15,6 +12,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: write
     outputs:
       sha: ${{ steps.source.outputs.sha }}
     steps:
@@ -32,6 +30,21 @@ jobs:
             const sha = await selectSource({github, context});
             core.setOutput('sha', sha || '');
             if (!sha) core.notice('Skipping non-PR, untrusted or superseded source.');
+      - name: Cancel superseded acceptance only
+        if: steps.source.outputs.sha != ''
+        uses: actions/github-script@v7
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        with:
+          script: |
+            const {cancelSupersededAcceptance} = require('./.github/scripts/pages-acceptance.cjs');
+            try {
+              const ids = await cancelSupersededAcceptance({github, context, sha: process.env.SOURCE_SHA});
+              core.notice(`Requested cancellation of older acceptance runs: ${ids.join(', ') || 'none'}`);
+            } catch (error) {
+              // Cancellation is best effort and must never become a deployment gate.
+              core.warning(`Could not cancel older acceptance: ${error.message}`);
+            }
   build:
     needs: source
     if: needs.source.outputs.sha != ''
@@ -92,6 +105,11 @@ jobs:
           path: dist
   deploy:
     needs: build
+    # Serialize publication, not post-deployment acceptance or unrelated builds.
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -125,51 +143,27 @@ jobs:
         if: steps.current.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
-  checks:
-    needs: [build, deploy]
-    if: needs.deploy.outputs.deployed == 'true'
-    uses: ./.github/workflows/ci.yml
-    with:
-      source_sha: ${{ needs.build.outputs.source_sha }}
-  verify:
-    needs: [build, deploy, checks]
-    # Test failures must not skip live evidence or roll back the published game.
-    if: always() && needs.deploy.outputs.deployed == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    steps:
-      - name: Checkout trusted verification script
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.workflow_sha }}
-          path: release-ops
-          persist-credentials: false
-      - name: Checkout exact published game source
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.build.outputs.source_sha }}
-          path: game
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-          cache: npm
-          cache-dependency-path: game/package-lock.json
-      - run: npm ci --no-audit --no-fund
-        working-directory: game
-      - run: npm run prepare:map
-        working-directory: game
-      - run: npx playwright install --with-deps chromium
-        working-directory: game
-      - name: Verify live HTTPS game, regions, remote orders and browser saves
+      - name: Record deployed source
+        if: steps.deployment.outcome == 'success'
         env:
-          SITE_URL: ${{ needs.deploy.outputs.page_url }}
-          SOURCE_COMMIT: ${{ needs.build.outputs.source_sha }}
-        run: node release-ops/.github/scripts/verify-pages.mjs
-      - name: Archive live-site verification evidence
-        if: always()
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          mkdir -p deployed-source
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          fs.writeFileSync('deployed-source/deployment.json', JSON.stringify({
+            version: 1, sourceCommit: process.env.SOURCE_SHA,
+            pageUrl: process.env.PAGE_URL.replace(/\/?$/, '/'),
+            runId: Number(process.env.GITHUB_RUN_ID),
+            runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT)
+          }, null, 2));
+          NODE
+      - name: Publish deployment manifest
+        if: steps.deployment.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: pages-live-verification
-          path: artifacts/
+          name: deployed-source-${{ github.run_attempt }}
+          path: deployed-source/deployment.json
+          if-no-files-found: error
           retention-days: 30
