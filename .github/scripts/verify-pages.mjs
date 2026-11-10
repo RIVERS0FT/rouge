@@ -13,6 +13,9 @@ const regions=atlas.mapId==='earth-natural-earth-admin1-511-v1';
 assert.ok(regions,'Expected complete Natural Earth administrative map');
 const region=code=>atlas.provinces.findIndex(p=>p.id===code);
 async function chooseRemoteRoute(page){
+ // Some complete administrative atoms have a one-unit capacity. A 75% order
+ // correctly rounds down to zero there, so verify an explicit full dispatch.
+ await page.getByRole('button',{name:'100%',exact:true}).click();
  const sourceCode=atlas.provinces[Number(await page.locator('canvas').getAttribute('data-selected-region'))].id;
  const source=region(sourceCode),distance=new Map([[source,0]]),queue=[source];
  for(let i=0;i<queue.length;i++)for(const next of atlas.provinces[queue[i]].neighbors)if(!distance.has(next)){distance.set(next,distance.get(queue[i])+1);queue.push(next);}

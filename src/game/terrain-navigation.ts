@@ -22,12 +22,54 @@ for(let i=1;i<offsets.length;i++)offsets[i]+=offsets[i-1];
 const bucketIds=new Uint32Array(offsets.at(-1)!),cursor=offsets.slice();
 for(let i=0;i<triangleCount;i++){const [a,b,c,d]=ranges.subarray(i*4,i*4+4);for(let z=c;z<=d;z++)for(let x=a;x<=b;x++)bucketIds[cursor[z*cols+x]++]=i;}
 const bucket=(x:number,z:number)=>{const a=x-minX,b=z-minZ;if(a<0||b<0||a>=cols||b>=rows)return bucketIds.subarray(0,0);const id=b*cols+a;return bucketIds.subarray(offsets[id],offsets[id+1]);};
+// Neighbor slots are packed, not paired with triangle edge slots.
+const landBoundary=new Uint8Array(triangleCount);
+for(let id=0;id<triangleCount;id++)if(surfaces[id]===1)for(let k=0;k<3;k++){
+ const a=triangleData[id*3+k],b=triangleData[id*3+(k+1)%3];let shared=false;
+ for(let j=0;j<3&&!shared;j++){
+  const n=neighborData[id*3+j];if(n<0||surfaces[n]!==1)continue;
+  let hasA=false,hasB=false;for(let v=0;v<3;v++){hasA ||= triangleData[n*3+v]===a;hasB ||= triangleData[n*3+v]===b;}
+  shared=hasA&&hasB;
+ }
+ if(!shared)landBoundary[id]|=1<<k;
+}
 const cross=(a:number[],b:number[],p:Vec2)=>(b[0]-a[0])*(p.z-a[1])-(b[1]-a[1])*(p.x-a[0]);
+function inTriangle(id:number,p:Vec2):boolean {
+ let positive=false,negative=false;
+ for(let k=0;k<3;k++){
+  const a=triangleData[id*3+k]*2,b=triangleData[id*3+(k+1)%3]*2;
+  const d=(vertexData[b]-vertexData[a])*(p.z-vertexData[a+1])-(vertexData[b+1]-vertexData[a+1])*(p.x-vertexData[a]);
+  positive ||= d>1e-8;negative ||= d< -1e-8;if(positive&&negative)return false;
+ }
+ return true;
+}
 export function terrainAt(p:Vec2,landOnly=false):number {
  if(!Number.isFinite(p.x)||!Number.isFinite(p.z))return -1;
  let found=-1;
- for(const id of bucket(Math.floor(p.x/size),Math.floor(p.z/size))){if(landOnly&&surfaces[id]!==1)continue;const t=triangle(id),s=t.map((a,i)=>cross(a,t[(i+1)%3],p));if(s.every(v=>v>=-1e-8)||s.every(v=>v<=1e-8)){if(surfaces[id]===1)return id;found=id;}}
+ for(const id of bucket(Math.floor(p.x/size),Math.floor(p.z/size))){if(landOnly&&surfaces[id]!==1)continue;if(inTriangle(id,p)){if(surfaces[id]===1)return id;found=id;}}
  return found;
+}
+const wallSize=4,walls:number[][]=[],wallBuckets=new Map<string,number[]>();
+for(let id=0;id<triangleCount;id++)if(landBoundary[id])for(let k=0;k<3;k++)if(landBoundary[id]&(1<<k)){
+ const a=vertex(triangleData[id*3+k]),b=vertex(triangleData[id*3+(k+1)%3]),index=walls.length;walls.push([...a,...b]);
+ for(let x=Math.floor(Math.min(a[0],b[0])/wallSize);x<=Math.floor(Math.max(a[0],b[0])/wallSize);x++)for(let z=Math.floor(Math.min(a[1],b[1])/wallSize);z<=Math.floor(Math.max(a[1],b[1])/wallSize);z++){
+  const key=`${x}:${z}`,list=wallBuckets.get(key)??[];list.push(index);wallBuckets.set(key,list);
+ }
+}
+function nearbyWalls(left:number,top:number,right:number,bottom:number):Set<number> {
+ const found=new Set<number>();for(let x=Math.floor(left/wallSize);x<=Math.floor(right/wallSize);x++)for(let z=Math.floor(top/wallSize);z<=Math.floor(bottom/wallSize);z++)for(const id of wallBuckets.get(`${x}:${z}`)??[])found.add(id);return found;
+}
+/** Exact short land segment check using only physical boundary edges. Endpoints
+ * on land plus no interior boundary crossing cannot jump an island or lake. */
+export function terrainLocalSegment(a:Vec2,b:Vec2):boolean {
+ const id=terrainAt(a,true);if(id<0)return false;if(inTriangle(id,b))return true;if(terrainAt(b,true)<0)return false;
+ const dx=b.x-a.x,dz=b.z-a.z;
+ for(const id of nearbyWalls(Math.min(a.x,b.x),Math.min(a.z,b.z),Math.max(a.x,b.x),Math.max(a.z,b.z))){
+  const [x,z,ex,ez]=walls[id],wx=ex-x,wz=ez-z,det=dx*wz-dz*wx;if(Math.abs(det)<1e-14)continue;
+  const qx=x-a.x,qz=z-a.z,t=(qx*wz-qz*wx)/det,u=(qx*dz-qz*dx)/det;
+  if(t>1e-9&&t<1-1e-9&&u>=-1e-9&&u<=1+1e-9)return false;
+ }
+ return true;
 }
 /** Clip a segment to each candidate triangle and check interval union. Exact
  * convex clipping avoids sampling through thin islands/lakes. No admin borders. */
@@ -36,9 +78,31 @@ export function terrainSegment(a:Vec2,b:Vec2,sea:boolean):boolean {
  for(let x=Math.floor(Math.min(a.x,b.x)/size);x<=Math.floor(Math.max(a.x,b.x)/size);x++)for(let z=Math.floor(Math.min(a.z,b.z)/size);z<=Math.floor(Math.max(a.z,b.z)/size);z++)for(const id of bucket(x,z)){
   if(seen.has(id)||surfaces[id]!== (sea?2:1))continue;seen.add(id);const t=triangle(id),orientation=cross(t[0],t[1],{x:t[2][0],z:t[2][1]})>=0?1:-1;let lo=0,hi=1;
   for(let k=0;k<3;k++){const c=orientation*cross(t[k],t[(k+1)%3],a),d=orientation*cross(t[k],t[(k+1)%3],b)-c;if(Math.abs(d)<1e-14){if(c<-1e-8){hi=-1;break;}}else {const at=(-1e-8-c)/d;if(d>0)lo=Math.max(lo,at);else hi=Math.min(hi,at);}}
+  if(lo<=0&&hi>=1)return true; // Common short local moves stay in one triangle.
   if(lo<=hi&&hi>=0&&lo<=1)spans.push([Math.max(0,lo),Math.min(1,hi)]);
  }
  spans.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);let end=0;for(const [lo,hi]of spans){if(lo>end+1e-8)return false;end=Math.max(end,hi);if(end>=1-1e-8)return true;}return false;
+}
+/** Distance to physical coast/lake/crop edges, capped at the requested radius.
+ * Internal triangle and administrative borders do not form walls. */
+export function terrainClearance(p:Vec2,radius:number,knownLand=false):number {
+ if(!knownLand&&terrainAt(p,true)<0)return 0;
+ let best=radius*radius;
+ for(const id of nearbyWalls(p.x-radius,p.z-radius,p.x+radius,p.z+radius)){
+  const [x,z,ex,ez]=walls[id],dx=ex-x,dz=ez-z,l=dx*dx+dz*dz;
+  const t=l?Math.max(0,Math.min(1,((p.x-x)*dx+(p.z-z)*dz)/l)):0;
+  best=Math.min(best,(p.x-x-t*dx)**2+(p.z-z-t*dz)**2);
+ }
+ return Math.sqrt(best);
+}
+export const TRAVEL_LOCAL_OFFSET=2.5;
+export function travelCorridorPoint(plan:TravelPlan,p:Vec2,lookahead=0):Vec2 {
+ const a=plan.points[plan.index-1],b=plan.points[plan.index],dx=b.x-a.x,dz=b.z-a.z,l=dx*dx+dz*dz;
+ const t=l?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/l+lookahead/Math.sqrt(l))):0;
+ return{x:a.x+t*dx,z:a.z+t*dz};
+}
+export function distanceToTravelSegment(plan:TravelPlan,p:Vec2):number {
+ const q=travelCorridorPoint(plan,p);return Math.hypot(p.x-q.x,p.z-q.z);
 }
 class Heap {
  a:[number,number][]=[];
@@ -82,5 +146,8 @@ export function validateTravel(plan:TravelPlan,position:Vec2,destination:Vec2):b
  if(length(plan.points.at(-1)!,destination)>1e-6)return false;
  for(let i=1;i<plan.points.length;i++)if(!terrainSegment(plan.points[i-1],plan.points[i],plan.points[i].sea))return false;
  const a=plan.points[plan.index-1],b=plan.points[plan.index],dx=b.x-a.x,dz=b.z-a.z,l=dx*dx+dz*dz,t=l?((position.x-a.x)*dx+(position.z-a.z)*dz)/l:0;
+ // Original routes remain immutable and fully checked. Land units may be pushed
+ // locally, but cannot bypass terrain or drift indefinitely off their corridor.
+ if(!b.sea)return distanceToTravelSegment(plan,position)<=TRAVEL_LOCAL_OFFSET+1e-8&&terrainLocalSegment(position,travelCorridorPoint(plan,position));
  return t>=-1e-8&&t<=1+1e-8&&Math.hypot(position.x-a.x-t*dx,position.z-a.z-t*dz)<1e-4;
 }

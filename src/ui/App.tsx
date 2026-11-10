@@ -39,6 +39,7 @@ export function App(){
  const[language,setLanguage]=useState<Language>(storedLanguage),[screen,setScreen]=useState<'menu'|'game'|'lobby'>('menu');
  const[modal,setModal]=useState<'setupSolo'|'setupLan'|'saves'|'upgrades'|'talents'|'settings'|'territories'|null>(null);
  const[spectating,setSpectating]=useState(false);
+ const[localStarting,setLocalStarting]=useState(false);
  const[pendingTalent,setPendingTalent]=useState<string|null>(null);
  const[settingsPage,setSettingsPage]=useState<'general'|'saves'>('general');
  const[game,setGame]=useState<GameState|null>(null),[actor,setActor]=useState(0),[selected,setSelected]=useState(0),[target,setTarget]=useState(8),[fraction,setFraction]=useState(0.75);
@@ -74,7 +75,7 @@ export function App(){
   document.addEventListener('pointerdown',pointer,true);document.addEventListener('keydown',keyboard,true);
   return()=>{document.removeEventListener('pointerdown',pointer,true);document.removeEventListener('keydown',keyboard,true);};
  },[]);
- useEffect(()=>{world.current?.setInputContext(screen==='game'&&!modal&&!showDefeat&&game?.winner===null?'game':'blocked');},[screen,modal,showDefeat,game?.winner]);
+ useEffect(()=>{world.current?.setInputContext(screen==='game'&&!localStarting&&!modal&&!showDefeat&&game?.winner===null?'game':'blocked');},[screen,localStarting,modal,showDefeat,game?.winner]);
  useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':'en';try{localStorage.setItem('rouge.language',language);}catch{/* Language still works without storage. */}},[language]);
  useEffect(()=>()=>session.current?.dispose(),[]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(''),4500);return()=>clearTimeout(id);},[toast]);
@@ -96,7 +97,13 @@ export function App(){
  }
  useEffect(()=>{if(game&&session.current?.mode==='solo'&&game.tick-autoTick.current>=1200){autoTick.current=game.tick;saveCurrent(`auto-${game.campaign}`,text('autosave'),true);}},[game?.tick]);
  useEffect(()=>{if(screen==='game'||screen==='menu')world.current?.view('strategic');},[screen,actor]);
- function launchLocal(value:GameState){setSpectating(false);setPendingTalent(null);session.current?.dispose();setActor(0);setGame(value);setSelected(initialRegion(value,0));setScreen('game');setModal(null);setPaused(false);setSpeed(1);autoTick.current=value.tick;session.current=localSession(value,setGame,notifyResult);}
+ function cancelLocalStart(){session.current?.dispose();session.current=null;setLocalStarting(false);setGame(null);setScreen('menu');setModal(null);}
+ function launchLocal(value:GameState){
+  setSpectating(false);setPendingTalent(null);session.current?.dispose();setActor(0);setGame(value);setSelected(initialRegion(value,0));setScreen('game');setModal(null);setPaused(false);setSpeed(1);setLocalStarting(true);autoTick.current=value.tick;
+  let initialized=false;
+  try{session.current=localSession(value,next=>{initialized=true;setGame(next);setLocalStarting(false);},result=>{if(!result.ok&&!initialized)cancelLocalStart();notifyResult(result);});}
+  catch(error){cancelLocalStart();report(error);}
+ }
  useEffect(()=>{saveSetupPreferences({leader,flag});},[leader,flag]);
  function setup():PlayerSetup{return{name:name.trim(),leader,flag,loadout};}
  function startSolo(){
@@ -111,8 +118,8 @@ export function App(){
  async function roomAction(join:boolean){setBusy(true);try{connect(await(join?joinRoom(code,setup()):createRoom(setup(),roomAICount)));}catch(e){report(e);}finally{setBusy(false);}}
  async function changeRoomAI(aiCount:number){if(!ticket)return;setBusy(true);try{const next=await configureRoom(ticket,aiCount);setRoom(next);}catch(e){report(e);}finally{setBusy(false);}}
  async function beginMatch(){if(!ticket)return;setBusy(true);try{await api(`/rooms/${ticket.code}/start`,{},ticket.token);}catch(e){report(e);}finally{setBusy(false);}}
- function issue(command:Command){if(eliminated){notifyResult({ok:false,error:'eliminated'});return;}session.current?.command(command);}
- function selectProvince(id:number,attack:boolean){if(screen!=='game')return;if(attack){if(eliminated)return;setTarget(id);issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
+ function issue(command:Command){if(localStarting)return;if(eliminated){notifyResult({ok:false,error:'eliminated'});return;}session.current?.command(command);}
+ function selectProvince(id:number,attack:boolean){if(screen!=='game'||localStarting)return;if(attack){if(eliminated)return;setTarget(id);issue({type:'march',from:selected,to:id,fraction});}else setSelected(id);}
  function togglePause(){if(session.current?.mode!=='solo')return;setPaused(!paused);}
  function leave(){if(screen==='game'&&!window.confirm(text('exitConfirm')))return;if(session.current?.mode==='solo'&&latest.current){if(!saveCurrent(`auto-${latest.current.campaign}`,text('autosave'),true)&&!window.confirm(text('saveFailed')))return;}
   session.current?.dispose();session.current=null;setGame(null);setScreen('menu');setRoom(null);setModal(null);setPaused(false);try{sessionStorage.removeItem('rouge.ticket.ne-admin1-groups.v1');}catch{}setTicket(null);
@@ -121,6 +128,7 @@ export function App(){
  function exportCurrent(){if(!game)return;const blob=new Blob([encodeSave(game,saveName||text('theatre'))],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`rouge-${game.campaign}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),0);}
  async function importSave(file:File|undefined){if(!file)return;try{if(file.size>MAX_SAVE_BYTES)throw new Error('invalidSave');const decoded=decodeSave(await file.text());writeSave(localStorage,`import-${crypto.randomUUID()}`,decoded.state,decoded.name);refreshSaves();setToast(text('saveSuccess'));}catch(e){report(e);}finally{if(fileInput.current)fileInput.current.value='';}}
  useEffect(()=>{const key=(event:KeyboardEvent)=>{
+  if(localStarting){if(event.key==='Escape'){event.preventDefault();cancelLocalStart();}return;}
   if(showDefeat)return;
   if(event.key==='Escape'){
    event.preventDefault();
@@ -131,9 +139,9 @@ export function App(){
   }
   if((event.target as HTMLElement).closest('input,select,textarea,button')||screen!=='game')return;
   if(event.code==='Space'&&!modal){event.preventDefault();togglePause();}
- };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen,settingsPage,showDefeat,game?.winner]);
+ };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen,settingsPage,localStarting,showDefeat,game?.winner]);
  const leaderIndex=LEADERS.indexOf(leader),owned=game?.provinces.filter(p=>MAP[p.id].playable&&p.owner===actor).length??0,army=game?.units.filter(u=>u.owner===actor).length??0;
- return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`} data-input-device={inputDevice} data-eliminated={eliminated}>
+ return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`} data-input-device={inputDevice} data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
   {screen!=='game'&&<p className="input-hint" data-testid="input-hint" aria-live="polite">{inputHint}</p>}
   <div className="map-vignette"/>
@@ -213,6 +221,7 @@ export function App(){
     {modal==='upgrades'&&player&&<><div className="eyebrow gold">ARMY DEVELOPMENT</div><h2>{text('upgrades')}</h2><p className="muted">{text('upgradesHint')}</p><div className="treasury">{text('gold')} <strong>{Math.floor(player.gold)}</strong></div><div className="upgrade-grid">{player.loadout.map(k=><article className="upgrade-card" key={k}><div className="upgrade-title"><span className="unit-mark">{SYMBOLS[k]}</span><h3>{text(k)}</h3></div><UnitAttributes values={stats(player,k)} language={language}/><p className="muted small">{text('currentStatsHint')} {text('transportStatsHint')}</p>{STATS.map(stat=>{const level=player.upgrades[k][stat],cost=upgradeCost(level);return <div className="upgrade-row" key={stat}><div><b>{text(stat)} <span className="gold">{level}/8</span></b><small>{text(`${stat}.desc`)}</small></div><button className="secondary" data-testid={`upgrade-${k}-${stat}`} disabled={eliminated||level>=8||player.gold<cost} onClick={()=>issue({type:'upgrade',kind:k,stat})}>{level>=8?text('max'):`＋ ${cost}`}</button></div>;})}</article>)}</div></>}
     {modal==='talents'&&player&&<><div className="eyebrow gold">{text('talents')} / {text(player.leader)}</div><h2>{text('talentTitle')}</h2><p className="muted">{text('talentHint')}</p>{player.choices.length?<><div className="talent-grid">{player.choices.map((id,i)=><button className="talent-card" key={id} disabled={eliminated||pendingTalent!==null} onClick={()=>{setPendingTalent(id);issue({type:'talent',id});}}><span className="talent-number">0{i+1}</span><div className="talent-symbol">{['✧','⌁','◇'][i]}</div><h3>{text(id)}</h3><p>{text(`${id}.desc`)}</p><span className="talent-select">{text('select')} →</span></button>)}</div><button className="secondary" disabled={eliminated||player.rerolls===0||pendingTalent!==null} onClick={()=>issue({type:'reroll'})}>{text('reroll')} · {player.rerolls}</button></>:<div className="empty-state">{text('level')} {player.level}/8 · {Math.floor(player.xp)}/{60+player.level*45} XP</div>}{player.talents.length>0&&<div className="chosen-talents">{player.talents.map(id=><span key={id} title={text(`${id}.desc`)}>✧ {text(id)}</span>)}</div>}</>}
   </ModalDialog>}
+  {localStarting&&<ModalDialog label={language==='zh'?'正在启动战役':'Starting campaign'} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting"><p role="status" data-testid="local-starting">{language==='zh'?'正在加载地形并启动本地模拟…':'Loading terrain and starting the local simulation…'}</p></ModalDialog>}
   {toast&&<div className="toast" role="status">{toast}<button onClick={()=>setToast('')} aria-label={text('close')}>×</button></div>}
  </div>;
 }
