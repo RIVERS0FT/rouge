@@ -128,6 +128,6 @@ jobs:
         if: always() && steps.current.outputs.current == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: pages-live-verification
+          name: pages-live-verification-${{ needs.source.outputs.sha }}-${{ github.run_attempt }}
           path: artifacts/
           retention-days: 30
