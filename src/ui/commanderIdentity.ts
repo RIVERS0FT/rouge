@@ -2,7 +2,7 @@ import type { Player } from '../game/types.ts';
 
 /** A seat is a player faction, not a modern or historical country. */
 export function commanderIdentity(actor:number) {
-  const valid=Number.isInteger(actor)&&actor>=0&&actor<4;
+  const valid=Number.isSafeInteger(actor)&&actor>=0;
   return {actor:valid?actor:null,home:null,
     names:valid?[`阵营 ${actor+1}`,`Faction ${actor+1}`]:['未知阵营','Unknown faction']};
 }

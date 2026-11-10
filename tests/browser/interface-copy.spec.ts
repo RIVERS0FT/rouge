@@ -70,7 +70,7 @@ for(const language of ['zh','en'] as const)test(`${language}: LAN lobby has conc
  await page.addInitScript(language=>localStorage.setItem('rouge.language',language),language);
  await page.goto('/');const zh=language==='zh';
  await page.getByRole('button',{name:zh?/局域网联机/:/LAN multiplayer/}).click();
- await page.getByTestId('setup-ai-count').selectOption('1');
+ await page.getByTestId('setup-ai-count').fill('1');
  await page.getByRole('button',{name:zh?'创建房间':'Create room',exact:true}).click();
  await expect(page.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
  await expect(page.locator('.seats')).toContainText(zh?'电脑玩家 1':'Computer player 1');

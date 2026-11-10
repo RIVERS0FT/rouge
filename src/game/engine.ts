@@ -1,6 +1,6 @@
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
-import { chooseSpawnPairs } from './spawns.ts';
+import { chooseSpawnPairs, getSpawnCapacity } from './spawns.ts';
 import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 import {UNIT_RADIUS,separateCircles,type CollisionReport} from './collision.ts';
@@ -12,7 +12,7 @@ import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeC
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
-  if(setups.length<2||setups.length>4||!setups.every(validateSetup))throw new Error('invalidSetup');
+  if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
@@ -169,8 +169,9 @@ export class Engine{
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
     this.separate();
-    const reservations=new Int32Array((s.players.length+1)*MAP.length);
-    for(const u of s.units)if(u.destination!==null&&u.province!==u.destination)reservations[popKey(u.owner,u.destination)]++;
+    // Sparse destinations scale with moving armies, not players × the entire map.
+    const reservations=new Map<number,number>();
+    for(const u of s.units)if(u.destination!==null&&u.province!==u.destination){const key=popKey(u.owner,u.destination);reservations.set(key,(reservations.get(key)??0)+1);}
     const byProvince=new Map<number,Unit[]>();
     for(const u of s.units){if(u.transport?.embarked)continue;const group=byProvince.get(u.province)??[];group.push(u);byProvince.set(u.province,group);}
     for(const province of s.provinces){
@@ -187,17 +188,20 @@ export class Engine{
       if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5*regionProductionRate(province.id);province.recovery=Math.max(0,province.recovery-DT);
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
-      if(garrison+reservations[popKey(province.owner,province.id)]>=regionCapacity(province.id))continue;
+      if(garrison+(reservations.get(popKey(province.owner,province.id))??0)>=regionCapacity(province.id))continue;
       province.production+=DT*regionProductionRate(province.id)*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;spawn(s,province.id,province.kind);}
     }
     // All captures have settled: losing then gaining a region in this tick is not defeat.
     if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
-    if(s.tick%80===0)this.ai();
+    if(s.tick>=80)this.ai();
+    const territoryCounts=new Map<number,number>();
+    for(const v of s.provinces)if(MAP[v.id].playable&&v.owner>=0)territoryCounts.set(v.owner,(territoryCounts.get(v.owner)??0)+1);
+    const survivingOwners=new Set(territoryCounts.keys());
+    for(const u of s.units)if(u.owner>=0)survivingOwners.add(u.owner);
     for(const p of s.players){
-      const owned=s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
-      const opponents=s.players.filter(o=>o.id!==p.id);
-      if(s.domination[p.id]>=30||(owned>0&&opponents.every(o=>!s.provinces.some(v=>MAP[v.id].playable&&v.owner===o.id)&&!s.units.some(u=>u.owner===o.id)))){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
+      const owned=territoryCounts.get(p.id)??0;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
+      if(s.domination[p.id]>=30||(owned>0&&survivingOwners.size===1)){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
@@ -222,14 +226,21 @@ export class Engine{
   private advance(unit:Unit):void {this.halt(unit);}
   private ai():void{
     const s=this.state;
-    for(const p of s.players.filter(p=>p.ai&&!isEliminated(s,p.id))){
+    // Each faction still acts once per 80 ticks, but stagger the expensive
+    // navigation work. Actor 1 retains its original first action at tick 80.
+    const scheduled=s.players.filter(p=>p.ai&&(p.id+79)%80===(s.tick-80)%80);
+    if(!scheduled.length)return;
+    const territories=new Map<number,number[]>(),garrisons=new Map<number,Unit[]>();
+    for(const v of s.provinces)if(MAP[v.id].playable&&v.owner>=0){const ids=territories.get(v.owner)??[];ids.push(v.id);territories.set(v.owner,ids);}
+    for(const u of s.units){const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
+    for(const p of scheduled.filter(p=>territories.has(p.id))){
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
-      for(const province of s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id)){
-        const units=s.units.filter(u=>u.owner===p.id&&u.province===province.id&&u.target===null);
+      for(const id of territories.get(p.id)??[]){
+        const province=s.provinces[id],units=(garrisons.get(id)??[]).filter(u=>u.owner===p.id&&u.target===null);
         // Small administrative atoms must be able to move a full garrison.
         if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;
-        const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>s.units.filter(u=>u.province===a).length-s.units.filter(u=>u.province===b).length);
+        const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>(garrisons.get(a)?.length??0)-(garrisons.get(b)?.length??0));
         let destination:number|undefined=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];
         if(destination===undefined){
           const candidates=MAP.filter(m=>m.playable&&s.provinces[m.id].owner!==p.id)

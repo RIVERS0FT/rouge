@@ -3,8 +3,8 @@ import type { Flag } from '../game/flags.ts';
 import { applyFrame } from './replication.ts';
 import { MAP_ID, RULES_ID } from '../game/content.ts';
 import type { Command, GameState, Result, PlayerSetup } from '../game/types.ts';
-export interface Seat {id:number;name:string;flag?:Flag;leader:string;loadout:string[]}
-export interface RoomInfo {code:string;host:number;started:boolean;aiCount:number;seats:Seat[]}
+export interface Seat {id:number;connected:boolean;name:string;flag?:Flag;leader:string;loadout:string[]}
+export interface RoomInfo {code:string;host:number;started:boolean;aiCount:number;capacity:number;minPlayers:number;onlineHumans:number;seats:Seat[]}
 export interface Ticket {code:string;token:string;actor:number}
 export interface Session {
   mode:'solo'|'lan'; actor:number;

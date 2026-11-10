@@ -1,3 +1,4 @@
+import {connectTicket} from './helpers/lan-streams.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLanServer} from '../server/lan.ts';
@@ -9,7 +10,7 @@ test('real HTTP: eliminated seat loses command authority but can observe while s
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`,controller=new AbortController();
  const headers=token=>({'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})});
- const request=async(path,body,token)=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:headers(token),body:body===undefined?undefined:JSON.stringify(body)});return{status:response.status,data:await response.json()};};
+ const request=async(path,body,token)=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:headers(token),body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();if(response.status===201&&data.token)await connectTicket(base,data);return{status:response.status,data};};
  async function until(predicate){const deadline=Date.now()+3000;while(!predicate()){assert.ok(Date.now()<deadline,'server timer did not advance to expected state');await new Promise(resolve=>setTimeout(resolve,20));}}
  try{
   const a=(await request('/rooms',{setup:setup('Defeated')})).data,path=`/rooms/${a.code}`;
