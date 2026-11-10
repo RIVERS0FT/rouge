@@ -6,13 +6,12 @@ import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } fro
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
-import { factionColor } from '../game/factionColors.ts';
+import { factionColor, NEUTRAL_LAND_COLOR } from '../game/factionColors.ts';
 export { factionColor, FACTION_COLORS } from '../game/factionColors.ts';
 interface Label {sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
 interface Range {start:number;count:number}
-const NEUTRAL_LAND=0x9da48e;
 /** No country palette: ownership is the only political color on the map. */
-function regionColor():THREE.Color { return new THREE.Color(NEUTRAL_LAND); }
+function regionColor():THREE.Color { return new THREE.Color(NEUTRAL_LAND_COLOR); }
 /** One merged land mesh, batched boundaries and a bounded label pool for the global atlas. */
 export class WorldRenderer {
   readonly renderer:THREE.WebGLRenderer;
@@ -49,14 +48,14 @@ export class WorldRenderer {
   private smoothed=new Map<number,Vec2>();
   constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
-    const sea=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_WIDTH,BOUNDS.bottom-BOUNDS.top),new THREE.MeshBasicMaterial({color:0x173742}));
+    const sea=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_WIDTH,BOUNDS.bottom-BOUNDS.top),new THREE.MeshBasicMaterial({color:0x334b52}));
     sea.rotation.x=-Math.PI/2;sea.position.set(0,-0.25,WORLD_CENTER.z);this.atlas.add(sea);
     const graticule:number[]=[];
     for(let lon=-180;lon<=180;lon+=30){const a=project(lon,SOUTH_LATITUDE),b=project(lon,NORTH_LATITUDE);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
@@ -97,12 +96,12 @@ export class WorldRenderer {
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
     this.relief(material);this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
-    this.admin=this.lines(borders,0x334b40,0.14);this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
-    const outlines=this.lines(coasts,0x233f39,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
+    this.admin=this.lines(borders,0x4c514a,0.14);this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
+    const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
     this.renderer.domElement.dataset.boundaryMode='admin1-management-groups';
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
-    this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
-    const glowMaterial=new THREE.MeshBasicMaterial({color:0xf9df9b,transparent:true,opacity:0.38,depthWrite:false,side:THREE.DoubleSide});
+    this.selection=this.lines([],0xead5a2,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
+    const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:0.38,depthWrite:false,side:THREE.DoubleSide});
     this.relief(glowMaterial);const reliefCompile=glowMaterial.onBeforeCompile;
     glowMaterial.onBeforeCompile=(shader,renderer)=>{
       reliefCompile(shader,renderer);
