@@ -53,9 +53,11 @@ try{
  await expect(page.locator('canvas')).toHaveAttribute('data-ready','true');
  if(regions){
   await expect(page.locator('canvas')).toHaveAttribute('data-region-count',String(atlas.provinces.length));
-  await expect(page.locator('canvas')).toHaveAttribute('data-boundary-mode','admin1-management-groups');
-  await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','false');
-  checks.push('4596 complete administrative atoms, no country borders');
+  await expect(page.locator('canvas')).toHaveAttribute('data-boundary-mode','ownership-and-management');
+  await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','true');
+  await expect(page.locator('canvas')).toHaveAttribute('data-neutral-borders','independent-territories');
+  assert.ok(Number(await page.locator('canvas').getAttribute('data-country-border-segments'))>0);
+  checks.push('4596 complete administrative atoms, live ownership borders and independent neutral territories');
  }
  await page.screenshot({path:'artifacts/pages-main-menu.png'});
  await page.getByTestId('single-player').click();
