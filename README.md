@@ -85,13 +85,13 @@ npm run test:e2e
 
 距离为地图单位，速度为地图单位/游戏秒，0 溅射表示单体。伤害按 `单次攻击 × 100 / (100 + 目标防御)` 后再应用原有条件减伤。炮兵主目标承受100%，半径内最多两个额外敌人各35%，按距离与单位ID稳定选择，不友伤。攻击/生命/陆速升级仍分别 +2/+12/+0.16，原天赋倍率与工兵1.5倍占领保留。攻速使用模拟时间，不受界面帧率影响。
 
-开局卡显示基础九属性，升级卡显示当前九属性。海运不受陆速升级影响。优先连续陆路，跨岛行军经合法港口自动换乘统一运输船，海上不能攻击、受到陆军攻击或占领。过窄海峡和内陆湖泊可能保守不可达，详见 [海图来源、能力范围与验证](docs/SEA_TRANSPORT.md)。
+开局单位按钮仅显示名称与图标，名称悬浮于图标左上角；悬停、键盘聚焦或轻点即可在 tooltip 查看基础九属性，Esc 或点击外部关闭。升级卡显示当前九属性。海运不受陆速升级影响。优先连续陆路，跨岛行军经合法港口自动换乘统一运输船，海上不能攻击、受到陆军攻击或占领。过窄海峡和内陆湖泊可能保守不可达，详见 [海图来源、能力范围与验证](docs/SEA_TRANSPORT.md)。
 
 ### Cosmetic commander identity
 
 The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
 
-Campaign setup includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
+The start screen’s top-left flag editor includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
 
 ### 手机操作
 
@@ -105,7 +105,7 @@ Campaign setup includes eight real-country flag presets (China, France, Germany,
 
 单人可选1–3名AI，多人由房主选择0–3名AI。真人与AI总数最多4，至少2名才能开始；AI占用预留席位，加入房间不会自动挤走AI。房主可在开始前调整，服务端验证加入、配置和开始的并发状态。
 
-领袖选择卡与战场使用同一原创SVG形象。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
+开始界面左上角显示国旗，左下角显示玩家领袖形象，并提供独立修改入口，沿用战场的视觉锚点与同一原创肖像。国旗和领袖不再在进入单人或多人对局前重复配置；战前仅保留单位、AI、姓名和必要联机设置。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
 
 连续升级积累多次待选天赋时，选完一项会继续显示下一组；等待权威状态确认后，最后一项完成才关闭窗口。经验与升级规则不变。
 

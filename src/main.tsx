@@ -5,5 +5,6 @@ import './ui/style.css';
 import './ui/commander-hud.css';
 import './ui/fullscreen-hud.css';
 import './ui/mobile-landscape.css';
+import './ui/start-screen.css';
 installRandomUUID();
 createRoot(document.getElementById('root')!).render(<App/>);

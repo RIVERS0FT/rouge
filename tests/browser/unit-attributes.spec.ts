@@ -1,19 +1,30 @@
 import {test,expect} from '@playwright/test';
-test('nine attributes are visible in setup and live upgrades in both languages',async({page})=>{
+test('nine attributes are visible in setup tooltips and live upgrades in both languages',async({page})=>{
  await page.goto('/');
  await page.getByTestId('single-player').click();
  const infantry=page.getByTestId('choose-unit-infantry');
- await expect(infantry.locator('.unit-attribute')).toHaveCount(9);
- await expect(infantry).toContainText('单次攻击');
- await expect(infantry.locator('[data-stat="hp"] strong')).toHaveText('100');
- await expect(infantry.locator('[data-stat="splash"] strong')).toContainText('单体');
+ await expect(infantry.locator('.unit-attribute')).toHaveCount(0);
+ await infantry.focus();
+ const infantryTooltip=page.getByTestId('unit-tooltip-infantry');
+ await expect(infantryTooltip).toBeVisible();
+ await expect(infantryTooltip.locator('.unit-attribute')).toHaveCount(9);
+ await expect(infantryTooltip).toContainText('单次攻击');
+ await expect(infantryTooltip.locator('[data-stat="hp"] strong')).toHaveText('100');
+ await expect(infantryTooltip.locator('[data-stat="splash"] strong')).toContainText('单体');
+ // Escape dismisses the active tooltip before closing setup.
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('tooltip')).toHaveCount(0);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'English',exact:true}).click();
  await page.getByTestId('single-player').click();
  const artillery=page.getByTestId('choose-unit-artillery');
- await expect(artillery.locator('.unit-attribute')).toHaveCount(9);
- await expect(artillery.locator('[data-stat="attackSpeed"] strong')).toHaveText('0.5 hits/game s');
- await expect(artillery.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/game s');
+ await expect(artillery.locator('.unit-attribute')).toHaveCount(0);
+ await artillery.hover();
+ const artilleryTooltip=page.getByTestId('unit-tooltip-artillery');
+ await expect(artilleryTooltip).toBeVisible();
+ await expect(artilleryTooltip.locator('.unit-attribute')).toHaveCount(9);
+ await expect(artilleryTooltip.locator('[data-stat="attackSpeed"] strong')).toHaveText('0.5 hits/game s');
+ await expect(artilleryTooltip.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/game s');
  await artillery.click();
  await page.getByTestId('begin-campaign').click();
  await page.getByTestId('open-upgrades').click();

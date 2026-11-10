@@ -1,5 +1,8 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ playerAppearance:['玩家外观','Player appearance'],playerLeader:['玩家形象','Player portrait'],playerFlag:['国旗','Flag'],editAppearance:['修改外观','Edit appearance'],editPlayerLeader:['修改玩家形象','Edit player portrait'],editPlayerFlag:['修改国旗','Edit flag'],
+ identityHint:['外观仅用于识别玩家，不影响能力或出生地。新建单人和多人对局共用此设置。','Appearance identifies you without changing abilities or starting locations. New solo and multiplayer matches use this selection.'],
+ unitTooltipHint:['悬停、聚焦或轻点单位查看属性。','Hover, focus or tap a unit to view its attributes.'],
  terrainRouteDistance:['地形路线 · 距离 {distance} 格','Terrain route · Distance {distance} units'],terrainPreviewHint:['预览以两地中心估算。实际命令从各单位当前位置寻路，不沿行政区中心逐块跳转。','Preview uses the two area centers. Actual orders route from each unit’s current position, not through administrative centers.'],
  territories:['领土分组管理','Territory group management'],territoryCurrentGroup:['所选行政区所属组','Selected administrative area’s group'],territoryAtoms:['完整行政区列表 / 拆分选择','Complete administrative areas / split selection'],territoryRevision:['修订','Revision'],territoryAtomCount:['个行政区','areas'],territoryAllNames:['展开完整行政区名称','Show all administrative area names'],
  territoryMapDisclaimer:['Natural Earth 完整行政区 · 近似州区分组，非精确 Vic3 边界。','Complete Natural Earth administrative areas · approximate state-region grouping, not exact Vic3 boundaries.'],

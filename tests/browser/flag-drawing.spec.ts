@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 test('custom flag supports real drag drawing, delete, undo and clear',async({page})=>{
- await page.goto('/');await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('single-player').click();
+ await page.goto('/');await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('edit-player-flag').click();
  await page.getByLabel('Flag type',{exact:true}).selectOption('custom');
  await page.getByTestId('flag-shape-brush').selectOption('triangle');
  const surface=page.getByTestId('flag-drawing-surface');await surface.scrollIntoViewIfNeeded();
