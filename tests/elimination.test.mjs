@@ -4,7 +4,7 @@ import {createGame,Engine,isEliminated} from '../src/game/engine.ts';
 import {MAP} from '../src/game/map.ts';
 import {encodeSave,decodeSave,validateState} from '../src/game/save.ts';
 const setup=()=>createGame(['A','B','C'].map(name=>({name,leader:'warden',loadout:['infantry']})),42);
-function oneRegionEach(s){for(const actor of [0,1,2]){const owned=s.provinces.filter(p=>p.owner===actor);for(const p of owned.slice(1))p.owner=-1;}s.units=s.units.filter(u=>u.owner>=0&&s.provinces[u.province].owner===u.owner);}
+function oneRegionEach(s){for(const actor of [0,1,2]){const owned=s.provinces.filter(p=>p.owner===actor),keep=owned.find(p=>s.units.some(u=>u.owner===actor&&u.province===p.id));assert.ok(keep||!owned.length);for(const p of owned)if(p!==keep)p.owner=-1;}s.units=s.units.filter(u=>u.owner>=0&&s.provinces[u.province].owner===u.owner);}
 function occupy(s,attacker,target){const u=s.units.find(u=>u.owner===attacker);assert.ok(u);Object.assign(u,{province:target.id,origin:target.id,x:MAP[target.id].center.x,z:MAP[target.id].center.z,target:null,destination:null,route:[],cooldown:0});target.captor=attacker;target.capture=7.99;return u;}
 test('last territory loss clears every defeated army and capture, rejects commands, while other players continue',()=>{
  const s=setup();oneRegionEach(s);const home=s.provinces.find(p=>p.owner===0),remote=s.provinces.find(p=>p.owner===1);

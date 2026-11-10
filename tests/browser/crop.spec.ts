@@ -5,7 +5,7 @@ test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and po
   await page.goto('/');const canvas=page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-ready','true',{timeout:30000});
   await expect(canvas).toHaveAttribute('data-crop','miller-74n-reference-aspect-v1');
-  await expect(canvas).toHaveAttribute('data-visible-provinces','675');
+  await expect(canvas).toHaveAttribute('data-visible-provinces','4592');
   const min=Number(await canvas.getAttribute('data-land-min-z')),max=Number(await canvas.getAttribute('data-land-max-z'));
   expect(min).toBeGreaterThanOrEqual(-923.4389955662654-1e-7);expect(max).toBeLessThanOrEqual(665.6235044337346+1e-7);
   await page.screenshot({path:'artifacts/cropped-miller-menu.png'});
@@ -19,7 +19,7 @@ test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and po
   await page.screenshot({path:'artifacts/cropped-miller-world.png'});
   await expect(page.locator('.atlas-credit')).toHaveCount(0);await expect(page.locator('canvas')).toHaveAttribute('data-projection','miller-cylindrical');
   await page.getByTestId('map-search').fill('NOR-901');await expect(page.locator('.map-search-results button')).toHaveCount(0);
-  await page.getByTestId('map-search').fill('STATE_GREENLAND');await page.locator('.map-search-results button').first().click();
+  await page.getByTestId('map-search').fill('GRL-2743');await page.locator('.map-search-results button').first().click();
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   expect(Number(await canvas.getAttribute('data-focus-z'))).toBeGreaterThan(-923.4389955662654);
   await page.screenshot({path:'artifacts/cropped-miller-greenland.png'});

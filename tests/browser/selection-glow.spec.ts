@@ -18,7 +18,7 @@ test('selection preserves owner fill and uses bounded inner glow in strategic an
   expect(Number(await canvas.getAttribute('data-selection-glow-vertices'))).toBeGreaterThan(0);
  }
  const oldSelection=await canvas.getAttribute('data-selected-region');
- await page.getByTestId('map-search').fill('STATE_GREENLAND');await page.locator('.map-search-results button').first().click();
+ await page.getByTestId('map-search').fill('GRL-2743');await page.locator('.map-search-results button').first().click();
  await expect.poll(async()=>Number(await canvas.getAttribute('data-selection-glow-vertices'))).toBeGreaterThan(0);
  await expect(canvas).not.toHaveAttribute('data-selection-glow-error');
  await expect.poll(async()=>await canvas.getAttribute('data-selected-region')).not.toBe(oldSelection);

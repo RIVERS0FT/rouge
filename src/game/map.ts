@@ -1,4 +1,5 @@
-import data from '../generated/world.json' with { type: 'json' };
+import {createTerritoryGrouping,type TerritoryTopology} from './territoryGrouping.ts';
+import data from '../generated/world.js';
 import { project, PROJECTION_ID, WORLD_BOUNDS, CROP_ID, NORTH_LATITUDE, SOUTH_LATITUDE } from './geo.ts';
 import { inRect, intersectBounds, clipSegment, visiblePart, signedArea } from './crop.ts';
 import type { Vec2, ProvinceDef } from './types.ts';
@@ -97,10 +98,19 @@ export function heightAt(x:number,z:number):number {return 0.16+0.32*(1+Math.sin
 export function provinceByCode(code:string):number {
   const p=MAP.find(p=>p.code===code);if(!p)throw new Error(`Unknown province ${code}`);return p.id;
 }
-// Spawn seats are management regions, not nations. The first four commanders
-// do not inherit a national identity or any country-defined permissions.
-export const START_CODES=['STATE_BRANDENBURG','STATE_BAVARIA','STATE_ILE_DE_FRANCE','STATE_MAZOVIA'];
-export const STARTS=START_CODES.map(code=>{
-  const region=MAP.find(p=>p.code===code&&p.playable);
-  if(!region)throw new Error(`Missing start region ${code}`);return region.id;
-});
+// Legacy STARTS export remains a deterministic convenience, never a political claim.
+export const STARTS=MAP.filter(p=>p.playable&&p.neighbors.length>0).slice(0,4).map(p=>p.id);
+export const START_CODES=STARTS.map(id=>MAP[id].code);
+export const TERRITORY_TOPOLOGY:TerritoryTopology={mapId:data.mapId,atoms:MAP.map(p=>({id:p.code,neighbors:p.neighbors.map(id=>MAP[id].code),playable:p.playable}))};
+// Cropping can remove a real border. Split the initial reference group into its
+// remaining connected components rather than inventing a cropped-edge bridge.
+const byCode=new Map(MAP.map(p=>[p.code,p]));
+const initialParts:string[][]=[];
+for(const g of data.initialGroups){
+  const remaining=new Set(g.atomIds);
+  for(const start of [...remaining].sort())if(remaining.delete(start)){
+    const part=[start];for(let i=0;i<part.length;i++)for(const n of byCode.get(part[i])!.neighbors){const code=MAP[n].code;if(remaining.delete(code))part.push(code);}
+    initialParts.push(part);
+  }
+}
+export const INITIAL_TERRITORY_GROUPING=createTerritoryGrouping(TERRITORY_TOPOLOGY,initialParts);

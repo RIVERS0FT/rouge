@@ -46,25 +46,25 @@ test('triangle-first clipping never bridges disconnected lobes or paints a hole'
  for(const poly of clipped)assert.ok(poly.every(p=>p.x<=3)||poly.every(p=>p.x>=7));
 });
 test('land-only state atlas excludes sea regions and cannot select beyond polar crop',()=>{
- assert.equal(MAP.length,675);assert.equal(PLAYABLE_COUNT,675);
- assert.ok(MAP.every(p=>p.sourceId<3000&&p.visible));
+ assert.equal(MAP.length,4596);assert.equal(PLAYABLE_COUNT,4592);
+ assert.equal(MAP.filter(p=>!p.visible).length,4);assert.ok(MAP.filter(p=>!p.visible).every(p=>!p.playable));
  for(const lat of [74.1,80,89,-59,-80]){const p=project(10,lat);assert.equal(provinceAt(p.x,p.z),-1);}
  for(const code of ['STATE_NORTH_SEA','STATE_CORAL_SEA','NOR-901'])assert.equal(searchProvinces(code).length,0);
 });
 test('all state anchors, including Greenland, remain inside visible land',()=>{
- for(const p of MAP){
+ for(const p of MAP.filter(p=>p.playable)){
   assert.ok(inRect(p.center,B),p.code);assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);
   assert.ok(navigableInProvince(p.id,p.center.x,p.center.z),p.code);
   for(const id of p.neighbors){assert.ok(MAP[id].playable);assert.ok(MAP[id].neighbors.includes(p.id));}
  }
- assert.ok(MAP.find(p=>p.code==='STATE_GREENLAND').playable);
+ assert.ok(MAP.find(p=>p.code==='GRL-2743').playable);
 });
 test('state-region flow cannot escape crop or cross a polar sea gap',()=>{
- const s=createGame(setups),a=MAP.find(p=>p.code==='STATE_HIGHLANDS'),b=MAP.find(p=>p.code==='STATE_LOWLANDS'),nav=new Navigator();
+ const s=createGame(setups),a=MAP.find(p=>p.code==='GBR-2745'),b=MAP.find(p=>p.code==='GBR-2018'),nav=new Navigator();
  const flow=nav.get(s,0,b.id,a.id);
  for(let i=0;i<flow.distance.length;i++)if(Number.isFinite(flow.distance[i]))assert.ok(inRect(cellCenter(i,flow),B));
  assert.equal(nav.canMove(flow,a.center.x,a.center.z,a.center.x,B.top-0.01),false);
- const greenland=MAP.find(p=>p.code==='STATE_GREENLAND');assert.equal(nav.route(s,0,a.id,greenland.id,false),null);
+ const greenland=MAP.find(p=>p.code==='GRL-2743');assert.equal(nav.route(s,0,a.id,greenland.id,false),null);
 });
 test('nonexistent regions cannot produce or receive orders and victory counts only management regions',()=>{
  const e=new Engine(createGame(setups));
@@ -79,7 +79,7 @@ test('cropped saves and LAN reject full-world Miller state without touching lega
  assert.equal(validateState(legacy),false);assert.throws(()=>applyFrame(null,{type:'state',state:legacy}),/incompatibleMap/);
  const m=new Map([['rouge.save.earth.miller.v1.slot','legacy']]);
  const storage={get length(){return m.size},key:i=>[...m.keys()][i]??null,getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)};
- writeSave(storage,'slot',s,'Cropped');assert.ok(SAVE_PREFIX.includes('state-regions'));assert.equal(listSaves(storage).length,1);
+ writeSave(storage,'slot',s,'Cropped');assert.ok(SAVE_PREFIX.includes('natural-earth-admin1'));assert.equal(listSaves(storage).length,1);
  deleteSave(storage,'slot');assert.equal(m.get('rouge.save.earth.miller.v1.slot'),'legacy');
  const bad=structuredClone(s);bad.units[0].z=B.top-0.1;assert.equal(validateState(bad),false);
 });

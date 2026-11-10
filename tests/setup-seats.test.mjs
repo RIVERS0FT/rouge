@@ -3,7 +3,9 @@ import {request as httpRequest} from 'node:http';
 import assert from 'node:assert/strict';
 import {Engine,createGame} from '../src/game/engine.ts';
 import {makeAISetups,chooseSpawnPairs} from '../src/game/spawns.ts';
-import {MAP,pointInProvince} from '../src/game/map.ts';
+import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
+import {TerrainNavigator,validateTravel} from '../src/game/terrain-navigation.ts';
+import {MAP,pointInProvince,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
 import {Navigator,cellAt} from '../src/game/navigation.ts';
 import {createLanServer} from '../server/lan.ts';
 import {MAP_ID,RULES_ID} from '../src/game/content.ts';
@@ -12,13 +14,16 @@ const setup={name:'Human',leader:'warden',loadout:['infantry']};
 test('seeded starts are dispersed, non-overlapping, equally resourced and land-connected with expansion exits',()=>{
  const starts=[];
  for(const seed of [0,42,1234]){
-  const setups=[setup,...makeAISetups(3,seed)],s=createGame(setups,seed),again=createGame(setups,seed),pairs=chooseSpawnPairs(seed,4,s),nav=new Navigator();
+  const setups=[setup,...makeAISetups(3,seed)],s=createGame(setups,seed),again=createGame(setups,seed),pairs=chooseSpawnPairs(seed,4,s),nav=new TerrainNavigator();
   assert.deepEqual(s,again);assert.equal(new Set(pairs.flat()).size,8);starts.push(pairs[0][0]);
   for(const [actor,pair]of pairs.entries()){
-   assert.deepEqual(s.provinces.filter(p=>p.owner===actor).map(p=>p.id).sort((a,b)=>a-b),[...pair].sort((a,b)=>a-b));
+   const initialGroups=new Set(pair.map(id=>INITIAL_TERRITORY_GROUPING.atomToGroup[MAP[id].code]));assert.equal(initialGroups.size,2);
+   const codes=new Set(INITIAL_TERRITORY_GROUPING.groups.filter(g=>initialGroups.has(g.id)).flatMap(g=>g.atoms));
+   const owned=s.provinces.filter(p=>p.owner===actor);assert.deepEqual(owned.map(p=>MAP[p.id].code).sort(),[...codes].sort());
+   assert.equal(owned.reduce((n,p)=>n+regionCapacity(p.id),0),24);assert.ok(Math.abs(owned.reduce((n,p)=>n+regionProductionRate(p.id),0)-2)<1e-12);
    assert.equal(s.units.filter(u=>u.owner===actor).length,10);assert.equal(s.players[actor].gold,120);
    for(const a of pair){const b=pair.find(p=>p!==a);assert.ok(MAP[a].neighbors.includes(b));
-    const flow=nav.get(s,actor,b,a),c=MAP[a].center;assert.ok(Number.isFinite(flow.distance[cellAt(c.x,c.z,flow)]));
+    const flow=nav.plan(MAP[a].center,MAP[b].center);assert.ok(flow);assert.ok(validateTravel(flow,MAP[a].center,MAP[b].center));assert.ok(flow.points.every(p=>!p.sea));
     assert.ok(MAP[a].neighbors.some(n=>n!==b));assert.ok(s.units.filter(u=>u.province===a).every(u=>pointInProvince(a,u.x,u.z)));
    }
   }
@@ -74,7 +79,7 @@ test('room broadcasts include revised AI count and streamed state keeps server-c
  assert.equal((await req(path+'/config',{aiCount:3},a.token)).status,200);
  assert.match(decode.decode((await reader.read()).value),/"aiCount":3/);
  assert.equal((await req(path+'/start',{},a.token)).status,200);
- let text='';while(!text.includes('"state"'))text+=decode.decode((await reader.read()).value);
+ let text='';while(!text.split('\n\n').slice(0,-1).some(event=>event.startsWith('data: ')&&JSON.parse(event.slice(6)).type==='state'))text+=decode.decode((await reader.read()).value);
  assert.match(text,/"ai":true/);assert.equal(host.rooms.get(a.code).engine.state.players.filter(p=>p.ai).length,3);controller.abort();
 }));
 test('slow request bodies cannot bypass join/config/start mutation-time checks',async()=>withServer(async(host,req,base)=>{

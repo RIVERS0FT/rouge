@@ -21,7 +21,7 @@ test('glow clips to concave land triangles, preserving holes and disconnected is
  assert.deepEqual(innerGlowMesh([],[],2),{points:[],distance:[]});
 });
 test('real cropped polar and date-line selections stay on their land mesh with bounded fade',()=>{
- for(const code of ['STATE_GREENLAND','STATE_HAWAIIAN_ISLANDS','STATE_BRANDENBURG']){
+ for(const code of ['GRL-2743','USA-3517','DEU-3487']){
   const p=MAP.find(p=>p.code===code),triangles=tessellate(p.parts),mesh=innerGlowMesh(triangles,segments(p.parts.flat()),2);
   assert.ok(mesh.points.length>0,code);assert.ok(mesh.distance.every(d=>d>=0&&d<=2));
   for(let i=0;i<mesh.points.length;i+=3){const t=mesh.points.slice(i,i+3);for(const v of t)assert.ok(v.x>=BOUNDS.left-1e-6&&v.x<=BOUNDS.right+1e-6&&v.z>=BOUNDS.top-1e-6&&v.z<=BOUNDS.bottom+1e-6);}

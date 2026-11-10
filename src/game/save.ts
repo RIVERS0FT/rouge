@@ -1,14 +1,15 @@
 import { settleEliminations } from './elimination.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
-import { seaRoute } from './sea.ts';
+import {validateTravel} from './terrain-navigation.ts';
+import {regionCapacity,validGroupingState} from './territoryEconomy.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
 import type { GameState } from './types.ts';
 export interface StorageLike{readonly length:number;key(index:number):string|null;getItem(key:string):string|null;setItem(key:string,value:string):void;removeItem(key:string):void}
 export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leader:string;corrupted?:boolean}
 // Import byte guard is a resource-safety check, not a gameplay troop cap.
 export const MAX_SAVE_BYTES=128*1024*1024;
-export const SAVE_PREFIX='rouge.save.state-regions.v1.';
+export const SAVE_PREFIX='rouge.save.natural-earth-admin1.v1.';
 const PREFIX=SAVE_PREFIX;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
@@ -27,33 +28,24 @@ export function validateState(value:unknown):value is GameState{
     if(!p.upgrades||!KINDS.every(k=>p.upgrades[k]&&STATS.every(st=>integer(p.upgrades[k][st],0,8))))return false;
   }
   for(const[i,p]of s.provinces.entries())if(!p||p.id!==i||!integer(p.owner,-1,s.players.length-1)||!KINDS.includes(p.kind)||!number(p.production,0,100)||!number(p.recovery,0,15)||!integer(p.captor,-1,s.players.length-1)||!number(p.capture,0,8.1)||(!MAP[i].playable&&(p.owner!==-1||p.production!==0||p.captor!==-1||p.capture!==0||p.recovery!==0))||(p.owner>=0&&!s.players[p.owner].loadout.includes(p.kind)))return false;
+  if(!validGroupingState(s))return false;
   const ids=new Set<number>(),population=new Map<string,number>();
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
-    if(u.transport!==undefined){
-      const t=u.transport;if(!t||typeof t.embarked!=='boolean'||t.from!==u.origin||t.to!==u.target||u.province!==u.origin)return false;
-      const sea=seaRoute(t.from,t.to);if(!sea)return false;
-      if(t.embarked){
-        if(!integer(t.index,1,sea.waypoints.length-1))return false;
-        const a=sea.waypoints[t.index-1],b=sea.waypoints[t.index],dx=b.x-a.x,dz=b.z-a.z,length=dx*dx+dz*dz;
-        const f=length?Math.max(0,Math.min(1,((u.x-a.x)*dx+(u.z-a.z)*dz)/length)):0;
-        if(Math.hypot(u.x-(a.x+f*dx),u.z-(a.z+f*dz))>0.001)return false;
-      }else if(t.index!==0)return false;
-    }
-    if(!Array.isArray(u.route)||u.route.length>MAP.length||!u.route.every(id=>integer(id,0,MAP.length-1)&&MAP[id].playable))return false;
-    if(u.target===null){if(u.transport||u.destination!==null||u.route.length!==0||u.origin!==u.province)return false;}
+    if(!Array.isArray(u.route)||u.route.length!==0)return false;
+    if(u.target===null){if(u.travel||u.transport||u.destination!==null||u.origin!==u.province)return false;}
     else {
-      if(u.province!==u.origin&&u.province!==u.target)return false;
-      if(!integer(u.destination,0,MAP.length-1)||!MAP[u.destination!].playable||(!MAP[u.origin].neighbors.includes(u.target)&&!seaRoute(u.origin,u.target)))return false;
-      if(!MAP[u.origin].neighbors.includes(u.target)&&u.province===u.origin&&!u.transport)return false;
-      const legs=[u.target,...u.route];
-      if(legs[legs.length-1]!==u.destination||new Set(legs).size!==legs.length||legs.includes(u.origin))return false;
-      for(let i=1;i<legs.length;i++)if(!MAP[legs[i-1]].neighbors.includes(legs[i])&&!seaRoute(legs[i-1],legs[i]))return false;
+      if(u.destination!==u.target)return false;
+      if(u.travel){if(!validateTravel(u.travel,u,MAP[u.target].center))return false;}
+      else if(u.province!==u.target||!pointInProvince(u.target,u.x,u.z))return false;
+    }
+    if(u.transport){
+      if(!u.travel||u.transport.embarked!==true||u.transport.from!==u.origin||u.transport.to!==u.target||!integer(u.transport.index,1,u.travel.points.length-1)||!u.travel.points[u.transport.index].sea)return false;
     }
     if(u.transport?.embarked){ids.add(u.id);continue;}
     const key=`${u.owner}:${u.province}`,count=(population.get(key)??0)+1;
-    if(count>PROVINCE_CAP)return false;population.set(key,count);ids.add(u.id);
+    if(!u.travel){if(count>regionCapacity(u.province))return false;population.set(key,count);}ids.add(u.id);
   }
   return s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
 }
@@ -75,7 +67,7 @@ export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);migrateLegacyRoster(state);if(!validateState(state))throw new Error();settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch{throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');migrateLegacyRoster(state);if(!validateState(state))throw new Error();settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{

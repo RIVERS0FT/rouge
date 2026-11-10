@@ -4,6 +4,7 @@ import {KINDS,LEGACY_KINDS,UNITS,TALENTS,stats,talentApplies,validateSetup} from
 import {createGame,Engine} from '../src/game/engine.ts';
 import {encodeSave,decodeSave,checksum,validateState} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
+import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {MAP,STARTS} from '../src/game/map.ts';
 const NEW=KINDS.filter(k=>!LEGACY_KINDS.includes(k));
 const setup=k=>({name:k,leader:'steward',loadout:[k]});
@@ -17,7 +18,7 @@ for(const kind of NEW)test(kind+': single-choice campaign, production, upgrades,
  assert.ok(e.command(0,{type:'upgrade',kind,stat:'health'}).ok);
  assert.equal(wounded.hp/stats(p,kind).hp,.5);
  const count=e.state.units.filter(u=>u.owner===0).length;
- e.step(Math.ceil(UNITS[kind].train/.05)+1);
+ const queue=e.state.provinces.find(v=>v.owner===0&&e.state.units.filter(u=>u.owner===0&&u.province===v.id).length<regionCapacity(v.id));assert.ok(queue);queue.production=UNITS[kind].train-.025*regionProductionRate(queue.id);e.step();
  assert.ok(e.state.units.filter(u=>u.owner===0).length>count);
  assert.ok(validateState(e.state));
  const restored=decodeSave(encodeSave(e.state,'roster')).state;assert.deepEqual(restored,e.state);
@@ -55,10 +56,10 @@ test('every new kind can capture without engineer bonuses and AI can upgrade its
  }
 });
 for(const kind of NEW)test(kind+': real sea transport, landing and occupation preserve kind and valid save',()=>{
- const e=fresh(kind),s=e.state,from=MAP.find(p=>p.code==='STATE_HOME_COUNTIES').id,to=MAP.find(p=>p.code==='STATE_NORMANDY').id;
+ const e=fresh(kind),s=e.state,from=MAP.find(p=>p.code==='GBR-3409').id,to=MAP.find(p=>p.code==='FRA-5275').id;
  for(const p of s.provinces){p.owner=-1;p.production=0;}
  s.provinces[from].owner=0;s.provinces[from].kind=kind;s.provinces[to].owner=1;s.provinces[to].kind='infantry';
- const u=s.units.find(u=>u.owner===0);Object.assign(u,{province:from,origin:from,x:MAP[from].center.x,z:MAP[from].center.z});s.units=[u];
+ const u=s.units.find(u=>u.owner===0);Object.assign(u,{province:from,origin:from,x:MAP[from].center.x,z:MAP[from].center.z});s.units=[u];s.grouping=reconcileGrouping(s);
  assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
  let sailed=false;
  for(let i=0;i<3000&&s.provinces[to].owner!==0;i++){e.step();if(u.transport?.embarked){sailed=true;assert.ok(validateState(s));}}

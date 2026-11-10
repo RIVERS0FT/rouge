@@ -2,24 +2,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { MAP, provinceAt, STARTS, pointInProvince } from '../src/game/map.ts';
-import { buildFlow } from '../src/game/navigation.ts';
+import { buildFlow,findRegionRoute } from '../src/game/navigation.ts';
 import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX } from '../src/game/save.ts';
+import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
 import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
 const fresh=()=>new Engine(createGame(setups,1234,'test'));
 const initial=fresh().state,HOME=initial.provinces.find(p=>p.owner===0).id,ALLY=initial.provinces.find(p=>p.owner===0&&p.id!==HOME).id,TARGET=MAP[HOME].neighbors.find(n=>initial.provinces[n].owner===-1);
-test('675 management regions have valid anchors and symmetric land adjacency',()=>{
- assert.equal(MAP.length,675);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
- for(const p of MAP){assert.ok(p.parts.length>0);if(p.playable)assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);for(const n of p.neighbors){assert.ok(MAP[n].neighbors.includes(p.id));assert.notEqual(n,p.id);}}
+test('4596 administrative regions have valid anchors and symmetric land adjacency',()=>{
+ assert.equal(MAP.length,4596);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
+ for(const p of MAP.filter(p=>p.playable)){assert.ok(p.parts.length>0);if(p.playable)assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);for(const n of p.neighbors){assert.ok(MAP[n].neighbors.includes(p.id));assert.notEqual(n,p.id);}}
  assert.equal(provinceAt(0,0),-1); // Gulf of Guinea is not a fabricated land tile.
 });
 test('fixed seed and command sequence produce identical state',()=>{
  const a=fresh(),b=fresh();const command={type:'march',from:HOME,to:TARGET,fraction:1};assert.equal(a.command(0,command).ok,true);b.command(0,command);a.step(1200);b.step(1200);assert.deepEqual(a.state,b.state);assert.ok(validateState(a.state));
 });
-test('auto-production continues without consuming military funds',()=>{const e=fresh();e.state.players[1].ai=false;e.state.players[0].gold=0;const before=e.state.units.filter(u=>u.owner===0).length;e.step(281);assert.equal(e.state.units.filter(u=>u.owner===0).length,before+2);assert.ok(e.state.players[0].gold>0);});
+test('auto-production continues without consuming military funds',()=>{const e=fresh();e.state.players[1].ai=false;e.state.players[0].gold=0;const before=e.state.units.filter(u=>u.owner===0).length;const producing=e.state.provinces.filter(p=>p.owner===0&&e.state.units.filter(u=>u.owner===0&&u.province===p.id).length<regionCapacity(p.id));for(const p of producing)p.production=14-.025*regionProductionRate(p.id);e.step();assert.equal(e.state.units.filter(u=>u.owner===0).length,before+producing.length);assert.ok(e.state.players[0].gold>0);});
 test('reject forged ownership, invalid inputs and unsupported production; islands have no land route',()=>{
- const e=fresh(),before=structuredClone(e.state);assert.equal(e.command(1,{type:'march',from:HOME,to:ALLY,fraction:1}).ok,false);assert.equal(e.navigation.route(e.state,0,HOME,MAP.find(p=>p.code==='STATE_HAWAIIAN_ISLANDS').id,false),null);assert.equal(e.command(0,{type:'march',from:HOME,to:ALLY,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);assert.deepEqual(e.state,before);
+ const e=fresh(),before=structuredClone(e.state);assert.equal(e.command(1,{type:'march',from:HOME,to:ALLY,fraction:1}).ok,false);assert.equal(findRegionRoute(HOME,MAP.find(p=>p.code==='USA-3517').id),null);assert.equal(e.command(0,{type:'march',from:HOME,to:ALLY,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);assert.deepEqual(e.state,before);
 });
 test('health upgrades preserve wounded health ratio and deduct cost exactly once',()=>{
  const e=fresh(),p=e.state.players[0],u=e.state.units.find(u=>u.owner===0);u.hp=stats(p,'infantry').hp/2;const before=p.gold;assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'health'}).ok,true);assert.equal(u.hp/stats(p,'infantry').hp,0.5);assert.equal(p.gold,before-30);
@@ -28,7 +29,7 @@ test('shared reverse flow goes around walls and forbids diagonal corner cutting'
  const costs=new Float32Array(25).fill(1);costs[7]=costs[12]=costs[17]=Infinity;const f=buildFlow({width:5,height:5,costs},14);let i=10;const visited=new Set();while(i!==14){assert.ok(i>=0);assert.ok(!visited.has(i));visited.add(i);assert.ok(f.distance[f.next[i]]<f.distance[i]);i=f.next[i];}assert.ok(visited.size>4);
  const g=buildFlow({width:2,height:2,costs:new Float32Array([1,Infinity,Infinity,1])},3);assert.equal(g.next[0],-1);
 });
-test('permission-free land flow is shared across factions and ownership changes',()=>{const e=fresh(),target=TARGET;const a=e.navigation.get(e.state,0,target,HOME);assert.equal(a,e.navigation.get(e.state,0,target,HOME));e.state.topology++;assert.equal(a,e.navigation.get(e.state,1,target,HOME));});
+test('permission-free land flow is shared across factions and ownership changes',()=>{const e=fresh(),target=TARGET;const a=e.navigation.plan(MAP[HOME].center,MAP[target].center),builds=e.navigation.builds;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));e.state.topology++;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));assert.equal(e.navigation.builds,builds);});
 test('march, combat, capture and automatic production form a working loop',()=>{
  const e=fresh();e.state.players[1].ai=false;const target=TARGET;assert.ok(target!==undefined);assert.equal(e.command(0,{type:'march',from:HOME,to:target,fraction:1}).ok,true);e.step(3000);assert.equal(e.state.provinces[target].owner,0);assert.ok(e.state.events.some(v=>v.key==='capture'&&v.province===target));assert.ok(validateState(e.state));
 });
