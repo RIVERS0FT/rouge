@@ -1,3 +1,4 @@
+import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
 import { chooseSpawnPairs, getSpawnCapacity } from './spawns.ts';
@@ -20,7 +21,9 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   // Equal initial budgets: two complete locked gameplay regions and five
   // troops per region.
   const startingTroops=new Map<number,number>();
-  chooseSpawnPairs(seed,setups.length,s).forEach((pair,actor)=>{
+  const spawnPairs=chooseSpawnPairs(seed,setups.length,s);
+  assignCountryNames(s.players,spawnPairs.map(pair=>MAP[pair[0]]));
+  spawnPairs.forEach((pair,actor)=>{
     for(const representative of pair){
       const groupId=s.grouping.atomToGroup[MAP[representative].code],group=s.grouping.groups.find(g=>g.id===groupId)!;
       const atoms=group.atoms.map(code=>MAP.findIndex(p=>p.code===code)).filter(id=>id>=0&&MAP[id].playable)

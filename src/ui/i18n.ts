@@ -1,3 +1,4 @@
+import {countryName,type CountryIdentity} from '../game/countryNames.ts';
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
  backgroundLoading:['正在后台准备游戏…','Preparing game in the background…'],loadingResources:['正在准备游戏资源…','Preparing game resources…'],resourceFailed:['游戏资源未能加载，请检查连接后重新加载。','Game resources could not load. Check your connection and reload.'],reloadResources:['重新加载','Reload'],
@@ -130,8 +131,9 @@ export const STRINGS:Record<string,[string,string]>={
 export function t(language:Language,key:string):string{return STRINGS[key]?.[language==='zh'?0:1]??STRINGS['error.generic'][language==='zh'?0:1];}
 export function timeLabel(ticks:number):string{const total=Math.floor(ticks/20);return`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
 
-/** Localize generated computer names without rewriting player-entered names or saves. */
-export function playerName(language:Language,player:{name:string;ai?:boolean}):string{
+/** Localize stable AI identities; never translate player-entered names. */
+export function playerName(language:Language,player:{name:string;ai?:boolean;country?:CountryIdentity}):string{
+ if(player.country)return countryName(language,player);
  const match=player.ai&&/^AI (\d+)$/.exec(player.name);
  return match?`${t(language,'aiPlayer')} ${match[1]}`:player.name;
 }
