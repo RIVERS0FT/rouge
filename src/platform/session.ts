@@ -1,3 +1,4 @@
+import {createLocalSession} from './localSession.ts';
 import type { Flag } from '../game/flags.ts';
 import { applyFrame } from './replication.ts';
 import { MAP_ID, RULES_ID } from '../game/content.ts';
@@ -14,10 +15,7 @@ export interface Session {
 }
 export function localSession(state:GameState,onState:(state:GameState)=>void,onResult:(result:Result)=>void):Session{
   const worker=new Worker(new URL('./worker.ts',import.meta.url),{type:'module'});
-  worker.onmessage=({data})=>{if(data.type==='state')onState(data.state);else if(data.type==='result')onResult(data.result);};
-  worker.onerror=()=>onResult({ok:false,error:'workerFailed'});
-  worker.postMessage({type:'init',state});
-  return{mode:'solo',actor:0,command:command=>worker.postMessage({type:'command',command}),pause:value=>worker.postMessage({type:'pause',value}),speed:value=>worker.postMessage({type:'speed',value}),dispose:()=>worker.terminate()};
+  return createLocalSession(worker,state,onState,onResult);
 }
 export async function api(path:string,body?:unknown,token?:string):Promise<any>{
   const response=await fetch(`/api${path}`,{method:body===undefined?'GET':'POST',headers:{'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});

@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test('owned adjacent administrative atoms merge and split through authoritative commands',async({page})=>{
  test.setTimeout(180000);
- const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8'}));
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('open-saves').click();
  await expect(page.getByTestId('legacy-map-save-notice')).toContainText('not overwritten');

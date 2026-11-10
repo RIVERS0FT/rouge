@@ -21,7 +21,7 @@ test('leader artwork and preferences persist while solo AI selection controls fa
  await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','steward');
 });
 test('queued level choices stay open until the final authoritative choice is applied',async({page})=>{
- const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-talents-fixture.mjs'],{encoding:'utf8'}));
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-talents-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Queued talent choices'}).getByRole('button',{name:'载入',exact:true}).click();
