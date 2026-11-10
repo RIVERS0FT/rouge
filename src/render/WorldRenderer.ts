@@ -1,3 +1,5 @@
+import {MapSurface} from './mapSurface.ts';
+import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryComponents,regionAreas,overlaps,LabelCollisionIndex,COUNTRY_LABEL_LIMIT,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
@@ -26,6 +28,7 @@ export class WorldRenderer {
   readonly scene=new THREE.Scene();
   readonly camera=new THREE.PerspectiveCamera(40,1,0.05,20000);
   private atlas=new THREE.Group();
+  private mapSurface:MapSurface;
   private repeats:THREE.Group[]=[];
   private land:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>;
   private admin:THREE.LineSegments;
@@ -74,12 +77,12 @@ export class WorldRenderer {
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
-    const sea=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_WIDTH,BOUNDS.bottom-BOUNDS.top),new THREE.MeshBasicMaterial({color:0x334b52}));
+    const sea=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_WIDTH,BOUNDS.bottom-BOUNDS.top),new THREE.MeshBasicMaterial({color:OCEAN_FALLBACK,toneMapped:false}));
     sea.rotation.x=-Math.PI/2;sea.position.set(0,-0.25,WORLD_CENTER.z);this.atlas.add(sea);
     const graticule:number[]=[];
     for(let lon=-180;lon<=180;lon+=30){const a=project(lon,SOUTH_LATITUDE),b=project(lon,NORTH_LATITUDE);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
     for(let lat=Math.ceil(SOUTH_LATITUDE/20)*20;lat<=NORTH_LATITUDE;lat+=20){const a=project(-180,lat),b=project(180,lat);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
-    this.atlas.add(this.lines(graticule,0x507078,0.28));
+    this.atlas.add(this.lines(graticule,0x90afb0,0.10));
     // No decorative atlas frame: the map continues behind the edge HUD.
     const positions:number[]=[],colors:number[]=[];
     for(const province of MAP) {
@@ -108,7 +111,7 @@ export class WorldRenderer {
     this.colors=new THREE.Float32BufferAttribute(colors,3);this.colors.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('color',this.colors);
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
-    this.relief(material);this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
+    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;});this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
     this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
     const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
     this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
@@ -366,7 +369,7 @@ export class WorldRenderer {
       if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>overlaps(p,{left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5}))||n>=48)return;
       occupied.push({left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
-        ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#8ca7ac':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
+        ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#bfd1d2':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
       label.sprite.visible=true;label.sprite.position.set(x,0.9+heightAt(canonicalX,z)*this.blend,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
     };
     // Region information takes priority over country titles at tactical zoom.
@@ -401,7 +404,7 @@ export class WorldRenderer {
         // of titles; zooming reveals them. The limit is rendering only.
         if(Math.sqrt(component.area)*scale<18)continue;
         const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));
-        const maxWidth=Math.min(230,width*.48),estimated=[...name].reduce((n,c)=>n+(/[^\x00-\x7F]/.test(c)?font:font*.59),0);
+        const maxWidth=Math.min(230,width*.48),estimated=[...name].reduce((n,c)=>n+(/[^\x00-\x7F]/.test(c)?font:font*.59)+font*.035,0);
         const labelWidth=Math.ceil(Math.min(maxWidth,Math.max(50,estimated+4)));
         const anchors=component.anchors.map(id=>({id,anchor:MAP[id].center,screen:projectPoint(MAP[id].center.x,MAP[id].center.z)})).filter(p=>p.screen.visible&&p.screen.x>=labelWidth/2+8&&p.screen.x<=width-labelWidth/2-8&&p.screen.y>=8&&p.screen.y<=height-8);
         if(!anchors.length)continue;
@@ -475,6 +478,6 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+  dispose(){this.mapSurface.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.renderer.dispose();c.remove();}
 }

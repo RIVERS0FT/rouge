@@ -90,13 +90,17 @@ jobs:
             map:atlas.mapId,
             regionCount:atlas.provinces.length,
             sourceAtomCount:atlas.sourceAtomCount,
-            mapRedistributionAuthorization:'natural-earth-public-domain'
+            mapRedistributionAuthorization:'natural-earth-public-domain',
+            visualMap:{relief:'Natural Earth Shaded Relief 3.2.0',ocean:'Natural Earth Ocean Bottom 3.2.0',simulationChanged:false}
           }, null, 2));
           const notices = ['ROUGE - bundled library notices\n'];
           for (const name of ['react','react-dom','scheduler','three']) {
             notices.push(`\n===== ${name} =====\n`, fs.readFileSync(`node_modules/${name}/LICENSE`,'utf8'));
           }
           notices.push('\nMap geometry: Natural Earth 5.1.1 1:10m Admin1, public domain. https://www.naturalearthdata.com/about/terms-of-use/\nManagement groups are approximate references, not exact Victoria 3 boundaries.\n');
+          notices.push('\nLand shading: Natural Earth Shaded Relief 3.2.0. Ocean artwork: Natural Earth Ocean Bottom 3.2.0. Public domain. Visual-only Miller reprojection and recoloring. https://www.naturalearthdata.com/about/terms-of-use/\n');
+          fs.copyFileSync('docs/MAP_SURFACES.md','dist/MAP_SURFACES.md');
+          fs.copyFileSync('data/map-surfaces-audit.json','dist/map-surfaces-audit.json');
           fs.copyFileSync('docs/ADMIN1_OVERLAY_AUDIT.md','dist/MAP_DATA_SOURCE.md');
           fs.copyFileSync('data/natural-earth-admin1-base-audit.json','dist/map-data-audit.json');
           fs.writeFileSync('dist/THIRD_PARTY_NOTICES.txt',notices.join('\n'));
