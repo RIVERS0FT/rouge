@@ -55,7 +55,8 @@ test.describe('touch identity and unit selection',()=>{
    await leader.tap();await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
    await page.screenshot({path:`artifacts/start-screen-${width}x${height}.png`});
    await page.getByTestId('single-player').tap();const card=page.getByTestId('choose-unit-cavalry');await card.tap();
-   await expect(card).toHaveAttribute('aria-pressed','true');await bounds(page.getByRole('tooltip'),width,height);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
+   await expect(card).toHaveAttribute('aria-pressed','true');const tip=await bounds(page.getByRole('tooltip'),width,height),trigger=await card.boundingBox();
+   expect(tip.y+tip.height<=trigger!.y||tip.y>=trigger!.y+trigger!.height).toBe(true);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
    await page.screenshot({path:`artifacts/unit-tooltip-${width}x${height}.png`});
    await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toHaveCount(0);
    await card.tap();await expect(page.getByRole('tooltip')).toBeVisible();await card.tap();await expect(page.getByRole('tooltip')).toHaveCount(0);

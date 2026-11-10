@@ -39,9 +39,13 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
    const anchor=buttons.current[active]?.getBoundingClientRect(),tip=tooltip.current;if(!anchor||!tip)return;
    const width=Math.min(340,window.innerWidth-24);tip.style.width=`${width}px`;
    const height=Math.min(tip.scrollHeight+2,window.innerHeight-24);
-   const below=window.innerHeight-anchor.bottom-10,above=anchor.top-10;
-   const top=below>=height?anchor.bottom+8:above>=height?anchor.top-height-8:Math.max(12,Math.min(anchor.top,window.innerHeight-height-12));
-   setPosition({width,left:Math.max(12,Math.min(anchor.left+(anchor.width-width)/2,window.innerWidth-width-12)),top,maxHeight:window.innerHeight-24});
+   if(anchor.bottom<=12||anchor.top>=window.innerHeight-12){setActive(null);return;}
+   const below=Math.max(0,window.innerHeight-anchor.bottom-20),above=Math.max(0,anchor.top-20);
+   const useBelow=below>=height||below>=above,maxHeight=Math.max(1,useBelow?below:above);
+   // Never cover the active trigger: a second touch must always be able to dismiss.
+   // Short landscapes scroll the tooltip itself instead of obscuring its trigger.
+   const top=useBelow?anchor.bottom+8:anchor.top-Math.min(height,maxHeight)-8;
+   setPosition({width,left:Math.max(12,Math.min(anchor.left+(anchor.width-width)/2,window.innerWidth-width-12)),top:Math.max(12,top),maxHeight});
   };
   place();window.addEventListener('resize',place);window.addEventListener('scroll',place,true);
   return()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);};
