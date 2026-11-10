@@ -13,6 +13,8 @@ three rendered soldiers are one battalion footprint, not three physics bodies.
 - Correction is limited to 0.6 world units per tick. Each body visits at most
   96 candidates per pass. Overloaded buckets rotate the deterministic scan;
   there is no global unit cap and no all-pairs fallback.
+- Each body attempts at most 12 terrain-constrained corrections per tick. A
+  wall-pinned crowd cannot repeatedly spend the whole tick on rejected pushes.
 - Physical coastlines, lakes and map edges constrain correction, not political
   borders. A dedicated boundary index checks short land segments and circle
   clearance. Existing narrow passages or old saves may have clipped footprints;
@@ -34,11 +36,11 @@ Temporary overlap can remain in an extreme crowd, an undersized island or a
 physically blocked corridor. Terrain safety wins over forcing separation. A
 new contact created by a correction may be resolved in the next pass/tick.
 `Engine.collision` exposes candidate/contact counts, greatest encountered
-penetration and saturated scan counts for profiling; these are runtime-only.
+penetration, terrain-constraint attempts and saturated budget counts for profiling; these are runtime-only.
 
 Local v5 saves retain their schema and namespace. The spatial index, cached
 clearance and diagnostics are not serialized. The LAN rules identifier changes
-to `admin1-groups-terrain-collision-v2`, so clients with different movement rules
+to `admin1-groups-terrain-collision-v3`, so clients with different movement rules
 cannot join one another silently.
 
 Regression coverage is in `tests/collision.test.mjs` and

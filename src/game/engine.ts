@@ -61,7 +61,7 @@ function experience(s:GameState,id:number,amount:number):void{
 }
 export class Engine{
   state:GameState;navigation=new TerrainNavigator();
-  collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0};
+  collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
   constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});

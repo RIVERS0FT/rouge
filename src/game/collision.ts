@@ -5,9 +5,10 @@ export const UNIT_RADIUS:Record<Kind,number>={infantry:.46,skirmisher:.46,engine
 export const COLLISION_PASSES=4;
 export const COLLISION_MAX_PUSH=.6;
 export const COLLISION_CANDIDATES=96;
+export const COLLISION_CONSTRAINTS=12;
 export const COLLISION_CELL=1.24; // Maximum diameter: a 3 × 3 neighborhood is enough.
 export interface CircleBody extends Vec2 {id:number;radius:number}
-export interface CollisionReport {candidates:number;contacts:number;maxPenetration:number;limited:number}
+export interface CollisionReport {candidates:number;contacts:number;maxPenetration:number;limited:number;constraints:number;constraintLimited:number}
 const key=(x:number,z:number)=>`${x}:${z}`;
 const directions=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQRT1_2],[-1,0],[-Math.SQRT1_2,-Math.SQRT1_2],[0,-1],[Math.SQRT1_2,-Math.SQRT1_2]];
 
@@ -16,11 +17,13 @@ const directions=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQ
  * Overloaded buckets use rotating, deterministic sampling instead of quadratic work.
  * Dense/impossible packing can retain penetration; never teleport through a wall. */
 export function separateCircles<T extends CircleBody>(input:readonly T[],canMove:(body:T,to:Vec2)=>boolean,tick=0):CollisionReport {
-  const bodies=[...input].sort((a,b)=>a.id-b.id),remaining=new Map(bodies.map(b=>[b.id,COLLISION_MAX_PUSH]));
-  const report:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0};
+  const bodies=[...input].sort((a,b)=>a.id-b.id),remaining=new Map(bodies.map(b=>[b.id,COLLISION_MAX_PUSH])),attempts=new Map<number,number>();
+  const report:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
   function push(b:T,x:number,z:number,amount:number):number {
     amount=Math.min(amount,remaining.get(b.id)!);if(amount<1e-7)return 0;
     for(const fraction of [1,.5,.25,.125]){
+      const tried=attempts.get(b.id)??0;if(tried>=COLLISION_CONSTRAINTS)return 0;
+      attempts.set(b.id,tried+1);report.constraints++;
       const d=amount*fraction,to={x:b.x+x*d,z:b.z+z*d};
       if(canMove(b,to)){b.x=to.x;b.z=to.z;remaining.set(b.id,remaining.get(b.id)!-d);return d;}
     }
@@ -51,5 +54,6 @@ export function separateCircles<T extends CircleBody>(input:readonly T[],canMove
       }
     }
   }
+  report.constraintLimited=bodies.filter(b=>(attempts.get(b.id)??0)>=COLLISION_CONSTRAINTS).length;
   return report;
 }
