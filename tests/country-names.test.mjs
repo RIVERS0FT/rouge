@@ -1,3 +1,4 @@
+import {execFileSync} from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {assignCountryNames,countryName,COUNTRY_FORMS,validCountryIdentity} from '../src/game/countryNames.ts';
@@ -58,4 +59,11 @@ test('old v5 saves recover original birthplaces, not the territory held when loa
  assert.deepEqual(loaded.players.map(p=>p.country),expected);
  const malformed=JSON.parse(envelope.body);malformed.players[1].country={origin:'x',name:['','']};envelope.body=JSON.stringify(malformed);envelope.hash=checksum(envelope.body);
  assert.throws(()=>decodeSave(JSON.stringify(envelope)),/invalidSave/);
+});
+
+test('browser country fixture is a valid playable save before any UI is launched',()=>{
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-country-name-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+ const state=decodeSave(fixture.value).state;assert.ok(validateState(state));
+ assert.equal(state.players.filter(p=>!p.ai).length,2);assert.equal(state.players.filter(p=>p.ai).length,3);
+ for(const p of state.provinces)if(p.owner>=0)assert.ok(state.players[p.owner].loadout.includes(p.kind));
 });
