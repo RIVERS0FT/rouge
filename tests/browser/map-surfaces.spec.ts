@@ -1,0 +1,58 @@
+import {test,expect,type Page} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+async function loadMap(page:Page){
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-country-name-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+ await page.addInitScript(({key,value})=>{localStorage.setItem(key,value);localStorage.setItem('rouge.language','en');},fixture);
+ await page.goto('/');await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Country names fixture'}).getByRole('button',{name:'Load',exact:true}).click();
+ await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+ const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+ await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+ return canvas;
+}
+for(const mobile of [false,true])test.describe(mobile?'mobile map surfaces':'desktop map surfaces',()=>{
+ test.use({hasTouch:mobile,isMobile:mobile,viewport:mobile?{width:844,height:390}:{width:1440,height:960}});
+ test('geographic relief and ocean detail load behind political borders and names',async({page})=>{
+  test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
+  const images:string[]=[];page.on('request',r=>{if(/natural-earth-(relief|ocean)-.*webp/.test(r.url()))images.push(r.url());});
+  await page.addInitScript(()=>Object.defineProperty(navigator,'deviceMemory',{get:()=>8}));
+  const canvas=await loadMap(page);
+  await expect(canvas).toHaveAttribute('data-relief-state','ready');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
+  await expect(canvas).toHaveAttribute('data-relief-width',mobile?'2048':'4096');await expect(canvas).toHaveAttribute('data-ocean-width',mobile?'1024':'2048');
+  await expect(canvas).toHaveAttribute('data-surface-projection','miller-crop');
+  await expect.poll(()=>page.locator('.country-label:visible').count()).toBeGreaterThan(0);
+  await expect(canvas).toHaveAttribute('data-country-borders','true');
+  await page.screenshot({path:`artifacts/map-surfaces-${mobile?'mobile':'desktop'}-world.png`});
+  // Himalaya and coastal shelf retain geographic alignment at strategic zoom.
+  await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+  if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').click();
+  await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+  const distance=Number(await canvas.getAttribute('data-distance'));for(let n=0;n<Math.ceil(Math.log(650/distance)/Math.log(1.15));n++)await page.keyboard.press('-');
+  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+  expect(await canvas.getAttribute('data-selected-fill-color')).toEqual(await canvas.getAttribute('data-selected-owner-color'));
+  await page.screenshot({path:`artifacts/map-surfaces-${mobile?'mobile':'desktop'}-himalaya.png`});
+  if(mobile){await page.setViewportSize({width:390,height:844});await expect(canvas).toHaveAttribute('data-viewport-width','390');await expect(canvas).toHaveAttribute('data-surface-resolution','compact');}
+  await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+  expect(images).toHaveLength(2);expect(errors).toEqual([]);
+ });
+});
+test('missing cosmetic images leave a playable flat-color map',async({page})=>{
+ test.setTimeout(120000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/natural-earth-*.webp*',route=>route.abort());
+ const canvas=await loadMap(page);
+ await expect(canvas).toHaveAttribute('data-relief-state','fallback');await expect(canvas).toHaveAttribute('data-ocean-state','fallback');
+ await expect(canvas).toHaveAttribute('data-ready','true');await expect(page.locator('.render-error')).toHaveCount(0);
+ await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+ await expect(canvas).not.toHaveAttribute('data-selected-region','-1');expect(errors).toEqual([]);
+});
+test('slow artwork does not delay map input or simulation readiness',async({page})=>{
+ test.setTimeout(120000);
+ let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve;});
+ await page.route('**/natural-earth-*.webp*',async route=>{await gate;await route.continue();});
+ try{
+  const canvas=await loadMap(page);
+  await expect(canvas).toHaveAttribute('data-relief-state','loading');await expect(canvas).toHaveAttribute('data-ocean-state','loading');
+  await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+  await expect(canvas).not.toHaveAttribute('data-selected-region','-1');
+  release();await expect(canvas).toHaveAttribute('data-relief-state','ready');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
+ }finally{release();}
+});
