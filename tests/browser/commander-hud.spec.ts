@@ -64,7 +64,12 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('alt',/\S/);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
-    await page.keyboard.press('Space');await page.locator('canvas').focus();await page.keyboard.press('Home');
+    // The HUD renders before the worker is ready. Do not activate the startup
+    // dialog's focused Cancel button with Space.
+    await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+    await page.locator('canvas').focus();await page.keyboard.press('Space');
+    await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+    await page.keyboard.press('Home');
     await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
     await assertLayout(page);await page.screenshot({path:`artifacts/hud-${leader}-1440.png`});
     // Browsing another country must not change either local-player identity element.
