@@ -63,7 +63,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await expect(page.getByTestId('leader-bust')).toHaveJSProperty('naturalWidth',720);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('alt',/\S/);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
-    await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
+    await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
     // The HUD renders before the worker is ready. Do not activate the startup
     // dialog's focused Cancel button with Space.
     await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
@@ -78,7 +78,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
-    await expect(page.getByTestId('faction-identity')).toContainText('Faction 1');
+    await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
     await assertLayout(page);
     await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);

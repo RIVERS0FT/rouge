@@ -46,3 +46,9 @@
 .route-preview{padding:8px 0;border-top:1px solid #9a8b6133;line-height:1.5;overflow-wrap:anywhere}
 .route-preview strong{color:var(--gold);display:block}.route-preview small{display:block}
 .destination-search{width:100%;margin:4px 0 7px}
+
+/* Explicit ownership stays readable beside the compact garrison count. */
+.province-owner-name{min-width:0;flex:1;overflow-wrap:anywhere}
+.province-owner-name>small{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}
+.province-owner-name>span{display:block;line-height:1.5}
+.province-owner>b{flex-shrink:0;white-space:nowrap}

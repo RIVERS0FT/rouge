@@ -2,22 +2,20 @@ import type { Flag } from '../game/flags.ts';
 import { FlagImage } from './Flag.tsx';
 import { memo, type CSSProperties } from 'react';
 import type { Player } from '../game/types.ts';
-import { commanderIdentity, leaderProgress } from './commanderIdentity.ts';
+import { leaderProgress } from './commanderIdentity.ts';
 import { LeaderBust } from './LeaderBust.tsx';
 import { t, playerName, type Language } from './i18n.ts';
 
 const LABELS = {
-  identity: ['本方势力', 'Your faction'], portrait: ['领袖上半身像', 'Leader half-body portrait'],
+  portrait: ['领袖上半身像', 'Leader half-body portrait'],
   experience: ['统帅经验', 'Command experience'], maximum: ['已达最高等级', 'Maximum level'],
   choose: ['有天赋待选择', 'Talent choice available'], open: ['查看领袖天赋', 'View leader talents'],
 } as const;
 function label(language: Language, key: keyof typeof LABELS) { return LABELS[key][language === 'zh' ? 0 : 1]; }
 
 export const FactionIdentity = memo(function FactionIdentity({ actor, language, color, flag }: { flag?:Flag; actor: number; language: Language; color:string }) {
-  const identity=commanderIdentity(actor),name=identity.names[language==='zh'?0:1];
-  return <div className="faction-identity" data-testid="faction-identity" data-actor={actor} title={name}>
-    <div className="faction-emblem-frame" style={{'--faction-color':color} as CSSProperties}>{flag?<FlagImage flag={flag} language={language}/>:<><span className="faction-emblem" aria-hidden="true">◇</span><b>{actor+1}</b></>}</div>
-    <div className="faction-copy"><small>{label(language,'identity')}</small><b>{name}</b></div>
+  return <div className="faction-identity" data-testid="faction-identity" data-actor={actor}>
+    <div className="faction-emblem-frame" style={{'--faction-color':color} as CSSProperties}>{flag?<FlagImage flag={flag} language={language}/>:<span className="faction-emblem" aria-hidden="true">◇</span>}</div>
   </div>;
 });
 
