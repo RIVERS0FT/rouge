@@ -1,3 +1,5 @@
+import {countryName} from '../game/countryNames.ts';
+import {buildCountryComponents,regionAreas,overlaps,LabelCollisionIndex,COUNTRY_LABEL_LIMIT,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
@@ -34,6 +36,13 @@ export class WorldRenderer {
   private ranges:Range[]=[];
   private colors:THREE.Float32BufferAttribute;
   private labels:Label[]=[];
+  private countryComponents:CountryComponent[]=[];
+  private countryAreas=regionAreas(MAP);
+  private countryLayer:HTMLDivElement;
+  private countryLabels:HTMLSpanElement[]=[];
+  private countryStamp='';
+  private countryMeasures=new Map<string,number>();
+  private labelTimer:ReturnType<typeof setTimeout>|null=null;
   private bodies:THREE.InstancedMesh;
   private heads:THREE.InstancedMesh;
   private unitInstanceCapacity=512;
@@ -59,6 +68,8 @@ export class WorldRenderer {
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
+    this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
+    for(let i=0;i<COUNTRY_LABEL_LIMIT;i++){const label=document.createElement('span');label.className='country-label';label.hidden=true;this.countryLabels.push(label);this.countryLayer.append(label);}
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
@@ -177,6 +188,11 @@ export class WorldRenderer {
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);ownershipChanged=true;}
+    const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
+    if(ownershipChanged||countryStamp!==this.countryStamp){
+      this.countryStamp=countryStamp;this.countryComponents=buildCountryComponents(MAP,this.ownerIds,this.countryAreas);this.lastLabels=0;this.invalidated=true;
+      this.renderer.domElement.dataset.countryComponents=String(this.countryComponents.length);
+    }
     if(stamp!==this.groupingStamp||ownershipChanged){
       this.groupingStamp=stamp;
       const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[];
@@ -253,6 +269,7 @@ export class WorldRenderer {
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
   setInputContext(context:MapInputContext){
+    this.countryLayer.hidden=context!=='game';this.invalidated=true;this.lastLabels=0;
     this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
     this.renderer.domElement.dataset.inputContext=context;
   }
@@ -328,25 +345,84 @@ export class WorldRenderer {
   };
   private contextMenu=(e:Event)=>e.preventDefault();
   private drawLabels(time:number) {
-    if(time-this.lastLabels<180)return;this.lastLabels=time;const near=this.distance<500;
+    if(time-this.lastLabels<180){
+      // A final camera/state change must not leave labels at the previous view.
+      if(this.labelTimer===null)this.labelTimer=setTimeout(()=>{this.labelTimer=null;this.invalidated=true;},180-(time-this.lastLabels));
+      return;
+    }
+    this.lastLabels=time;const near=this.distance<500;
     const candidates=near?MAP.filter(p=>p.visible&&Math.abs(nearestWorldX(p.center.x,this.focus.x)-this.focus.x)<this.distance*this.camera.aspect*0.45&&Math.abs(p.center.z-this.focus.z)<this.distance*0.5).sort((a,b)=>(a.id===this.selected?-1:b.id===this.selected?1:(a.center.x-this.focus.x)**2+(a.center.z-this.focus.z)**2-(b.center.x-this.focus.x)**2-(b.center.z-this.focus.z)**2)):[];
-    const occupied:{x:number;y:number}[]=[];let n=0,townCount=0;
+    const occupied:LabelRect[]=[];let n=0,townCount=0;
     const paint=(name:string,x:number,z:number,ocean=false)=>{
       if(!inRect({x,z},BOUNDS))return;const canonicalX=x;x=nearestWorldX(x,this.focus.x);
       const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.host.clientWidth/2,sy=(1-screen.y)*this.host.clientHeight/2;
-      if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>Math.abs(p.x-sx)<130&&Math.abs(p.y-sy)<27)||n>=48)return;
-      occupied.push({x:sx,y:sy});const label=this.labels[n++],key=`${name}:${ocean}`;
+      if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>overlaps(p,{left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5}))||n>=48)return;
+      occupied.push({left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
         ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#8ca7ac':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
       label.sprite.visible=true;label.sprite.position.set(x,0.9+heightAt(canonicalX,z)*this.blend,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
     };
+    // Region information takes priority over country titles at tactical zoom.
     for(const p of candidates){
       paint(p.name[this.lang==='zh'?0:1],p.center.x,p.center.z);
       if(this.blend>0.1&&townCount<188){for(const {x,z,rotation} of TOWNS[p.id]){
         this.dummy.position.set(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,rotation,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
     }
+    this.drawCountryLabels(occupied);
     if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,72]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
+  }
+  private drawCountryLabels(occupied:LabelRect[]) {
+    let count=0;const shown=new Set<number>(),state=this.state,width=this.host.clientWidth,height=this.host.clientHeight;
+    const hostRect=this.host.getBoundingClientRect();
+    // Exclude the actual visible HUD, including open mobile sheets. No fixed
+    // desktop margins, no hit targets and no DOM injection from player names.
+    const blockers=new LabelCollisionIndex();
+    for(const node of this.host.parentElement?.querySelectorAll<HTMLElement>('.hud-top,.province-panel,.strategic-panel,.commander-portrait,.army-actions,.settings-trigger,.map-search,.mobile-actions,.pause-banner,.elimination-status')??[]){
+      const rect=node.getBoundingClientRect();if(rect.width&&rect.height)blockers.add({left:rect.left-hostRect.left,right:rect.right-hostRect.left,top:rect.top-hostRect.top,bottom:rect.bottom-hostRect.top});
+    }
+    const projectPoint=(x:number,z:number)=>{const p=new THREE.Vector3(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.8,z).project(this.camera);return{x:(p.x+1)*width/2,y:(1-p.y)*height/2,visible:p.z>=-1&&p.z<=1};};
+    // At close range units, houses and region names own the screen.
+    if(state&&this.distance>=180&&!this.countryLayer.hidden){
+      if(this.blend>0.1)for(const unit of state.units){const p=projectPoint(unit.x,unit.z);if(p.visible&&p.x>=0&&p.x<=width&&p.y>=0&&p.y<=height)blockers.add({left:p.x-12,right:p.x+12,top:p.y-12,bottom:p.y+12});}
+      const scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
+      for(const component of this.countryComponents){
+        if(count>=COUNTRY_LABEL_LIMIT)break;if(shown.has(component.owner))continue;
+        const player=state.players[component.owner];if(!player)continue;
+        const name=countryName(this.lang,player);if(!name.trim())continue;
+        // Suppress tiny countries in the world view rather than drawing a wall
+        // of titles; zooming reveals them. The limit is rendering only.
+        if(Math.sqrt(component.area)*scale<18)continue;
+        const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));
+        const maxWidth=Math.min(230,width*.48),estimated=[...name].reduce((n,c)=>n+(/[^\x00-\x7F]/.test(c)?font:font*.59),0);
+        const labelWidth=Math.ceil(Math.min(maxWidth,Math.max(50,estimated+4)));
+        const anchors=component.anchors.map(id=>({id,anchor:MAP[id].center,screen:projectPoint(MAP[id].center.x,MAP[id].center.z)})).filter(p=>p.screen.visible&&p.screen.x>=labelWidth/2+8&&p.screen.x<=width-labelWidth/2-8&&p.screen.y>=8&&p.screen.y<=height-8);
+        if(!anchors.length)continue;
+        const measureKey=`${name}:${font}:${labelWidth}`,label=this.countryLabels[count];let labelHeight=this.countryMeasures.get(measureKey);
+        if(labelHeight===undefined){
+          // Measure actual wrapped DOM text once per name/size, including CJK,
+          // emoji and wide Latin glyphs, instead of trusting character counts.
+          label.textContent=name;label.style.width=`${labelWidth}px`;label.style.fontSize=`${font}px`;label.style.visibility='hidden';label.hidden=false;
+          labelHeight=label.getBoundingClientRect().height;label.hidden=true;label.style.visibility='';
+          if(this.countryMeasures.size>=512)this.countryMeasures.clear();this.countryMeasures.set(measureKey,labelHeight);
+        }
+        if(labelHeight>font*1.2*4+1)continue;
+        let attempts=0;
+        for(const {id,anchor,screen} of anchors){
+          const rect={left:screen.x-labelWidth/2,right:screen.x+labelWidth/2,top:screen.y-labelHeight/2,bottom:screen.y+labelHeight/2};
+          if(rect.left<8||rect.right>width-8||rect.top<8||rect.bottom>height-8)continue;
+          if(++attempts>24)break;
+          if(blockers.collides(rect)||occupied.some(other=>overlaps(rect,other,8)))continue;
+          count++;label.textContent=name;label.hidden=false;
+          label.style.left=`${screen.x}px`;label.style.top=`${screen.y}px`;label.style.width=`${labelWidth}px`;label.style.fontSize=`${font}px`;
+          label.dataset.owner=String(component.owner);label.dataset.region=String(id);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);
+          occupied.push(rect);shown.add(component.owner);break;
+        }
+      }
+    }
+    for(let i=count;i<this.countryLabels.length;i++)this.countryLabels[i].hidden=true;
+    this.renderer.domElement.dataset.countryLabels=String(count);
+    this.renderer.domElement.dataset.countryLabelOwners=[...shown].join(',');
   }
   private frame=(time:number)=>{
     this.animation=requestAnimationFrame(this.frame);
@@ -392,5 +468,5 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
   dispose(){this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
-    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();this.renderer.dispose();c.remove();}
+    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.renderer.dispose();c.remove();}
 }
