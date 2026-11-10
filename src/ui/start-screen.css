@@ -12,23 +12,10 @@
 .menu-identity-edit{display:block;font-size:clamp(10px,.84vw,12px);color:var(--gold)}
 .is-menu .language-switch{top:14px;right:clamp(8px,2vw,28px);gap:2px;font-size:12px}
 .is-menu .language-switch button{min-width:44px;min-height:44px}
-.is-menu .menu-top{display:flex;left:var(--menu-content-left);top:26px;width:min(320px,calc(100% - var(--menu-content-left) - 120px));gap:8px}
-.is-menu .brand-mark{flex-shrink:0;width:clamp(24px,2.7vw,39px);font-size:clamp(20px,1.8vw,25px)}
-.is-menu .menu-top .eyebrow{font-size:clamp(8px,.7vw,10px);letter-spacing:.12em;overflow-wrap:anywhere}
-.is-menu .menu-content{position:absolute;left:var(--menu-content-left);top:var(--menu-content-top);width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;max-height:calc(100dvh - var(--menu-content-top) - 100px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
-.is-menu .menu-content h1{font-size:clamp(32px,5.4vw,78px);margin:clamp(10px,1.6vw,24px) 0;letter-spacing:.07em}
-.is-menu .menu-content h1 span{font-size:clamp(14px,1.7vw,24px);margin-top:clamp(7px,1.1vw,16px)}
-.is-menu .menu-description{display:block;font-size:13px;line-height:1.8;max-width:none;margin-bottom:14px}
-.is-menu .menu-content>.eyebrow{display:block;font-size:clamp(8px,.7vw,10px)}
+.is-menu .menu-content{position:absolute;left:var(--menu-content-left);top:var(--menu-content-top);width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;max-height:calc(100dvh - var(--menu-content-top) - 24px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
+.is-menu .menu-content h1{font-size:clamp(28px,4.7vw,64px);margin:clamp(10px,1.6vw,24px) 0;letter-spacing:.07em}
 .is-menu .menu-actions{margin:clamp(12px,2.2vw,31px) 0 14px;gap:5px}
 .is-menu .menu-actions button{min-height:48px;font-size:clamp(12px,1.1vw,16px);padding:clamp(10px,1.3vw,18px) clamp(10px,1.5vw,22px);gap:clamp(8px,1.5vw,22px)}
-.is-menu .menu-content>.small{display:block;font-size:11px;margin-bottom:0}.is-menu .platform-note{display:block;font-size:10px}
-.is-menu .menu-footer{position:absolute;left:var(--menu-content-left);bottom:30px;width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;font-size:12px}
-.is-menu .menu-footer p{font-size:10px;line-height:1.5;margin:7px 0 0}.is-menu .gold-line{margin-bottom:8px}
-/* The extra decorative caption is omitted from this composition at every size. */
-.is-menu .map-caption{display:none}
-.is-menu .atlas-credit{display:block;left:var(--menu-content-left);right:16px;bottom:12px;max-width:none;font-size:8px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.identity-saved{margin:22px 0 0}
 /* Identity choices keep the same three-column layout, including on phones. */
 .identity-modal .leader-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(6px,1.1vw,16px)}
 .identity-modal .leader-card{display:block;min-width:0}.identity-modal .leader-art:has(.leader-bust){width:100%;height:clamp(100px,15vw,180px);min-height:0}

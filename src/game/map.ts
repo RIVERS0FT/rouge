@@ -38,7 +38,7 @@ export const MAP: ProvinceDef[] = data.provinces.map((p, id) => {
   const navigationPart=primary?.partIndex??0,main=parts[navigationPart];
   let center=originalCenter;
   if(primary&&(!inRect(center,primary.bounds)||!containsPart(main,center.x,center.z)))center=visiblePart(main,primary.bounds)!.anchor;
-  return { id, code:p.code, name:[p.name[0]||p.name[1]||p.code,p.name[1]||p.name[0]||p.code] as [string,string],
+  return { id, code:p.code, name:[p.name[0]||`未命名地区 ${id+1}`,p.name[1]||`Unnamed region ${id+1}`] as [string,string],
     sourceId:p.sourceId, center, polygon:main[0], parts,
     neighbors:[], terrain:'plain', visible:!!primary, playable:!!primary, navigationPart,
     cropped:candidates.some(c=>c.cropped)||candidates.length!==parts.length, bounds:primary?.bounds??boundsOf(main[0]) };

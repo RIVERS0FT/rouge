@@ -1,13 +1,14 @@
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ starting:['正在进入战役…','Starting campaign…'],baseStats:['基础属性','Base attributes'],experience:['经验','XP'],levelShort:['等级','LV'],
  playerAppearance:['玩家外观','Player appearance'],playerLeader:['玩家形象','Player portrait'],playerFlag:['国旗','Flag'],editAppearance:['修改外观','Edit appearance'],editPlayerLeader:['修改玩家形象','Edit player portrait'],editPlayerFlag:['修改国旗','Edit flag'],
  identityHint:['外观仅用于识别玩家，不影响能力或出生地。新建单人和多人对局共用此设置。','Appearance identifies you without changing abilities or starting locations. New solo and multiplayer matches use this selection.'],
  unitTooltipHint:['悬停、聚焦或轻点单位查看属性。','Hover, focus or tap a unit to view its attributes.'],
- terrainRouteDistance:['地形路线 · 距离 {distance} 格','Terrain route · Distance {distance} units'],terrainPreviewHint:['预览以两地中心估算。实际命令从各单位当前位置寻路，不沿行政区中心逐块跳转。','Preview uses the two area centers. Actual orders route from each unit’s current position, not through administrative centers.'],
- territories:['领土分组管理','Territory group management'],territoryCurrentGroup:['所选行政区所属组','Selected administrative area’s group'],territoryAtoms:['完整行政区列表 / 拆分选择','Complete administrative areas / split selection'],territoryRevision:['修订','Revision'],territoryAtomCount:['个行政区','areas'],territoryAllNames:['展开完整行政区名称','Show all administrative area names'],
+ terrainRouteDistance:['路线 · {distance} 格','Route · {distance} units'],terrainPreviewHint:['预览以两地中心估算。实际命令从各单位当前位置寻路，不沿行政区中心逐块跳转。','Preview uses the two area centers. Actual orders route from each unit’s current position, not through administrative centers.'],
+ territories:['领土管理','Territory management'],territoryCurrentGroup:['当前领土','Current territory'],territoryAtoms:['行政区','Administrative areas'],territoryRevision:['修订','Revision'],territoryAtomCount:['个行政区','areas'],territoryAllNames:['展开完整行政区名称','Show all administrative area names'],
  territoryMapDisclaimer:['Natural Earth 完整行政区 · 近似州区分组，非精确 Vic3 边界。','Complete Natural Earth administrative areas · approximate state-region grouping, not exact Vic3 boundaries.'],
  territoryConservation:['分组只重组完整行政区，不切割几何、不重置军队或生产，也不增加容量。','Grouping rearranges complete administrative areas. It never cuts geometry, resets troops or production, or creates capacity.'],
- territoryUnavailable:['该行政区分组暂不可用。','This area’s grouping is unavailable.'],territoryReadOnly:['仅可调整全部归你所有且可游玩的分组；其他分组可查看。','Only groups entirely owned by you and playable can be edited. Other groups are read-only.'],
+ territoryUnavailable:['该行政区分组暂不可用。','This area’s grouping is unavailable.'],territoryReadOnly:['只读领土','Read-only territory'],
  territorySplitHint:['勾选要拆出的完整行政区，不可为空或全选；不相连的部分会自动成为独立分组。','Select complete areas to split out, but not none or all. Disconnected components become separate groups.'],territorySplit:['拆出所选行政区','Split selected areas'],
  territoryNeighborGroups:['同主相邻分组','Adjacent groups under your control'],territoryMergeHint:['选择至少一个同主相邻组，与当前组合并。','Select at least one adjacent group you own to merge with the current group.'],territoryNoNeighbors:['没有可合并的同主相邻组。','No adjacent groups under your control can be merged.'],territoryMerge:['合并所选分组','Merge selected groups'],
  oldMapSaveNotice:['旧地图存档仍保留在原命名空间，但与本地图不兼容，不会覆盖或自动转换。','Old-map saves remain in their original namespace, but are incompatible with this map. They are not overwritten or automatically converted.'],
@@ -15,12 +16,12 @@ export const STRINGS:Record<string,[string,string]>={
  'error.invalidGrouping':['领土分组数据无效。','Invalid territory grouping data.'],'error.invalidLedger':['领土资源账本无效。','Invalid territory resource ledger.'],'error.wrongMap':['地图版本不匹配。','Map versions do not match.'],
  eliminatedTitle:['你已被淘汰','You have been eliminated'],eliminatedDescription:['你已失去全部领土，无法再下达军队指令。其余阵营继续战斗，你可以观战或返回菜单。','You have lost all territory and can no longer issue army commands. The remaining factions keep fighting. You can spectate or return to the menu.'],
  spectate:['继续观战','Spectate'],eliminatedSpectating:['已淘汰 · 正在观战','Eliminated · Spectating'],'error.eliminated':['你已被淘汰，无法再下达军队指令。','You are eliminated and can no longer issue army commands.'],
- aiCount:['AI 数量','AI opponents'],aiPlayer:['电脑玩家','Computer player'],
+ aiCount:['电脑对手','Computer opponents'],aiPlayer:['电脑玩家','Computer player'],
  aiSoloHint:['选择1–3名AI，所有阵营拥有相同初始资源和两块领地。','Choose 1–3 AI opponents. Every faction starts with equal resources and two regions.'],
  aiCreateHint:['创建房间时预留AI席位；加入别人的房间不改变其设置。','AI seats are reserved when creating a room. Joining another room does not change its settings.'],
  aiRoomHint:['仅房主可调整。真人与AI合计最多4名，至少2名才能开始。','Only the host can change this. Up to 4 humans and AI combined; at least 2 to start.'],
  preferencesHint:['领袖与旗帜会保存在此浏览器，下一次自动沿用；不改变已保存的战役。','Leader and flag are remembered in this browser for next time, without changing existing campaigns.'],
- 'error.invalidAI':['AI数量无效或超过房间空位','Invalid AI count or not enough room slots'],
+ 'error.invalidAI':['对手数量无效或房间空位不足','Invalid opponent count or not enough room slots'],
 
  controlsTouch:['单指拖动 · 双指缩放 · 点击选地块','Drag with one finger · Pinch to zoom · Tap to select a region'],
  controlsMouse:['拖动平移 · 滚轮缩放 · 右键派遣；聚焦地图可用方向键/±，Home全图、End聚焦','Drag / scroll / right-click; focus map for arrow keys / ±, Home world / End focus'],
@@ -34,7 +35,7 @@ export const STRINGS:Record<string,[string,string]>={
  currentStatsHint:['当前属性已包含升级与机动/伤害天赋；训练显示基础时间，实际生产还受恢复和生产加成影响。','Current attributes include upgrades and movement/damage talents. Training is base time; recovery and production bonuses also affect recruitment.'],
  transportStatsHint:['海运统一搭乘运输船，海速不受陆地机动加成影响。','All troops use transport ships at sea; land movement bonuses do not change sea speed.'],
  managementRegion:['管理地块','Management region'],filterDestination:['查找远程目标','Find a remote destination'],
- seaRoute:['含海运：沿地形路径在海岸换乘运输船，海上不能攻击或占领','Includes sea transport: embark at terrain coast transitions; no attacks or capture at sea'],
+ seaRoute:['海陆联运','Sea crossing'],
  routeLegs:['预计路线 · {count} 段','Planned route · {count} legs'],noLandRoute:['没有可用陆路或安全海路','No available land or safe sea route'],
 
  armyActions:['军队操作','Army actions'],campaignSettings:['战役设置','Campaign settings'],
@@ -44,8 +45,8 @@ export const STRINGS:Record<string,[string,string]>={
  settingsLanSaveUnavailable:['联机战役暂不支持本机保存','Local saves are unavailable in multiplayer'],
  returnGame:['返回战局','Return to game'],backSettings:['返回设置','Back to settings'],
  settingsKeyboard:['Esc 打开或关闭设置 · 空格暂停单人战役','Esc opens or closes settings · Space pauses a solo campaign'],
- incompatibleMap:['地图版本或投影不兼容，请刷新页面并使用同版本主机。','Map or projection mismatch. Reload and use a matching host build.'],adminAreas:['管理地块','management regions'],mapSearch:['搜索地块 / 编码','Search region / code'],worldView:['全球米勒视图','Global Miller view'],
- title:['诸省之争','The world. Your command.'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
+ incompatibleMap:['地图版本或投影不兼容，请刷新页面并使用同版本主机。','Map or projection mismatch. Reload and use a matching host build.'],adminAreas:['管理地块','management regions'],mapSearch:['搜索地块','Search regions'],worldView:['全球米勒视图','Global Miller view'],
+ title:['诸省之争','ROUGE'],subtitle:['每一块疆土，都是下一场征途的起点。','Every province is the beginning of another conquest.'],
  prototype:['完整行政区战场 · 0.5','ADMINISTRATIVE ATLAS · 0.5'],single:['单人战役','Single player'],multiplayer:['局域网联机','LAN multiplayer'],saves:['战役档案','Campaign archives'],
  start:['开始征途','Begin campaign'],back:['返回','Back'],close:['关闭','Close'],settings:['设置','Settings'],language:['语言','Language'],continue:['继续战役','Continue campaign'],
  menuBrief:['占领地块，集结军队，以战养战。用单位升级与领袖天赋，构筑你的征服之路。','Claim provinces. Raise armies. Forge a conquest through permanent-in-run upgrades and changing leader talents.'],
@@ -74,7 +75,7 @@ export const STRINGS:Record<string,[string,string]>={
  paused:['已暂停','Paused'],pause:['暂停','Pause'],resume:['继续','Resume'],save:['保存战役','Save campaign'],menu:['返回主菜单','Main menu'],exitConfirm:['离开战役？单人战役将尝试自动保存。','Leave this campaign? Solo progress will be auto-saved when storage is available.'],
  strategic:['战略地图','Strategic map'],terrain:['三维地形','3D terrain'],zoomIn:['拉近','Zoom in'],zoomOut:['拉远','Zoom out'],focus:['聚焦地块','Focus region'],
  controls:['左键选择 · 拖动平移 · 滚轮缩放 · 右键下令','Click to select · Drag to pan · Scroll to zoom · Right-click to order'],
- objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 个管理地块并保持 30 秒，或消灭全部对手。当前开局在欧洲大陆。','Hold {count} playable areas for 30 seconds, or eliminate all opponents. The opening theatre is mainland Europe.'],
+ objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 块领土并保持 30 秒，或消灭全部对手。','Hold {count} regions for 30 seconds, or eliminate all opponents.'],
  domination:['统治进度','Domination'],seconds:['秒','s'],province:['地块','Province'],owner:['控制者','Controlled by'],garrison:['驻军','Garrison'],production:['自动生产','Auto-production'],
  recovering:['正在恢复生产','Production recovering'],contested:['正在被争夺','Contested'],stable:['控制稳定','Stable control'],capture:['占领进度','Capture progress'],
  send:['调兵 / 进攻','March / attack'],sendHint:['从单位实际位置沿可通行地形行军，必要时经海岸换乘海运。预览不代表逐个行政区中心；海上不攻击或占领。目标满员则等待。','March from actual unit positions over passable terrain, embarking at coast transitions when needed. The preview is not an administrative-center route. No attacks or capture at sea; full destinations make arrivals wait.'],
@@ -90,12 +91,12 @@ export const STRINGS:Record<string,[string,string]>={
  charge:['冲锋号角','Call to charge'],'charge.desc':['骑兵系兵种伤害提高 25%。','All cavalry types deal 25% more damage.'],
  barrage:['密集炮火','Barrage'],'barrage.desc':['火炮系兵种伤害提高 25%。','All artillery types deal 25% more damage.'],
  sappers:['突击工兵','Assault engineers'],'sappers.desc':['有工兵参与时，占领速度额外提高 30%。','Capture 30% faster when engineers are present.'],
- latest:['战地简报','Field dispatches'],'event.capture':['占领了','captured'],'event.level':['领袖等级提升','commander level increased'],'event.victory':['取得胜利','won the campaign'],noEvents:['战线尚未形成。你的第一道命令，将改变大陆。','The front is quiet. Your first order will change the continent.'],
+ latest:['战地简报','Field dispatches'],'event.capture':['占领了','captured'],'event.level':['领袖等级提升','commander level increased'],'event.victory':['取得胜利','won the campaign'],noEvents:['暂无战报','No dispatches yet'],
  victory:['征服完成','Conquest complete'],defeat:['战役结束','Campaign ended'],winner:['胜利势力','Victorious faction'],returnMenu:['返回主菜单','Return to menu'],
  newSave:['创建新存档','Create save'],saveName:['存档名称','Save name'],saveSuccess:['战役已保存','Campaign saved'],saveFailed:['保存失败：请检查浏览器存储空间或导出存档。','Save failed. Check browser storage or export the campaign.'],
  load:['载入','Load'],overwrite:['覆盖','Overwrite'],delete:['删除','Delete'],deleteConfirm:['永久删除该存档及其备份？','Permanently delete this save and its backup?'],overwriteConfirm:['覆盖此存档？将保留上一份有效版本作为备份。','Overwrite this slot? The previous valid revision will be kept as backup.'],
- emptySaves:['尚无战役档案。开始一场新征途吧。','No campaigns yet. Begin a new conquest.'],corrupt:['文件损坏 · 尝试恢复','Corrupt save · Try recovery'],recovered:['已从上一份有效备份恢复','Recovered the previous valid revision'],
- autosave:['自动存档','Autosave'],export:['导出当前战役','Export current campaign'],import:['导入存档','Import save'],saveHint:['存档保存在当前浏览器。每个战役独立自动保存；导出可备份或转移。','Saves live in this browser. Each campaign has its own autosave. Export to back up or transfer.'],
+ emptySaves:['暂无战役档案','No saved campaigns'],corrupt:['文件损坏 · 尝试恢复','Corrupt save · Try recovery'],recovered:['已从上一份有效备份恢复','Recovered the previous valid revision'],
+ autosave:['自动存档','Autosave'],export:['导出当前战役','Export current campaign'],import:['导入存档','Import save'],saveHint:['存档仅保存在当前浏览器。','Saves are stored only in this browser.'],
  lanTitle:['局域网作战室','LAN war room'],lanHint:['所有玩家打开同一台主机的游戏地址；创建房间后分享六位房间码。','All players open the host’s game address. Create a room and share its six-character code.'],
  createRoom:['创建房间','Create room'],joinRoom:['加入房间','Join room'],roomCode:['房间码','Room code'],room:['房间','Room'],waiting:['等待其他指挥官','Waiting for commanders'],startMatch:['开始对局','Start match'],waitingHost:['等待房主开始','Waiting for host'],players:['玩家','Players'],host:['房主','Host'],copy:['复制房间码','Copy room code'],copied:['房间码已复制','Room code copied'],
  connected:['已连接','Connected'],reconnecting:['连接中断，正在重连…','Connection lost. Reconnecting…'],resumeLan:['重返联机房间','Rejoin LAN room'],leave:['离开房间','Leave room'],lanOnly:['局域网原型 · 仅用于可信网络 · 无房主迁移','LAN prototype · Trusted networks only · No host migration'],
@@ -109,14 +110,20 @@ export const STRINGS:Record<string,[string,string]>={
  'error.noGold':['军费不足','Insufficient treasury'], 'error.maxLevel':['已达到最高等级','Maximum level reached'],
  'error.invalidChoice':['天赋不在当前候选中','Talent is not in the current draft'], 'error.noRerolls':['没有可用的重抽次数','No rerolls remaining'],
  'error.invalidSave':['存档无效或版本不兼容','Save is invalid or incompatible'], 'error.invalidSetup':['请填写名号并选择合法兵种配置','Enter a name and a valid army loadout'],
- 'error.serverOffline':['无法连接服务器。请先启动 npm run lan。','Cannot reach the server. Start npm run lan first.'],
+ 'error.serverOffline':['无法连接房间服务器','Cannot connect to the room server'],
  'error.networkError':['网络请求失败','Network request failed'], 'error.roomMissing':['未找到房间，或房间已过期','Room not found or expired'],
  'error.roomClosed':['房间已满或对局已开始','Room is full or already started'], 'error.needPlayers':['至少需要两名玩家','At least two players are required'],
  'error.hostOnly':['只有房主可以开始','Only the host can start'], 'error.unauthorized':['房间凭证无效，请重新加入','Invalid room credential; rejoin the room'],
  'error.rateLimited':['操作过于频繁，请稍后重试','Too many commands; try again shortly'], 'error.serverFull':['服务器房间已满','Server room limit reached'],
- 'error.workerFailed':['本地模拟启动失败，请重新进入战役','Local simulation failed. Restart the campaign.'],
- 'error.webgl':['无法启动三维渲染。请使用启用 WebGL2 的桌面浏览器。','3D rendering failed. Use a desktop browser with WebGL2 enabled.'],
+ 'error.workerFailed':['战役启动失败，请重试','Unable to start the campaign. Please try again.'],
+ 'error.webgl':['地图加载失败，请重试或更换浏览器。','Unable to load the map. Please retry or use another browser.'],
  'error.generic':['操作失败，请检查连接或输入','Operation failed; check the connection or input'],
 };
 export function t(language:Language,key:string):string{return STRINGS[key]?.[language==='zh'?0:1]??STRINGS['error.generic'][language==='zh'?0:1];}
 export function timeLabel(ticks:number):string{const total=Math.floor(ticks/20);return`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
+
+/** Localize generated computer names without rewriting player-entered names or saves. */
+export function playerName(language:Language,player:{name:string;ai?:boolean}):string{
+ const match=player.ai&&/^AI (\d+)$/.exec(player.name);
+ return match?`${t(language,'aiPlayer')} ${match[1]}`:player.name;
+}

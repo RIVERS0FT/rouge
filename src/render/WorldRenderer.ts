@@ -52,7 +52,7 @@ export class WorldRenderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x102b35);
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
-    this.renderer.domElement.setAttribute('aria-label','World management regions · Miller cylindrical projection');host.append(this.renderer.domElement);
+    this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
@@ -162,7 +162,7 @@ export class WorldRenderer {
       for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
       this.renderer.domElement.dataset.managementRevision=String(grouping.revision);this.renderer.domElement.dataset.managementBorderSegments=String(border.length/6);this.invalidated=true;
     }
-    if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;
+    if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;this.renderer.domElement.setAttribute('aria-label',lang==='zh'?'世界战场':'World theatre');
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);}
     if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.invalidated=true;}
   }

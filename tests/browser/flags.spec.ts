@@ -1,7 +1,8 @@
 import {test,expect} from '@playwright/test';
 test('cosmetic leader choice and custom flag survive close/reopen and appear in game',async({page})=>{
  await page.goto('/');await page.getByTestId('edit-player-leader').click();
- await expect(page.locator('.leader-copy')).toContainText(['无初始加成','无初始加成','无初始加成']);
+ await expect(page.locator('.leader-copy>b')).toContainText(['铁壁统帅','机动先锋','军需总监']);
+ await expect(page.locator('.leader-copy p')).toHaveCount(0);
  await page.keyboard.press('Escape');await page.getByTestId('edit-player-flag').click();
  await page.getByLabel('旗帜类型',{exact:true}).selectOption('custom');
  await page.getByLabel('旗帜图案',{exact:true}).selectOption('cross');
