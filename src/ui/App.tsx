@@ -202,7 +202,7 @@ export function App(){
   {showDefeat&&<ModalDialog className="result-modal elimination-modal" label={text('eliminatedTitle')} onClose={()=>setSpectating(true)} closeLabel={text('spectate')} pageKey="eliminated">
     <div data-testid="elimination-result"><h2>{text('eliminatedTitle')}</h2><p>{text('eliminatedDescription')}</p><div className="elimination-actions"><button className="primary" data-testid="spectate-match" onClick={()=>setSpectating(true)}>{text('spectate')}</button><button className="secondary" data-testid="eliminated-return-menu" onClick={leave}>{text('returnMenu')}</button></div></div>
   </ModalDialog>}
-  {modal&&<ModalDialog className={`${modal.startsWith('setup')?'setup-modal':''} ${modal==='talents'?'talent-modal':''} ${modal==='settings'?'settings-modal':''}`} label={text(modal==='setupSolo'||modal==='setupLan'?'setup':modal)} onClose={closeModal} closeLabel={text('close')} pageKey={modal==='settings'?settingsPage:modal}>
+  {modal&&<ModalDialog className={`${modal.startsWith('setup')?'setup-modal':''} ${modal==='playerLeader'||modal==='playerFlag'?'identity-modal':''} ${modal==='talents'?'talent-modal':''} ${modal==='settings'?'settings-modal':''}`} label={text(modal==='setupSolo'||modal==='setupLan'?'setup':modal)} onClose={closeModal} closeLabel={text('close')} pageKey={modal==='settings'?settingsPage:modal}>
     {modal==='settings'&&settingsPage==='general'&&<>
       <div className="eyebrow gold">ROUGE / {text('campaignSettings')}</div><h2>{text('settings')}</h2>
       <p className="settings-status muted">{text(session.current?.mode==='solo'?'settingsSoloPaused':'settingsLanRunning')}</p>
