@@ -2,8 +2,10 @@ import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
 import { chooseSpawnPairs } from './spawns.ts';
 import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
-import { Navigator, cellAt, cellCenter } from './navigation.ts';
-import { seaRoute, seaPorts, type SeaLeg } from './sea.ts';
+import {TerrainNavigator} from './terrain-navigation.ts';
+import {INITIAL_TERRITORY_GROUPING} from './map.ts';
+import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
+
 import { destinationRoom } from './capacity.ts';
 import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
@@ -11,19 +13,26 @@ function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>4||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
-  const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
+  const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
-  // Human and AI seats use the same seeded, separated two-region allocation.
+  // Equal initial production budgets: two complete source groups and five
+  // troops per group, distributed only into their immutable atom capacities.
+  const startingTroops=new Map<number,number>();
   chooseSpawnPairs(seed,setups.length,s).forEach((pair,actor)=>{
-    for(const id of pair)s.provinces[id].owner=actor;
+    for(const representative of pair){
+      const groupId=s.grouping.atomToGroup[MAP[representative].code],group=s.grouping.groups.find(g=>g.id===groupId)!;
+      const atoms=group.atoms.map(code=>MAP.findIndex(p=>p.code===code)).filter(id=>id>=0&&MAP[id].playable)
+        .sort((a,b)=>Number(b===representative)-Number(a===representative)||a-b);
+      let remaining=5;for(const id of atoms){s.provinces[id].owner=actor;const count=Math.min(remaining,regionCapacity(id));startingTroops.set(id,count);remaining-=count;}
+    }
   });
   const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
   for(const p of s.provinces) {
-    const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?2:0;
+    const count=!MAP[p.id].playable?0:p.owner>=0?(startingTroops.get(p.id)??0):frontier.has(p.id)?Math.min(2,regionCapacity(p.id)):0;
     if(p.owner>=0)p.kind=s.players[p.owner].loadout[0];
     for(let i=0;i<count;i++)spawn(s,p.id,p.kind);
   }
-  return s;
+  s.grouping=reconcileGrouping(s);return s;
 }
 function spawn(s:GameState,province:number,kind:Kind):void{
   const p=s.provinces[province],id=s.nextId++,c=MAP[province].center,a=id*2.399963,r=0.6+(id%5)*0.3;
@@ -42,16 +51,16 @@ function experience(s:GameState,id:number,amount:number):void{
   while(p.level<8&&p.xp>=60+p.level*45){p.xp-=60+p.level*45;p.level++;p.drafts++;s.events.push({tick:s.tick,key:'level',player:id});}draft(s,p);
 }
 export class Engine{
-  state:GameState;navigation=new Navigator();
-  private seaLegs=new Map<string,SeaLeg|null>();
-  private sea(from:number,to:number):SeaLeg|null {
-    const key=`${from}:${to}`;if(!this.seaLegs.has(key)){if(this.seaLegs.size>=128)this.seaLegs.delete(this.seaLegs.keys().next().value!);this.seaLegs.set(key,seaRoute(from,to));}return this.seaLegs.get(key)!;
-  }
+  state:GameState;navigation=new TerrainNavigator();
   constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
     if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
     switch(c.type){
+      case 'mergeGroups':case 'splitGroup':{
+        const input=c.type==='mergeGroups'?{type:'merge',mapId:MAP_ID,groups:c.groups,expectedRevision:c.expectedRevision}:{type:'split',mapId:MAP_ID,group:c.group,atoms:c.atoms,expectedRevision:c.expectedRevision};
+        const result=applyGroupingCommand(s,actor,input);if(!result.ok)return fail(result.error);s.grouping=result.state;return{ok:true};
+      }
       case 'march':{
         if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!Number.isFinite(c.fraction)||c.fraction<0.25||c.fraction>1)return fail('invalidCommand');
         const from=s.provinces[c.from],to=s.provinces[c.to];if(!from||!to||from.owner!==actor)return fail('notOwner');
@@ -59,10 +68,11 @@ export class Engine{
         const available=s.units.filter(u=>u.owner===actor&&u.province===c.from&&u.target===null);
         const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
         const n=Math.min(requested,destinationRoom(s,actor,c.to));if(n<1)return fail('targetFull');
-        const path=this.navigation.route(s,actor,c.from,c.to);if(!path||path.length<2)return fail('unreachable');
-        const sea=MAP[c.from].neighbors.includes(path[1])?null:this.sea(c.from,path[1]);
-        const flow=sea?this.navigation.get(s,actor,c.from,c.from,sea.depart):this.navigation.get(s,actor,path[1],c.from),reachable=available.filter(u=>{const cell=cellAt(u.x,u.z,flow);return cell>=0&&Number.isFinite(flow.distance[cell]);});
-        if(!reachable.length)return fail('unreachable');for(const u of reachable.slice(0,n)){u.target=path[1];u.origin=c.from;u.destination=c.to;u.route=path.slice(2);if(sea)u.transport={from:c.from,to:path[1],index:0,embarked:false};}return{ok:true};
+        let sent=0;
+        for(const u of available){if(sent>=n)break;const st=stats(p,u.kind),travel=this.navigation.plan(u,MAP[c.to].center,st.speed,st.seaSpeed);if(!travel)continue;
+          u.target=c.to;u.origin=u.province;u.destination=c.to;u.route=[];u.travel=travel;delete u.transport;sent++;
+        }
+        return sent?{ok:true}:fail('unreachable');
       }
       case 'production':{
         if(!Number.isInteger(c.province)||!KINDS.includes(c.kind)||!p.loadout.includes(c.kind))return fail('invalidCommand');
@@ -87,31 +97,17 @@ export class Engine{
   }
   step(count=1):void{for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
   private tick():void{
-    const s=this.state;s.tick++;
+    const s=this.state,topologyBefore=s.topology;s.tick++;
     const damage=new Map<number,{amount:number;attacker:number}>(),buckets=new Map<string,Unit[]>();
-    // Exact local limits, not an aggregate army budget. Update crossings immediately
-    // so simultaneous arrivals cannot oversubscribe a region in the same tick.
-    const population=new Int32Array((s.players.length+1)*MAP.length);
+    // Reservations and production retain atom accounts; transit is unconstrained.
     const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
-    for(const u of s.units)if(!u.transport?.embarked)population[popKey(u.owner,u.province)]++;
     for(const u of s.units){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
     for(const u of s.units){
       const st=stats(s.players[u.owner],u.kind);
-      if(u.transport?.embarked){
-        const t=u.transport,leg=this.sea(t.from,t.to);if(!leg)throw new Error('invalidSeaRoute');
-        const point=leg.waypoints[t.index];
-        if(t.index===leg.waypoints.length-1&&population[popKey(u.owner,t.to)]>=PROVINCE_CAP)continue;
-        const dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz),move=Math.min(d,st.seaSpeed*DT);
-        if(d>0){u.x+=dx/d*move;u.z+=dz/d*move;}
-        if(d<=move+1e-9){u.x=point.x;u.z=point.z;t.index++;
-          if(t.index===leg.waypoints.length){u.province=t.to;population[popKey(u.owner,t.to)]++;delete u.transport;}
-        }
-        continue;
-      }
       // Carry sub-tick remainder during continuous fire (e.g. 0.65 attacks/s).
       u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,nearest=st.range*st.range;
       const bx=Math.floor(u.x/8),bz=Math.floor(u.z/8);
-      for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(v.transport?.embarked||v.owner===u.owner||(!MAP[u.province].neighbors.includes(v.province)&&u.province!==v.province))continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest||(d===nearest&&enemy&&v.id<enemy.id)){nearest=d;enemy=v;}}
+      for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(u.transport?.embarked||v.transport?.embarked||v.owner===u.owner)continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest||(d===nearest&&enemy&&v.id<enemy.id)){nearest=d;enemy=v;}}
       if(enemy){
         if(u.cooldown<=1e-9){
           const targets=[enemy];
@@ -119,7 +115,6 @@ export class Engine{
             const nearby:Unit[]=[];const ex=Math.floor(enemy.x/8),ez=Math.floor(enemy.z/8);
             for(let x=ex-1;x<=ex+1;x++)for(let z=ez-1;z<=ez+1;z++)nearby.push(...(buckets.get(`${x},${z}`)??[]));
             const extra=nearby.filter(v=>v.id!==enemy!.id&&v.owner!==u.owner&&!v.transport?.embarked&&
-              (v.province===enemy!.province||MAP[enemy!.province].neighbors.includes(v.province))&&
               Math.hypot(v.x-enemy!.x,v.z-enemy!.z)<=st.splash)
               .sort((a,b)=>(a.x-enemy!.x)**2+(a.z-enemy!.z)**2-((b.x-enemy!.x)**2+(b.z-enemy!.z)**2)||a.id-b.id);
             targets.push(...extra.slice(0,2));
@@ -135,24 +130,16 @@ export class Engine{
       }
       u.cooldown=Math.max(0,u.cooldown);
       if(u.target===null)continue;
-      // Follow a local flow field; closing with a defender is allowed only along land.
-      const sea=u.transport?this.sea(u.transport.from,u.transport.to):null;
-      let goal=sea?sea.depart:MAP[u.target].center;
-      if(sea&&Math.hypot(goal.x-u.x,goal.z-u.z)<0.05){
-        u.x=goal.x;u.z=goal.z;u.transport!.embarked=true;u.transport!.index=1;
-        population[popKey(u.owner,u.province)]--;continue;
-      }
-      if(!sea&&u.province===u.target){const defenders=s.units.filter(v=>v.owner!==u.owner&&v.province===u.target).sort((a,b)=>Math.hypot(a.x-u.x,a.z-u.z)-Math.hypot(b.x-u.x,b.z-u.z));if(defenders[0])goal=defenders[0];}
-      const distance=Math.hypot(goal.x-u.x,goal.z-u.z);
-      if(distance<0.35&&pointInProvince(u.target,u.x,u.z)){u.province=u.target;if(s.provinces[u.target].owner===u.owner)this.advance(u);continue;}
-      const flow=sea?this.navigation.get(s,u.owner,u.origin,u.origin,sea.depart):this.navigation.get(s,u.owner,u.target,u.province===u.target?u.target:u.origin),cell=cellAt(u.x,u.z,flow),next=cell<0?-1:flow.next[cell];
-      if(next<0){this.halt(u);continue;}const direct=this.navigation.canMove(flow,u.x,u.z,goal.x,goal.z),point=((sea||u.province===u.target)&&direct)||next===cell?goal:cellCenter(next,flow),dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz);
-      if(d>1e-6){const terrain=MAP[u.province].terrain,move=Math.min(d,st.speed*DT/(terrain==='highland'?1.4:1));const nx=u.x+dx/d*move,nz=u.z+dz/d*move;if(this.navigation.canMove(flow,u.x,u.z,nx,nz)){
-        const id=pointInProvince(u.target,nx,nz)?u.target:provinceAt(nx,nz);
-        if(id<0)continue;
-        if(id!==u.province){if(population[popKey(u.owner,id)]>=PROVINCE_CAP)continue;population[popKey(u.owner,u.province)]--;population[popKey(u.owner,id)]++;}
-        u.x=nx;u.z=nz;u.province=id;
-      }else{this.halt(u);}}
+      const travel=u.travel;
+      if(!travel){if(s.provinces[u.target].owner===u.owner)this.halt(u);continue;}
+      const point=travel.points[travel.index],dx=point.x-u.x,dz=point.z-u.z,d=Math.hypot(dx,dz),move=Math.min(d,(point.sea?st.seaSpeed:st.speed)*DT);
+      const nx=d?u.x+dx/d*move:point.x,nz=d?u.z+dz/d*move:point.z;
+      const arrived=d<=move+1e-9,final=arrived&&travel.index===travel.points.length-1;
+      // Administrative capacities limit garrisons, not transit through boundaries.
+      if(final&&s.units.filter(v=>v.id!==u.id&&v.owner===u.owner&&v.province===u.target&&!v.travel).length>=regionCapacity(u.target))continue;
+      u.x=nx;u.z=nz;const region=provinceAt(nx,nz);if(region>=0)u.province=region;
+      if(point.sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};else delete u.transport;
+      if(arrived){u.x=point.x;u.z=point.z;travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
     }
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
@@ -171,15 +158,15 @@ export class Engine{
         province.capture+=DT*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
         if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=15;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
-      if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5;province.recovery=Math.max(0,province.recovery-DT);
+      if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5*regionProductionRate(province.id);province.recovery=Math.max(0,province.recovery-DT);
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
-      if(garrison+reservations[popKey(province.owner,province.id)]>=PROVINCE_CAP)continue;
-      province.production+=DT*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
+      if(garrison+reservations[popKey(province.owner,province.id)]>=regionCapacity(province.id))continue;
+      province.production+=DT*regionProductionRate(province.id)*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;spawn(s,province.id,province.kind);}
     }
     // All captures have settled: losing then gaining a region in this tick is not defeat.
-    settleEliminations(s);
+    if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
     if(s.tick%80===0)this.ai();
     for(const p of s.players){
       const owned=s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id).length;s.domination[p.id]=owned>=Math.ceil(PLAYABLE_COUNT*0.6)?s.domination[p.id]+DT:0;
@@ -188,30 +175,25 @@ export class Engine{
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
-  private halt(unit:Unit):void {delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
-  private advance(unit:Unit):void {
-    const here=unit.target;if(here===null)return;
-    if(!unit.route.length){this.halt(unit);return;}
-    const next=unit.route.shift()!;
-    const sea=MAP[here].neighbors.includes(next)?null:this.sea(here,next);
-    if(!MAP[here].neighbors.includes(next)&&!sea){this.halt(unit);return;}
-    unit.origin=here;unit.target=next;if(sea)unit.transport={from:here,to:next,index:0,embarked:false};
-  }
+  private halt(unit:Unit):void {delete unit.travel;delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  private advance(unit:Unit):void {this.halt(unit);}
   private ai():void{
     const s=this.state;
     for(const p of s.players.filter(p=>p.ai&&!isEliminated(s,p.id))){
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const province of s.provinces.filter(v=>MAP[v.id].playable&&v.owner===p.id)){
-        const units=s.units.filter(u=>u.owner===p.id&&u.province===province.id&&u.target===null);if(units.length<4)continue;
+        const units=s.units.filter(u=>u.owner===p.id&&u.province===province.id&&u.target===null);
+        // Small administrative atoms must be able to move a full garrison.
+        if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;
         const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>s.units.filter(u=>u.province===a).length-s.units.filter(u=>u.province===b).length);
         let destination:number|undefined=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];
-        if(destination===undefined&&seaPorts(province.id).length){
-          const coastal=MAP.filter(m=>m.playable&&s.provinces[m.id].owner!==p.id&&seaPorts(m.id).length&&!neighbors.includes(m.id))
+        if(destination===undefined){
+          const candidates=MAP.filter(m=>m.playable&&s.provinces[m.id].owner!==p.id)
             .sort((a,b)=>Math.hypot(a.center.x-MAP[province.id].center.x,a.center.z-MAP[province.id].center.z)-Math.hypot(b.center.x-MAP[province.id].center.x,b.center.z-MAP[province.id].center.z)||a.id-b.id).slice(0,4);
-          destination=coastal.find(m=>this.navigation.route(s,p.id,province.id,m.id))?.id;
+          destination=candidates.find(m=>this.navigation.plan(MAP[province.id].center,m.center))?.id;
         }
-        if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:0.75});
+        if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:Math.max(0.75,1/units.length)});
       }
     }
   }

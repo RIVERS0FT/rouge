@@ -71,25 +71,20 @@ jobs:
           import fs from 'node:fs';
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           const atlas = JSON.parse(fs.readFileSync('src/generated/world.json', 'utf8'));
-          const isRegions = fs.existsSync('docs/STATE_REGIONS.md');
           fs.writeFileSync('dist/build-info.json', JSON.stringify({
             name:'ROUGE', version:pkg.version, sourceCommit:process.env.SOURCE_COMMIT,
             hosting:'GitHub Pages', multiplayerBackendIncluded:false,
-            map:isRegions?'earth-state-regions-1137-v1':'earth-admin1-miller-crop-v1',
+            map:atlas.mapId,
             regionCount:atlas.provinces.length,
-            mapRedistributionAuthorization:isRegions?'not-verified':'natural-earth-public-domain'
+            mapRedistributionAuthorization:'natural-earth-public-domain'
           }, null, 2));
           const notices = ['ROUGE - bundled library notices\n'];
           for (const name of ['react','react-dom','scheduler','three']) {
             notices.push(`\n===== ${name} =====\n`, fs.readFileSync(`node_modules/${name}/LICENSE`,'utf8'));
           }
-          if (isRegions) {
-            notices.push('\nMAP DATA: transformed Victoria 3 1.13.7 State Region reference boundaries.\nIndependent redistribution authorization has not been verified.\nThese boundaries are NOT Natural Earth public-domain data and are NOT covered by the map editor tool MIT license.\nSee MAP_DATA_SOURCE.md for the pinned source and limitations.\n');
-            fs.copyFileSync('docs/STATE_REGIONS.md','dist/MAP_DATA_SOURCE.md');
-            fs.copyFileSync('data/state-regions-audit.json','dist/map-data-audit.json');
-          } else {
-            notices.push('\nMap data: Natural Earth, public domain. https://www.naturalearthdata.com/about/terms-of-use/\n');
-          }
+          notices.push('\nMap geometry: Natural Earth 5.1.1 1:10m Admin1, public domain. https://www.naturalearthdata.com/about/terms-of-use/\nManagement groups are approximate references, not exact Victoria 3 boundaries.\n');
+          fs.copyFileSync('docs/ADMIN1_OVERLAY_AUDIT.md','dist/MAP_DATA_SOURCE.md');
+          fs.copyFileSync('data/natural-earth-admin1-base-audit.json','dist/map-data-audit.json');
           fs.writeFileSync('dist/THIRD_PARTY_NOTICES.txt',notices.join('\n'));
           NODE
       - uses: actions/upload-pages-artifact@v4

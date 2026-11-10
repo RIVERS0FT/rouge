@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+test('owned adjacent administrative atoms merge and split through authoritative commands',async({page})=>{
+ test.setTimeout(180000);
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8'}));
+ await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
+ await page.goto('/');await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('open-saves').click();
+ await expect(page.getByTestId('legacy-map-save-notice')).toContainText('not overwritten');
+ await page.locator('.save-card').filter({hasText:'Territory UI fixture'}).getByRole('button',{name:'Load',exact:true}).click();
+ await page.getByTestId('toggle-pause').click();
+ await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
+ await page.getByTestId('open-territory-management').click();
+ const panel=page.getByTestId('territory-management');await expect(panel).toContainText('not exact Vic3 boundaries');
+ await expect(page.getByTestId('split-territory-group')).toBeDisabled();
+ await expect(page.getByTestId('merge-territory-groups')).toBeDisabled();
+ const before=Number(await panel.getAttribute('data-revision'));
+ await page.getByTestId('territory-merge-neighbor').first().check();await page.getByTestId('merge-territory-groups').click();
+ await expect.poll(async()=>Number(await panel.getAttribute('data-revision'))).toBeGreaterThan(before);
+ await expect(page.getByTestId('territory-split-atom')).toHaveCount(2);
+ for(const checkbox of await page.getByTestId('territory-split-atom').all())await checkbox.check();
+ await expect(page.getByTestId('split-territory-group')).toBeDisabled();
+ await page.getByTestId('territory-split-atom').last().uncheck();
+ const merged=Number(await panel.getAttribute('data-revision'));await page.getByTestId('split-territory-group').click();
+ await expect.poll(async()=>Number(await panel.getAttribute('data-revision'))).toBeGreaterThan(merged);
+ await expect(page.getByTestId('territory-split-atom')).toHaveCount(1);
+ await expect(page.getByTestId('split-territory-group')).toBeDisabled();
+});

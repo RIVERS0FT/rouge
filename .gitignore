@@ -11,3 +11,8 @@ playwright-report/
 
 .cache/
 src/generated/world.json
+
+src/generated/world.js
+src/generated/world.d.ts
+
+src/generated/terrain-navigation.json

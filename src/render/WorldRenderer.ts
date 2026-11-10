@@ -33,6 +33,7 @@ export class WorldRenderer {
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
   private state:GameState|null=null;
+  private boundaryEdges:{a:Vec2;b:Vec2;owners:number[]}[]=[];private groupingStamp='';
   private selected=-1;private hover=-1;private lang:'zh'|'en'='zh';
   private ownerIds=MAP.map(()=>-1);
   private dirty=new Set<number>();
@@ -62,7 +63,7 @@ export class WorldRenderer {
     this.atlas.add(this.lines(graticule,0x507078,0.28));
     // No decorative atlas frame: the map continues behind the edge HUD.
     const positions:number[]=[],colors:number[]=[],borders:number[]=[],coasts:number[]=[];
-    const edgeOwners=new Map<string,{a:Vec2;b:Vec2;count:number}>();
+    const edgeOwners=new Map<string,{a:Vec2;b:Vec2;count:number;owners:number[]}>();
     for(const province of MAP) {
       const start=positions.length/3,base=regionColor();
       for(const part of province.visible?province.parts:[]) {
@@ -80,13 +81,14 @@ export class WorldRenderer {
           const segment=clipSegment(ring[i],ring[(i+1)%ring.length],BOUNDS);if(!segment)continue;const [a,b]=segment;borders.push(a.x,0.24,a.z,b.x,0.24,b.z);
           const ka=`${a.x.toFixed(4)},${a.z.toFixed(4)}`,kb=`${b.x.toFixed(4)},${b.z.toFixed(4)}`,key=ka<kb?`${ka}|${kb}`:`${kb}|${ka}`;
           const edge=edgeOwners.get(key);
-          if(edge){edge.count++;}
-          else edgeOwners.set(key,{a,b,count:1});
+          if(edge){edge.count++;edge.owners.push(province.id);}
+          else edgeOwners.set(key,{a,b,count:1,owners:[province.id]});
         }
       }
       this.ranges.push({start,count:positions.length/3-start});
     }
     for(const e of edgeOwners.values())if(e.count===1)coasts.push(e.a.x,0.27,e.a.z,e.b.x,0.27,e.b.z);
+    this.boundaryEdges=[...edgeOwners.values()].filter(e=>new Set(e.owners).size>1);
     let minLandZ=Infinity,maxLandZ=-Infinity;for(let i=2;i<positions.length;i+=3){minLandZ=Math.min(minLandZ,positions[i]);maxLandZ=Math.max(maxLandZ,positions[i]);}
     this.renderer.domElement.dataset.landMinZ=String(minLandZ);this.renderer.domElement.dataset.landMaxZ=String(maxLandZ);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
@@ -96,7 +98,7 @@ export class WorldRenderer {
     this.relief(material);this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
     this.admin=this.lines(borders,0x334b40,0.14);this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
     const outlines=this.lines(coasts,0x233f39,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
-    this.renderer.domElement.dataset.boundaryMode='management-regions-only';
+    this.renderer.domElement.dataset.boundaryMode='admin1-management-groups';
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
     this.selection=this.lines([],0xf9df9b,1);this.relief(this.selection.material as THREE.Material);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
     const glowMaterial=new THREE.MeshBasicMaterial({color:0xf9df9b,transparent:true,opacity:0.38,depthWrite:false,side:THREE.DoubleSide});
@@ -149,7 +151,17 @@ export class WorldRenderer {
     material.customProgramCacheKey=()=> 'earth-relief-v1';
   }
   update(state:GameState,selected:number,lang:'zh'|'en') {
-    this.state=state;if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;
+    this.state=state;
+    const grouping=(state as GameState&{grouping?:{revision:number;atomToGroup:Record<string,string>}}).grouping;
+    const stamp=grouping?`${state.campaign}:${grouping.revision}`:'';
+    if(grouping&&stamp!==this.groupingStamp){
+      this.groupingStamp=stamp;const border:number[]=[];
+      for(const e of this.boundaryEdges)if(new Set(e.owners.map(id=>grouping.atomToGroup[MAP[id].code])).size>1)border.push(e.a.x,.24,e.a.z,e.b.x,.24,e.b.z);
+      const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(border,3));this.admin.geometry.dispose();this.admin.geometry=geometry;
+      for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
+      this.renderer.domElement.dataset.managementRevision=String(grouping.revision);this.renderer.domElement.dataset.managementBorderSegments=String(border.length/6);this.invalidated=true;
+    }
+    if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);}
     if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.invalidated=true;}
   }

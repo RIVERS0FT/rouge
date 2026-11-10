@@ -3,7 +3,7 @@ test('real global Miller atlas, geographic search and near terrain',async({page}
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');await expect(page.locator('canvas[data-ready="true"]')).toBeVisible({timeout:30000});
  await expect(page.locator('canvas')).toHaveAttribute('data-projection','miller-cylindrical');
- await expect(page.locator('canvas')).toHaveAttribute('data-provinces','675');
+ await expect(page.locator('canvas')).toHaveAttribute('data-provinces','4596');
  await page.screenshot({path:'artifacts/miller-menu.png'});
  await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.hud-top')).toBeVisible();

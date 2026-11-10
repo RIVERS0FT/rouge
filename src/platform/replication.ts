@@ -1,10 +1,11 @@
+import {validGroupingState} from '../game/territoryEconomy.ts';
 import { MAP_ID } from '../game/content.ts';
 import type { GameState, Province } from '../game/types.ts';
 
 /** Full state on connection; reliable ordered deltas thereafter. Static GIS never travels here. */
-export interface SnapshotBase { campaign:string; tick:number; provinces:Province[] }
+export interface SnapshotBase { campaign:string; tick:number; groupingRevision:number; provinces:Province[] }
 export type StateFrame = {type:'state';state:GameState} | {
-  type:'delta';campaign:string;baseTick:number;state:Omit<GameState,'provinces'>;provinces:Province[];
+  type:'delta';campaign:string;baseTick:number;state:Omit<GameState,'provinces'|'grouping'>&{grouping?:GameState['grouping']};provinces:Province[];
 };
 const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture;
 export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:number):{frame:StateFrame;base:SnapshotBase} {
@@ -12,16 +13,18 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   let frame:StateFrame;
   if(!base||base.campaign!==state.campaign||base.provinces.length!==state.provinces.length)frame={type:'state',state:{...state,players}};
   else {
-    const {provinces,...rest}=state;
-    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,players},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i]))};
+    const {provinces,grouping,...rest}=state;
+    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,players,...(grouping.revision!==base.groupingRevision?{grouping}:{})},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i]))};
   }
-  return {frame,base:{campaign:state.campaign,tick:state.tick,provinces:state.provinces.map(p=>({...p}))}};
+  return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p}))}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
   if(frame.state.map!==MAP_ID||frame.state.version!==5)throw new Error('incompatibleMap');
-  if(frame.type==='state')return frame.state;
+  if(frame.type==='state'){if(!validGroupingState(frame.state))throw new Error('invalidSnapshot');return frame.state;}
   if(!current||current.campaign!==frame.campaign||current.tick!==frame.baseTick||frame.state.map!==current.map)throw new Error('snapshotGap');
   const provinces=current.provinces.slice();
   for(const p of frame.provinces){if(!Number.isInteger(p.id)||p.id<0||p.id>=provinces.length)throw new Error('invalidSnapshot');provinces[p.id]=p;}
-  return {...frame.state,provinces};
+  const next={...frame.state,grouping:frame.state.grouping??current.grouping,provinces};
+  if((frame.state.grouping||frame.provinces.some(p=>current.provinces[p.id].owner!==p.owner))&&!validGroupingState(next))throw new Error('invalidSnapshot');
+  return next;
 }

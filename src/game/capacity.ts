@@ -1,4 +1,4 @@
-import { PROVINCE_CAP } from './content.ts';
+import {regionCapacity} from './territoryEconomy.ts';
 import type { GameState } from './types.ts';
 
 /** Physical occupants include stationary, marching and fighting battalions.
@@ -11,5 +11,5 @@ export function regionReservations(state:GameState,owner:number,region:number):n
   return state.units.reduce((n,u)=>n+Number(u.owner===owner&&u.destination===region&&u.province!==region),0);
 }
 export function destinationRoom(state:GameState,owner:number,region:number):number {
-  return Math.max(0,PROVINCE_CAP-regionTroops(state,owner,region)-regionReservations(state,owner,region));
+  return Math.max(0,regionCapacity(region)-regionTroops(state,owner,region)-regionReservations(state,owner,region));
 }

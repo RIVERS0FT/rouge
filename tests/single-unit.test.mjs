@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {KINDS,UNITS,stats,validateSetup} from '../src/game/content.ts';
+import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
 import {MAP,STARTS} from '../src/game/map.ts';
 import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
 const setup=kind=>({name:'Commander',leader:'warden',loadout:[kind]});
@@ -17,7 +18,7 @@ for(const kind of KINDS)test(kind+': starting army, production, upgrades, captur
  assert.ok(state.units.filter(u=>u.owner===0).every(u=>u.kind===kind));
  assert.ok(state.provinces.filter(p=>p.owner===0).every(p=>p.kind===kind));
  const before=state.units.filter(u=>u.owner===0).length;
- e.step(Math.ceil(UNITS[kind].train/0.05)+1);
+ const queue=state.provinces.find(p=>p.owner===0&&state.units.filter(u=>u.owner===0&&u.province===p.id).length<regionCapacity(p.id));assert.ok(queue);queue.production=UNITS[kind].train-.025*regionProductionRate(queue.id);e.step();
  assert.ok(state.units.filter(u=>u.owner===0).length>before);
  assert.equal(e.command(0,{type:'upgrade',kind,stat:'attack'}).ok,true);
  const u=state.units.find(u=>u.owner===0);u.hp=stats(state.players[0],kind).hp/2;
