@@ -17,12 +17,14 @@ async function chooseRemoteRoute(page:any){
 }
 
 
-test('management regions only: no countries, UK detail, remote dispatch UI and persisted route',async({page})=>{
+test('ownership border hierarchy, UK detail, remote dispatch UI and persisted route',async({page})=>{
  test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:45000});
  await expect(page.locator('canvas')).toHaveAttribute('data-region-count',String(atlas.provinces.length));
- await expect(page.locator('canvas')).toHaveAttribute('data-boundary-mode','admin1-management-groups');
- await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','false');
+ await expect(page.locator('canvas')).toHaveAttribute('data-boundary-mode','ownership-and-management');
+ await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','true');
+ await expect(page.locator('canvas')).toHaveAttribute('data-neutral-borders','independent-territories');
+ expect(Number(await page.locator('canvas').getAttribute('data-country-border-segments'))).toBeGreaterThan(0);
  await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();await page.getByTestId('toggle-pause').click();
  await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('country-identity')).toHaveCount(0);
  await expect(page.getByTestId('faction-identity')).toContainText('阵营 1');
