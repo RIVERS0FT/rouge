@@ -12,7 +12,7 @@ test('leader artwork and preferences persist while solo AI selection controls fa
  await page.keyboard.press('Escape');await page.getByTestId('edit-player-flag').click();
  await expect(page.getByLabel('旗帜类型')).toHaveValue('jp');
  await page.keyboard.press('Escape');await page.getByTestId('single-player').click();
- await page.getByTestId('setup-ai-count').selectOption('3');await page.getByTestId('begin-campaign').click();
+ await page.getByTestId('setup-ai-count').fill('3');await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.faction-bars>div')).toHaveCount(4);
  await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','steward');
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();

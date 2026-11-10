@@ -6,8 +6,8 @@ import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } fro
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
-export const FACTION_COLORS=['#609baa','#bb6e62','#c0a263','#8a91b5'];
-const OWNER=[0x609baa,0xbb6e62,0xc0a263,0x8a91b5];
+import { factionColor } from '../game/factionColors.ts';
+export { factionColor, FACTION_COLORS } from '../game/factionColors.ts';
 interface Label {sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
 interface Range {start:number;count:number}
 const NEUTRAL_LAND=0x9da48e;
@@ -324,9 +324,9 @@ export class WorldRenderer {
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=this.distance>1000?0.45:this.distance>300?0.55:0.65;
-    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(OWNER[owner]);for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
     const selectedRange=this.ranges[this.selected];
-    if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(OWNER[this.ownerIds[this.selected]])).getHexString();}
+    if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
     if(this.blend>0.1)this.ensureUnitCapacity((this.state?.units.length??0)*3);
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
@@ -335,7 +335,7 @@ export class WorldRenderer {
       for(let j=0;j<(u.transport?.embarked?1:3);j++){
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
         const x=pos.x+Math.cos(j*2.1+u.id)*0.3*scale,z=pos.z+Math.sin(j*2.1+u.id)*0.3*scale,y=heightAt(x,z)*this.blend;
-        if(!inRect({x,z},BOUNDS))continue;this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:OWNER[u.owner]));
+        if(!inRect({x,z},BOUNDS))continue;this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner)));
         this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
       }
     }

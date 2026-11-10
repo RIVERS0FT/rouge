@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-test('two isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
+test('two humans in isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
   // Two independent software-rendered world maps plus a full reload in CI.
   test.setTimeout(180000);
   const hostContext=await browser.newContext(),guestContext=await browser.newContext();
@@ -9,7 +9,7 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
   for(const page of [host,guest])page.on('pageerror',error=>errors.push(error.message));
   try{
     for(const [page,name] of [[host,'Host'],[guest,'Guest']] as const){
-      await page.goto('http://127.0.0.1:5173/');
+      await page.goto('/');
       await page.getByRole('button',{name:'English',exact:true}).click();
       if(name==='Guest'){
         await page.getByTestId('edit-player-leader').click();
@@ -31,6 +31,11 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
     expect(created.status(),await created.text()).toBe(201);
     await expect(host.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
     const code=(await host.locator('.room-code').innerText()).trim();
+    await host.getByTestId('lobby-ai-count').fill('4');
+    await host.getByTestId('apply-lobby-ai').click();
+    await expect(host.locator('.seat')).toHaveCount(5);
+    await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 1');
+    await expect(host.getByRole('button',{name:/Start match/})).toBeDisabled();
     await guest.getByPlaceholder('Room code').fill(code);
     await guest.getByRole('button',{name:'Join room',exact:true}).click();
     await expect(host.locator('.seats')).toContainText('Guest');
@@ -38,6 +43,16 @@ test('two isolated browser sessions join LAN, issue independent upgrades and rec
       const guestSeat=page.locator('.seat').filter({hasText:'Guest'});
       await expect(guestSeat.getByRole('img',{name:'Japan',exact:true})).toBeVisible();
     }
+    await expect(host.locator('.seat')).toHaveCount(6);
+    await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 2');
+    await expect(host.getByRole('button',{name:/Start match/})).toBeEnabled();
+    // Reserved seats and AI never satisfy the online-human requirement.
+    await guest.goto('about:blank');
+    await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 1');
+    await expect(host.locator('.seat').filter({hasText:'Guest'})).toContainText('Offline');
+    await expect(host.getByRole('button',{name:/Start match/})).toBeDisabled();
+    await guest.goto('/');await guest.getByRole('button',{name:/Rejoin LAN room/}).click();
+    await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 2');
     await host.getByRole('button',{name:/Start match/}).click();
     await expect(host.locator('.hud-top')).toContainText('Host');
     await expect(guest.locator('.hud-top')).toContainText('Guest');

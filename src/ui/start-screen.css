@@ -1,6 +1,6 @@
 /* One composition at every viewport: flag upper-left, portrait lower-left,
    menu to their right. Fluid sizing and scrolling never reorder the elements. */
-.app.is-menu{--leader-left:clamp(8px,1.25vw,18px);--leader-bottom:18px;--leader-width:clamp(94px,19.6vw,282px);--leader-height:calc(var(--leader-width)*.98);--menu-content-left:clamp(148px,30vw,460px);--menu-content-top:clamp(76px,18dvh,180px);min-height:0}
+.app.is-menu{--leader-left:clamp(8px,1.25vw,18px);--leader-bottom:18px;--leader-width:clamp(94px,19.6vw,282px);--leader-height:calc(var(--leader-width)*.98);--menu-content-right:clamp(16px,6vw,96px);--menu-content-left:clamp(132px,30vw,460px);--menu-content-top:clamp(76px,18dvh,180px);min-height:0}
 .is-menu .main-menu{overflow:visible;padding:0;pointer-events:none}
 .menu-flag-entry{position:absolute;z-index:12;top:14px;left:var(--leader-left);display:flex;align-items:center;gap:clamp(7px,1vw,12px);min-height:66px;padding:10px clamp(8px,1.4vw,20px);background:#0d2026e6;border:1px solid #b4bd9d50;border-radius:5px;text-align:left;backdrop-filter:blur(12px)}
 .menu-flag-entry .faction-emblem-frame{width:clamp(40px,5vw,72px);height:clamp(30px,3.1vw,44px)}
@@ -12,7 +12,7 @@
 .menu-identity-edit{display:block;font-size:clamp(10px,.84vw,12px);color:var(--gold)}
 .is-menu .language-switch{top:14px;right:clamp(8px,2vw,28px);gap:2px;font-size:12px}
 .is-menu .language-switch button{min-width:44px;min-height:44px}
-.is-menu .menu-content{position:absolute;left:var(--menu-content-left);top:var(--menu-content-top);width:min(350px,calc(100% - var(--menu-content-left) - 16px));margin:0;max-height:calc(100dvh - var(--menu-content-top) - 24px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
+.is-menu .menu-content{position:absolute;left:auto;right:var(--menu-content-right);top:var(--menu-content-top);width:min(350px,calc(100% - var(--menu-content-left) - var(--menu-content-right)));margin:0;max-height:calc(100dvh - var(--menu-content-top) - 24px);overflow:auto;padding:4px;pointer-events:auto;scrollbar-width:thin}
 .is-menu .menu-content h1{font-size:clamp(28px,4.7vw,64px);margin:clamp(10px,1.6vw,24px) 0;letter-spacing:.07em}
 .is-menu .menu-actions{margin:clamp(12px,2.2vw,31px) 0 14px;gap:5px}
 .is-menu .menu-actions button{min-height:48px;font-size:clamp(12px,1.1vw,16px);padding:clamp(10px,1.3vw,18px) clamp(10px,1.5vw,22px);gap:clamp(8px,1.5vw,22px)}
@@ -35,3 +35,13 @@
 .unit-tooltip{position:fixed;z-index:70;max-width:calc(100vw - 24px);padding:16px;background:#10252afa;border:1px solid #d0b67d99;border-radius:5px;box-shadow:0 10px 36px #0009;color:#e4e7dc;overflow:auto;overscroll-behavior:contain}
 .unit-tooltip>strong{font-family:var(--serif);font-size:18px;color:#e9d4a4;font-weight:500}.unit-tooltip>p{font-size:12px;line-height:1.6;color:#a9b7aa;margin:7px 0}
 .unit-tooltip .unit-attributes{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;margin:12px 0}.unit-tooltip .unit-attribute>span{font-size:11px}.unit-tooltip .unit-attribute>strong{font-size:12px}.unit-tooltip>small{display:block;color:#a9b7aa;font-size:11px;line-height:1.6}
+
+.ai-count-field{flex-wrap:wrap}.ai-count-field input{width:min(100%,360px)}.ai-count-field small{flex-basis:100%;color:var(--muted)}.ai-count-field input[aria-invalid="true"]{border-color:#c88f80}
+.lobby{max-height:calc(100dvh - 100px);overflow:auto}.lobby .seats{max-height:36dvh;overflow:auto}
+/* The fade follows the right-side menu at every viewport, without a mobile reversal. */
+.is-menu .map-vignette{background:linear-gradient(270deg,#0a191efc 0%,#0a191ef5 29%,#0a191e70 50%,transparent 80%),linear-gradient(0deg,#0a191ee8,transparent 33%)}
+
+/* A continuous territory share bar scales to every faction without fixed gaps. */
+.faction-bars{display:flex;gap:0;background:#71807830;overflow:hidden}.faction-bars>span{display:block;flex:none;height:100%}
+
+.seat-status{font-size:10px;color:#92b79b}.seat-status[data-connected="false"]{color:var(--muted)}
