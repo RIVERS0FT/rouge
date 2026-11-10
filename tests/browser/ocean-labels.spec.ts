@@ -14,7 +14,7 @@ test('ocean labels are italic in both languages while land labels stay upright',
    // Compare the actual ocean texture with an upright rendering. This also
    // catches missing synthetic italics in CJK fallback fonts.
    let differsFromUpright=false;
-   if(this.fillStyle==='#8ca7ac'){
+   if(this.font.startsWith('italic ')){
     const upright=document.createElement('canvas');upright.width=512;upright.height=96;
     const context=upright.getContext('2d')!;context.textAlign=this.textAlign;
     context.font=this.font.replace(/italic\s+/, '');context.fillStyle=this.fillStyle;
@@ -49,8 +49,8 @@ test('ocean labels are italic in both languages while land labels stay upright',
   await page.locator('.map-search-results button').first().click();
   await canvas.focus();await page.keyboard.press('End');
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
-  await expect.poll(()=>page.evaluate(name=>((window as any).__mapLabelDraws as {name:string;font:string}[])
-   .some(label=>label.name.includes(name)&&label.font.startsWith('600 ')),language==='zh'?'江苏':'Jiangsu')).toBe(true);
+  const province=page.locator('.province-label:visible').filter({hasText:language==='zh'?'江苏':'Jiangsu'}).first();
+  await expect(province).toBeVisible();await expect(province).toHaveCSS('font-style','normal');
  }
  expect(errors).toEqual([]);
 });

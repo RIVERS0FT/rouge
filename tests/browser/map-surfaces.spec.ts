@@ -22,6 +22,10 @@ for(const mobile of [false,true])test.describe(mobile?'mobile map surfaces':'des
   await expect.poll(()=>page.locator('.country-label:visible').count()).toBeGreaterThan(0);
   await expect(canvas).toHaveAttribute('data-country-borders','true');
   await page.screenshot({path:`artifacts/map-surfaces-${mobile?'mobile':'desktop'}-world.png`});
+  // Verify an owned (not neutral) area retains the actual faction's base color.
+  await page.getByTestId('map-search').fill('CHN');await page.locator('.map-search-results button').first().click();
+  await expect.poll(async()=>await canvas.getAttribute('data-selected-fill-color')===await canvas.getAttribute('data-selected-owner-color')).toBe(true);
+  await expect(canvas).not.toHaveAttribute('data-selected-owner-color','b4b0a2');
   // Himalaya and coastal shelf retain geographic alignment at strategic zoom.
   await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
   if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').click();

@@ -1,7 +1,7 @@
 import {MapSurface} from './mapSurface.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
-import {buildCountryComponents,regionAreas,overlaps,LabelCollisionIndex,COUNTRY_LABEL_LIMIT,type CountryComponent,type LabelRect} from './countryLabels.ts';
+import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
@@ -42,10 +42,13 @@ export class WorldRenderer {
   private countryComponents:CountryComponent[]=[];
   private countryAreas=regionAreas(MAP);
   private countryLayer:HTMLDivElement;
-  private countryLabels:HTMLSpanElement[]=[];
+  private countryLabels=new Map<number,HTMLSpanElement>();
+  private provinceLayer:HTMLDivElement;
+  private provinceLabels=new Map<number,HTMLSpanElement>();
+  private labelMeasure=document.createElement('canvas').getContext('2d')!;
+  private labelWidths=new Map<string,number>();
   private countryStamp='';
   private countryLabelRevision=0;
-  private countryMeasures=new Map<string,number>();
   private labelTimer:ReturnType<typeof setTimeout>|null=null;
   private bodies:THREE.InstancedMesh;
   private heads:THREE.InstancedMesh;
@@ -72,8 +75,8 @@ export class WorldRenderer {
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
+    this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');host.append(this.provinceLayer);
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
-    for(let i=0;i<COUNTRY_LABEL_LIMIT;i++){const label=document.createElement('span');label.className='country-label';label.hidden=true;this.countryLabels.push(label);this.countryLayer.append(label);}
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
@@ -194,7 +197,7 @@ export class WorldRenderer {
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);ownershipChanged=true;}
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
     if(ownershipChanged||countryStamp!==this.countryStamp){
-      this.countryStamp=countryStamp;this.countryComponents=buildCountryComponents(MAP,this.ownerIds,this.countryAreas);this.lastLabels=0;this.invalidated=true;
+      this.countryStamp=countryStamp;this.countryComponents=primaryCountryComponents(buildCountryComponents(MAP,this.ownerIds,this.countryAreas));this.lastLabels=0;this.invalidated=true;
       this.renderer.domElement.dataset.countryComponents=String(this.countryComponents.length);
     }
     if(stamp!==this.groupingStamp||ownershipChanged){
@@ -272,14 +275,8 @@ export class WorldRenderer {
     if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
-  refreshLabelLayout(){
-    // A HUD commit can happen between throttled map frames. Never keep the
-    // previous positions visible over a newly opened sheet while relayout waits.
-    for(const label of this.countryLabels)label.hidden=true;
-    this.lastLabels=0;this.invalidated=true;
-  }
   setInputContext(context:MapInputContext){
-    this.countryLayer.hidden=context!=='game';this.invalidated=true;this.lastLabels=0;
+    this.invalidated=true;this.lastLabels=0;
     this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
     this.renderer.domElement.dataset.inputContext=context;
   }
@@ -377,66 +374,59 @@ export class WorldRenderer {
     };
     // Region information takes priority over country titles at tactical zoom.
     for(const p of candidates){
-      paint(p.name[this.lang==='zh'?0:1],p.center.x,p.center.z);
       if(this.blend>0.1&&townCount<188){for(const {x,z,rotation} of TOWNS[p.id]){
         this.dummy.position.set(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,rotation,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
     }
-    this.drawCountryLabels(occupied);
     if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,72]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
   }
-  private drawCountryLabels(occupied:LabelRect[]) {
-    let count=0;const shown=new Set<number>(),state=this.state,width=this.host.clientWidth,height=this.host.clientHeight;
-    const hostRect=this.host.getBoundingClientRect();
-    // Exclude the actual visible HUD, including open mobile sheets. No fixed
-    // desktop margins, no hit targets and no DOM injection from player names.
-    const blockers=new LabelCollisionIndex();
-    for(const node of this.host.parentElement?.querySelectorAll<HTMLElement>('.hud-top,.province-panel,.strategic-panel,.commander-portrait,.army-actions,.settings-trigger,.map-search,.map-search-results,.mobile-actions,.pause-banner,.elimination-status,.toast')??[]){
-      const rect=node.getBoundingClientRect();if(rect.width&&rect.height)blockers.add({left:rect.left-hostRect.left,right:rect.right-hostRect.left,top:rect.top-hostRect.top,bottom:rect.bottom-hostRect.top});
-    }
-    const projectPoint=(x:number,z:number)=>{const p=new THREE.Vector3(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.8,z).project(this.camera);return{x:(p.x+1)*width/2,y:(1-p.y)*height/2,visible:p.z>=-1&&p.z<=1};};
-    // At close range units, houses and region names own the screen.
-    if(state&&this.distance>=180&&!this.countryLayer.hidden){
-      if(this.blend>0.1)for(const unit of state.units){const p=projectPoint(unit.x,unit.z);if(p.visible&&p.x>=0&&p.x<=width&&p.y>=0&&p.y<=height)blockers.add({left:p.x-12,right:p.x+12,top:p.y-12,bottom:p.y+12});}
-      const scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
-      for(const component of this.countryComponents){
-        if(count>=COUNTRY_LABEL_LIMIT)break;if(shown.has(component.owner))continue;
-        const player=state.players[component.owner];if(!player)continue;
-        const name=countryName(this.lang,player);if(!name.trim())continue;
-        // Suppress tiny countries in the world view rather than drawing a wall
-        // of titles; zooming reveals them. The limit is rendering only.
-        if(Math.sqrt(component.area)*scale<18)continue;
-        const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));
-        const maxWidth=Math.min(230,width*.48),estimated=[...name].reduce((n,c)=>n+(/[^\x00-\x7F]/.test(c)?font:font*.59)+font*.035,0);
-        const labelWidth=Math.ceil(Math.min(maxWidth,Math.max(50,estimated+4)));
-        const anchors=component.anchors.map(id=>({id,anchor:MAP[id].center,screen:projectPoint(MAP[id].center.x,MAP[id].center.z)})).filter(p=>p.screen.visible&&p.screen.x>=labelWidth/2+8&&p.screen.x<=width-labelWidth/2-8&&p.screen.y>=8&&p.screen.y<=height-8);
-        if(!anchors.length)continue;
-        const measureKey=`${name}:${font}:${labelWidth}`,label=this.countryLabels[count];let labelHeight=this.countryMeasures.get(measureKey);
-        if(labelHeight===undefined){
-          // Measure actual wrapped DOM text once per name/size, including CJK,
-          // emoji and wide Latin glyphs, instead of trusting character counts.
-          label.textContent=name;label.style.width=`${labelWidth}px`;label.style.fontSize=`${font}px`;label.style.visibility='hidden';label.hidden=false;
-          labelHeight=label.getBoundingClientRect().height;label.hidden=true;label.style.visibility='';
-          if(this.countryMeasures.size>=512)this.countryMeasures.clear();this.countryMeasures.set(measureKey,labelHeight);
-        }
-        if(labelHeight>font*1.2*4+1)continue;
-        let attempts=0;
-        for(const {id,anchor,screen} of anchors){
-          const rect={left:screen.x-labelWidth/2,right:screen.x+labelWidth/2,top:screen.y-labelHeight/2,bottom:screen.y+labelHeight/2};
-          if(rect.left<8||rect.right>width-8||rect.top<8||rect.bottom>height-8)continue;
-          if(++attempts>24)break;
-          if(blockers.collides(rect)||occupied.some(other=>overlaps(rect,other,8)))continue;
-          count++;label.textContent=name;label.hidden=false;
-          label.style.left=`${screen.x}px`;label.style.top=`${screen.y}px`;label.style.width=`${labelWidth}px`;label.style.fontSize=`${font}px`;
-          label.dataset.owner=String(component.owner);label.dataset.region=String(id);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);
-          occupied.push(rect);shown.add(component.owner);break;
-        }
+  private drawMapNames() {
+    const width=this.host.clientWidth,height=this.host.clientHeight,scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
+    let countryCount=0,provinceCount=0;const activeOwners=new Set<number>(),point=new THREE.Vector3();
+    const draw=(pool:Map<number,HTMLSpanElement>,layer:HTMLDivElement,id:number,name:string,region:number,font:number,country:boolean)=>{
+      const anchor=MAP[region].center,baseX=nearestWorldX(anchor.x,this.focus.x);
+      const family='Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`600 ${font}px ${family}`,key=`${fontKey}:${name}`;
+      let textWidth=this.labelWidths.get(key);
+      if(textWidth===undefined){
+        this.labelMeasure.font=fontKey;const metrics=this.labelMeasure.measureText(name);
+        textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*.035+4);
+        if(this.labelWidths.size>=16384)this.labelWidths.clear();this.labelWidths.set(key,textWidth);
       }
+      const textHeight=font*1.2;let visible=0;
+      // Adjacent globe copies keep a partially visible title at each date-line
+      // edge instead of teleporting one node from one side to the other.
+      for(const offset of [-1,0,1]){
+        const p=point.set(baseX+offset*WORLD_WIDTH,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera);
+        const x=(p.x+1)*width/2,y=(1-p.y)*height/2-(country?24:0);
+        const rect={left:x-textWidth/2-2,right:x+textWidth/2+2,top:y-textHeight/2-2,bottom:y+textHeight/2+2},poolId=id*3+offset+1;
+        let label=pool.get(poolId);
+        // Cull only complete text bounds outside the viewport. A fixed 24px
+        // country offset separates its title from the anchor province's name.
+        if(p.z<-1||p.z>1||!labelIntersectsViewport(rect,width,height)){if(label)label.hidden=true;continue;}
+        if(!label){label=document.createElement('span');label.className=country?'country-label':'province-label';pool.set(poolId,label);layer.append(label);}
+        if(label.textContent!==name)label.textContent=name;if(label.hidden)label.hidden=false;
+        const transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
+        if(label.style.transform!==transform)label.style.transform=transform;
+        if(label.style.width!==`${textWidth}px`)label.style.width=`${textWidth}px`;
+        if(label.style.height!==`${textHeight}px`)label.style.height=`${textHeight}px`;
+        if(label.style.fontSize!==`${font}px`)label.style.fontSize=`${font}px`;
+        if(label.dataset.region!==String(region)){label.dataset.region=String(region);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);}
+        label.dataset.copy=String(Math.round((baseX-anchor.x)/WORLD_WIDTH)+offset);label.dataset.primary=String(offset===0);
+        if(country&&label.dataset.owner!==String(id))label.dataset.owner=String(id);
+        visible++;
+      }
+      return visible;
+    };
+    for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.id,12,false);
+    for(const component of this.countryComponents){
+      const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
+      const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));
+      countryCount+=draw(this.countryLabels,this.countryLayer,component.owner,countryName(this.lang,player),component.anchors[0],font,true);
     }
-    for(let i=count;i<this.countryLabels.length;i++)this.countryLabels[i].hidden=true;
+    for(const [poolId,label] of this.countryLabels)if(!activeOwners.has(Math.floor(poolId/3))){label.remove();this.countryLabels.delete(poolId);}
     this.renderer.domElement.dataset.countryLabelRevision=String(++this.countryLabelRevision);
-    this.renderer.domElement.dataset.countryLabels=String(count);
-    this.renderer.domElement.dataset.countryLabelOwners=[...shown].join(',');
+    this.renderer.domElement.dataset.countryLabels=String(countryCount);this.renderer.domElement.dataset.provinceLabels=String(provinceCount);
+    this.renderer.domElement.dataset.countryLabelOwners=[...new Set([...this.countryLabels.values()].filter(label=>!label.hidden).map(label=>label.dataset.owner))].join(',');
   }
   private frame=(time:number)=>{
     this.animation=requestAnimationFrame(this.frame);
@@ -474,7 +464,10 @@ export class WorldRenderer {
     }
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
     this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
-    this.drawLabels(time);this.renderer.render(this.scene,this.camera);
+    this.drawLabels(time);
+    // DOM titles need the same camera projection on every rendered frame, not
+    // the slower text-texture cadence, otherwise they lag and jump during pans.
+    this.drawMapNames();this.renderer.render(this.scene,this.camera);
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
@@ -482,5 +475,5 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
   dispose(){this.mapSurface.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
-    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.renderer.dispose();c.remove();}
+    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
 }
