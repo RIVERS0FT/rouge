@@ -9,7 +9,7 @@ const site=process.env.SITE_URL?.replace(/\/?$/,'/');
 assert.ok(site?.startsWith('https://'),'HTTPS Pages URL required');
 const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
 const atlas=JSON.parse(fs.readFileSync('game/src/generated/gameplay-map.json','utf8'));
-const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v2';
+const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v3';
 assert.ok(regions,'Expected preprocessed gameplay-region map');
 const region=code=>atlas.provinces.findIndex(p=>p.id===code);
 async function chooseRemoteRoute(page){
@@ -97,7 +97,7 @@ try{
  await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
  if(regions){
   const routes=await page.evaluate(()=>{
-   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v2.')&&!k.endsWith('.backup'));
+   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v3.')&&!k.endsWith('.backup'));
    const record=records.find(k=>localStorage.getItem(k).includes('Pages verification'));
    if(!record)throw new Error('Verification save missing');
    const s=JSON.parse(JSON.parse(localStorage.getItem(record)).body);

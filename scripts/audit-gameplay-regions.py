@@ -18,6 +18,9 @@ targets = {s['id']: s for s in audit['states']}
 assert len(targets) == len(atlas['provinces'])
 partition = read('gameplay-region-partition.json.gz')
 assert partition['sourceSha256'] == hashlib.sha256((ROOT / 'data' / 'natural-earth-admin1-base.json.gz').read_bytes()).hexdigest(), 'Partition source checksum mismatch'
+overrides = read('gameplay-region-overrides.json')
+assert partition['overridesSha256'] == hashlib.sha256((ROOT / 'data' / 'gameplay-region-overrides.json').read_bytes()).hexdigest()
+explicit_sets = {frozenset(o['sourceIds'] + o['targetSourceIds']) for o in overrides['merges']}
 selected_groups = [{'id': g['id'], 'atomIds': g['sourceIds'], 'legacyHint': g['legacyHint'], 'reason': g['reason']} for g in partition['groups']]
 assigned = [a for g in selected_groups for a in g['atomIds']]
 assert len(assigned) == len(set(assigned)) == len(source) == len(atoms)
@@ -26,7 +29,7 @@ by_target = defaultdict(list)
 groups = []
 for g in selected_groups:
     aa = [atoms[a] for a in g['atomIds']]
-    assert len({source[a]['country'] for a in g['atomIds']}) == 1
+    assert len({source[a]['country'] for a in g['atomIds']}) == 1 or frozenset(g['atomIds']) in explicit_sets, 'Unapproved cross-label group'
     remaining = set(g['atomIds']); queue = [min(remaining)]; remaining.remove(queue[0])
     for atom in queue:
         for n in source[atom]['neighbors']:
@@ -57,7 +60,7 @@ weights = sum(r['targetAreaKm2'] for r in rows)
 summary = {'retainedSourceAtoms': len(source), 'lockedPreprocessedGroups': len(groups), 'groupsWithSourceAreaInView': sum(g['inView'] for g in groups), 'groupsOutsideView': sum(not g['inView'] for g in groups), 'groupCountReductionFraction': round(1 - len(groups) / len(source), 6), 'multiAtomGroups': sum(g['atomCount'] > 1 for g in groups), 'singletonGroups': sum(g['atomCount'] == 1 for g in groups), 'largestGroupAtomCount': max(g['atomCount'] for g in groups), 'reasons': dict(Counter(g['reason'] for g in groups)), 'referenceTargetCount': len(rows), 'targetsWithoutAssignedGroup': sum(r['assignedGroupCount'] == 0 for r in rows), 'targetsWithExactlyOneAssignedGroup': sum(r['assignedGroupCount'] == 1 for r in rows), 'targetsFragmentedIntoMultipleGroups': sum(r['assignedGroupCount'] > 1 for r in rows), 'maxGroupsPerTarget': max(r['assignedGroupCount'] for r in rows), 'medianBestSingleAssignedGroupIoUProxy': round(statistics.median(r['bestSingleAssignedGroupIoUProxy'] for r in rows), 6), 'areaWeightedBestSingleAssignedGroupIoUProxy': round(sum(r['targetAreaKm2'] * r['bestSingleAssignedGroupIoUProxy'] for r in rows) / weights, 6), 'medianAllAssignedGroupsIoUProxy': round(statistics.median(r['allAssignedGroupsIoUProxy'] for r in rows), 6), 'areaWeightedAllAssignedGroupsIoUProxy': round(sum(r['targetAreaKm2'] * r['allAssignedGroupsIoUProxy'] for r in rows) / weights, 6)}
 for cutoff in [.5, .75, .9, .95]:
     summary['targetsBestSingleAssignedGroupIoUAtLeast' + str(cutoff)] = sum(r['bestSingleAssignedGroupIoUProxy'] >= cutoff for r in rows)
-output = {'schema': 1, 'auditOnly': True, 'measurement': 'Original unsimplified Natural Earth atoms: sum disjoint atom areas/intersections from admin1-overlap-audit.json; EPSG:6933, clipped to [-180,-58.64,180,74]. Source simplification at 0.015 degrees is not remeasured. Reference has approximate Miller georeferencing; no alignment fitted. IoU is a geographic diagnostic, not an official Victoria 3 match certification.', 'inputsSha256': {name: hashlib.sha256((ROOT / 'data' / name).read_bytes()).hexdigest() for name in ['natural-earth-admin1-base.json.gz', 'admin1-overlap-audit.json', 'state-regions-1.13.7.json.gz', 'gameplay-region-partition.json.gz']}, 'summary': summary, 'optimization': partition['summary'], 'remainingFragmentation': partition['remainingFragmentation'], 'targets': rows, 'groups': groups}
+output = {'schema': 1, 'auditOnly': True, 'measurement': 'Original unsimplified Natural Earth atoms: sum disjoint atom areas/intersections from admin1-overlap-audit.json; EPSG:6933, clipped to [-180,-58.64,180,74]. Source simplification at 0.015 degrees is not remeasured. Reference has approximate Miller georeferencing; no alignment fitted. IoU is a geographic diagnostic, not an official Victoria 3 match certification.', 'inputsSha256': {name: hashlib.sha256((ROOT / 'data' / name).read_bytes()).hexdigest() for name in ['natural-earth-admin1-base.json.gz', 'admin1-overlap-audit.json', 'state-regions-1.13.7.json.gz', 'gameplay-region-partition.json.gz', 'gameplay-region-overrides.json']}, 'summary': summary, 'optimization': partition['summary'], 'remainingFragmentation': partition['remainingFragmentation'], 'targets': rows, 'groups': groups}
 # Detailed rows are reproducible from retained source measurements; keep the
 # committed report compact and write the full diagnostic to ignored artifacts.
 (ROOT / 'artifacts').mkdir(exist_ok=True)

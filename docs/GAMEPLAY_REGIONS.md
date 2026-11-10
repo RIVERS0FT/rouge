@@ -1,10 +1,10 @@
-# Locked gameplay regions, map v2
+# Locked gameplay regions, map v3
 
 ## Actual operational map
 
 `sourceMap.ts` retains all 4,596 complete Natural Earth Admin1 features, stable source IDs, polygon rings, holes, islands, and real shared-edge topology. `data/gameplay-region-partition.json.gz` records the reproducible, reference-guided preprocessing partition without editing that source archive. Source geometry remains public-domain Natural Earth; the reference is a placement/partition hint, not replacement pixel geometry.
 
-The runtime crop validation confirms **1,163 total base regions, 1,159 playable**, with no extra connectivity splits. Each playable region has 12 slots (13,908 total) and rate 1 (1,159 total). Regenerated spawn matching provides 312 disjoint two-region starts.
+The runtime crop validation confirms **1,162 total base regions, 1,158 playable**, with no extra connectivity splits. Each playable region has 12 slots (13,896 total) and rate 1 (1,158 total). Regenerated spawn matching provides 312 disjoint two-region starts.
 
 The same `territoryGrouping.ts` partition kernel creates both kinds of merge:
 
@@ -15,6 +15,14 @@ The same `territoryGrouping.ts` partition kernel creates both kinds of merge:
 All current selection, target commands, production, garrisons, capture, faction territory counts and victory calculations address the operational map. In-game grouping retains each base region's authoritative resource ledger and can reconcile ownership changes without subdividing a locked base. This distinction prevents deleting production progress or moving troops when editing a management group.
 
 Each playable base region receives capacity 12 and production rate 1. The earlier rule distributed one group's capacity/production among raw administrative records; that rule is removed. Every faction still receives two whole regions, five troops in each, total capacity 24 and production 2. Spawn sites are regenerated against the new map and independently certified land routes.
+
+## Explicit Baikonur → Karaganda grouping
+
+`data/gameplay-region-overrides.json` pins the complete singleton `KAB+00?` and existing Karaganda member set `KAZ-3197`, `KAZ-3203`, `KAZ-3251`, `KAZ-3252`. The offline builder applies this explicit user-requested merge after the general optimizer. It verifies exact membership and real connectivity; any later input change fails rather than silently extending the request. All other partition records are unchanged, covered by a baseline hash regression.
+
+Baikonur touches only Qyzylorda (`KAZ-3197`), not the original Qaraghandy atom (`KAZ-3203`). Qyzylorda was already inside the Karaganda gameplay region, so the combined region is connected. The original `KAB` and `KAZ` source labels remain intact. The renderer removes the shared enclave seam, retains all original polygons and holes, and uses the same external neighbors. Searching either name or source code picks one region named Karaganda with one queue, capacity 12, production rate 1 and one territory count. No extra surrounding region is absorbed.
+
+This partition update removes one gameplay account and changes runtime indices. It therefore uses map/save namespace v3 and rejects v2 saves and mixed-map LAN snapshots explicitly. Existing stored v2 bytes remain untouched; no automatic ownership/queue/troop migration is claimed. New games are required. Spawn sites were regenerated: 312 starts remain available.
 
 ## Geometry and future unlock
 
@@ -30,7 +38,7 @@ The larger regions exposed a pre-existing crowd stall at intermediate land waypo
 
 ## Saves and synchronization
 
-Map identity is `earth-natural-earth-admin1-511-regions-v2`; LAN rules identity is `admin1-locked-game-regions-v5`. The save schema stays version 5, but uses the separate prefix `rouge.save.natural-earth-admin1.regions.v2.`. Old raw-atom v1 and historical pixel-map campaigns are rejected as `incompatibleMap`; their stored bytes remain untouched. Automatic migration would need a policy for conflicting owners, independent training queues and overcrowded merged garrisons, so no lossless conversion is claimed.
+Map identity is `earth-natural-earth-admin1-511-regions-v3`; LAN rules identity is `admin1-locked-game-regions-buildings-v6`. The save schema stays version 5, but uses the separate prefix `rouge.save.natural-earth-admin1.regions.v3.`. Old pre-merge region v2, raw-atom v1 and historical pixel-map campaigns are rejected as `incompatibleMap`; their stored bytes remain untouched. Automatic migration would need a policy for conflicting owners, independent training queues and overcrowded merged garrisons, so no lossless conversion is claimed.
 
 Current-map saves and full/delta LAN snapshots preserve the base-region records, dynamic grouping and lock metadata. Their validators use the exact operational map identity and cardinality. Stable source IDs and the versioned preprocessing manifest make a future explicit migration possible.
 

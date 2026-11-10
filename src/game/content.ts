@@ -4,7 +4,7 @@ export const DT=0.05;
 export const VERSION='0.5.0';
 // Network protocol identity; independent of backwards-compatible local save schema.
 export const RULES_ID='admin1-locked-game-regions-buildings-v6';
-export const MAP_ID='earth-natural-earth-admin1-511-regions-v2' as const;
+export const MAP_ID='earth-natural-earth-admin1-511-regions-v3' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];

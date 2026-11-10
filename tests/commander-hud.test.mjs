@@ -25,7 +25,7 @@ test('commander experience is bounded and shows full progress at level cap',()=>
 });
 test('state-region saves and LAN keep local actors while rejecting the old administrative atlas',()=>{
  const state=createGame(setup),restored=decodeSave(encodeSave(state,'Regions')).state;
- assert.equal(restored.version,5);assert.equal(restored.map,'earth-natural-earth-admin1-511-regions-v2');assert.deepEqual(restored,state);
+ assert.equal(restored.version,5);assert.equal(restored.map,'earth-natural-earth-admin1-511-regions-v3');assert.deepEqual(restored,state);
  assert.equal(validateState({...restored,version:4,map:'earth-admin1-miller-crop-v1'}),false);
  for(let actor=0;actor<4;actor++){const remote=applyFrame(null,encodeFrame(restored,undefined,actor).frame);assert.equal(remote.players[actor].leader,setup[actor].leader);}
 });
