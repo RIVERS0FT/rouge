@@ -40,7 +40,7 @@ test('unit tooltip is external to the button, keyboard dismissible and mouse hov
  const box=await card.boundingBox(),name=await card.locator('.unit-name').boundingBox();expect(name!.x-box!.x).toBeLessThan(20);expect(name!.y-box!.y).toBeLessThan(20);
  await page.keyboard.press('Escape');await expect(tooltip).toHaveCount(0);await expect(page.getByRole('dialog')).toBeVisible();
  await page.getByTestId('commander-name').focus();await card.hover();await expect(tooltip).toBeVisible();await tooltip.hover();await page.waitForTimeout(180);await expect(tooltip).toBeVisible();
- await page.keyboard.press('Escape');await expect(tooltip).toHaveCount(0);await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByTestId('single-player')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toHaveCount(0);await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByTestId('single-player')).toBeFocused();
 });
 
 test.describe('touch identity and unit selection',()=>{

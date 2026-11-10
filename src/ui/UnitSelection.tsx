@@ -21,15 +21,26 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
  const[active,setActive]=useState<Kind|null>(null),[position,setPosition]=useState<CSSProperties>({visibility:'hidden'});
  const keyboardFocus=useRef(false),pointerDown=useRef(false),touchToggle=useRef(false);
  const grid=useRef<HTMLDivElement>(null),tooltip=useRef<HTMLDivElement>(null),hideTimer=useRef<ReturnType<typeof setTimeout>>();
+ // Removing a portal can expose another card under a stationary mouse.
+ // Escape stays dismissed until actual movement or explicit focus/click intent.
+ const dismissedPointer=useRef<{x:number;y:number}|null>(null),lastPointer=useRef({x:0,y:0});
  const buttons=useRef<Partial<Record<Kind,HTMLButtonElement|null>>>({});
  const cancelHide=()=>clearTimeout(hideTimer.current);
  const show=(kind:Kind)=>{cancelHide();setActive(kind);};
  const leave=(kind:Kind)=>{cancelHide();hideTimer.current=setTimeout(()=>{if(!keyboardFocus.current||document.activeElement!==buttons.current[kind])setActive(current=>current===kind?null:current);},120);};
- useEffect(()=>()=>cancelHide(),[]);
  useEffect(()=>{
+  const move=(event:PointerEvent)=>{if(event.pointerType==='mouse'){
+   const point={x:event.clientX,y:event.clientY};
+   if(dismissedPointer.current&&(point.x!==dismissedPointer.current.x||point.y!==dismissedPointer.current.y))dismissedPointer.current=null;
+   lastPointer.current=point;
+  }};
+  document.addEventListener('pointermove',move,true);
+  return()=>{cancelHide();document.removeEventListener('pointermove',move,true);};
+ },[]);
+ useLayoutEffect(()=>{
   if(!active)return;
   const dismiss=(event:PointerEvent)=>{if(!grid.current?.contains(event.target as Node)&&!tooltip.current?.contains(event.target as Node))setActive(null);};
-  const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();cancelHide();setActive(null);}};
+  const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();cancelHide();dismissedPointer.current={...lastPointer.current};setActive(null);}};
   document.addEventListener('pointerdown',dismiss);document.addEventListener('keydown',key,true);
   return()=>{document.removeEventListener('pointerdown',dismiss);document.removeEventListener('keydown',key,true);};
  },[active]);
@@ -40,7 +51,10 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
    const width=Math.min(340,window.innerWidth-24);tip.style.width=`${width}px`;
    const height=Math.min(tip.scrollHeight+2,window.innerHeight-24);
    if(anchor.bottom<=12||anchor.top>=window.innerHeight-12){setActive(null);return;}
-   const below=Math.max(0,window.innerHeight-anchor.bottom-20),above=Math.max(0,anchor.top-20);
+   // Keep the setup actions tappable even while a touch tooltip stays open.
+   const footer=grid.current?.closest('.setup-modal')?.querySelector('.setup-footer')?.getBoundingClientRect();
+   const bottom=footer&&footer.top>=anchor.bottom?Math.min(window.innerHeight-12,footer.top-8):window.innerHeight-12;
+   const below=Math.max(0,bottom-anchor.bottom-8),above=Math.max(0,anchor.top-20);
    const useBelow=below>=height||below>=above,maxHeight=Math.max(1,useBelow?below:above);
    // Never cover the active trigger: a second touch must always be able to dismiss.
    // Short landscapes scroll the tooltip itself instead of obscuring its trigger.
@@ -51,7 +65,7 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
   return()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);};
  },[active,language]);
  return <div ref={grid} className="unit-grid" aria-label={t(language,'chooseUnits')}>{KINDS.map(kind=><div className="unit-choice" key={kind}>
-  <button ref={node=>{buttons.current[kind]=node;}} className={`unit-card ${value===kind?'chosen':''}`} aria-pressed={value===kind} aria-label={t(language,kind)} aria-describedby={active===kind?`unit-tooltip-${kind}`:undefined} data-testid={`choose-unit-${kind}`} onFocus={()=>{keyboardFocus.current=!pointerDown.current;show(kind);}} onBlur={()=>setActive(current=>current===kind?null:current)} onPointerEnter={event=>{if(event.pointerType==='mouse'){keyboardFocus.current=false;show(kind);}}} onPointerDown={event=>{pointerDown.current=true;keyboardFocus.current=false;touchToggle.current=event.pointerType!=='mouse'&&active===kind;}} onPointerCancel={()=>{pointerDown.current=false;touchToggle.current=false;}} onPointerLeave={()=>leave(kind)} onClick={()=>{onChange(kind);cancelHide();if(touchToggle.current)setActive(null);else show(kind);pointerDown.current=false;touchToggle.current=false;}}>
+  <button ref={node=>{buttons.current[kind]=node;}} className={`unit-card ${value===kind?'chosen':''}`} aria-pressed={value===kind} aria-label={t(language,kind)} aria-describedby={active===kind?`unit-tooltip-${kind}`:undefined} data-testid={`choose-unit-${kind}`} onFocus={()=>{dismissedPointer.current=null;keyboardFocus.current=!pointerDown.current;show(kind);}} onBlur={()=>setActive(current=>current===kind?null:current)} onPointerEnter={event=>{if(event.pointerType==='mouse'&&!dismissedPointer.current){keyboardFocus.current=false;show(kind);}}} onPointerMove={event=>{if(event.pointerType==='mouse'&&!dismissedPointer.current&&active!==kind)show(kind);}} onPointerDown={event=>{dismissedPointer.current=null;pointerDown.current=true;keyboardFocus.current=false;touchToggle.current=event.pointerType!=='mouse'&&active===kind;}} onPointerCancel={()=>{pointerDown.current=false;touchToggle.current=false;}} onPointerLeave={()=>leave(kind)} onClick={()=>{onChange(kind);cancelHide();if(touchToggle.current)setActive(null);else show(kind);pointerDown.current=false;touchToggle.current=false;}}>
    <span className="unit-name">{t(language,kind)}</span><UnitIcon kind={kind}/>
   </button>
  </div>)}{active&&createPortal(<div ref={tooltip} id={`unit-tooltip-${active}`} data-testid={`unit-tooltip-${active}`} className="unit-tooltip" role="tooltip" style={position} onPointerEnter={cancelHide} onPointerLeave={()=>leave(active)}>

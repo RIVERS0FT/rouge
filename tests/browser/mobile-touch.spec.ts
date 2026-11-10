@@ -1,18 +1,22 @@
 import {test,expect,type Page} from '@playwright/test';
 test.use({hasTouch:true,isMobile:true});
+async function ready(page:Page){
+ await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+ await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
+ await expect(page.getByRole('dialog')).toHaveCount(0);
+}
 async function fit(page:Page,selector:string,width:number,height:number){
  const rect=await page.locator(selector).boundingBox();expect(rect).not.toBeNull();
  expect(rect!.x).toBeGreaterThanOrEqual(0);expect(rect!.y).toBeGreaterThanOrEqual(0);
  expect(rect!.x+rect!.width).toBeLessThanOrEqual(width+1);expect(rect!.y+rect!.height).toBeLessThanOrEqual(height+1);
 }
-test('phone portrait and landscape keep setup, HUD and scrollable dialogs reachable',async({page})=>{
+for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x${height} keeps setup, HUD and scrollable dialogs reachable`,async({page})=>{
  test.setTimeout(180000);
- for(const [width,height]of [[390,844],[360,640],[844,390]]){
   await page.setViewportSize({width,height});await page.goto('/');
   await page.getByTestId('single-player').tap();
   await expect(page.getByRole('dialog')).toBeVisible();await fit(page,'[role=dialog]',width,height);
   await page.getByTestId('choose-unit-horseArtillery').tap();
-  await page.getByTestId('begin-campaign').tap();await expect(page.getByTestId('open-settings')).toBeVisible();
+  await page.getByTestId('begin-campaign').tap();await ready(page);await expect(page.getByTestId('open-settings')).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
   expect(await page.locator('canvas').boundingBox()).toEqual({x:0,y:0,width,height});
   for(const sel of ['[data-testid=open-settings]','[data-testid=open-upgrades]','[data-testid=toggle-province-panel]'])await fit(page,sel,width,height);
@@ -25,11 +29,10 @@ test('phone portrait and landscape keep setup, HUD and scrollable dialogs reacha
   await expect(page.getByTestId('upgrade-horseArtillery-speed').locator('..')).toContainText('1/8');
   await page.keyboard.press('Escape');await page.getByTestId('open-settings').tap();await fit(page,'[role=dialog]',width,height);
   await page.screenshot({path:`artifacts/mobile-touch-${width}x${height}.png`});
- }
 });
 test('pinch zoom, one-finger drag and cancellation do not cause accidental selection',async({page,context})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/');
- await page.getByTestId('single-player').tap();await page.getByTestId('begin-campaign').tap();
+ await page.getByTestId('single-player').tap();await page.getByTestId('begin-campaign').tap();await ready(page);
  await expect(page.locator('.view-controls')).toHaveCount(0);
  const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-ready','true');
  await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true');
@@ -54,7 +57,7 @@ test('pinch zoom, one-finger drag and cancellation do not cause accidental selec
 });
 test('hybrid touch laptop switches hints by intent and modal context blocks all map actions',async({page})=>{
  await page.setViewportSize({width:1280,height:800});await page.goto('/');
- await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
+ await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();await ready(page);
  const app=page.locator('.app'),canvas=page.locator('canvas');
  await expect(canvas).toHaveAttribute('data-input-context','game');
  await canvas.dispatchEvent('pointerdown',{pointerId:10,pointerType:'touch',clientX:600,clientY:400});
