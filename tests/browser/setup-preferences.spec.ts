@@ -2,7 +2,8 @@ import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test('leader artwork and preferences persist while solo AI selection controls faction count',async({page})=>{
  await page.goto('/');await page.getByTestId('single-player').click();
- await expect(page.locator('.leader-card svg[data-testid=leader-bust]')).toHaveCount(3);
+ await expect(page.locator('.leader-card img[data-testid=leader-bust]')).toHaveCount(3);
+ for(const portrait of await page.locator('.leader-card img[data-testid=leader-bust]').all()) {await expect(portrait).toHaveJSProperty('complete',true);await expect(portrait).toHaveJSProperty('naturalWidth',720);}
  await page.getByTestId('choose-leader-steward').click();
  await page.getByLabel('旗帜类型').selectOption('jp');
  await page.reload();await page.getByTestId('single-player').click();
