@@ -5,6 +5,7 @@ import {factionColor} from '../src/game/factionColors.ts';
 const flag={type:'custom',pattern:'solid',colors:['#ff0000','#00ff00','#0000ff']};
 const setups=Array.from({length:16},(_,id)=>({name:`Palette ${id+1}`,leader:'warden',loadout:['infantry'],ai:false,...(id===0?{flag}:{})}));
 const state=createGame(setups,29,'palette-review');
+state.events=[0,3,12,15].map(player=>({tick:0,key:'level',player}));
 const samples=[0,3,12,15,-1].map(owner=>{
  const province=state.provinces.find(p=>p.owner===owner&&MAP[p.id].playable);
  if(!province)throw Error(`Missing palette fixture owner ${owner}`);

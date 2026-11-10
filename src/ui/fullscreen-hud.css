@@ -76,3 +76,6 @@
  .army-actions{top:140px;width:150px}.is-game .map-search{left:246px;right:10px}
  .settings-modal{padding:30px 20px}.settings-language-options button{padding:9px}
 }
+
+/* Pale political-map land must not show through small dispatch text. */
+.is-game .dispatches{background:#173038;border-radius:4px;margin-top:10px;text-shadow:none}

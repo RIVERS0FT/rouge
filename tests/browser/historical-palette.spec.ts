@@ -13,6 +13,8 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
   await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await expect(page.getByTestId('faction-identity').locator('svg rect').first()).toHaveAttribute('fill','#ff0000');
   await expect(page.getByTestId('faction-identity')).toContainText('Faction 1');
+  await expect(page.locator('.dispatches')).toHaveCSS('background-color','rgb(23, 48, 56)');
+  await expect(page.locator('.dispatches')).toContainText('Palette 16');
   for(const sample of fixture.samples){
    if(touch&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').tap();
    await page.getByTestId('map-search').fill(sample.code);await page.locator('.map-search-results button').first().click();
@@ -25,6 +27,7 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
    // Selection is an outline plus bounded inner glow, never a replacement fill.
    await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect(canvas).toHaveAttribute('data-selected-fill-color',sample.color);
+   if(sample.owner===0||sample.owner===15)await page.screenshot({path:`artifacts/historical-palette-${touch?'touch':'desktop'}-owner-${sample.owner}.png`});
   }
   if(touch){await page.setViewportSize({width:844,height:390});await expect(canvas).toHaveAttribute('data-viewport-width','844');}
   await page.screenshot({path:`artifacts/historical-palette-${touch?'touch':'desktop'}.png`});
