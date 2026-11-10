@@ -1,7 +1,6 @@
 import {signedArea} from '../game/crop.ts';
 import {nearestWorldX} from '../game/geo.ts';
 import type {ProvinceDef} from '../game/types.ts';
-export const COUNTRY_LABEL_LIMIT=32;
 export interface CountryComponent {owner:number;area:number;anchors:number[]}
 export interface LabelRect {left:number;right:number;top:number;bottom:number}
 export function overlaps(a:LabelRect,b:LabelRect,gap=6):boolean{return a.left<b.right+gap&&a.right>b.left-gap&&a.top<b.bottom+gap&&a.bottom>b.top-gap;}
@@ -30,10 +29,24 @@ export function buildCountryComponents(map:readonly ProvinceDef[],owners:readonl
  return result.sort((a,b)=>b.area-a.area||a.owner-b.owner||a.anchors[0]-b.anchors[0]);
 }
 
+/** One fixed interior anchor in the largest connected territory per country.
+ * Camera position and HUD visibility must never choose a different province.
+ * Ownership changes rebuild the anchor; panning/zooming only project it. */
+export function primaryCountryComponents(components:readonly CountryComponent[]):CountryComponent[]{
+ const seen=new Set<number>();return [...components].sort((a,b)=>b.area-a.area||a.owner-b.owner||a.anchors[0]-b.anchors[0]).filter(component=>{
+  if(seen.has(component.owner)||!component.anchors.length)return false;seen.add(component.owner);return true;
+ }).map(component=>({...component,anchors:[component.anchors[0]]}));
+}
+
 /** Screen-space bucket index keeps dense army/HUD collision work bounded. */
 export class LabelCollisionIndex {
  private buckets=new Map<string,LabelRect[]>();
  private keys(rect:LabelRect):string[]{const keys:string[]=[];for(let x=Math.floor(rect.left/64);x<=Math.floor(rect.right/64);x++)for(let y=Math.floor(rect.top/64);y<=Math.floor(rect.bottom/64);y++)keys.push(`${x}:${y}`);return keys;}
  add(rect:LabelRect):void{for(const key of this.keys(rect)){const bucket=this.buckets.get(key)??[];bucket.push(rect);this.buckets.set(key,bucket);}}
  collides(rect:LabelRect,gap=8):boolean{for(const key of this.keys({left:rect.left-gap,right:rect.right+gap,top:rect.top-gap,bottom:rect.bottom+gap}))if(this.buckets.get(key)?.some(other=>overlaps(rect,other,gap)))return true;return false;}
+}
+
+/** Partial text stays visible, including when its anchor is outside the screen. */
+export function labelIntersectsViewport(rect:LabelRect,width:number,height:number):boolean{
+ return rect.right>=0&&rect.left<=width&&rect.bottom>=0&&rect.top<=height;
 }

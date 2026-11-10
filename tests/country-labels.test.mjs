@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildCountryComponents,regionAreas,overlaps,LabelCollisionIndex,COUNTRY_LABEL_LIMIT} from '../src/render/countryLabels.ts';
+import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,LabelCollisionIndex,labelIntersectsViewport} from '../src/render/countryLabels.ts';
 import {MAP,pointInProvince} from '../src/game/map.ts';
 import {WORLD_WIDTH} from '../src/game/geo.ts';
 const cell=(id,x,neighbors,visible=true)=>({id,center:{x,z:0},neighbors,visible,parts:[[[{x:x-5,z:-5},{x:x+5,z:-5},{x:x+5,z:5},{x:x-5,z:5}]]]});
@@ -17,7 +17,6 @@ test('country anchors stay on their controlled land, including wrapped islands',
  const owners=MAP.map(p=>p.visible?p.id%9:-1),parts=buildCountryComponents(MAP,owners);
  for(const part of parts)for(const id of part.anchors){assert.equal(owners[id],part.owner);assert.ok(pointInProvince(id,MAP[id].center.x,MAP[id].center.z),MAP[id].code);}
  const wrapped=[cell(0,WORLD_WIDTH/2-4,[1]),cell(1,-WORLD_WIDTH/2+4,[0])];assert.equal(buildCountryComponents(wrapped,[7,7]).length,1);
- assert.equal(COUNTRY_LABEL_LIMIT,32);
 });
 test('area and screen collision account for holes, HUD padding and dense unit buckets',()=>{
  const shape=cell(0,0,[]);shape.parts[0].push([{x:-1,z:-1},{x:1,z:-1},{x:1,z:1},{x:-1,z:1}]);assert.equal(regionAreas([shape])[0],96);
@@ -25,15 +24,31 @@ test('area and screen collision account for holes, HUD padding and dense unit bu
  for(const other of [{left:60,right:63,top:60,bottom:63},{left:75,right:99,top:75,bottom:99},{left:1,right:2,top:1,bottom:2}])assert.equal(index.collides(other),overlaps(other,rect,8));
 });
 
-test('stationary HUD changes invalidate the political label layout',()=>{
- const app=fs.readFileSync(new URL('../src/ui/App.tsx',import.meta.url),'utf8');
- assert.match(app,/useLayoutEffect\(\(\)=>\{world\.current\?\.refreshLabelLayout\(\);.*\[mobilePanel,paused,inputDevice,mapQuery,spectating,toast,selected,language,visibleDispatches\]/);
- assert.match(app,/visibleDispatches=JSON\.stringify\(game\?\.events\.slice\(-4\)\?\?\[\]\)/);
+test('country titles select one immutable largest-territory anchor, never a viewport fallback',()=>{
+ const map=[cell(0,0,[1]),cell(1,10,[0]),cell(2,80,[]),cell(3,100,[])];
+ const components=buildCountryComponents(map,[0,0,0,1]),primary=primaryCountryComponents(components);
+ assert.equal(primary.length,2);assert.equal(primary[0].owner,0);assert.equal(primary[0].area,200);
+ assert.deepEqual(primary.map(c=>c.anchors),[[components[0].anchors[0]],[3]]);
+ assert.deepEqual(primaryCountryComponents([...components].reverse()),primary);
+ assert.equal(components[0].anchors.length,2,'choosing one label does not mutate territory geometry');
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
- const body=renderer.match(/refreshLabelLayout\(\)\{([\s\S]*?)\n  \}/)?.[1];assert.ok(body);
- const view={countryLabels:[{hidden:false},{hidden:true},{hidden:false}],lastLabels:100,invalidated:false};
- new Function(body).call(view);
- assert.ok(view.countryLabels.every(label=>label.hidden),'stale positions disappear synchronously before the next map frame');
- assert.equal(view.lastLabels,0);assert.equal(view.invalidated,true);
- assert.match(renderer,/\.map-search-results/);assert.match(renderer,/\.toast/);
+ assert.match(renderer,/this\.drawLabels\(time\);[\s\S]*?this\.drawMapNames\(\);this\.renderer\.render/);
+ assert.doesNotMatch(renderer.slice(renderer.indexOf('private drawLabels('),renderer.indexOf('private drawMapNames(')),/this\.drawMapNames/);
+});
+
+test('only the complete text bounds leaving the screen hides a map name',()=>{
+ for(const rect of [{left:-30,right:1,top:20,bottom:40},{left:99,right:130,top:20,bottom:40},{left:20,right:40,top:-20,bottom:1},{left:20,right:40,top:99,bottom:130}])assert.ok(labelIntersectsViewport(rect,100,100));
+ for(const rect of [{left:-30,right:-1,top:20,bottom:40},{left:101,right:130,top:20,bottom:40},{left:20,right:40,top:-20,bottom:-1},{left:20,right:40,top:101,bottom:130}])assert.equal(labelIntersectsViewport(rect,100,100),false);
+ const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8'),names=renderer.slice(renderer.indexOf('private drawMapNames('),renderer.indexOf('private frame='));
+ assert.doesNotMatch(names,/querySelectorAll|blockers|occupied|COUNTRY_LABEL_LIMIT|distance>=180|area\)\*scale<18/);
+ assert.match(names,/for\(const province of MAP\)/);assert.match(names,/for\(const component of this.countryComponents\)/);
+});
+test('capture, loss, split and elimination update each owner anchor from actual territory',()=>{
+ const map=[cell(0,0,[1]),cell(1,10,[0,2]),cell(2,20,[1])];
+ const anchor=owners=>primaryCountryComponents(buildCountryComponents(map,owners)).find(c=>c.owner===0)?.anchors[0];
+ assert.equal(anchor([0,0,-1]),0);assert.equal(anchor([0,0,0]),1,'new land moves the weighted interior anchor');
+ assert.equal(anchor([0,-1,0]),0,'split chooses the largest stable component tie');
+ assert.equal(anchor([-1,-1,0]),2,'lost original territory moves to remaining land');
+ assert.equal(anchor([-1,-1,-1]),undefined);
+ const many=Array.from({length:80},(_,id)=>cell(id,id*20,[]));assert.equal(primaryCountryComponents(buildCountryComponents(many,many.map(p=>p.id))).length,80,'no country count culling');
 });
