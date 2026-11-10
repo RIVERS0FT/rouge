@@ -269,7 +269,12 @@ export class WorldRenderer {
     if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
-  refreshLabelLayout(){this.lastLabels=0;this.invalidated=true;}
+  refreshLabelLayout(){
+    // A HUD commit can happen between throttled map frames. Never keep the
+    // previous positions visible over a newly opened sheet while relayout waits.
+    for(const label of this.countryLabels)label.hidden=true;
+    this.lastLabels=0;this.invalidated=true;
+  }
   setInputContext(context:MapInputContext){
     this.countryLayer.hidden=context!=='game';this.invalidated=true;this.lastLabels=0;
     this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;

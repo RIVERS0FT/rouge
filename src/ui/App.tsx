@@ -9,7 +9,7 @@ import {loadSetupPreferences,saveSetupPreferences} from './setupPreferences.ts';
 import {makeAISetups,getSpawnCapacity} from '../game/spawns.ts';
 import { FlagEditor, FlagImage } from './Flag.tsx';
 import type { Flag } from '../game/flags.ts';
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createGame,isEliminated} from '../game/engine.ts';
 import {MAP,PLAYABLE_COUNT,searchProvinces} from '../game/map.ts';
 import {LEADERS,STATS,UNITS,stats,upgradeCost} from '../game/content.ts';
@@ -60,6 +60,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  useEffect(()=>setLobbyAI(String(room?.aiCount??0)),[room?.aiCount]);
  const eliminated=Boolean(game&&isEliminated(game,actor)),showDefeat=eliminated&&!spectating&&game?.winner===null;
  const commanderName=name??text('yourName');
+ const visibleDispatches=JSON.stringify(game?.events.slice(-4)??[]);
  const navigator=useMemo(()=>new TerrainNavigator(),[]),travelStats=stats(player,player?.loadout[0]??'infantry');
  const travelPlan=useMemo(()=>screen==='game'&&MAP[selected]?.playable&&MAP[target]?.playable&&selected!==target?navigator.plan(MAP[selected].center,MAP[target].center,travelStats.speed,travelStats.seaSpeed):null,[navigator,screen,selected,target,travelStats.speed,travelStats.seaSpeed]);
  const route=travelPlan?[selected,target]:null,pathSea=travelPlan?.points.some(p=>p.sea)??false;
@@ -83,7 +84,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  useEffect(()=>{world.current?.setInputContext(screen==='game'&&!localStarting&&!modal&&!showDefeat&&game?.winner===null?'game':'blocked');},[screen,localStarting,modal,showDefeat,game?.winner]);
  // A paused strategic map has no animation loop work. HUD-only changes must
  // still refresh political label collision rectangles without moving the camera.
- useEffect(()=>{world.current?.refreshLabelLayout();},[mobilePanel,paused,inputDevice,mapQuery,spectating,toast]);
+ useLayoutEffect(()=>{world.current?.refreshLabelLayout();},[mobilePanel,paused,inputDevice,mapQuery,spectating,toast,selected,language,visibleDispatches]);
  useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':'en';document.title=text('title');try{localStorage.setItem('rouge.language',language);}catch{/* Language still works without storage. */}},[language]);
  useEffect(()=>()=>session.current?.dispose(),[]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(''),4500);return()=>clearTimeout(id);},[toast]);

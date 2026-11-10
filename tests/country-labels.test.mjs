@@ -27,8 +27,13 @@ test('area and screen collision account for holes, HUD padding and dense unit bu
 
 test('stationary HUD changes invalidate the political label layout',()=>{
  const app=fs.readFileSync(new URL('../src/ui/App.tsx',import.meta.url),'utf8');
- assert.match(app,/refreshLabelLayout\(\);.*\[mobilePanel,paused,inputDevice,mapQuery,spectating,toast\]/);
+ assert.match(app,/useLayoutEffect\(\(\)=>\{world\.current\?\.refreshLabelLayout\(\);.*\[mobilePanel,paused,inputDevice,mapQuery,spectating,toast,selected,language,visibleDispatches\]/);
+ assert.match(app,/visibleDispatches=JSON\.stringify\(game\?\.events\.slice\(-4\)\?\?\[\]\)/);
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
- assert.match(renderer,/refreshLabelLayout\(\)\{this\.lastLabels=0;this\.invalidated=true;/);
+ const body=renderer.match(/refreshLabelLayout\(\)\{([\s\S]*?)\n  \}/)?.[1];assert.ok(body);
+ const view={countryLabels:[{hidden:false},{hidden:true},{hidden:false}],lastLabels:100,invalidated:false};
+ new Function(body).call(view);
+ assert.ok(view.countryLabels.every(label=>label.hidden),'stale positions disappear synchronously before the next map frame');
+ assert.equal(view.lastLabels,0);assert.equal(view.invalidated,true);
  assert.match(renderer,/\.map-search-results/);assert.match(renderer,/\.toast/);
 });
