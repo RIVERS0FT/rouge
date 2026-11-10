@@ -47,8 +47,8 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
  },[active]);
  useLayoutEffect(()=>{
   if(!active)return;
-  const place=()=>{
-   const anchor=buttons.current[active]?.getBoundingClientRect(),tip=tooltip.current,area=grid.current?.getBoundingClientRect();if(!anchor||!tip||!area)return;
+  const place=(reveal=false):void=>{
+   const button=buttons.current[active],anchor=button?.getBoundingClientRect(),tip=tooltip.current,area=grid.current?.getBoundingClientRect();if(!button||!anchor||!tip||!area)return;
    const width=Math.min(340,window.innerWidth-24);tip.style.width=`${width}px`;
    // The portal must not cover appearance, close, opponent-count or footer controls.
    // A sticky mobile close button can move into the grid's vertical range.
@@ -60,11 +60,18 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
     top:Math.max(area.top,identity?identity.bottom+8:0,close?close.bottom+8:0),
     bottom:Math.min(area.bottom,footer?footer.top-8:window.innerHeight-12)
    });
-   if(!placement){setActive(null);return;}
+   if(!placement){
+    // In short landscapes a fully visible first row can leave the entire second
+    // row below the viewport. Reveal room for its tooltip once on activation.
+    // Later manual scrolling must not pull the user back to this card.
+    if(reveal){button.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});place();return;}
+    setActive(null);return;
+   }
    setPosition(placement);
   };
-  place();window.addEventListener('resize',place);window.addEventListener('scroll',place,true);
-  return()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);};
+  const update=()=>place();
+  place(true);window.addEventListener('resize',update);window.addEventListener('scroll',update,true);
+  return()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',update,true);};
  },[active,language]);
  // Pointer-enter can fire under a stationary mouse when an appearance editor closes.
  // Require movement for hover intent; focus and taps still open the tooltip directly.
