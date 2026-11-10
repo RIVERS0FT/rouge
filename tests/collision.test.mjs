@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {separateCircles,UNIT_RADIUS,COLLISION_PASSES,COLLISION_CANDIDATES,COLLISION_MAX_PUSH} from '../src/game/collision.ts';
+import {separateCircles,UNIT_RADIUS,COLLISION_PASSES,COLLISION_CANDIDATES,COLLISION_CONSTRAINTS,COLLISION_MAX_PUSH} from '../src/game/collision.ts';
 const body=(id,x=0,z=0)=>({id,x,z,radius:.46});
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 test('identical centers separate by stable IDs without NaN, input order, or random state',()=>{
@@ -33,4 +33,5 @@ test('spread army broad-phase work is linear, and pathological stacks have a fix
  const report=separateCircles(separated,()=>true);assert.equal(report.contacts,0);assert.ok(report.candidates<5000*12);
  const stack=Array.from({length:1000},(_,i)=>body(i+1));const crowded=separateCircles(stack,()=>false,2);
  assert.ok(crowded.limited>0);assert.ok(crowded.candidates<=stack.length*COLLISION_PASSES*COLLISION_CANDIDATES);
+ assert.ok(crowded.constraints<=stack.length*COLLISION_CONSTRAINTS);assert.ok(crowded.constraintLimited>0);
 });
