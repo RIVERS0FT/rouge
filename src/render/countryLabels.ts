@@ -50,3 +50,6 @@ export class LabelCollisionIndex {
 export function labelIntersectsViewport(rect:LabelRect,width:number,height:number):boolean{
  return rect.right>=0&&rect.left<=width&&rect.bottom>=0&&rect.top<=height;
 }
+
+/** Preserve the original province-name zoom range; country names are separate. */
+export function provinceNamesVisible(distance:number):boolean{return distance<500;}

@@ -1,7 +1,7 @@
 import {MapSurface} from './mapSurface.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
-import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,type CountryComponent,type LabelRect} from './countryLabels.ts';
+import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
@@ -417,7 +417,9 @@ export class WorldRenderer {
       }
       return visible;
     };
-    for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.id,12,false);
+    if(provinceNamesVisible(this.distance)){
+      for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.id,12,false);
+    }else for(const label of this.provinceLabels.values())label.hidden=true;
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
       const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));

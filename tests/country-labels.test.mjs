@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,LabelCollisionIndex,labelIntersectsViewport} from '../src/render/countryLabels.ts';
+import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,LabelCollisionIndex,labelIntersectsViewport,provinceNamesVisible} from '../src/render/countryLabels.ts';
 import {MAP,pointInProvince} from '../src/game/map.ts';
 import {WORLD_WIDTH} from '../src/game/geo.ts';
 const cell=(id,x,neighbors,visible=true)=>({id,center:{x,z:0},neighbors,visible,parts:[[[{x:x-5,z:-5},{x:x+5,z:-5},{x:x+5,z:5},{x:x-5,z:5}]]]});
@@ -51,4 +51,11 @@ test('capture, loss, split and elimination update each owner anchor from actual 
  assert.equal(anchor([-1,-1,0]),2,'lost original territory moves to remaining land');
  assert.equal(anchor([-1,-1,-1]),undefined);
  const many=Array.from({length:80},(_,id)=>cell(id,id*20,[]));assert.equal(primaryCountryComponents(buildCountryComponents(many,many.map(p=>p.id))).length,80,'no country count culling');
+});
+
+test('province names retain the original below-500 zoom range independently of country names',()=>{
+ assert.equal(provinceNamesVisible(100),true);assert.equal(provinceNamesVisible(499.999),true);
+ assert.equal(provinceNamesVisible(500),false);assert.equal(provinceNamesVisible(800),false);
+ const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(renderer,/if\(provinceNamesVisible\(this\.distance\)\)\{[\s\S]*?this\.provinceLabels[\s\S]*?\}else for\(const label of this\.provinceLabels\.values\(\)\)label\.hidden=true;\s*for\(const component of this\.countryComponents\)/);
 });
