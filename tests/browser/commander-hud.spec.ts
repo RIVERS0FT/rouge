@@ -45,14 +45,15 @@ async function assertLayout(page: Page) {
   await expect(page.locator('.commander-portrait-copy h2')).toHaveAttribute('title',/\S/);
 }
 
-for (const [leader,index] of [['warden',0],['vanguard',1],['steward',2]] as const) {
+for (const leader of ['warden','vanguard','steward'] as const) {
   test(`HUD ${leader}: half-body portrait, stable faction identity, responsive layout and talent entry`,async({page})=>{
     test.setTimeout(150000);
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
     await expect(page.getByTestId('commander-portrait')).toHaveCount(0);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);
-    await page.getByTestId('single-player').click();await page.locator('.leader-card').nth(index).click();
+    await page.getByTestId('edit-player-leader').click();await page.getByTestId(`choose-leader-${leader}`).click();
+    await page.keyboard.press('Escape');await page.getByTestId('single-player').click();
     await page.getByTestId('commander-name').fill(`HUD ${leader}`);await page.getByTestId('begin-campaign').click();
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);

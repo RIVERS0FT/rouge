@@ -1,3 +1,4 @@
+import {UnitAttributes,UnitSelection} from './UnitSelection.tsx';
 import {regionCapacity} from '../game/territoryEconomy.ts';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
 import {InputDeviceTracker,type PointerIntent} from './inputDevice.ts';
@@ -10,7 +11,7 @@ import type { Flag } from '../game/flags.ts';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createGame,isEliminated} from '../game/engine.ts';
 import {MAP,PLAYABLE_COUNT,VISIBLE_COUNT,searchProvinces} from '../game/map.ts';
-import {KINDS,LEADERS,STATS,UNITS,UNIT_ATTRIBUTES,stats,type UnitStats,upgradeCost} from '../game/content.ts';
+import {LEADERS,STATS,UNITS,stats,upgradeCost} from '../game/content.ts';
 import {listSaves,readSave,writeSave,deleteSave,encodeSave,decodeSave,MAX_SAVE_BYTES,type SaveInfo} from '../game/save.ts';
 import type {GameState,Kind,Leader,Command,Result,PlayerSetup} from '../game/types.ts';
 import {localSession,remoteSession,createRoom,joinRoom,configureRoom,api,type Session,type Ticket,type RoomInfo} from '../platform/session.ts';
@@ -28,16 +29,13 @@ function initialRegion(state:GameState,actor:number):number{
 function storedLanguage():Language{try{return localStorage.getItem('rouge.language')==='en'?'en':'zh';}catch{return'zh';}}
 function storedTicket():Ticket|null{try{const x=JSON.parse(sessionStorage.getItem('rouge.ticket.ne-admin1-groups.v1')??'null');return x&&typeof x.code==='string'&&typeof x.token==='string'&&Number.isInteger(x.actor)?x:null;}catch{return null;}}
 const SYMBOLS:Record<string,string>={infantry:'Ⅰ',cavalry:'Ⅱ',artillery:'Ⅲ',engineer:'Ⅳ',skirmisher:'Ⅴ',grenadier:'Ⅵ',heavyCavalry:'Ⅶ',horseArtillery:'Ⅷ',warden:'▱',vanguard:'↗',steward:'◇'};
-function UnitAttributes({values,language}:{values:UnitStats;language:Language}){
- return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerSecond')}`:key==='train'?` ${t(language,'gameSeconds')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerSecond')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
-}
 export function App(){
  const[inputDevice,setInputDevice]=useState<'touch'|'mouse'>('mouse');
  const[mobilePanel,setMobilePanel]=useState<'province'|'intel'|null>(null);
  const[mapQuery,setMapQuery]=useState('');
  const[destinationQuery,setDestinationQuery]=useState('');
  const[language,setLanguage]=useState<Language>(storedLanguage),[screen,setScreen]=useState<'menu'|'game'|'lobby'>('menu');
- const[modal,setModal]=useState<'setupSolo'|'setupLan'|'saves'|'upgrades'|'talents'|'settings'|'territories'|null>(null);
+ const[modal,setModal]=useState<'setupSolo'|'setupLan'|'playerLeader'|'playerFlag'|'saves'|'upgrades'|'talents'|'settings'|'territories'|null>(null);
  const[spectating,setSpectating]=useState(false);
  const[localStarting,setLocalStarting]=useState(false);
  const[pendingTalent,setPendingTalent]=useState<string|null>(null);
@@ -140,7 +138,7 @@ export function App(){
   if((event.target as HTMLElement).closest('input,select,textarea,button')||screen!=='game')return;
   if(event.code==='Space'&&!modal){event.preventDefault();togglePause();}
  };window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[paused,modal,screen,settingsPage,localStarting,showDefeat,game?.winner]);
- const leaderIndex=LEADERS.indexOf(leader),owned=game?.provinces.filter(p=>MAP[p.id].playable&&p.owner===actor).length??0,army=game?.units.filter(u=>u.owner===actor).length??0;
+ const owned=game?.provinces.filter(p=>MAP[p.id].playable&&p.owner===actor).length??0,army=game?.units.filter(u=>u.owner===actor).length??0;
  return <div className={`app ${screen==='menu'?'is-menu':screen==='game'?'is-game':''}`} data-input-device={inputDevice} data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <World state={state} selected={screen==='game'?selected:-1} language={language} onPick={selectProvince} onMode={setNear} worldRef={world}/>
   {screen!=='game'&&<p className="input-hint" data-testid="input-hint" aria-live="polite">{inputHint}</p>}
@@ -151,6 +149,14 @@ export function App(){
   </div>}
 
   {screen!=='game'&&<div className="language-switch"><button className={language==='zh'?'active':''} onClick={()=>setLanguage('zh')} aria-label="简体中文">中</button><span>/</span><button className={language==='en'?'active':''} onClick={()=>setLanguage('en')} aria-label="English">EN</button></div>}
+  {screen==='menu'&&<>
+   <button className="menu-flag-entry" data-testid="edit-player-flag" aria-label={text('editPlayerFlag')} aria-haspopup="dialog" onClick={()=>setModal('playerFlag')}>
+    <span className="faction-emblem-frame"><FlagImage flag={flag} language={language}/></span><span className="menu-identity-label">{text('playerFlag')}<small>{text('editAppearance')} ↗</small></span>
+   </button>
+   <button className="commander-portrait menu-leader-entry" data-testid="edit-player-leader" data-leader={leader} aria-label={text('editPlayerLeader')} aria-haspopup="dialog" onClick={()=>setModal('playerLeader')}>
+    <span className="commander-art"><LeaderBust leader={leader} label={text(leader)}/></span><span className="commander-portrait-copy"><span className="eyebrow">{text('playerLeader')}</span><span className="menu-leader-name">{text(leader)}</span><span className="menu-identity-edit">{text('editAppearance')} ↗</span></span>
+   </button>
+  </>}
   {screen==='menu'&&<main className="main-menu">
     <div className="menu-top"><span className="brand-mark">R</span><span className="eyebrow">RIVERSOFT / STRATEGY LAB</span></div>
     <section className="menu-content"><div className="eyebrow gold">{text('prototype')}</div><h1>ROUGE<span>{text('title')}</span></h1><p className="menu-description">{text('menuBrief')}</p>
@@ -209,10 +215,11 @@ export function App(){
       <p className="settings-controls muted">{inputHint}<br/>{text('settingsKeyboard')}</p>
     </>}
     {modal==='settings'&&settingsPage==='saves'&&<button className="settings-back" data-testid="settings-back" onClick={()=>setSettingsPage('general')}>← {text('backSettings')}</button>}
-    {(modal==='setupSolo'||modal==='setupLan')&&<><div className="eyebrow gold">{text(modal==='setupSolo'?'single':'multiplayer')} / 01</div><h2>{text('chooseLeader')}</h2><div className="leader-grid">{LEADERS.map((l,i)=><button data-testid={`choose-leader-${l}`} aria-pressed={leader===l} key={l} className={`leader-card ${leader===l?'chosen':''}`} onClick={()=>setLeader(l)}><div className={`leader-art art-${i}`}><LeaderBust leader={l} label={text(l)}/><span>0{i+1}</span></div><div className="leader-copy"><b>{text(l)}</b><p>{text(`${l}.desc`)}</p><span className="selected-dot">{leader===l?'●':'○'}</span></div></button>)}</div>
-      <div className="setup-subheading"><div><span className="eyebrow">{text('loadout')} / 02</span><h3>{text('chooseUnits')}</h3></div><span className="gold">{loadout.length} / 1</span></div><p className="muted small">{text('chooseHint')} {text('baseStatsHint')} {text('transportStatsHint')}</p><div className="unit-grid">{KINDS.map(k=><button key={k} className={`unit-card ${loadout.includes(k)?'chosen':''}`} aria-pressed={loadout.includes(k)} data-testid={`choose-unit-${k}`} onClick={()=>setLoadout([k])}><span className="unit-mark">{SYMBOLS[k]}</span><div><b>{text(k)}</b><small>{text(`${k}.desc`)}</small><UnitAttributes values={UNITS[k]} language={language}/></div><span>{loadout.includes(k)?'✓':'＋'}</span></button>)}</div>
-      <div className="ai-count-field"><label htmlFor="setup-ai-count">{text('aiCount')}</label><select id="setup-ai-count" data-testid="setup-ai-count" value={modal==='setupSolo'?soloAICount:roomAICount} onChange={e=>modal==='setupSolo'?setSoloAICount(Number(e.target.value)):setRoomAICount(Number(e.target.value))}>{(modal==='setupSolo'?[1,2,3]:[0,1,2,3]).map(n=><option key={n} value={n}>{n}</option>)}</select><small>{text(modal==='setupSolo'?'aiSoloHint':'aiCreateHint')}</small></div><p className="small muted">{text('preferencesHint')}</p>
-      <FlagEditor value={flag} onChange={setFlag} language={language}/><div className="setup-footer"><label>{text('commander')}<input data-testid="commander-name" value={name} maxLength={24} onChange={e=>setName(e.target.value)}/></label>{modal==='setupSolo'?<button className="primary" data-testid="begin-campaign" disabled={!name.trim()} onClick={startSolo}>{text('start')} →</button>:<div className="lan-actions"><button className="primary" disabled={busy||!name.trim()} onClick={()=>roomAction(false)}>{text('createRoom')}</button><div className="join-row"><input placeholder={text('roomCode')} value={code} maxLength={6} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,''))}/><button className="secondary" disabled={busy||code.length!==6||!name.trim()} onClick={()=>roomAction(true)}>{text('joinRoom')}</button></div></div>}</div>{modal==='setupLan'&&<p className="small muted">{text('lanHint')}<br/>{text('lanOnly')}</p>}
+    {modal==='playerLeader'&&<><div className="eyebrow gold">{text('playerAppearance')}</div><h2>{text('playerLeader')}</h2><p className="muted">{text('identityHint')}</p><div className="leader-grid">{LEADERS.map((l,i)=><button data-testid={`choose-leader-${l}`} aria-pressed={leader===l} key={l} className={`leader-card ${leader===l?'chosen':''}`} onClick={()=>setLeader(l)}><div className={`leader-art art-${i}`}><LeaderBust leader={l} label={text(l)}/><span>0{i+1}</span></div><div className="leader-copy"><b>{text(l)}</b><p>{text(`${l}.desc`)}</p><span className="selected-dot">{leader===l?'●':'○'}</span></div></button>)}</div><p className="small muted identity-saved">{text('preferencesHint')}</p></>}
+    {modal==='playerFlag'&&<><div className="eyebrow gold">{text('playerAppearance')}</div><h2>{text('playerFlag')}</h2><p className="muted">{text('identityHint')}</p><FlagEditor value={flag} onChange={setFlag} language={language}/><p className="small muted identity-saved">{text('preferencesHint')}</p></>}
+    {(modal==='setupSolo'||modal==='setupLan')&&<><div className="eyebrow gold">{text(modal==='setupSolo'?'single':'multiplayer')} / 01</div><h2>{text('chooseUnits')}</h2><p className="muted small">{text('chooseHint')} {text('unitTooltipHint')}</p><UnitSelection value={loadout[0]} onChange={kind=>setLoadout([kind])} language={language}/>
+      <div className="ai-count-field"><label htmlFor="setup-ai-count">{text('aiCount')}</label><select id="setup-ai-count" data-testid="setup-ai-count" value={modal==='setupSolo'?soloAICount:roomAICount} onChange={e=>modal==='setupSolo'?setSoloAICount(Number(e.target.value)):setRoomAICount(Number(e.target.value))}>{(modal==='setupSolo'?[1,2,3]:[0,1,2,3]).map(n=><option key={n} value={n}>{n}</option>)}</select><small>{text(modal==='setupSolo'?'aiSoloHint':'aiCreateHint')}</small></div>
+      <div className="setup-footer"><label>{text('commander')}<input data-testid="commander-name" value={name} maxLength={24} onChange={e=>setName(e.target.value)}/></label>{modal==='setupSolo'?<button className="primary" data-testid="begin-campaign" disabled={!name.trim()} onClick={startSolo}>{text('start')} →</button>:<div className="lan-actions"><button className="primary" disabled={busy||!name.trim()} onClick={()=>roomAction(false)}>{text('createRoom')}</button><div className="join-row"><input placeholder={text('roomCode')} value={code} maxLength={6} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,''))}/><button className="secondary" disabled={busy||code.length!==6||!name.trim()} onClick={()=>roomAction(true)}>{text('joinRoom')}</button></div></div>}</div>{modal==='setupLan'&&<p className="small muted">{text('lanHint')}<br/>{text('lanOnly')}</p>}
     </>}
     {(modal==='saves'||(modal==='settings'&&settingsPage==='saves'))&&<><div className="eyebrow gold">CAMPAIGN ARCHIVES</div><h2>{text('saves')}</h2><p className="muted">{text('saveHint')}</p><p className="small muted" data-testid="legacy-map-save-notice">{text('oldMapSaveNotice')}</p>{session.current?.mode==='solo'&&game&&<div className="new-save"><input placeholder={text('saveName')} value={saveName} onChange={e=>setSaveName(e.target.value)} maxLength={64}/><button className="primary" data-testid="create-save" onClick={()=>saveCurrent(`manual-${crypto.randomUUID()}`,saveName||`${text('theatre')} ${timeLabel(game.tick)}`)}>{text('newSave')}</button></div>}
       <div className="save-list">{saves.length?saves.map(s=><article key={s.id} className="save-card"><div className="save-icon">▤</div><div className="save-description"><h3>{s.name}</h3><small>{s.corrupted?text('corrupt'):`${text(s.leader)} · ${timeLabel(s.tick)} · ${new Date(s.savedAt).toLocaleString(language==='zh'?'zh-CN':'en-US')}`}</small></div><div className="save-actions"><button className="secondary" onClick={()=>load(s.id)}>{text('load')}</button>{session.current?.mode==='solo'&&<button className="quiet" onClick={()=>{if(confirm(text('overwriteConfirm')))saveCurrent(s.id,s.name);}}>{text('overwrite')}</button>}<button className="quiet danger" onClick={()=>{if(confirm(text('deleteConfirm'))){deleteSave(localStorage,s.id);refreshSaves();}}}>{text('delete')}</button></div></article>):<div className="empty-state">{text('emptySaves')}</div>}</div><div className="row">{session.current?.mode==='solo'&&game&&<button className="secondary" onClick={exportCurrent}>{text('export')} ↗</button>}<button className="secondary" onClick={()=>fileInput.current?.click()}>{text('import')}</button><input hidden type="file" accept="application/json,.json" ref={fileInput} onChange={e=>importSave(e.target.files?.[0])}/></div>
