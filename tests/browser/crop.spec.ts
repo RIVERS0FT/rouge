@@ -12,8 +12,10 @@ test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and po
   await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
   await expect(page.locator('.hud-top')).toBeVisible();
   // Freeze the war for deterministic atlas screenshots, not the renderer.
-  await page.keyboard.press('Space');
-  await page.locator('canvas').focus();await page.keyboard.press('Home');
+  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+  await canvas.focus();await page.keyboard.press('Space');
+  await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+  await page.keyboard.press('Home');
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   expect(Number(await canvas.getAttribute('data-focus-z'))).toBeCloseTo(-128.90774556626536,6);
   await page.screenshot({path:'artifacts/cropped-miller-world.png'});
