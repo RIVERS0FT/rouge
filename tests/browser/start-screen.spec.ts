@@ -1,3 +1,4 @@
+import {waitForRuntime} from './readiness.ts';
 import {test,expect,type Locator,type Page} from '@playwright/test';
 
 async function bounds(locator:Locator,width:number,height:number){
@@ -68,7 +69,7 @@ test('menu and settings work before shared assets arrive and the latest early ac
   await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
   await page.getByRole('button',{name:/LAN multiplayer/}).click();
   await expect(page.getByTestId('resource-loading')).toBeVisible();
-  loading.release();
+  loading.release();await waitForRuntime(page);
   await expect(page.getByRole('button',{name:'Create room',exact:true})).toBeVisible();
   await expect(page.getByTestId('begin-campaign')).toHaveCount(0);
   await expect(page.getByTestId('commander-name')).toHaveValue('Commander');
@@ -119,7 +120,8 @@ test('failed shared downloads leave the menu usable and offer a working reload',
 });
 
 test('left-side menu keeps identity in setup and remembers appearance across matches',async({page})=>{
- await page.goto('/');
+ await page.goto('/');await waitForRuntime(page);
+ await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
  await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
  await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
  const menu=await bounds(page.locator('.menu-content'),1440,960);expect(menu.x).toBeLessThan(160);
@@ -139,7 +141,7 @@ test('left-side menu keeps identity in setup and remembers appearance across mat
  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
  await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
  await page.reload();await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
- await page.getByRole('button',{name:/局域网联机/}).click();
+ await page.getByRole('button',{name:/局域网联机/}).click();await waitForRuntime(page);
  await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
  await expect(leader).toHaveAttribute('data-leader','vanguard');
  await expect(flag.getByRole('img',{name:'法国',exact:true})).toBeVisible();
@@ -153,7 +155,7 @@ test('left-side menu keeps identity in setup and remembers appearance across mat
 });
 
 test('unit tooltip is external to the button, keyboard dismissible and mouse hoverable',async({page})=>{
- await page.goto('/');await page.getByTestId('single-player').click();
+ await page.goto('/');await page.getByTestId('single-player').click();await waitForRuntime(page);
  const card=page.getByTestId('choose-unit-infantry');await card.focus();
  const tooltip=page.getByTestId('unit-tooltip-infantry');
  await expect(card.locator(':scope > *')).toHaveCount(2);await expect(card.locator('svg')).toHaveCount(1);
@@ -170,7 +172,8 @@ test.describe('touch identity and unit selection',()=>{
  test('left-side menu, setup editor focus return and tooltip fit portrait and landscape',async({page})=>{
   test.setTimeout(180000);
   for(const [width,height] of [[390,844],[360,640],[844,390]]){
-   await page.setViewportSize({width,height});await page.goto('/');
+   await page.setViewportSize({width,height});await page.goto('/');await waitForRuntime(page);
+   await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
    await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
    await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
    const title=await bounds(page.locator('.menu-content h1'),width,height);
@@ -209,7 +212,7 @@ test('home settings safely return focus and offer archives without an active mat
 });
 
 test('numeric opponents show physical range and reject empty, fractional and out-of-range drafts',async({page})=>{
- await page.goto('/');await page.getByTestId('single-player').click();
+ await page.goto('/');await page.getByTestId('single-player').click();await waitForRuntime(page);
  const input=page.getByTestId('setup-ai-count'),start=page.getByTestId('begin-campaign');
  await expect(input).toHaveAttribute('type','number');
  const maximum=Number(await input.getAttribute('max'));expect(maximum).toBeGreaterThan(3);

@@ -3,6 +3,7 @@ import {createPortal} from 'react-dom';
 import {KINDS,UNITS,UNIT_ATTRIBUTES,type UnitStats} from '../game/content.ts';
 import type {Kind} from '../game/types.ts';
 import {t,type Language} from './i18n.ts';
+import {unitTooltipPosition} from './unit-tooltip-position.ts';
 
 export function UnitAttributes({values,language}:{values:UnitStats;language:Language}){
  return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerSecond')}`:key==='train'?` ${t(language,'gameSeconds')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerSecond')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
@@ -47,25 +48,28 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
  useLayoutEffect(()=>{
   if(!active)return;
   const place=()=>{
-   const anchor=buttons.current[active]?.getBoundingClientRect(),tip=tooltip.current;if(!anchor||!tip)return;
+   const anchor=buttons.current[active]?.getBoundingClientRect(),tip=tooltip.current,area=grid.current?.getBoundingClientRect();if(!anchor||!tip||!area)return;
    const width=Math.min(340,window.innerWidth-24);tip.style.width=`${width}px`;
-   const height=Math.min(tip.scrollHeight+2,window.innerHeight-24);
-   if(anchor.bottom<=12||anchor.top>=window.innerHeight-12){setActive(null);return;}
-   // Keep the setup actions tappable even while a touch tooltip stays open.
-   const footer=grid.current?.closest('.setup-modal')?.querySelector('.setup-footer')?.getBoundingClientRect();
-   const bottom=footer&&footer.top>=anchor.bottom?Math.min(window.innerHeight-12,footer.top-8):window.innerHeight-12;
-   const below=Math.max(0,bottom-anchor.bottom-8),above=Math.max(0,anchor.top-20);
-   const useBelow=below>=height||below>=above,maxHeight=Math.max(1,useBelow?below:above);
-   // Never cover the active trigger: a second touch must always be able to dismiss.
-   // Short landscapes scroll the tooltip itself instead of obscuring its trigger.
-   const top=useBelow?anchor.bottom+8:anchor.top-Math.min(height,maxHeight)-8;
-   setPosition({width,left:Math.max(12,Math.min(anchor.left+(anchor.width-width)/2,window.innerWidth-width-12)),top:Math.max(12,top),maxHeight});
+   // The portal must not cover appearance, close, opponent-count or footer controls.
+   // A sticky mobile close button can move into the grid's vertical range.
+   const modal=grid.current?.closest('.setup-modal');
+   const identity=modal?.querySelector('.setup-identity')?.getBoundingClientRect();
+   const close=modal?.querySelector('.modal-close')?.getBoundingClientRect();
+   const footer=modal?.querySelector('.setup-footer')?.getBoundingClientRect();
+   const placement=unitTooltipPosition(anchor,tip.scrollHeight+2,{width:window.innerWidth,height:window.innerHeight},{
+    top:Math.max(area.top,identity?identity.bottom+8:0,close?close.bottom+8:0),
+    bottom:Math.min(area.bottom,footer?footer.top-8:window.innerHeight-12)
+   });
+   if(!placement){setActive(null);return;}
+   setPosition(placement);
   };
   place();window.addEventListener('resize',place);window.addEventListener('scroll',place,true);
   return()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);};
  },[active,language]);
+ // Pointer-enter can fire under a stationary mouse when an appearance editor closes.
+ // Require movement for hover intent; focus and taps still open the tooltip directly.
  return <div ref={grid} className="unit-grid" aria-label={t(language,'chooseUnits')}>{KINDS.map(kind=><div className="unit-choice" key={kind}>
-  <button ref={node=>{buttons.current[kind]=node;}} className={`unit-card ${value===kind?'chosen':''}`} aria-pressed={value===kind} aria-label={t(language,kind)} aria-describedby={active===kind?`unit-tooltip-${kind}`:undefined} data-testid={`choose-unit-${kind}`} onFocus={()=>{dismissedPointer.current=null;keyboardFocus.current=!pointerDown.current;show(kind);}} onBlur={()=>setActive(current=>current===kind?null:current)} onPointerEnter={event=>{if(event.pointerType==='mouse'&&!dismissedPointer.current){keyboardFocus.current=false;show(kind);}}} onPointerMove={event=>{if(event.pointerType==='mouse'&&!dismissedPointer.current&&active!==kind)show(kind);}} onPointerDown={event=>{dismissedPointer.current=null;pointerDown.current=true;keyboardFocus.current=false;touchToggle.current=event.pointerType!=='mouse'&&active===kind;}} onPointerCancel={()=>{pointerDown.current=false;touchToggle.current=false;}} onPointerLeave={()=>leave(kind)} onClick={()=>{onChange(kind);cancelHide();if(touchToggle.current)setActive(null);else show(kind);pointerDown.current=false;touchToggle.current=false;}}>
+  <button ref={node=>{buttons.current[kind]=node;}} className={`unit-card ${value===kind?'chosen':''}`} aria-pressed={value===kind} aria-label={t(language,kind)} aria-describedby={active===kind?`unit-tooltip-${kind}`:undefined} data-testid={`choose-unit-${kind}`} onFocus={()=>{dismissedPointer.current=null;keyboardFocus.current=!pointerDown.current;show(kind);}} onBlur={()=>setActive(current=>current===kind?null:current)} onPointerMove={event=>{if(event.pointerType==='mouse'&&!dismissedPointer.current){keyboardFocus.current=false;show(kind);}}} onPointerDown={event=>{dismissedPointer.current=null;pointerDown.current=true;keyboardFocus.current=false;touchToggle.current=event.pointerType!=='mouse'&&active===kind;}} onPointerCancel={()=>{pointerDown.current=false;touchToggle.current=false;}} onPointerLeave={()=>leave(kind)} onClick={()=>{onChange(kind);cancelHide();if(touchToggle.current)setActive(null);else show(kind);pointerDown.current=false;touchToggle.current=false;}}>
    <span className="unit-name">{t(language,kind)}</span><UnitIcon kind={kind}/>
   </button>
  </div>)}{active&&createPortal(<div ref={tooltip} id={`unit-tooltip-${active}`} data-testid={`unit-tooltip-${active}`} className="unit-tooltip" role="tooltip" style={position} onPointerEnter={cancelHide} onPointerLeave={()=>leave(active)}>

@@ -1,9 +1,10 @@
+import {waitForRuntime} from './readiness.ts';
 import {test,expect} from '@playwright/test';
 const added=['skirmisher','grenadier','heavyCavalry','horseArtillery'];
 test('eight unit cards retain exclusive selection, nine tooltip attributes and scrollable launch',async({page})=>{
  await page.setViewportSize({width:1000,height:720});
  await page.goto('/');
- await page.getByTestId('single-player').click();
+ await page.getByTestId('single-player').click();await waitForRuntime(page);
  const cards=page.locator('.unit-grid .unit-card');
  await expect(cards).toHaveCount(8);
  for(const kind of added){

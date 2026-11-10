@@ -1,3 +1,4 @@
+import {waitForRuntime} from './readiness.ts';
 import {test,expect,type Page} from '@playwright/test';
 test.use({hasTouch:true,isMobile:true});
 async function ready(page:Page){
@@ -13,8 +14,8 @@ async function fit(page:Page,selector:string,width:number,height:number){
 for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x${height} keeps setup, HUD and scrollable dialogs reachable`,async({page})=>{
  test.setTimeout(180000);
   await page.setViewportSize({width,height});await page.goto('/');
-  await page.getByTestId('single-player').tap();
-  await expect(page.getByRole('dialog')).toBeVisible();await fit(page,'[role=dialog]',width,height);
+  await page.getByTestId('single-player').tap();await waitForRuntime(page);
+  await expect(page.locator('.setup-modal')).toBeVisible();await fit(page,'.setup-modal',width,height);
   await page.getByTestId('choose-unit-horseArtillery').tap();
   await page.getByTestId('begin-campaign').tap();await ready(page);await expect(page.getByTestId('open-settings')).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
@@ -38,7 +39,7 @@ test('pinch zoom, one-finger drag and cancellation do not cause accidental selec
  await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true');
  const distance=Number(await canvas.getAttribute('data-distance'));
  const cdp=await context.newCDPSession(page);
- const touch=async(type:string,points:{x:number;y:number;id:number}[])=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points});
+ const touch=async(type:'touchStart'|'touchMove'|'touchEnd'|'touchCancel',points:{x:number;y:number;id:number}[])=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points});
  await touch('touchStart',[{x:155,y:420,id:1},{x:235,y:420,id:2}]);
  await touch('touchMove',[{x:95,y:420,id:1},{x:295,y:420,id:2}]);
  await touch('touchEnd',[]);
@@ -64,8 +65,14 @@ test('hybrid touch laptop switches hints by intent and modal context blocks all 
  await canvas.dispatchEvent('pointercancel',{pointerId:10,pointerType:'touch'});
  await expect(app).toHaveAttribute('data-input-device','touch');
  await expect(page.getByTestId('input-hint')).toHaveCount(0);
- await canvas.dispatchEvent('pointerdown',{pointerId:11,pointerType:'mouse',clientX:600,clientY:400});
- await canvas.dispatchEvent('pointercancel',{pointerId:11,pointerType:'mouse'});
+ // Compatibility mouse events follow touch immediately. Keep this sequence
+ // within one browser task so CI tracing/RPC delays cannot exceed the 800ms window.
+ await canvas.evaluate(el=>{
+  for(const [type,pointerId,pointerType] of [
+   ['pointerdown',11,'touch'],['pointercancel',11,'touch'],
+   ['pointerdown',12,'mouse'],['pointercancel',12,'mouse'],
+  ] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId,pointerType,clientX:600,clientY:400}));
+ });
  await expect(app).toHaveAttribute('data-input-device','touch');
  await page.keyboard.press('Shift');await expect(app).toHaveAttribute('data-input-device','touch');
  await page.keyboard.press('ArrowLeft');await expect(app).toHaveAttribute('data-input-device','mouse');
