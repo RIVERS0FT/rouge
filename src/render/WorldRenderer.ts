@@ -350,17 +350,17 @@ export class WorldRenderer {
     if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
     const selectedRange=this.ranges[this.selected];
     if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
-    if(this.blend>0.1)this.ensureUnitCapacity((this.state?.units.length??0)*3);
+    if(this.blend>0.1)this.ensureUnitCapacity(this.state?.units.length??0);
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
       live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);pos.x+=(u.x-pos.x)*t;pos.z+=(u.z-pos.z)*t;this.smoothed.set(u.id,pos);
       if(this.blend<0.1||!inRect(pos,BOUNDS)||Math.abs(nearestWorldX(pos.x,this.focus.x)-this.focus.x)>this.distance||Math.abs(pos.z-this.focus.z)>this.distance)continue;
-      for(let j=0;j<(u.transport?.embarked?1:3);j++){
-        const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-        const x=pos.x+Math.cos(j*2.1+u.id)*0.3*scale,z=pos.z+Math.sin(j*2.1+u.id)*0.3*scale,y=heightAt(x,z)*this.blend;
-        if(!inRect({x,z},BOUNDS))continue;this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner)));
-        this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
-      }
+      // One simulation unit is one model, matching the garrison counter. Keep
+      // its actual position rather than adding decorative three-soldier copies.
+      const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
+      const x=pos.x,z=pos.z,y=heightAt(x,z)*this.blend;
+      this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner)));
+      this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
     }
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
     this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
