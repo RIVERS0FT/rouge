@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {buildBorderEdges,classifyBorder,borderPositions,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH} from '../src/render/territoryBorders.ts';
 import {MAP,BOUNDS,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
 const edge={a:{x:0,z:0},b:{x:0,z:1},atoms:[0,1]};
@@ -57,4 +58,15 @@ test('full atlas has unique, finite borders; neutral groups separate and acquire
 test('internal line stays subdued at every zoom and selection remains strongest',()=>{
  for(const distance of [5,90,300,1000,4400])assert.ok(internalBorderOpacity(distance)<=.23);
  assert.ok(COUNTRY_BORDER_WIDTH>2);assert.ok(SELECTION_BORDER_WIDTH>COUNTRY_BORDER_WIDTH);
+});
+
+// Keep both acceptance entry points aligned with the intentional visual contract.
+test('browser and live HTTPS acceptance assert ownership borders, not the retired no-country mode',()=>{
+ for(const path of ['tests/browser/state-regions.spec.ts','.github/scripts/verify-pages.mjs']){
+  const source=readFileSync(new URL('../'+path,import.meta.url),'utf8');
+  assert.match(source,/data-boundary-mode','ownership-and-management'/);
+  assert.match(source,/data-country-borders','true'/);
+  assert.match(source,/data-neutral-borders','independent-territories'/);
+  assert.doesNotMatch(source,/admin1-management-groups|data-country-borders','false'|no country borders/);
+ }
 });
