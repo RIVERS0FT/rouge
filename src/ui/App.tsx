@@ -19,8 +19,7 @@ import {localSession,preloadLocalSession,remoteSession,createRoom,joinRoom,confi
 import {factionColor,factionTextColor} from '../game/factionColors.ts';
 import {WorldRenderer} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
-import {TerrainNavigator} from '../game/terrain-navigation.ts';
-import {regionGarrison,destinationRoom,regionReservations} from '../game/capacity.ts';
+import {regionGarrison} from '../game/capacity.ts';
 import {FactionIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,playerName,type Language} from './i18n.ts';
 import {ModalDialog} from './ModalDialog.tsx';
@@ -34,14 +33,13 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  const[inputDevice,setInputDevice]=useState<'touch'|'mouse'>('mouse');
  const[mobilePanel,setMobilePanel]=useState<'province'|'intel'|null>(null);
  const[mapQuery,setMapQuery]=useState('');
- const[destinationQuery,setDestinationQuery]=useState('');
  const[language,setLanguage]=useState<Language>(initialLanguage??storedLanguage),[screen,setScreen]=useState<'menu'|'game'|'lobby'>('menu');
  const[modal,setModal]=useState<'setupSolo'|'setupLan'|'playerLeader'|'playerFlag'|'saves'|'upgrades'|'talents'|'settings'|'territories'|null>(initialAction==='settingsSaves'?'settings':initialAction==='resumeLan'?null:initialAction);
  const[spectating,setSpectating]=useState(false);
  const[localStarting,setLocalStarting]=useState(false);
  const[pendingTalent,setPendingTalent]=useState<string|null>(null);
  const[settingsPage,setSettingsPage]=useState<'general'|'saves'>(initialAction==='settingsSaves'?'saves':'general');
- const[game,setGame]=useState<GameState|null>(null),[actor,setActor]=useState(0),[selected,setSelected]=useState(0),[target,setTarget]=useState(8),[fraction,setFraction]=useState(0.75);
+ const[game,setGame]=useState<GameState|null>(null),[actor,setActor]=useState(0),[selected,setSelected]=useState(0);
  const[preferences]=useState(()=>loadSetupPreferences());
  const[soloAICount,setSoloAICount]=useState('2'),[roomAICount,setRoomAICount]=useState('0');
  const[lobbyAI,setLobbyAI]=useState('0');
@@ -61,12 +59,6 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  const eliminated=Boolean(game&&isEliminated(game,actor)),showDefeat=eliminated&&!spectating&&game?.winner===null;
  const commanderName=name??text('yourName');
  const visibleDispatches=JSON.stringify(game?.events.slice(-4)??[]);
- const navigator=useMemo(()=>new TerrainNavigator(),[]),travelStats=stats(player,player?.loadout[0]??'infantry');
- const travelPlan=useMemo(()=>screen==='game'&&MAP[selected]?.playable&&MAP[target]?.playable&&selected!==target?navigator.plan(MAP[selected].center,MAP[target].center,travelStats.speed,travelStats.seaSpeed):null,[navigator,screen,selected,target,travelStats.speed,travelStats.seaSpeed]);
- const route=travelPlan?[selected,target]:null,pathSea=travelPlan?.points.some(p=>p.sea)??false;
- const pathDistance=travelPlan?.points.reduce((sum,p,i,points)=>i?sum+Math.hypot(p.x-points[i-1].x,p.z-points[i-1].z):sum,0)??0;
- const dispatchable=game?regionGarrison(game,actor,selected):0;
- const destinations=useMemo(()=>MAP.filter(p=>p.playable&&p.id!==selected&&(p.id===target||[...p.name,p.code].some(v=>v.toLocaleLowerCase().includes(destinationQuery.trim().toLocaleLowerCase())))),[selected,target,destinationQuery]);
  const notifyResult=(result:Result)=>{if(!result.ok){setPendingTalent(null);setToast(text(`error.${result.error}`));}};
  const report=(e:unknown)=>setToast(text(`error.${e instanceof Error?e.message:'generic'}`));
  useEffect(()=>{if(eliminated){setModal(null);setPendingTalent(null);}},[eliminated]);
@@ -88,7 +80,6 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':'en';document.title=text('title');try{localStorage.setItem('rouge.language',language);}catch{/* Language still works without storage. */}},[language]);
  useEffect(()=>()=>session.current?.dispose(),[]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(''),4500);return()=>clearTimeout(id);},[toast]);
- useEffect(()=>{const neighbors=MAP[selected]?.neighbors??[];setTarget(neighbors.find(id=>game?.provinces[id].owner!==actor)??neighbors[0]??-1);},[selected,actor]);
  function refreshSaves(){try{setSaves(listSaves(localStorage));}catch{setToast(text('saveFailed'));}}
  function showSaves(){refreshSaves();setModal('saves');}
  function openSettings(){setSettingsPage('general');setModal('settings');}
@@ -148,7 +139,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
  function issue(command:Command){if(localStarting)return;if(eliminated){notifyResult({ok:false,error:'eliminated'});return;}session.current?.command(command);}
  function selectProvince(id:number,attack:boolean){
   if(screen!=='game'||localStarting)return;
-  if(attack){if(eliminated||!MAP[selected]||!MAP[id])return;setTarget(id);issue({type:'march',from:selected,to:id,fraction});}
+  if(attack){if(eliminated||!MAP[selected]||!MAP[id])return;issue({type:'march',from:selected,to:id,fraction:0.75});}
   else if(id===-1){setSelected(-1);setMobilePanel(current=>current==='province'?null:current);}
   else if(MAP[id])setSelected(id);
  }
@@ -191,7 +182,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
     <div className={`connection ${network}`}>● {text(network)}</div><div className="row"><button className="secondary" onClick={leave}>{text('leave')}</button>{ticket?.actor===0?<button className="primary" disabled={busy||(room?.onlineHumans??0)<2} onClick={beginMatch}>{text('startMatch')} →</button>:<span className="muted">{text('waitingHost')}</span>}</div>
   </section>}
   {screen==='game'&&game&&player&&<>
-    <header className="hud-top"><FactionIdentity flag={player.flag} actor={actor} language={language} color={factionColor(actor)}/><div className="commander-badge"><span className="faction-dot" style={{background:factionColor(actor)}}/><div><b>{playerName(language,player)}</b><small>{text(player.leader)}</small></div></div>
+    <header className="hud-top"><FactionIdentity flag={player.flag} actor={actor} language={language} color={factionColor(actor)}/>
       <div className="resource"><span>{text('gold')}</span><strong>{Math.floor(player.gold).toLocaleString()}</strong></div><div className="resource"><span>{text('army')}</span><strong data-testid="army-total" title={text('noArmyCap')}>{army.toLocaleString()}</strong></div><div className="resource"><span>{text('territory')}</span><strong>{owned}<small> / {PLAYABLE_COUNT}</small></strong></div><div className="resource level-resource"><span>{text('level')}</span><strong>{player.level}<small> / 8</small></strong><div className="micro-progress"><i style={{width:`${Math.min(100,player.xp/(60+player.level*45)*100)}%`}}/></div></div>
       <div className="clock"><time data-testid="game-clock" data-tick={game.tick}>{timeLabel(game.tick)}</time>{session.current?.mode==='solo'?<div className="clock-controls"><button onClick={togglePause} data-testid="toggle-pause" title={text(paused?'resume':'pause')}>{paused?'▶':'Ⅱ'}</button><button onClick={()=>{const s=speed===1?2:1;session.current?.speed?.(s);setSpeed(s);}}>{speed}×</button></div>:<small className={`connection ${network}`}>● {text(network)}</small>}</div>
     </header>
@@ -199,10 +190,10 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
     <nav className="army-actions" aria-label={text('armyActions')}><button className="upgrade-trigger" onClick={()=>setModal('upgrades')} data-testid="open-upgrades" aria-haspopup="dialog"><span className="upgrade-icon" aria-hidden="true">↟</span><span>{text('upgrades')}</span><span aria-hidden="true">›</span></button></nav>
     {province&&<aside id="province-panel" className={`province-panel panel ${mobilePanel==='province'?'mobile-panel-open':''}`}><div className="panel-kicker"><span>{text('province')}</span><button className="icon-button" onClick={()=>world.current?.focusProvince(selected)} title={text('focus')}>⌖</button></div><h2>{MAP[selected].name[language==='zh'?0:1]}</h2><div className="province-meta"><span>{text('managementRegion')}</span><span className="status-dot"/>{text(province.capture>0?'contested':province.recovery>0?'recovering':'stable')}</div>
       <button className="secondary full territory-manage-trigger" data-testid="open-territory-management" aria-haspopup="dialog" onClick={()=>setModal('territories')}>{text('territories')}</button>
-      <div className="province-owner"><span className="faction-dot" style={{background:factionColor(province.owner)}}/>{province.owner<0?text('neutral'):playerName(language,game.players[province.owner])}<b data-testid="region-capacity" title={text('garrisonCapacityHint')}>{regionGarrison(game,province.owner,selected)} / {regionCapacity(selected)}<small>{text('garrison')}</small></b></div>
+      <div className="province-owner"><span className="faction-dot" style={{background:factionColor(province.owner)}}/><div className="province-owner-name"><small>{text('owner')}</small><span data-testid="province-owner-name">{province.owner<0?text('neutral'):playerName(language,game.players[province.owner])}</span></div><b data-testid="region-capacity" title={text('garrisonCapacityHint')}>{regionGarrison(game,province.owner,selected)} / {regionCapacity(selected)}<small>{text('garrison')}</small></b></div>
       {province.capture>0&&<div className="capture"><span>{text('capture')}</span><div className="progress"><i style={{width:`${province.capture/8*100}%`}}/></div></div>}
       {province.owner===actor?<><label className="field-label">{text('production')}</label><select disabled={eliminated} value={province.kind} onChange={e=>issue({type:'production',province:selected,kind:e.target.value as Kind})}>{player.loadout.map(k=><option key={k} value={k}>{text(k)}</option>)}</select><div className="production-line"><div className="progress"><i style={{width:`${province.production/UNITS[province.kind].train*100}%`}}/></div><span>{Math.floor(province.production)} / {UNITS[province.kind].train}{text('seconds')}</span></div>
-      <div className="section-divider"/><h3>{text('send')}</h3><label className="field-label" htmlFor="destination">{text('target')}</label><input className="destination-search" data-testid="destination-search" aria-label={text('filterDestination')} placeholder={text('filterDestination')} value={destinationQuery} onChange={e=>setDestinationQuery(e.target.value)}/><select id="destination" data-testid="destination" value={target} onChange={e=>setTarget(Number(e.target.value))}>{target<0&&<option value={-1}>—</option>}{destinations.map(p=><option key={p.id} value={p.id}>{p.name[language==='zh'?0:1]} · {game.provinces[p.id].owner===actor?'○':'◇'}</option>)}</select><div className="route-preview" data-testid="route-preview" data-route={route?.map(id=>MAP[id].code).join(',')??''} data-path-points={JSON.stringify(travelPlan?.points??[])} data-path-sea={String(pathSea)}><strong>{travelPlan?text('terrainRouteDistance').replace('{distance}',pathDistance.toFixed(1)):text('noLandRoute')}</strong>{pathSea&&<small data-testid="sea-route">{text('seaRoute')}</small>}</div><small className="capacity-note" data-testid="destination-capacity">{text('destinationCapacity')} {target>=0?destinationRoom(game,actor,target):0} / {target>=0?regionCapacity(target):0} · {text('reserved')} {target>=0?regionReservations(game,actor,target):0}</small><div className="fraction-picker">{[0.25,0.5,0.75,1].map(f=><button key={f} className={fraction===f?'active':''} onClick={()=>setFraction(f)}>{f*100}%</button>)}</div><button className="primary full" data-testid="dispatch" disabled={eliminated||Math.floor(dispatchable*fraction)<1||target<0||target===selected||!travelPlan||destinationRoom(game,actor,target)<1} onClick={()=>issue({type:'march',from:selected,to:target,fraction})}>{text('dispatch')}<span>↗</span></button></>:null}
+      </>:null}
     </aside>}
     <aside id="strategic-panel" className={`strategic-panel ${mobilePanel==='intel'?'mobile-panel-open':''}`}><section className="panel objective"><span className="eyebrow gold">{text('objective')}</span><h3>{text('theatre')}</h3><p>{text('objectiveDesc').replace('{count}',String(Math.ceil(PLAYABLE_COUNT*0.6)))}</p><div className="faction-bars">{game.players.map(p=><span key={p.id} title={playerName(language,p)} style={{background:factionColor(p.id),width:`${(ownershipCounts.get(p.id)??0)/PLAYABLE_COUNT*100}%`}}/>)}</div>{game.domination[actor]>0&&<b className="gold">{text('domination')} {Math.floor(game.domination[actor])} / 30{text('seconds')}</b>}</section>
       <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:factionTextColor(e.player)}}>{playerName(language,game.players[e.player])}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>

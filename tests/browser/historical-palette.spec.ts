@@ -12,7 +12,7 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
   const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-input-context','game');
   await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await expect(page.getByTestId('faction-identity').locator('svg rect').first()).toHaveAttribute('fill','#ff0000');
-  await expect(page.getByTestId('faction-identity')).toContainText('Faction 1');
+  await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
   await expect(page.locator('.dispatches')).toHaveCSS('background-color','rgb(23, 48, 56)');
   await expect(page.locator('.dispatches')).toContainText('Palette 16');
   for(const sample of fixture.samples){

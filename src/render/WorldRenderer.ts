@@ -286,6 +286,7 @@ export class WorldRenderer {
   private touches=new Map<number,{x:number;y:number}>();
   private touchBase:{x:number;y:number;span:number;distance:number;fx:number;fz:number}|null=null;
   private touchMoved=false;
+  private touchStartedAt=0;
   private resetTouchBase(){
     const points=[...this.touches.values()];if(!points.length){this.touchBase=null;return;}
     const a=points[0],b=points[1]??a;
@@ -294,7 +295,7 @@ export class WorldRenderer {
   private pointerDown=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
     if(e.pointerType==='touch'||e.pointerType==='pen'){
-      if(!this.touches.size)this.touchMoved=false;
+      if(!this.touches.size){this.touchMoved=false;this.touchStartedAt=performance.now();}
       this.touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
       if(this.touches.size>1)this.touchMoved=true;
       this.resetTouchBase();
@@ -336,7 +337,9 @@ export class WorldRenderer {
     if(e.pointerType==='touch'||e.pointerType==='pen'){
       if(!this.touches.has(e.pointerId))return;
       if(this.touchBase&&Math.hypot(e.clientX-this.touchBase.x,e.clientY-this.touchBase.y)>=5)this.touchMoved=true;
-      if(this.touches.size===1&&!this.touchMoved)this.selectAt(e,false);
+      // A stationary long press orders on release. Drag, pinch, cancellation and
+      // a context change invalidate the gesture before it can issue a command.
+      if(this.touches.size===1&&!this.touchMoved)this.selectAt(e,performance.now()-this.touchStartedAt>=550);
       this.touches.delete(e.pointerId);this.resetTouchBase();return;
     }
     if(this.down&&!this.down.moved&&this.down.button===e.button&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5)this.selectAt(e,e.button===2||e.shiftKey);this.down=null;

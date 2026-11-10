@@ -38,7 +38,7 @@ test('ocean clicks clear selection and only the province panel; land and search 
  const canvas=page.locator('canvas'),ocean=await point(page,-30,0),land=await point(page,10,25);
  const selected=await canvas.getAttribute('data-selected-region');
  // HUD interactions and order gestures are not deselection.
- await page.getByRole('button',{name:'50%',exact:true}).click();
+ await page.getByTestId('open-settings').click();await page.keyboard.press('Escape');
  await page.mouse.click(ocean.x,ocean.y,{button:'right'});
  await page.keyboard.down('Shift');await page.mouse.click(ocean.x,ocean.y);await page.keyboard.up('Shift');
  await page.mouse.click(ocean.x,ocean.y,{button:'middle'});
