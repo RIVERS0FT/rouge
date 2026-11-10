@@ -1,11 +1,13 @@
 import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
 test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and polar anchor',async({page})=>{
   test.setTimeout(120000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/');const canvas=page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-ready','true',{timeout:30000});
   await expect(canvas).toHaveAttribute('data-crop','miller-74n-reference-aspect-v1');
-  await expect(canvas).toHaveAttribute('data-visible-provinces','4592');
+  await expect(canvas).toHaveAttribute('data-visible-provinces',String(atlas.provinces.filter((p:{playable:boolean})=>p.playable).length));
   const min=Number(await canvas.getAttribute('data-land-min-z')),max=Number(await canvas.getAttribute('data-land-max-z'));
   expect(min).toBeGreaterThanOrEqual(-923.4389955662654-1e-7);expect(max).toBeLessThanOrEqual(665.6235044337346+1e-7);
   await page.screenshot({path:'artifacts/cropped-miller-menu.png'});

@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
-const atlas=JSON.parse(readFileSync('src/generated/world.json','utf8')) as {provinces:{id:string;neighbors:number[]}[]};
+const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8')) as {provinces:{id:string;neighbors:number[]}[]};
 test('menu → setup → real WebGL game → order → upgrade → multi-slot save → reload',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  await page.addInitScript(()=>Object.defineProperty(globalThis.crypto,'randomUUID',{value:undefined,configurable:true}));

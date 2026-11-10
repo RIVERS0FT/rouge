@@ -16,3 +16,5 @@ src/generated/world.js
 src/generated/world.d.ts
 
 src/generated/terrain-navigation.json
+
+src/generated/gameplay-map.json

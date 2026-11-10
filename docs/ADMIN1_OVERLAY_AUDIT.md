@@ -1,5 +1,7 @@
 # Natural Earth Admin 1 compatibility overlay audit
 
+> 历史实现/数据记录。当前锁定游戏地块、存档与出生规则见 [GAMEPLAY_REGIONS.md](GAMEPLAY_REGIONS.md)，实际形状指标见 [GAMEPLAY_REGIONS_AUDIT.md](GAMEPLAY_REGIONS_AUDIT.md)。
+
 This is a **data audit and new-map candidate only**. It does not overwrite `world.json` or migrate old saves. The final chosen new-map atoms are whole Natural Earth Admin 1 features, not legacy intersection fragments.
 
 ## Sources and reproducibility

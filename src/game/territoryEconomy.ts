@@ -2,11 +2,10 @@ import {MAP,TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {territoryTotals} from './territoryGrouping.ts';
 import {allocateAtomBudgets,atomCapacity,atomProductionRate,runtimeLedger,commandGrouping,reconcileRuntimeGrouping,validateRuntimeGrouping,type GroupedRuntimeState} from './territoryRuntime.ts';
 
-/** NEW MAP BALANCE: each initial playable group receives max(12, atom count)
- * capacity and one total production rate. This is NOT identical to the old map's
- * total budget. At least one slot per playable atom keeps every atom conquerable.
- * Allocation is immutable: later merge/split/capture never recomputes a budget. */
-export const ATOM_BUDGETS=allocateAtomBudgets(TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING.groups.map(g=>g.atoms),12,1,1);
+/** Each locked gameplay region owns one production queue, rate 1 and 12 slots.
+ * Raw administrative members have no separate gameplay accounts. Dynamic
+ * merge/split keeps these fixed budgets rather than minting new resources. */
+export const ATOM_BUDGETS=allocateAtomBudgets(TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING.groups.map(g=>g.atoms),12,1);
 export function regionCapacity(region:number):number{return Number.isInteger(region)&&MAP[region]?atomCapacity(ATOM_BUDGETS,MAP[region].code):0;}
 export function regionProductionRate(region:number):number{return Number.isInteger(region)&&MAP[region]?atomProductionRate(ATOM_BUDGETS,MAP[region].code):0;}
 export function applyGroupingCommand(state:GroupedRuntimeState,actor:number,input:unknown){return commandGrouping(TERRITORY_TOPOLOGY,ATOM_BUDGETS,state,actor,input);}

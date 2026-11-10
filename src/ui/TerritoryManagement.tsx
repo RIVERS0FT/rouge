@@ -17,14 +17,16 @@ export function TerritoryManagement({state,grouping,selected,actor,eliminated,la
  },[group,groupId,grouping,groups]);
  const eligible=neighbors.filter(g=>owned(g.atoms)),eligibleIds=new Set(eligible.map(g=>g.id));
  const canMerge=editable&&merge.length>0&&merge.every(id=>eligibleIds.has(id));
- const canSplit=editable&&split.length>0&&split.length<(group?.atoms.length??0)&&split.every(id=>group?.atoms.includes(id));
+ const splittable=(group?.atoms.length??0)>1;
+ const canSplit=editable&&splittable&&split.length>0&&split.length<(group?.atoms.length??0)&&split.every(id=>group?.atoms.includes(id));
  const name=(id:string)=>{const i=atomIndex.get(id);return i===undefined?id:MAP[i].name[language==='zh'?0:1];};
  const toggle=(ids:string[],id:string)=>ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];
  return <section className="territory-management" data-testid="territory-management" data-revision={grouping.revision}>
   {!group?<p role="status">{text('territoryUnavailable')}</p>:<>
    <h3>{text('territoryCurrentGroup')} · {name(group.atoms[0])}</h3>
    {!editable&&<p role="status">{text(eliminated?'error.eliminated':'territoryReadOnly')}</p>}
-   <fieldset disabled={!editable}><legend>{text('territoryAtoms')} ({group.atoms.length})</legend>
+   <fieldset disabled={!editable||!splittable}><legend>{text('territoryAtoms')} ({group.atoms.length})</legend>
+    {!splittable&&<p data-testid="territory-split-explanation">{text('territoryPreprocessingLocked')}</p>}
     <div className="territory-atom-list" data-testid="territory-atom-list">{group.atoms.map(id=><label key={id}><input type="checkbox" data-testid="territory-split-atom" value={id} checked={split.includes(id)} onChange={()=>setSplit(toggle(split,id))}/><span>{name(id)}</span></label>)}</div>
     <button className="secondary" data-testid="split-territory-group" disabled={!canSplit} onClick={()=>{if(canSplit)onCommand({type:'splitGroup',group:group.id,atoms:[...split].sort(),expectedRevision:grouping.revision});}}>{text('territorySplit')} ({split.length}/{group.atoms.length})</button>
    </fieldset>

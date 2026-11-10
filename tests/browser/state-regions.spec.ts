@@ -1,9 +1,11 @@
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-const atlas=JSON.parse(readFileSync('src/generated/world.json','utf8'));
+const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
+const regionForSource=(code:string)=>atlas.provinces.find((p:{sourceAtoms:string[]})=>p.sourceAtoms.includes(code));
 const region=(code:string)=>atlas.provinces.findIndex((p:{id:string})=>p.id===code);
 async function chooseRemoteRoute(page:any){
+ await page.getByRole('button',{name:'100%',exact:true}).click();
  const sourceCode=atlas.provinces[Number(await page.locator('canvas').getAttribute('data-selected-region'))].id;
  const source=region(sourceCode),distance=new Map([[source,0]]),queue=[source];
  for(let i=0;i<queue.length;i++)for(const next of atlas.provinces[queue[i]].neighbors)if(!distance.has(next)){distance.set(next,distance.get(queue[i])+1);queue.push(next);}
@@ -32,7 +34,7 @@ test('ownership border hierarchy, UK detail, remote dispatch UI and persisted ro
  await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-world.png'});
  await page.getByTestId('map-search').fill('GBR-2764');await page.locator('.map-search-results button').first().click();
- await expect(page.locator('.province-panel h2')).toContainText('诺丁汉');await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+ await expect(page.locator('.province-panel h2')).toContainText(regionForSource('GBR-2764').name[0]);await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  // Pull back from a single region to view the British region boundaries together.
  await page.mouse.move(740,440);await page.mouse.wheel(0,85);await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-britain.png'});
@@ -45,7 +47,7 @@ test('ownership border hierarchy, UK detail, remote dispatch UI and persisted ro
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Remote order'})).toBeVisible();
  const routes=await page.evaluate(()=>{
-  const key=Object.keys(localStorage).find(k=>k.startsWith('rouge.save.natural-earth-admin1.v1.')&&!k.endsWith('.backup'))!;
+  const key=Object.keys(localStorage).find(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v2.')&&!k.endsWith('.backup'))!;
   const state=JSON.parse(JSON.parse(localStorage.getItem(key)!).body);
   return state.units.filter((u:any)=>u.owner===0&&u.destination!==null).map((u:any)=>({origin:u.origin,destination:u.destination,route:u.route,travel:u.travel,province:u.province}));
  });

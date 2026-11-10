@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
-test('owned adjacent administrative atoms merge and split through authoritative commands',async({page})=>{
+test('locked base game regions merge in-game and split only back to base regions',async({page})=>{
  test.setTimeout(180000);
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
@@ -13,15 +13,20 @@ test('owned adjacent administrative atoms merge and split through authoritative 
  const panel=page.getByTestId('territory-management');await expect(panel).not.toContainText(/Natural Earth|Vic3|Revision|ne-admin1/);
  await expect(page.getByTestId('split-territory-group')).toBeDisabled();
  await expect(page.getByTestId('merge-territory-groups')).toBeDisabled();
+ await expect(page.getByTestId('territory-split-atom')).toBeDisabled();
+ await expect(page.getByTestId('territory-split-explanation')).toContainText('Preprocessed merges are locked');
  const before=Number(await panel.getAttribute('data-revision'));
  await page.getByTestId('territory-merge-neighbor').first().check();await page.getByTestId('merge-territory-groups').click();
  await expect.poll(async()=>Number(await panel.getAttribute('data-revision'))).toBeGreaterThan(before);
  await expect(page.getByTestId('territory-split-atom')).toHaveCount(2);
+ await expect(page.getByTestId('territory-split-explanation')).toHaveCount(0);
  for(const checkbox of await page.getByTestId('territory-split-atom').all())await checkbox.check();
  await expect(page.getByTestId('split-territory-group')).toBeDisabled();
  await page.getByTestId('territory-split-atom').last().uncheck();
  const merged=Number(await panel.getAttribute('data-revision'));await page.getByTestId('split-territory-group').click();
  await expect.poll(async()=>Number(await panel.getAttribute('data-revision'))).toBeGreaterThan(merged);
  await expect(page.getByTestId('territory-split-atom')).toHaveCount(1);
+ await expect(page.getByTestId('territory-split-atom')).toBeDisabled();
+ await expect(page.getByTestId('territory-split-explanation')).toContainText('Preprocessed merges are locked');
  await expect(page.getByTestId('split-territory-group')).toBeDisabled();
 });

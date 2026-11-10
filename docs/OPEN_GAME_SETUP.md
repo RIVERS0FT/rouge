@@ -1,5 +1,7 @@
 # Open game setup and physical map capacity
 
+> 历史实现/数据记录。当前锁定游戏地块、存档与出生规则见 [GAMEPLAY_REGIONS.md](GAMEPLAY_REGIONS.md)，实际形状指标见 [GAMEPLAY_REGIONS_AUDIT.md](GAMEPLAY_REGIONS_AUDIT.md)。
+
 ## Rules and UI
 
 - No configured four-faction or four-human ceiling remains. Solo AI is an integer input with its current range inside the input; LAN host setup and lobby also use numeric inputs.

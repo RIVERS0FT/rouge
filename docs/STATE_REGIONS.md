@@ -1,5 +1,7 @@
 # v0.5.0：州区域地块、远程调兵与地块容量
 
+> 历史实现/数据记录。当前锁定游戏地块、存档与出生规则见 [GAMEPLAY_REGIONS.md](GAMEPLAY_REGIONS.md)，实际形状指标见 [GAMEPLAY_REGIONS_AUDIT.md](GAMEPLAY_REGIONS_AUDIT.md)。
+
 ## 地图口径
 
 世界最小管理地块改用参考数据 1.13.7 的 **State Region**，而不是底层 province 像素块，也不是按国家拆分的 state。整块归属一个玩家，整块生产与占领。玩家势力依然存在，但不代表现实国家。

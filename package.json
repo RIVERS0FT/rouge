@@ -14,7 +14,7 @@
     "typecheck:core": "tsc -p tsconfig.core.json",
     "lan": "node --experimental-strip-types server/lan.ts",
     "test:e2e": "playwright test",
-    "prepare:map": "node --max-old-space-size=2048 scripts/build-world.mjs",
+    "prepare:map": "node --max-old-space-size=2048 scripts/build-world.mjs && node --experimental-strip-types scripts/write-gameplay-map.mjs",
     "predev": "npm run prepare:map",
     "prebuild": "npm run prepare:map",
     "pretest": "npm run prepare:map",

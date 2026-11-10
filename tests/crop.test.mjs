@@ -3,7 +3,7 @@ import data from '../src/generated/world.json' with {type:'json'};
 import assert from 'node:assert/strict';
 import {project,unproject,WORLD_BOUNDS as B,WORLD_CENTER,MAP_ASPECT,NORTH_LATITUDE,SOUTH_LATITUDE,wrapX,nearestWorldX} from '../src/game/geo.ts';
 import {clipSegment,clipTriangle,visiblePart,landSpans,inRect,signedArea} from '../src/game/crop.ts';
-import {MAP,PLAYABLE_COUNT,provinceAt,pointInProvince,navigableInProvince,STARTS,searchProvinces} from '../src/game/map.ts';
+import {MAP,provinceByCode,SOURCE_MAP,PLAYABLE_COUNT,provinceAt,pointInProvince,navigableInProvince,STARTS,searchProvinces} from '../src/game/map.ts';
 import {Engine,createGame} from '../src/game/engine.ts';
 import {Navigator,cellCenter} from '../src/game/navigation.ts';
 import {validateState,writeSave,listSaves,deleteSave,SAVE_PREFIX} from '../src/game/save.ts';
@@ -46,7 +46,7 @@ test('triangle-first clipping never bridges disconnected lobes or paints a hole'
  for(const poly of clipped)assert.ok(poly.every(p=>p.x<=3)||poly.every(p=>p.x>=7));
 });
 test('land-only state atlas excludes sea regions and cannot select beyond polar crop',()=>{
- assert.equal(MAP.length,4596);assert.equal(PLAYABLE_COUNT,4592);
+ assert.equal(MAP.length,1163);assert.equal(PLAYABLE_COUNT,1159);
  assert.equal(MAP.filter(p=>!p.visible).length,4);assert.ok(MAP.filter(p=>!p.visible).every(p=>!p.playable));
  for(const lat of [74.1,80,89,-59,-80]){const p=project(10,lat);assert.equal(provinceAt(p.x,p.z),-1);}
  for(const code of ['STATE_NORTH_SEA','STATE_CORAL_SEA','NOR-901'])assert.equal(searchProvinces(code).length,0);
@@ -57,14 +57,14 @@ test('all state anchors, including Greenland, remain inside visible land',()=>{
   assert.ok(navigableInProvince(p.id,p.center.x,p.center.z),p.code);
   for(const id of p.neighbors){assert.ok(MAP[id].playable);assert.ok(MAP[id].neighbors.includes(p.id));}
  }
- assert.ok(MAP.find(p=>p.code==='GRL-2743').playable);
+ assert.ok(MAP[provinceByCode('GRL-2743')].playable);
 });
 test('state-region flow cannot escape crop or cross a polar sea gap',()=>{
- const s=createGame(setups),a=MAP.find(p=>p.code==='GBR-2745'),b=MAP.find(p=>p.code==='GBR-2018'),nav=new Navigator();
+ const s=createGame(setups),a=MAP[provinceByCode('GBR-2745')],b=MAP[provinceByCode('GBR-2018')],nav=new Navigator();
  const flow=nav.get(s,0,b.id,a.id);
  for(let i=0;i<flow.distance.length;i++)if(Number.isFinite(flow.distance[i]))assert.ok(inRect(cellCenter(i,flow),B));
  assert.equal(nav.canMove(flow,a.center.x,a.center.z,a.center.x,B.top-0.01),false);
- const greenland=MAP.find(p=>p.code==='GRL-2743');assert.equal(nav.route(s,0,a.id,greenland.id,false),null);
+ const greenland=MAP[provinceByCode('GRL-2743')];assert.equal(nav.route(s,0,a.id,greenland.id,false),null);
 });
 test('nonexistent regions cannot produce or receive orders and victory counts only management regions',()=>{
  const e=new Engine(createGame(setups));
@@ -92,7 +92,7 @@ test('longitude wrapping is periodic and chooses the adjacent visual copy, witho
 });
 
 test('crop leaves source adjacency unchanged when a whole neighboring province is retained',()=>{
- for(const p of MAP)if(p.playable)for(const id of data.provinces[p.id].neighbors) {
-  if(MAP[id].playable&&(!p.cropped||!MAP[id].cropped))assert.ok(p.neighbors.includes(id),`${p.code}/${MAP[id].code}`);
+ for(const p of SOURCE_MAP)if(p.playable)for(const id of data.provinces[p.id].neighbors) {
+  if(SOURCE_MAP[id].playable&&(!p.cropped||!SOURCE_MAP[id].cropped))assert.ok(p.neighbors.includes(id),`${p.code}/${SOURCE_MAP[id].code}`);
  }
 });

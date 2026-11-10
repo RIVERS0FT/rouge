@@ -7,7 +7,11 @@ const compressed=await readFile(new URL('data/natural-earth-admin1-base.json.gz'
 if(createHash('sha256').update(compressed).digest('hex')!=='3206750f49f264d247f1590571365d14d72a0d2aa020c7be5f2d10223db835ff')throw new Error('Natural Earth atlas checksum mismatch');
 const source=JSON.parse(gunzipSync(compressed));
 if(source.format!==1||source.mapId!=='earth-natural-earth-admin1-511-v1'||source.provinces.length!==4596)throw new Error('Invalid administrative atlas');
-const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id}))};
+const partition=JSON.parse(gunzipSync(await readFile(new URL('data/gameplay-region-partition.json.gz',root))));
+if(partition.schema!==1||partition.sourceSha256!==createHash('sha256').update(compressed).digest('hex')||!Array.isArray(partition.groups))throw new Error('Gameplay partition does not match the source atlas');
+// Keep the source partition as provenance, and ship only operational membership
+// in the shared atlas. Audit/optimization logs never enter either JS bundle.
+const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:partition.groups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason}))};
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);
