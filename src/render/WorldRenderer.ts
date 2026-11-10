@@ -6,6 +6,7 @@ import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
 import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {buildBorderEdges,classifyBorder,borderPositions,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH,COUNTRY_BORDER_COLOR,type BorderEdge} from './territoryBorders.ts';
 import {MapInputController,type MapInputContext} from './mapInput.ts';
+import {advanceCameraDistance} from './cameraMotion.ts';
 import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, clipSegment, inRect } from '../game/crop.ts';
@@ -44,7 +45,7 @@ export class WorldRenderer {
   private dirty=new Set<number>();
   private ray=new THREE.Raycaster();private pointer=new THREE.Vector2();private dummy=new THREE.Object3D();
   private observer:ResizeObserver;private animation=0;private last=0;
-  private distance=4400;private desiredDistance=4400;private focus=new THREE.Vector3(WORLD_CENTER.x,0,WORLD_CENTER.z);
+  private distance=4400;private desiredDistance=4400;private lastCameraTarget=4400;private focus=new THREE.Vector3(WORLD_CENTER.x,0,WORLD_CENTER.z);
   private desiredFocusZ=WORLD_CENTER.z;
   private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
@@ -337,7 +338,8 @@ export class WorldRenderer {
     if(!moving&&!this.invalidated&&!this.dirty.size&&this.blend<0.1)return;
     if(time-this.lastRender<(this.distance>320?100:1000/30))return;
     this.lastRender=time;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;
-    const dt=Math.min((time-this.last)/1000||0.016,0.1);this.last=time;this.distance+=(this.desiredDistance-this.distance)*(1-Math.exp(-dt*9));
+    const elapsed=Math.max(0,(time-this.last)/1000||0.016),dt=Math.min(elapsed,0.1);this.last=time;
+    this.distance=advanceCameraDistance(this.distance,this.desiredDistance,elapsed,this.lastCameraTarget!==this.desiredDistance);this.lastCameraTarget=this.desiredDistance;
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
