@@ -1,4 +1,5 @@
 import {createLocalSession} from './localSession.ts';
+import workerUrl from './worker.ts?worker&url';
 import type { Flag } from '../game/flags.ts';
 import { applyFrame } from './replication.ts';
 import { MAP_ID, RULES_ID } from '../game/content.ts';
@@ -13,8 +14,13 @@ export interface Session {
   pause?(value:boolean):void;
   speed?(value:number):void;
 }
+/** Download the simulation code during menu idle time; starting a campaign uses
+ * this same hashed URL and the same already-cached map assets. */
+export function preloadLocalSession():void{
+  void fetch(workerUrl,{cache:'force-cache'}).then(response=>response.ok?response.arrayBuffer():undefined).catch(()=>{});
+}
 export function localSession(state:GameState,onState:(state:GameState)=>void,onResult:(result:Result)=>void):Session{
-  const worker=new Worker(new URL('./worker.ts',import.meta.url),{type:'module'});
+  const worker=new Worker(workerUrl,{type:'module'});
   return createLocalSession(worker,state,onState,onResult);
 }
 export async function api(path:string,body?:unknown,token?:string):Promise<any>{

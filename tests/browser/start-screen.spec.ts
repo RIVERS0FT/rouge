@@ -1,4 +1,4 @@
-import {test,expect,type Locator} from '@playwright/test';
+import {test,expect,type Locator,type Page} from '@playwright/test';
 
 async function bounds(locator:Locator,width:number,height:number){
  const box=await locator.boundingBox();expect(box).not.toBeNull();
@@ -7,26 +7,148 @@ async function bounds(locator:Locator,width:number,height:number){
  return box!;
 }
 
-test('menu identity anchors stay in the left corners and edits are not repeated before matches',async({page})=>{
+// Hold the actual shared data responses, not a fake timeout or a readiness flag.
+// The same pattern works for dev URLs and hashed production asset URLs.
+const sharedMapData=/\/(?:world|terrain-navigation)(?:-[A-Za-z0-9_-]+)?\.json(?:\?|$)/;
+async function delaySharedMapData(page:Page){
+ const requested=new Set<string>();let release!:()=>void;
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ await page.route(sharedMapData,async route=>{
+  if(route.request().resourceType()==='fetch'){
+   requested.add(new URL(route.request().url()).pathname);
+   await gate;
+  }
+  await route.continue();
+ });
+ return {requested,release};
+}
+
+test('minimal menu renders before game modules and preserves language without storage',async({page})=>{
+ let release!:()=>void,gameRequested=false;
+ const gate=new Promise<void>(resolve=>{release=resolve;}),requests:string[]=[];
+ await page.addInitScript(()=>{Storage.prototype.setItem=()=>{throw new DOMException('Storage unavailable','QuotaExceededError');};});
+ page.on('request',request=>requests.push(request.url()));
+ await page.route(/\/(?:src\/ui\/App\.tsx|assets\/App-[^/]+\.js)(?:\?|$)/,async route=>{gameRequested=true;await gate;await route.continue();});
+ try{
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.menu-content h1')).toHaveText('诸省之争');
+  await expect(page.getByTestId('single-player')).toBeEnabled();
+  await expect.poll(()=>gameRequested).toBe(true);
+  expect(requests.filter(url=>sharedMapData.test(url)||/three(?:\.js|\/)|\/leaders\//.test(url))).toEqual([]);
+  await page.getByRole('button',{name:'English',exact:true}).click();await expect(page).toHaveTitle('ROUGE');
+  await page.getByTestId('single-player').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
+  release();
+  await expect(page.locator('.app')).toHaveAttribute('data-resource-state','ready',{timeout:30000});
+  await expect(page.locator('html')).toHaveAttribute('lang','en');await expect(page).toHaveTitle('ROUGE');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('single-player')).toBeFocused();
+ }finally{release();}
+});
+
+test('menu and settings work before shared assets arrive and the latest early action wins',async({page})=>{
+ const loading=await delaySharedMapData(page),errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ try{
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.menu-content h1')).toHaveText('诸省之争');
+  await expect(page.getByTestId('single-player')).toBeEnabled();
+  await expect.poll(()=>loading.requested.size).toBe(2);
+  await expect(page.locator('.app')).toHaveAttribute('data-resource-state','loading');
+  await expect(page.locator('canvas')).toHaveCount(0);
+  await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
+  await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
+  await page.getByRole('button',{name:'English',exact:true}).click();
+  await expect(page).toHaveTitle('ROUGE');await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await page.getByTestId('home-settings').click();
+  await expect(page.getByTestId('settings-resume')).toHaveText(/Return to menu/);
+  await page.getByTestId('settings-save').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('settings-resume')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('home-settings')).toBeFocused();
+  await page.getByTestId('single-player').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
+  await page.getByRole('button',{name:/LAN multiplayer/}).click();
+  await expect(page.getByTestId('resource-loading')).toBeVisible();
+  loading.release();
+  await expect(page.getByRole('button',{name:'Create room',exact:true})).toBeVisible();
+  await expect(page.getByTestId('begin-campaign')).toHaveCount(0);
+  await expect(page.getByTestId('commander-name')).toHaveValue('Commander');
+  await expect(page.getByTestId('resource-loading')).toHaveCount(0);
+  await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
+  await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:/LAN multiplayer/})).toBeFocused();
+  expect(errors).toEqual([]);
+ }finally{loading.release();}
+});
+
+test('cancelled early setup does not reopen when background downloads finish',async({page})=>{
+ const loading=await delaySharedMapData(page);
+ try{
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await page.getByTestId('single-player').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
+  await page.getByRole('button',{name:'关闭',exact:true}).click();
+  await expect(page.getByTestId('single-player')).toBeFocused();
+  await page.getByTestId('home-settings').click();
+  await page.getByRole('dialog').getByRole('button',{name:'English',exact:true}).click();
+  await expect.poll(()=>loading.requested.size).toBe(2);
+  loading.release();
+  await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+  await expect(page.getByTestId('settings-resume')).toBeVisible();
+  await expect(page.getByTestId('commander-name')).toHaveCount(0);
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await page.keyboard.press('Escape');await expect(page.getByTestId('home-settings')).toBeFocused();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByTestId('single-player').click();await expect(page.getByTestId('commander-name')).toHaveValue('Commander');
+ }finally{loading.release();}
+});
+
+test('failed shared downloads leave the menu usable and offer a working reload',async({page})=>{
+ await page.route(sharedMapData,async route=>{
+  if(route.request().resourceType()==='fetch')await route.fulfill({status:503,body:'Temporarily unavailable'});
+  else await route.continue();
+ });
+ await page.goto('/',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.app')).toHaveAttribute('data-resource-state','failed');
+ await expect(page.getByTestId('reload-resources')).toBeVisible();
+ await page.getByRole('button',{name:'English',exact:true}).click();await expect(page).toHaveTitle('ROUGE');
+ await page.getByTestId('home-settings').click();await expect(page.getByTestId('settings-resume')).toBeVisible();
+ await page.keyboard.press('Escape');await expect(page.getByTestId('home-settings')).toBeFocused();
+ await page.unroute(sharedMapData);
+ await page.getByTestId('reload-resources').click();
+ await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+ await expect(page.getByTestId('single-player')).toBeVisible();
+ await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('left-side menu keeps identity in setup and remembers appearance across matches',async({page})=>{
  await page.goto('/');
- const flag=page.getByTestId('edit-player-flag'),leader=page.getByTestId('edit-player-leader');
- const flagBox=await bounds(flag,1440,960),leaderBox=await bounds(leader,1440,960);
- const menu=await bounds(page.locator('.menu-content'),1440,960);expect(menu.x).toBeGreaterThan(900);
- expect(await page.locator('.map-vignette').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('270deg');
- expect(flagBox.x).toBeLessThan(40);expect(flagBox.y).toBeLessThan(40);
- expect(leaderBox.x).toBeLessThan(40);expect(leaderBox.y+leaderBox.height).toBeGreaterThan(920);
- await flag.click();await page.getByLabel('旗帜类型',{exact:true}).selectOption('fr');await page.keyboard.press('Escape');await expect(flag).toBeFocused();
- await leader.click();await page.getByTestId('choose-leader-vanguard').click();await page.keyboard.press('Escape');await expect(leader).toBeFocused();
- await expect(leader).toHaveAttribute('data-leader','vanguard');
- await page.reload();await expect(leader).toHaveAttribute('data-leader','vanguard');
- await expect(flag.getByRole('img',{name:'法国',exact:true})).toBeVisible();
+ await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
+ await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
+ const menu=await bounds(page.locator('.menu-content'),1440,960);expect(menu.x).toBeLessThan(160);
+ const title=await bounds(page.locator('.menu-content h1'),1440,960);expect(title.x).toBeLessThan(170);
+ expect(await page.locator('.map-vignette').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('90deg');
  await page.screenshot({path:'artifacts/start-screen-desktop.png'});
  await page.getByTestId('single-player').click();
+ const flag=page.getByTestId('edit-player-flag'),leader=page.getByTestId('edit-player-leader');
  await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
- await expect(page.getByTestId('choose-unit-infantry')).toBeVisible();
- await page.keyboard.press('Escape');
+ await page.getByTestId('commander-name').fill('Remembered commander');
+ await page.getByTestId('setup-ai-count').fill('3');
+ await flag.click();await page.getByLabel('旗帜类型',{exact:true}).selectOption('fr');await page.keyboard.press('Escape');await expect(flag).toBeFocused();
+ await leader.click();await page.getByTestId('choose-leader-vanguard').click();await page.getByRole('button',{name:'关闭',exact:true}).click();await expect(leader).toBeFocused();
+ await expect(leader).toHaveAttribute('data-leader','vanguard');
+ await expect(page.getByTestId('commander-name')).toHaveValue('Remembered commander');
+ await expect(page.getByTestId('setup-ai-count')).toHaveValue('3');
+ await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
+ await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
+ await page.reload();await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
  await page.getByRole('button',{name:/局域网联机/}).click();
  await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
+ await expect(leader).toHaveAttribute('data-leader','vanguard');
+ await expect(flag.getByRole('img',{name:'法国',exact:true})).toBeVisible();
+ await flag.click();await expect(page.getByLabel('旗帜类型',{exact:true})).toHaveValue('fr');
+ await page.getByRole('button',{name:'关闭',exact:true}).click();await expect(flag).toBeFocused();
+ await expect(page.getByRole('button',{name:'创建房间',exact:true})).toBeVisible();
+ await leader.click();await expect(page.getByTestId('choose-leader-vanguard')).toHaveAttribute('aria-pressed','true');
+ await page.keyboard.press('Escape');await expect(leader).toBeFocused();
+ await expect(page.getByRole('button',{name:'创建房间',exact:true})).toBeVisible();
  await expect(page.getByTestId('choose-unit-infantry')).toBeVisible();
 });
 
@@ -45,20 +167,22 @@ test('unit tooltip is external to the button, keyboard dismissible and mouse hov
 
 test.describe('touch identity and unit selection',()=>{
  test.use({hasTouch:true,isMobile:true});
- test('phone corners, editor focus return and tooltip stay within the screen',async({page})=>{
+ test('left-side menu, setup editor focus return and tooltip fit portrait and landscape',async({page})=>{
   test.setTimeout(180000);
   for(const [width,height] of [[390,844],[360,640],[844,390]]){
    await page.setViewportSize({width,height});await page.goto('/');
-   const flag=page.getByTestId('edit-player-flag'),leader=page.getByTestId('edit-player-leader');
-   await bounds(flag,width,height);const portrait=await bounds(leader,width,height);
-   expect(portrait.x).toBeLessThan(24);expect(portrait.y+portrait.height).toBeGreaterThan(height-30);
+   await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
+   await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
+   const title=await bounds(page.locator('.menu-content h1'),width,height);
    await page.getByTestId('single-player').scrollIntoViewIfNeeded();const start=await bounds(page.getByTestId('single-player'),width,height);
-   expect(start.x).toBeGreaterThan(portrait.x+portrait.width);
-   expect(start.x+start.width).toBeGreaterThan(width*.85);
-   expect(await page.locator('.map-vignette').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('270deg');
-   await leader.tap();expect(await page.locator('.leader-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3);await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
+   expect(start.x).toBeLessThan(width*.2);expect(title.x).toBeLessThan(width*.2);
+   expect(await page.locator('.map-vignette').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('90deg');
    await page.screenshot({path:`artifacts/start-screen-${width}x${height}.png`});
-   await page.getByTestId('single-player').tap();expect(await page.locator('.unit-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(4);const card=page.getByTestId('choose-unit-cavalry');await card.tap();
+   await page.getByTestId('single-player').tap();
+   const flag=page.getByTestId('edit-player-flag'),leader=page.getByTestId('edit-player-leader');
+   await flag.scrollIntoViewIfNeeded();await bounds(flag,width,height);await leader.scrollIntoViewIfNeeded();await bounds(leader,width,height);
+   await leader.tap();expect(await page.locator('.leader-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3);await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
+   expect(await page.locator('.unit-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(4);const card=page.getByTestId('choose-unit-cavalry');await card.tap();
    await expect(card).toHaveAttribute('aria-pressed','true');const tip=await bounds(page.getByRole('tooltip'),width,height),trigger=await card.boundingBox();
    expect(tip.y+tip.height<=trigger!.y||tip.y>=trigger!.y+trigger!.height).toBe(true);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
    await page.screenshot({path:`artifacts/unit-tooltip-${width}x${height}.png`});
