@@ -86,7 +86,7 @@ async function cancelSupersededAcceptance({github, context, sha, requested = new
         const {data: fresh} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: run.id});
         if (fresh.run_attempt === previous.attempt && Date.parse(fresh.created_at) < cutoff &&
             await acceptanceOnlyRun({github, context, run: fresh}) && await current()) {
-          await github.rest.actions.forceCancelWorkflowRun({owner, repo, run_id: run.id});
+          await github.request('POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel', {owner, repo, run_id: run.id});
           requested.set(run.id, {...previous, at: now()});
           cancelled.push(run.id);
         }
