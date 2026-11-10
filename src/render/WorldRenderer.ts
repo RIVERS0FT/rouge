@@ -51,7 +51,7 @@ export class WorldRenderer {
   private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
   private blend=0;private lastMode='';private lastLabels=0;
-  private down:{x:number;y:number;fx:number;fz:number;button:number}|null=null;
+  private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
   private smoothed=new Map<number,Vec2>();
   constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
@@ -247,6 +247,7 @@ export class WorldRenderer {
   private mapInput=new MapInputController(action=>{
     this.invalidated=true;this.renderer.domElement.dataset.settled='false';
     if(action.type==='select'){this.onPick(action.region,action.attack);return;}
+    if(action.type==='deselect'){this.onPick(-1,false);return;}
     this.globalView=false;
     if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
@@ -270,7 +271,10 @@ export class WorldRenderer {
       this.touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
       if(this.touches.size>1)this.touchMoved=true;
       this.resetTouchBase();
-    }else this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button};
+    }else{
+      if(e.button!==0&&e.button!==2)return;
+      this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button,moved:false};
+    }
     try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{/* Synthetic/accessibility events may not hold capture. */}
   };
   private pointerMove=(e:PointerEvent)=>{
@@ -287,18 +291,28 @@ export class WorldRenderer {
       this.mapInput.dispatch({type:'pan',x:base.fx-(x-base.x)*scale,z:base.fz-(y-base.y)*scale});
       return;
     }
-    if(this.down&&this.down.button!==2&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
-      this.mapInput.dispatch({type:'pan',x:this.down.fx-(e.clientX-this.down.x)*scale,z:this.down.fz-(e.clientY-this.down.y)*scale});}
+    if(this.down){
+      if(Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5)this.down.moved=true;
+      if(this.down.moved&&this.down.button!==2){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+        this.mapInput.dispatch({type:'pan',x:this.down.fx-(e.clientX-this.down.x)*scale,z:this.down.fz-(e.clientY-this.down.y)*scale});}
+    }
   };
+  private selectAt(e:PointerEvent,attack:boolean){
+    // Pointer capture can deliver a release above HUD controls or outside the map.
+    if(document.elementFromPoint(e.clientX,e.clientY)!==this.renderer.domElement)return;
+    const id=this.pick(e);
+    if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack});
+    else if(!attack)this.mapInput.dispatch({type:'deselect'});
+  }
   private pointerUp=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
     if(e.pointerType==='touch'||e.pointerType==='pen'){
       if(!this.touches.has(e.pointerId))return;
       if(this.touchBase&&Math.hypot(e.clientX-this.touchBase.x,e.clientY-this.touchBase.y)>=5)this.touchMoved=true;
-      if(this.touches.size===1&&!this.touchMoved){const id=this.pick(e);if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack:false});}
+      if(this.touches.size===1&&!this.touchMoved)this.selectAt(e,false);
       this.touches.delete(e.pointerId);this.resetTouchBase();return;
     }
-    if(this.down&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5){const id=this.pick(e);if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack:e.button===2||e.shiftKey});}this.down=null;
+    if(this.down&&!this.down.moved&&this.down.button===e.button&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5)this.selectAt(e,e.button===2||e.shiftKey);this.down=null;
   };
   private pointerCancel=(e:PointerEvent)=>{this.down=null;this.touchMoved=true;this.touches.delete(e.pointerId);this.resetTouchBase();};
   private wheel=(e:WheelEvent)=>{if(!this.mapInput.active)return;e.preventDefault();this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(e.deltaY*0.12*0.008)});};

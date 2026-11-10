@@ -1,5 +1,5 @@
 /** Device mappings emit semantic actions; UI context owns whether they may run. */
-export type MapAction = {type:'pan';x:number;z:number}|{type:'zoom';distance:number}|{type:'select';region:number;attack:boolean};
+export type MapAction = {type:'pan';x:number;z:number}|{type:'zoom';distance:number}|{type:'select';region:number;attack:boolean}|{type:'deselect'};
 export type MapInputContext='game'|'blocked';
 export class MapInputController {
  private context:MapInputContext='blocked';
