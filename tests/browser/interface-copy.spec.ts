@@ -59,6 +59,8 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
 
 test('language changes localize untouched setup names without overwriting chosen names',async({page})=>{
  await page.goto('/');await page.getByTestId('single-player').click();
+ // The menu can accept this action before the lazy game/map bundle is ready.
+ await expect(page.getByTestId('commander-name')).toBeVisible({timeout:60000});
  await expect(page.getByTestId('commander-name')).toHaveValue('指挥官');await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('single-player').click();
  await expect(page.getByTestId('commander-name')).toHaveValue('Commander');

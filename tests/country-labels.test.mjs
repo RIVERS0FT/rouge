@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildCountryComponents,regionAreas,overlaps,LabelCollisionIndex,COUNTRY_LABEL_LIMIT} from '../src/render/countryLabels.ts';
@@ -22,4 +23,12 @@ test('area and screen collision account for holes, HUD padding and dense unit bu
  const shape=cell(0,0,[]);shape.parts[0].push([{x:-1,z:-1},{x:1,z:-1},{x:1,z:1},{x:-1,z:1}]);assert.equal(regionAreas([shape])[0],96);
  const index=new LabelCollisionIndex(),rect={left:64,right:84,top:64,bottom:84};index.add(rect);
  for(const other of [{left:60,right:63,top:60,bottom:63},{left:75,right:99,top:75,bottom:99},{left:1,right:2,top:1,bottom:2}])assert.equal(index.collides(other),overlaps(other,rect,8));
+});
+
+test('stationary HUD changes invalidate the political label layout',()=>{
+ const app=fs.readFileSync(new URL('../src/ui/App.tsx',import.meta.url),'utf8');
+ assert.match(app,/refreshLabelLayout\(\);.*\[mobilePanel,paused,inputDevice,mapQuery,spectating,toast\]/);
+ const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(renderer,/refreshLabelLayout\(\)\{this\.lastLabels=0;this\.invalidated=true;/);
+ assert.match(renderer,/\.map-search-results/);assert.match(renderer,/\.toast/);
 });

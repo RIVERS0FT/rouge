@@ -41,6 +41,7 @@ export class WorldRenderer {
   private countryLayer:HTMLDivElement;
   private countryLabels:HTMLSpanElement[]=[];
   private countryStamp='';
+  private countryLabelRevision=0;
   private countryMeasures=new Map<string,number>();
   private labelTimer:ReturnType<typeof setTimeout>|null=null;
   private bodies:THREE.InstancedMesh;
@@ -268,6 +269,7 @@ export class WorldRenderer {
     if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
+  refreshLabelLayout(){this.lastLabels=0;this.invalidated=true;}
   setInputContext(context:MapInputContext){
     this.countryLayer.hidden=context!=='game';this.invalidated=true;this.lastLabels=0;
     this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
@@ -378,7 +380,7 @@ export class WorldRenderer {
     // Exclude the actual visible HUD, including open mobile sheets. No fixed
     // desktop margins, no hit targets and no DOM injection from player names.
     const blockers=new LabelCollisionIndex();
-    for(const node of this.host.parentElement?.querySelectorAll<HTMLElement>('.hud-top,.province-panel,.strategic-panel,.commander-portrait,.army-actions,.settings-trigger,.map-search,.mobile-actions,.pause-banner,.elimination-status')??[]){
+    for(const node of this.host.parentElement?.querySelectorAll<HTMLElement>('.hud-top,.province-panel,.strategic-panel,.commander-portrait,.army-actions,.settings-trigger,.map-search,.map-search-results,.mobile-actions,.pause-banner,.elimination-status,.toast')??[]){
       const rect=node.getBoundingClientRect();if(rect.width&&rect.height)blockers.add({left:rect.left-hostRect.left,right:rect.right-hostRect.left,top:rect.top-hostRect.top,bottom:rect.bottom-hostRect.top});
     }
     const projectPoint=(x:number,z:number)=>{const p=new THREE.Vector3(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.8,z).project(this.camera);return{x:(p.x+1)*width/2,y:(1-p.y)*height/2,visible:p.z>=-1&&p.z<=1};};
@@ -421,6 +423,7 @@ export class WorldRenderer {
       }
     }
     for(let i=count;i<this.countryLabels.length;i++)this.countryLabels[i].hidden=true;
+    this.renderer.domElement.dataset.countryLabelRevision=String(++this.countryLabelRevision);
     this.renderer.domElement.dataset.countryLabels=String(count);
     this.renderer.domElement.dataset.countryLabelOwners=[...shown].join(',');
   }
