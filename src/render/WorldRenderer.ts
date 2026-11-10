@@ -336,7 +336,7 @@ export class WorldRenderer {
       const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.host.clientWidth/2,sy=(1-screen.y)*this.host.clientHeight/2;
       if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>Math.abs(p.x-sx)<130&&Math.abs(p.y-sy)<27)||n>=48)return;
       occupied.push({x:sx,y:sy});const label=this.labels[n++],key=`${name}:${ocean}`;
-      if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
+      if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
         ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#8ca7ac':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
       label.sprite.visible=true;label.sprite.position.set(x,0.9+heightAt(canonicalX,z)*this.blend,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
     };
