@@ -62,3 +62,26 @@ test('deployment mutex excludes acceptance, which verifies the same deployed SHA
  assert.match(ci,/ref: \$\{\{ inputs.source_sha \}\}/);
  assert.match(ci,/npm test/);assert.match(ci,/npm run test:e2e/);
 });
+
+test('post-deployment browser shards preserve coverage, independent runners and evidence',()=>{
+ const ci=fs.readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
+ const acceptance=fs.readFileSync(new URL('../.github/workflows/acceptance.yml',import.meta.url),'utf8');
+ const [validate,browser]=ci.split('  browser:');
+ assert.ok(browser,'browser tests have their own job');
+ assert.equal((ci.match(/npm test/g)||[]).length,1);
+ assert.equal((ci.match(/npm run build/g)||[]).length,1);
+ assert.doesNotMatch(validate,/playwright install|npm run test:e2e/);
+ assert.match(browser,/runs-on: ubuntu-24.04/);
+ assert.match(browser,/timeout-minutes: 20/);
+ assert.match(browser,/fail-fast: false/);
+ assert.match(browser,/shard: \[1, 2, 3\]/);
+ assert.doesNotMatch(browser,/needs:|continue-on-error:|--grep|--max-failures|--pass-with-no-tests/);
+ assert.match(browser,/ref: \$\{\{ inputs.source_sha \}\}/);
+ assert.match(browser,/npm run test:e2e -- --shard=\$\{\{ matrix.shard \}\}\/3 --workers=1 \| tee artifacts\/browser-tests.log/);
+ assert.match(browser,/if: always\(\)/);
+ assert.match(browser,/name: rouge-browser-\$\{\{ matrix.shard \}\}-of-3-\$\{\{ inputs.source_sha \}\}-\$\{\{ github.run_attempt \}\}/);
+ assert.match(browser,/artifacts\/\n            test-results\//);
+ assert.match(validate,/name: rouge-build-\$\{\{ inputs.source_sha \}\}-\$\{\{ github.run_attempt \}\}/);
+ assert.match(acceptance,/needs: \[source, checks\]/);
+ assert.match(acceptance,/name: pages-live-verification-\$\{\{ needs.source.outputs.sha \}\}-\$\{\{ github.run_attempt \}\}/);
+});

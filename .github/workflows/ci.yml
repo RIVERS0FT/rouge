@@ -30,18 +30,14 @@ jobs:
         run: mkdir -p artifacts && npm test | tee artifacts/unit-tests.log
       - name: Type check and production build
         run: npm run build | tee artifacts/build.log
-      - name: Install test browser
-        run: npx playwright install --with-deps chromium
-      - name: Browser acceptance
-        run: npm run test:e2e | tee artifacts/browser-tests.log
       - name: Archive tested source
         if: always()
         run: tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=artifacts --exclude=test-results --exclude=.cache -czf /tmp/rouge-state-regions-source.tar.gz . && mkdir -p artifacts && cp /tmp/rouge-state-regions-source.tar.gz artifacts/
-      - name: Upload build and browser evidence
+      - name: Upload build and source evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rouge-state-regions
+          name: rouge-build-${{ inputs.source_sha }}-${{ github.run_attempt }}
           path: |
             dist/
             artifacts/
@@ -54,3 +50,37 @@ jobs:
             docs/FULLSCREEN_HUD.md
             docs/STATE_REGIONS.md
             data/state-regions-audit.json
+  browser:
+    # Separate runners keep software-rendered WebGL tests from competing for CPU.
+    # Do not depend on validate: a failed core check must not suppress coverage.
+    name: Browser acceptance (${{ matrix.shard }}/3)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance shard
+        run: mkdir -p artifacts && npm run test:e2e -- --shard=${{ matrix.shard }}/3 --workers=1 | tee artifacts/browser-tests.log
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rouge-browser-${{ matrix.shard }}-of-3-${{ inputs.source_sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/
+            test-results/
+          retention-days: 30
