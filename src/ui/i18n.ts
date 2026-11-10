@@ -86,6 +86,7 @@ export const STRINGS:Record<string,[string,string]>={
  controls:['左键选择 · 拖动平移 · 滚轮缩放 · 右键下令','Click to select · Drag to pan · Scroll to zoom · Right-click to order'],
  objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 块领土并保持 30 秒，或消灭全部对手。','Hold {count} regions for 30 seconds, or eliminate all opponents.'],
  domination:['统治进度','Domination'],seconds:['秒','s'],province:['地块','Province'],owner:['控制者','Controlled by'],garrison:['驻军','Garrison'],production:['自动生产','Auto-production'],
+ garrisonCapacityHint:['驻军不含已派出部队；生产与接收容量仍按实际占用和在途预留计算。','Garrisons exclude dispatched troops. Production and arrival capacity still account for physical occupants and incoming reservations.'],
  recovering:['正在恢复生产','Production recovering'],contested:['正在被争夺','Contested'],stable:['控制稳定','Stable control'],capture:['占领进度','Capture progress'],
  send:['调兵 / 进攻','March / attack'],sendHint:['从单位实际位置沿可通行地形行军，必要时经海岸换乘海运。预览不代表逐个行政区中心；海上不攻击或占领。目标满员则等待。','March from actual unit positions over passable terrain, embarking at coast transitions when needed. The preview is not an administrative-center route. No attacks or capture at sea; full destinations make arrivals wait.'],
  target:['目标地块','Destination'],dispatch:['派出兵团','Issue order'],fraction:['派出比例','Deployment'],selectFriendly:['选择己方地块，再右键点击目标地块。','Select your region, then right-click any reachable destination.'],

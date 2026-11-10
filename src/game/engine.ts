@@ -9,7 +9,7 @@ import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
 
-import { destinationRoom } from './capacity.ts';
+import { destinationRoom, isRegionGarrison } from './capacity.ts';
 import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
@@ -80,7 +80,7 @@ export class Engine{
         if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!Number.isFinite(c.fraction)||c.fraction<0.25||c.fraction>1)return fail('invalidCommand');
         const from=s.provinces[c.from],to=s.provinces[c.to];if(!from||!to||from.owner!==actor)return fail('notOwner');
         if(!MAP[c.from].playable||!MAP[c.to].playable||c.from===c.to)return fail('invalidCommand');
-        const available=s.units.filter(u=>u.owner===actor&&u.province===c.from&&u.target===null);
+        const available=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
         const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
         const n=Math.min(requested,destinationRoom(s,actor,c.to));if(n<1)return fail('targetFull');
         let sent=0;
@@ -286,7 +286,7 @@ export class Engine{
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const id of territories.get(p.id)??[]){
-        const province=s.provinces[id],units=(garrisons.get(id)??[]).filter(u=>u.owner===p.id&&u.target===null);
+        const province=s.provinces[id],units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
         // Small administrative atoms must be able to move a full garrison.
         if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;
         const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>(garrisons.get(a)?.length??0)-(garrisons.get(b)?.length??0));

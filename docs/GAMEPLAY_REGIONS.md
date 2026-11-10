@@ -36,6 +36,12 @@ The terrain navigation atlas and its revision are unchanged. Route fields know l
 
 The larger regions exposed a pre-existing crowd stall at intermediate land waypoints. Troops may now advance a land-to-land waypoint within 1.2 map units only when their current position connects to the next certified land corridor. They retain that position, do not teleport, cannot skip a coastline transition, and their saved route remains validated.
 
+## Garrison display and physical capacity
+
+The region-detail **Garrison** number and the units eligible for a new dispatch use the same predicate: the matching faction's units in that region with no active order, travel plan or embarked transport. Issuing an order removes those units from the displayed garrison immediately, even before they cross the source border or while they stop to fight. Passing through another region does not add them to its garrison. Friendly arrival clears the order and counts them once at the destination; units attacking a hostile destination become its garrison when capture completes. Save/load and LAN snapshots derive the count from the same unit state, without a second stored counter. Total army size still includes dispatched units.
+
+This display is intentionally separate from the existing **physical capacity** ledger. Departing units still occupy physical room until they leave; incoming reservations prevent production and repeat orders from overfilling the destination. Entering the destination transfers physical occupancy from reservation to presence without counting both. Production, arrival limits, combat and terrain routing are unchanged. The displayed capacity ceiling remains 12, with a tooltip explaining why a region can have fewer idle garrison units while physical room is still occupied.
+
 ## Saves and synchronization
 
 Map identity is `earth-natural-earth-admin1-511-regions-v3`; LAN rules identity is `admin1-locked-game-regions-buildings-v6`. The save schema stays version 5, but uses the separate prefix `rouge.save.natural-earth-admin1.regions.v3.`. Old pre-merge region v2, raw-atom v1 and historical pixel-map campaigns are rejected as `incompatibleMap`; their stored bytes remain untouched. Automatic migration would need a policy for conflicting owners, independent training queues and overcrowded merged garrisons, so no lossless conversion is claimed.
