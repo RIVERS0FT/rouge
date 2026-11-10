@@ -1,3 +1,4 @@
+import {waitForRuntime} from './readiness.ts';
 import {test,expect} from '@playwright/test';
 
 test('two humans in isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
@@ -11,7 +12,7 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     for(const [page,name] of [[host,'Host'],[guest,'Guest']] as const){
       await page.goto('/');
       await page.getByRole('button',{name:'English',exact:true}).click();
-      await page.getByRole('button',{name:/LAN multiplayer/}).click();
+      await page.getByRole('button',{name:/LAN multiplayer/}).click();await waitForRuntime(page);
       if(name==='Guest'){
         await page.getByTestId('edit-player-leader').click();
         await page.getByTestId('choose-leader-vanguard').click();
@@ -51,7 +52,7 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 1');
     await expect(host.locator('.seat').filter({hasText:'Guest'})).toContainText('Offline');
     await expect(host.getByRole('button',{name:/Start match/})).toBeDisabled();
-    await guest.goto('/');await guest.getByRole('button',{name:/Rejoin LAN room/}).click();
+    await guest.goto('/');await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest);
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 2');
     await host.getByRole('button',{name:/Start match/}).click();
     await expect(host.locator('.hud-top')).toContainText('Host');
@@ -73,7 +74,8 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await host.getByTestId('open-upgrades').click();
     await expect(host.locator('.upgrade-card').first()).not.toContainText('1/8');
     await guest.reload();
-    await guest.getByRole('button',{name:/Rejoin LAN room/}).click();
+    await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest);
+    await expect(guest.locator('.app')).toHaveClass(/is-game/,{timeout:30000});
     await expect(guest.locator('.hud-top')).toContainText('Guest');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
     await expect(guest.getByTestId('faction-identity').getByRole('img',{name:'Japan',exact:true})).toBeVisible();
