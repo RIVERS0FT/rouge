@@ -29,8 +29,12 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
     await expect.poll(async()=>Number(await canvas.getAttribute('data-country-label-revision'))).toBeGreaterThan(revision);
     await expect(canvas).toHaveAttribute('data-distance',camera!);await expect(page.getByTestId('game-clock')).toHaveAttribute('data-tick',tick!);
     if(open){
+     // The Brazilian country remains in the unobstructed left half. Waiting
+     // for it also proves we captured the completed layout, not hidden stale labels.
+     await expect(page.locator('.country-label[data-owner="3"]:visible')).toHaveCount(1);
      const panel=await page.locator('#province-panel').boundingBox();expect(panel).not.toBeNull();
      for(const label of await check()){const r=label.box;expect(r.right<=panel!.x||r.left>=panel!.x+panel!.width||r.bottom<=panel!.y||r.top>=panel!.y+panel!.height).toBe(true);}
+     await page.screenshot({path:'artifacts/country-names-mobile-panel.png'});
     }else await expect.poll(()=>page.locator('.country-label:visible').count()).toBeGreaterThan(0);
    }
   }
