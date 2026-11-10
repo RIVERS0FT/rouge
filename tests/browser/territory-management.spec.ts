@@ -5,12 +5,12 @@ test('owned adjacent administrative atoms merge and split through authoritative 
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('open-saves').click();
- await expect(page.getByTestId('legacy-map-save-notice')).toContainText('not overwritten');
+ await expect(page.getByTestId('legacy-map-save-notice')).toHaveCount(0);
  await page.locator('.save-card').filter({hasText:'Territory UI fixture'}).getByRole('button',{name:'Load',exact:true}).click();
  await page.getByTestId('toggle-pause').click();
  await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
  await page.getByTestId('open-territory-management').click();
- const panel=page.getByTestId('territory-management');await expect(panel).toContainText('not exact Vic3 boundaries');
+ const panel=page.getByTestId('territory-management');await expect(panel).not.toContainText(/Natural Earth|Vic3|Revision|ne-admin1/);
  await expect(page.getByTestId('split-territory-group')).toBeDisabled();
  await expect(page.getByTestId('merge-territory-groups')).toBeDisabled();
  const before=Number(await panel.getAttribute('data-revision'));

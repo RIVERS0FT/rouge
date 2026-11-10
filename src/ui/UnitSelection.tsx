@@ -55,6 +55,6 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
    <span className="unit-name">{t(language,kind)}</span><UnitIcon kind={kind}/>
   </button>
  </div>)}{active&&createPortal(<div ref={tooltip} id={`unit-tooltip-${active}`} data-testid={`unit-tooltip-${active}`} className="unit-tooltip" role="tooltip" style={position} onPointerEnter={cancelHide} onPointerLeave={()=>leave(active)}>
-  <strong>{t(language,active)}</strong><p>{t(language,`${active}.desc`)}</p><UnitAttributes values={UNITS[active]} language={language}/><small>{t(language,'baseStatsHint')} {t(language,'transportStatsHint')}</small>
+  <strong>{t(language,active)}</strong><p>{t(language,`${active}.desc`)}</p><UnitAttributes values={UNITS[active]} language={language}/><small>{t(language,'baseStats')}</small>
  </div>,document.body)}</div>;
 }

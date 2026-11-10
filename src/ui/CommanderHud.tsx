@@ -4,7 +4,7 @@ import { memo, type CSSProperties } from 'react';
 import type { Player } from '../game/types.ts';
 import { commanderIdentity, leaderProgress } from './commanderIdentity.ts';
 import { LeaderBust } from './LeaderBust.tsx';
-import { t, type Language } from './i18n.ts';
+import { t, playerName, type Language } from './i18n.ts';
 
 const LABELS = {
   identity: ['本方势力', 'Your faction'], portrait: ['领袖上半身像', 'Leader half-body portrait'],
@@ -26,9 +26,9 @@ export function CommanderPortrait({ player, language, color, onTalents }: { play
   return <aside className={`commander-portrait${pending ? ' has-talent' : ''}`} style={{ '--commander-color': color } as CSSProperties}
     data-testid="commander-portrait" data-leader={player.leader} data-actor={player.id} aria-label={`${leaderName} · ${label(language, 'portrait')}`}>
     <div className="commander-art"><LeaderBust leader={player.leader} label={`${leaderName} · ${label(language, 'portrait')}`}/></div>
-    <div className="commander-rank" title={`${t(language, 'level')} ${player.level}`}><small>LV</small><b>{player.level}</b></div>
+    <div className="commander-rank" title={`${t(language, 'level')} ${player.level}`}><small>{t(language,'levelShort')}</small><b>{player.level}</b></div>
     <div className="commander-portrait-copy"><span className="eyebrow">{t(language, 'commander')}</span><h2 title={leaderName}>{leaderName}</h2>
-      <span className="commander-player" title={player.name}><i/>{player.name}</span>
+      <span className="commander-player" title={playerName(language,player)}><i/>{playerName(language,player)}</span>
     </div>
     <button className="commander-talents" data-testid="portrait-talents" onClick={onTalents} title={label(language, pending ? 'choose' : 'open')}
       aria-label={label(language, pending ? 'choose' : 'open')}><span aria-hidden="true">✧</span><span>{t(language, 'talents')}</span>{pending && <b aria-hidden="true">!</b>}</button>
