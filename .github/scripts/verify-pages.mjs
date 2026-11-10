@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -11,25 +12,10 @@ const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
 const atlas=JSON.parse(fs.readFileSync('game/src/generated/gameplay-map.json','utf8'));
 const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v3';
 assert.ok(regions,'Expected preprocessed gameplay-region map');
-const region=code=>atlas.provinces.findIndex(p=>p.id===code);
-async function chooseRemoteRoute(page){
- // Some gameplay regions have a one-unit capacity. A 75% order
- // correctly rounds down to zero there, so verify an explicit full dispatch.
- await page.getByRole('button',{name:'100%',exact:true}).click();
- const sourceCode=atlas.provinces[Number(await page.locator('canvas').getAttribute('data-selected-region'))].id;
- const source=region(sourceCode),distance=new Map([[source,0]]),queue=[source];
- for(let i=0;i<queue.length;i++)for(const next of atlas.provinces[queue[i]].neighbors)if(!distance.has(next)){distance.set(next,distance.get(queue[i])+1);queue.push(next);}
- for(const target of queue.filter(id=>distance.get(id)>=3).slice(0,40)){
-  await page.getByTestId('destination-search').fill(atlas.provinces[target].id);
-  await page.getByTestId('destination').selectOption(String(target));
-  const route=(await page.getByTestId('route-preview').getAttribute('data-route')).split(',');
-  if(route.length>=2&&route[0]===sourceCode&&route.at(-1)===atlas.provinces[target].id&&await page.getByTestId('dispatch').isEnabled())return {source,target,route};
- }
- throw new Error('No verified multi-leg route from the allocated player start');
-}
+const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{cwd:'game',encoding:'utf8',maxBuffer:16*1024*1024}));
 
 fs.mkdirSync('artifacts',{recursive:true});
-let info,routePlan;
+let info;
 for(let n=0;n<24;n++){
  try {
   const r=await fetch(`${site}build-info.json?check=${Date.now()}`,{signal:AbortSignal.timeout(15000)});
@@ -43,6 +29,7 @@ assert.equal(info.regionCount,atlas.provinces.length);
 const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const context=await browser.newContext({viewport:{width:1440,height:960}});
 const page=await context.newPage();page.setDefaultTimeout(45000);
+await page.addInitScript(({key,value})=>localStorage.setItem(key,value),mapOrderFixture);
 const errors=[],failedResources=[],checks=['HTTPS build identity'];
 page.on('pageerror',e=>errors.push(e.message));
 page.on('response',r=>{if(r.url().startsWith(site)&&r.status()>=400&&/\.(js|css|json)(\?|$)/.test(r.url()))failedResources.push(`${r.status()} ${r.url()}`);});
@@ -78,10 +65,11 @@ try{
  if(regions){
   await expect(page.getByTestId('faction-identity')).toBeVisible();
   await expect(page.getByTestId('country-flag')).toHaveCount(0);
-  routePlan=await chooseRemoteRoute(page);
+  await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
+  await expect(page.getByTestId('province-owner-name')).toHaveText('Pages v0.5 verification');
+  for(const id of ['dispatch','destination','destination-search','route-preview'])await expect(page.getByTestId(id)).toHaveCount(0);
   await expect(page.getByTestId('region-capacity')).toContainText(/\/\s*[1-9]\d*/);
  }
- await page.getByTestId('dispatch').click();
  await page.getByTestId('open-upgrades').click();
  await page.getByTestId('upgrade-infantry-attack').click();
  await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
@@ -89,16 +77,46 @@ try{
  await page.locator('canvas').focus();await page.keyboard.press('Home');
  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
  await page.screenshot({path:'artifacts/pages-live-battle.png'});
- checks.push(regions?'non-adjacent dispatch from allocated start across multiple gameplay regions using continuous terrain coordinates, per-region capacity':'dispatch');
+ checks.push('territory ownership, garrison and production without march controls; compact flag-only top identity');
  checks.push('unit upgrade');
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
  await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
+ await page.reload({waitUntil:'networkidle'});
+ await page.getByTestId('open-saves').click();
+ await page.locator('.save-card').filter({hasText:'Pages verification'}).getByRole('button',{name:/^(载入|Load)$/}).click();
+ await expect(page.locator('.commander-player')).toContainText('Pages v0.5 verification');
+ await page.getByTestId('open-upgrades').click();
+ await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
+ checks.push('settings save, browser reload, restore commander and upgrade');
+ // Use a deterministic, full garrison for live order verification. The ordinary
+ // campaign flow above still verifies startup, production UI, upgrade and reload.
+ await page.keyboard.press('Escape');await page.reload({waitUntil:'networkidle'});
+ await page.getByTestId('open-saves').click();
+ await page.locator('.save-card').filter({hasText:'Map order fixture'}).getByRole('button',{name:/^(载入|Load)$/}).click();
+ await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true');
+ await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+ await page.locator('canvas').focus();await page.keyboard.press('Home');
+ await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
+ const targetPoint=await page.locator('canvas').evaluate((canvas,world)=>{
+  const rect=canvas.getBoundingClientRect(),d=canvas.dataset;
+  const scale=rect.height/(2*(Number(d.distance)-.16)*Math.tan(20*Math.PI/180));
+  const x=rect.x+rect.width/2+(world.x-Number(d.focusX))*scale,y=rect.y+rect.height/2+(world.z-Number(d.focusZ))*scale;
+  if(document.elementFromPoint(x,y)!==canvas)throw new Error('Map order target is covered');
+  return {x,y};
+ },mapOrderFixture.centers.target);
+ await page.mouse.click(targetPoint.x,targetPoint.y,{button:'right'});
+ await expect(page.locator('canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
+ await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
+ await page.screenshot({path:'artifacts/pages-live-map-order.png'});
+ await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
+ await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages map order');await page.getByTestId('create-save').click();
+ await expect(page.locator('.save-card').filter({hasText:'Pages map order'})).toBeVisible();
  if(regions){
   const routes=await page.evaluate(()=>{
    const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v3.')&&!k.endsWith('.backup'));
-   const record=records.find(k=>localStorage.getItem(k).includes('Pages verification'));
+   const record=records.find(k=>localStorage.getItem(k).includes('Pages map order'));
    if(!record)throw new Error('Verification save missing');
    const s=JSON.parse(JSON.parse(localStorage.getItem(record)).body);
    return {version:s.version,map:s.map,grouping:s.grouping,units:s.units.filter(u=>u.owner===0&&u.destination!==null).map(u=>({destination:u.destination,route:u.route,travel:u.travel}))};
@@ -106,18 +124,11 @@ try{
   assert.equal(routes.map,atlas.mapId);
   assert.equal(routes.grouping.mapId,atlas.mapId);
   assert.equal(routes.grouping.groups.flatMap(g=>g.atoms).length,atlas.provinces.length);
-  assert.ok(routes.units.length>0);
-  assert.ok(routes.units.every(u=>u.destination===routePlan.target&&u.route.length===0&&u.travel?.points.length>=2));
+  assert.equal(routes.units.length,9);
+  assert.ok(routes.units.every(u=>u.destination===mapOrderFixture.target&&u.route.length===0&&u.travel?.points.length>=2));
   fs.writeFileSync('artifacts/remote-route-verification.json',JSON.stringify(routes,null,2));
   checks.push('new-map saved grouping, non-adjacent orders and continuous terrain waypoints');
  }
- await page.reload({waitUntil:'networkidle'});
- await page.getByTestId('open-saves').click();
- await page.locator('.save-card').filter({hasText:'Pages verification'}).getByRole('button',{name:/^(载入|Load)$/}).click();
- await expect(page.locator('.hud-top')).toContainText('Pages v0.5 verification');
- await page.getByTestId('open-upgrades').click();
- await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
- checks.push('settings save, browser reload, restore commander and upgrade');
  assert.deepEqual(errors,[]);assert.deepEqual(failedResources,[]);
  const report={verifiedAt:new Date().toISOString(),url:site,build:info,checks,pageErrors:errors,failedResources,result:'PASS'};
  fs.writeFileSync('artifacts/pages-verification.json',JSON.stringify(report,null,2));
