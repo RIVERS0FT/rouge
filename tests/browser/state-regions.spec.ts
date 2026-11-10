@@ -47,7 +47,7 @@ test('ownership border hierarchy, UK detail, remote dispatch UI and persisted ro
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Remote order'})).toBeVisible();
  const routes=await page.evaluate(()=>{
-  const key=Object.keys(localStorage).find(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v2.')&&!k.endsWith('.backup'))!;
+  const key=Object.keys(localStorage).find(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v3.')&&!k.endsWith('.backup'))!;
   const state=JSON.parse(JSON.parse(localStorage.getItem(key)!).body);
   return state.units.filter((u:any)=>u.owner===0&&u.destination!==null).map((u:any)=>({origin:u.origin,destination:u.destination,route:u.route,travel:u.travel,province:u.province}));
  });

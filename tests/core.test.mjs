@@ -10,8 +10,8 @@ const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',le
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
 const fresh=()=>new Engine(createGame(setups,1234,'test'));
 const initial=fresh().state,HOME=initial.provinces.find(p=>p.owner===0).id,ALLY=initial.provinces.find(p=>p.owner===0&&p.id!==HOME).id,TARGET=MAP[HOME].neighbors.find(n=>initial.provinces[n].owner===-1);
-test('1163 locked gameplay regions have valid anchors and symmetric land adjacency',()=>{
- assert.equal(MAP.length,1163);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
+test('1162 locked gameplay regions have valid anchors and symmetric land adjacency',()=>{
+ assert.equal(MAP.length,1162);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
  for(const p of MAP.filter(p=>p.playable)){assert.ok(p.parts.length>0);if(p.playable)assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);for(const n of p.neighbors){assert.ok(MAP[n].neighbors.includes(p.id));assert.notEqual(n,p.id);}}
  assert.equal(provinceAt(0,0),-1); // Gulf of Guinea is not a fabricated land tile.
 });

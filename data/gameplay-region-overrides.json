@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "merges": [
+    {
+      "id": "baikonur-into-karaganda",
+      "sourceIds": [
+        "KAB+00?"
+      ],
+      "targetSourceIds": [
+        "KAZ-3197",
+        "KAZ-3203",
+        "KAZ-3251",
+        "KAZ-3252"
+      ],
+      "reason": "user-requested-baikonur-into-karaganda",
+      "note": "Merge Baykonur into the existing Karaganda gameplay region. Baykonur touches Qyzylorda, already a complete member of this region; it does not directly touch the original Qaraghandy atom. Preserve KAB and KAZ source labels and all geometry."
+    }
+  ]
+}

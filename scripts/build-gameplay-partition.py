@@ -1,6 +1,7 @@
 """Deterministic non-destructive partition optimization. Run from repository root.
 No geometry changes: merge touching same-country/same-hint groups when IoU improves;
 fill missing targets only with material whole-atom/group transfers and positive net IoU.
+Then apply exact, separately recorded user overrides, still requiring real connectivity.
 """
 import gzip, hashlib, json
 from collections import defaultdict, Counter
@@ -81,12 +82,31 @@ while True:
  G[key]={'ids':moved,'target':t,'reason':'material-overlap-missing-target-recovery'}
  operations.append({'type':'transfer','sourceIds':sorted(moved),'fromTarget':donor,'toTarget':t,'targetIoU':round(score,8),'donorBestIoUBefore':round(before,8),'donorBestIoUAfter':round(after,8),'netIoUGain':round(-neg,8)});transfers+=1
 merges+=merge()
+# Explicit user-directed grouping exceptions run AFTER the general optimizer.
+# Pin both complete member sets: source data/algorithm changes must not silently
+# broaden a requested merge. Source countries remain untouched, including KAB.
+overrides=json.loads((DATA/'gameplay-region-overrides.json').read_text())
+assert overrides['schema']==1
+manual_members=set()
+for override in overrides['merges']:
+ source_ids=set(override['sourceIds']);target_ids=set(override['targetSourceIds'])
+ assert source_ids and target_ids and not source_ids&target_ids
+ source_keys=[k for k,g in G.items() if g['ids']==source_ids]
+ target_keys=[k for k,g in G.items() if g['ids']==target_ids]
+ assert len(source_keys)==len(target_keys)==1, 'Override membership changed; review before broadening'
+ x,y=source_keys[0],target_keys[0];combined=source_ids|target_ids
+ assert connected(combined), 'Explicit overrides must not invent a land connection'
+ assert not manual_members&combined, 'Overlapping override requests'
+ manual_members|=combined
+ G[y]['ids']=combined;G[y]['reason']=override['reason'];del G[x]
+ operations.append({'type':'explicit-merge','overrideId':override['id'],'sourceIds':sorted(source_ids),'targetSourceIds':sorted(target_ids),'target':G[y]['target'],'reason':override['reason']})
 # Normalize canonical IDs and validate full partition and physical connectivity.
 rows=[{'id':'group:'+min(g['ids']),'sourceIds':sorted(g['ids']),'legacyHint':g['target'],'reason':g['reason']} for g in G.values()];rows.sort(key=lambda g:g['id'])
 all_ids=[a for g in rows for a in g['sourceIds']]
 assert len(all_ids)==len(set(all_ids))==len(atoms) and set(all_ids)==set(atoms)
 assert len({g['id'] for g in rows})==len(rows)
-assert all(connected(set(g['sourceIds'])) and len({atoms[a]['country'] for a in g['sourceIds']})==1 for g in rows)
+explicit_sets={frozenset(o['sourceIds']+o['targetSourceIds']) for o in overrides['merges']}
+assert all(connected(set(g['sourceIds'])) and (len({atoms[a]['country'] for a in g['sourceIds']})==1 or frozenset(g['sourceIds']) in explicit_sets) for g in rows)
 def metrics(groups):
  by=defaultdict(list)
  for g in groups.values():
@@ -108,7 +128,7 @@ for t in states:
    for a in queue:
     for n in sorted(neighbors[a]&todo):todo.remove(n);queue.append(n)
  remaining.append({'targetId':t,'code':states[t]['code'],'groups':len(gg),'countries':sorted(countries),'sameCountryConnectedComponents':samecountry_components,'excessGroupsBeyondComponents':len(gg)-samecountry_components})
-summary={'before':metrics(original),'after':metrics(G),'acceptedMerges':merges,'acceptedMissingTargetTransfers':transfers,'remainingMissingTargets':[{'id':t,'code':states[t]['code']} for t in states if not any(g['target']==t for g in G.values())]}
+summary={'before':metrics(original),'after':metrics(G),'acceptedMerges':merges,'explicitMerges':len(overrides['merges']),'acceptedMissingTargetTransfers':transfers,'remainingMissingTargets':[{'id':t,'code':states[t]['code']} for t in states if not any(g['target']==t for g in G.values())]}
 for missing in summary['remainingMissingTargets']:
  t=missing['id'];candidates=[]
  for a in atoms:
@@ -117,5 +137,5 @@ for missing in summary['remainingMissingTargets']:
   g=next(g for g in G.values() if a in g['ids']);donor=g['target'];remain=g['ids']-{a}
   candidates.append({'sourceId':a,'sourceOverlapFraction':round(overlap/area[a],6) if area[a] else 0,'targetIoU':round(iou({a},t),6),'donorTarget':donor,'donorWouldLoseLastGroup':not remain and not any(h is not g and h['target']==donor for h in G.values()),'donorRemainderConnected':connected(remain) if remain else None})
  missing['strongestWholeAtomCandidates']=sorted(candidates,key=lambda c:(-c['targetIoU'],c['sourceId']))[:3]
-result={'schema':1,'method':'Whole-source-atom partition only; deterministic greedy positive local IoU merges and net-positive missing-target transfers. Not a global optimum. Original unsimplified area proxies; crop connectivity revalidated at runtime.','sourceSha256':hashlib.sha256((DATA/'natural-earth-admin1-base.json.gz').read_bytes()).hexdigest(),'transferMinimumSourceOverlapFraction':.25,'transferMinimumTargetIoU':.1,'summary':summary,'groups':rows,'operations':operations,'remainingFragmentation':remaining}
+result={'schema':1,'method':'Whole-source-atom partition only; deterministic greedy positive local IoU merges and net-positive missing-target transfers. Explicit user overrides follow optimization and retain physical connectivity. Not a global optimum. Original unsimplified area proxies; crop connectivity revalidated at runtime.','overridesSha256':hashlib.sha256((DATA/'gameplay-region-overrides.json').read_bytes()).hexdigest(),'sourceSha256':hashlib.sha256((DATA/'natural-earth-admin1-base.json.gz').read_bytes()).hexdigest(),'transferMinimumSourceOverlapFraction':.25,'transferMinimumTargetIoU':.1,'summary':summary,'groups':rows,'operations':operations,'remainingFragmentation':remaining}
 (DATA/'gameplay-region-partition.json.gz').write_bytes(gzip.compress((json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n').encode(),mtime=0));print(json.dumps(summary,indent=2))
