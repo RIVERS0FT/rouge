@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {MapInputController} from '../src/render/mapInput.ts';
 test('semantic map actions are disabled in menus and dialogs, restored for game context',()=>{
  const received=[],input=new MapInputController(a=>received.push(a));
- const actions=[{type:'pan',x:12,z:-4},{type:'zoom',distance:100},{type:'select',region:4,attack:false}];
+ const actions=[{type:'pan',x:12,z:-4},{type:'zoom',distance:100},{type:'select',region:4,attack:false},{type:'deselect'}];
  for(const a of actions)assert.equal(input.dispatch(a),false);
  input.setContext('game');for(const a of actions)assert.equal(input.dispatch(a),true);assert.deepEqual(received,actions);
- input.setContext('blocked');for(const a of actions)assert.equal(input.dispatch(a),false);assert.equal(received.length,3);
+ input.setContext('blocked');for(const a of actions)assert.equal(input.dispatch(a),false);assert.equal(received.length,actions.length);
  input.setContext('game');assert.equal(input.dispatch({type:'select',region:4,attack:true}),true);
 });
 test('device-independent action boundary rejects invalid motion and selection',()=>{
