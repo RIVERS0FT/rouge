@@ -36,3 +36,21 @@ test('tooltip is dismissed when scrolling leaves no safe room for its padding',(
  assert.equal(unitTooltipPosition({top:300,bottom:412,left:16,width:73},255,{width:360,height:640},{top:296,bottom:440}),null);
  assert.equal(unitTooltipPosition({top:-120,bottom:-8,left:16,width:73},255,{width:360,height:640},{top:-120,bottom:268}),null);
 });
+
+test('centering a fully visible landscape card reveals space for its tooltip',()=>{
+ // CI: the first row was fully visible at y250–362 in an 844×390 viewport.
+ // It needed no automatic tap scrolling, but only 8px remained for the tooltip.
+ const viewport={width:844,height:390};
+ const anchor={top:250,bottom:362,left:227,width:188};
+ assert.equal(unitTooltipPosition(anchor,255,viewport,{top:250,bottom:486}),null);
+ // Centering the card in the modal (y8–382) scrolls it up by 111px.
+ const offset=(anchor.top+anchor.bottom)/2-195;
+ const revealed={...anchor,top:anchor.top-offset,bottom:anchor.bottom-offset};
+ const position=unitTooltipPosition(revealed,255,viewport,{top:250-offset,bottom:486-offset});
+ assert.equal(position.top,259);
+ assert.equal(position.maxHeight,116);
+ assert.ok(position.top>=revealed.bottom+8);
+ assert.ok(position.top+position.maxHeight<=viewport.height-12);
+ assert.ok(position.top>184-offset); // Appearance controls remain unobstructed.
+ assert.ok(position.top>73); // Sticky close remains unobstructed.
+});
