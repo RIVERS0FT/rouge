@@ -12,7 +12,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
   const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect.poll(()=>page.locator('.country-label:visible').count()).toBeGreaterThan(0);
-  await expect.poll(()=>page.locator('.province-label:visible').count()).toBeGreaterThan(48);
+  await expect(page.locator('.province-label:visible')).toHaveCount(0);
   const check=async()=>{
    const labels=await page.locator('.country-label:visible').evaluateAll(nodes=>nodes.map(node=>({text:node.textContent,copy:(node as HTMLElement).dataset.copy,owner:Number((node as HTMLElement).dataset.owner),region:Number((node as HTMLElement).dataset.region),box:node.getBoundingClientRect().toJSON(),pointer:getComputedStyle(node).pointerEvents})));
    expect(new Set(labels.map(l=>`${l.owner}:${l.copy}`)).size).toBe(labels.length);
@@ -46,9 +46,17 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
    for(let n=0;n<Math.ceil(Math.log(800/closeDistance)/Math.log(1.15));n++)await page.keyboard.press('-');
    await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect(page.locator(`.country-label[data-owner="${owner}"][data-primary="true"]:visible`)).toHaveCount(1);
-   await expect(page.locator(`.country-label[data-owner="${owner}"][data-primary="true"]`)).toHaveAttribute('data-region',region!);await check();
+   await expect(page.locator(`.country-label[data-owner="${owner}"][data-primary="true"]`)).toHaveAttribute('data-region',region!);
+   await expect(page.locator('.province-label:visible')).toHaveCount(0);await check();
   }
+  // Test clipping inside the original province-name range while still using
+  // the flat camera (320–500), so both kinds share the same projection math.
+  const strategicDistance=Number(await canvas.getAttribute('data-distance'));
+  await canvas.focus();for(let n=0;n<Math.ceil(Math.log(strategicDistance/430)/Math.log(1.15));n++)await page.keyboard.press('+');
+  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+  const panDistance=Number(await canvas.getAttribute('data-distance'));expect(panDistance).toBeGreaterThanOrEqual(320);expect(panDistance).toBeLessThan(500);
   const country=page.locator('.country-label[data-owner="2"][data-primary="true"]'),anchor=await country.getAttribute('data-region');
+  await expect(page.locator(`.province-label[data-region="${anchor}"][data-primary="true"]:visible`)).toHaveCount(1);
   let steps=0,partial=false,fullyOutside=false;
   for(;steps<30;){
    const before=await canvas.getAttribute('data-focus-x');await canvas.focus();await page.keyboard.press('ArrowRight');steps++;
