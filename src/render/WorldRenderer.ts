@@ -139,17 +139,18 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
     this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
     const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:SELECTION_GLOW_OPACITY,depthWrite:false,side:THREE.DoubleSide});
-    this.relief(glowMaterial);const reliefCompile=glowMaterial.onBeforeCompile;
-    glowMaterial.onBeforeCompile=(shader,renderer)=>{
-      reliefCompile(shader,renderer);
+    glowMaterial.onBeforeCompile=shader=>{
+      // Subdivision follows the original land triangle plane, not a differently
+      // tessellated relief wave that could dip below the terrain and create gaps.
+      shader.uniforms.uRelief=this.blendUniform;
       shader.uniforms.uGlowWidth={value:SELECTION_GLOW_WIDTH};
-      shader.vertexShader='attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
-      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance;');
+      shader.vertexShader='uniform float uRelief; attribute float landRelief; attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance; transformed.y += uRelief * landRelief;');
       shader.fragmentShader='uniform float uGlowWidth; varying float vEdgeDistance;\n'+shader.fragmentShader;
       shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fade = 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);\ndiffuseColor.a *= fade * fade;');
     };
-    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v2-single-coverage';
-    const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));
+    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v3-land-plane';
+    const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));initialGlow.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));
     this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.atlas.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
     // canonical entity positions and province IDs never duplicate.
@@ -246,7 +247,7 @@ export class WorldRenderer {
     this.replaceWideGeometry(this.selection,points);
     this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;
     const replaceGlow=(geometry:THREE.BufferGeometry)=>{this.selectionGlow.geometry.dispose();this.selectionGlow.geometry=geometry;for(const copy of this.repeats)(copy.getObjectByName('selected-inner-glow') as THREE.Mesh).geometry=geometry;};
-    const empty=new THREE.BufferGeometry();empty.setAttribute('position',new THREE.Float32BufferAttribute([],3));empty.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));replaceGlow(empty);
+    const empty=new THREE.BufferGeometry();empty.setAttribute('position',new THREE.Float32BufferAttribute([],3));empty.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));empty.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));replaceGlow(empty);
     this.renderer.domElement.dataset.selectionStyle='outline-inner-glow';
     this.renderer.domElement.dataset.selectionGlowCoverage='single-nearest-boundary';
     this.renderer.domElement.dataset.selectionGlowOpacity=String(SELECTION_GLOW_OPACITY);
@@ -261,9 +262,9 @@ export class WorldRenderer {
     try{
       const worker=new Worker(new URL('./selectionGlow.worker.ts',import.meta.url),{type:'module'});this.selectionGlowWorker=worker;
       this.renderer.domElement.dataset.selectionGlowPending='true';
-      worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;elapsed:number}})=>{
+      worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;relief:Float32Array;elapsed:number}})=>{
         if(this.selectionGlowWorker!==worker)return;
-        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));replaceGlow(geometry);
+        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));geometry.setAttribute('landRelief',new THREE.BufferAttribute(data.relief,1));replaceGlow(geometry);
         this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.invalidated=true;this.backgroundFrame=true;
         worker.terminate();this.selectionGlowWorker=null;
       };

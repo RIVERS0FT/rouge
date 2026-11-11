@@ -95,3 +95,7 @@ Opacity is 0.24 with a squared smooth falloff over two map units. Holes,
 islands, dissolved source seams, crop clipping and world repeats use the same
 land/border geometry as before. Rebuilding remains in a cancellable worker;
 selection changes discard old geometry and stale worker results.
+The overlay also interpolates the original terrain triangle heights. It never
+resamples a different relief surface that could dip below the land and expose
+triangular dark gaps. Squared-distance queries, inherited vertex samples and a
+bounded corner tolerance keep the largest coast's rebuild within its budget.
