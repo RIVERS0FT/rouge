@@ -9,7 +9,12 @@ async function assertFullscreen(page:Page){
  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
  const box=await canvas.boundingBox();expect(box).toEqual({x:0,y:0,width:view.width,height:view.height});
  await expect(page.locator('.hud-bottom')).toHaveCount(0);
- await expect(page.locator('.is-game footer')).toHaveCount(0);
+ // Region actions may use a section footer, but never a global bottom bar.
+ await expect(page.locator('.is-game > footer')).toHaveCount(0);
+ const regionFooter=page.locator('#province-panel > footer.province-actions');
+ await expect(regionFooter).toHaveCount(1);
+ await expect(regionFooter.getByTestId('open-territory-management')).toHaveCount(1);
+ await expect(page.locator('.is-game footer')).toHaveCount(1);
  const settings=await page.getByTestId('open-settings').boundingBox();
  expect(settings!.x).toBeGreaterThan(view.width-130);expect(settings!.y).toBeLessThan(25);
  const upgrade=await page.getByTestId('open-upgrades').boundingBox();
