@@ -113,7 +113,7 @@ test.describe('territory information on touch screens',()=>{
    await toggle.tap();await expectPanelLayout(page);
    await page.screenshot({path:`artifacts/territory-panel-${language}-${viewport.width}.png`});
   }
-  const longest=atlas.provinces.filter((p:any)=>p.playable&&![mapOrderFixture.source,mapOrderFixture.enemy].includes(p.index)).sort((a:any,b:any)=>b.name[language==='zh'?0:1].length-a.name[language==='zh'?0:1].length)[0];
+  const longest=atlas.provinces.filter((p:any,index:number)=>p.playable&&![mapOrderFixture.source,mapOrderFixture.enemy].includes(index)).sort((a:any,b:any)=>b.name[language==='zh'?0:1].length-a.name[language==='zh'?0:1].length)[0];
   await page.getByTestId('map-search').fill(longest.id);await page.locator('.map-search-results button').first().click();
   await expect(panel.locator('h2')).toHaveText(longest.name[language==='zh'?0:1]);
   await expectPanelLayout(page,false);

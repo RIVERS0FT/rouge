@@ -10,7 +10,7 @@
 #province-panel .province-meta[data-state=contested]{color:#e4c28d;border-color:#e4c28d35}
 #province-panel .province-meta[data-state=contested] .status-dot{background:#e4c28d}
 #province-panel .province-meta[data-state=recovering] .status-dot{background:#bdd3ce}
-#province-panel .province-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;margin:0;padding:14px 0;border-block:1px solid var(--line)}
+#province-panel .province-summary{display:grid;align-items:start;grid-template-columns:minmax(0,1fr) auto;gap:14px;margin:0;padding:14px 0;border-block:1px solid var(--line)}
 #province-panel .province-summary>div{min-width:0}
 #province-panel .province-summary dt,#province-panel .province-production>label{color:#a6b8ab;font-size:11px;line-height:1.4}
 #province-panel .province-summary dd{margin:7px 0 0}
