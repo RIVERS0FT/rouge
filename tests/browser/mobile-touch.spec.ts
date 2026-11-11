@@ -22,6 +22,16 @@ for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x
   expect(await page.locator('canvas').boundingBox()).toEqual({x:0,y:0,width,height});
   for(const sel of ['[data-testid=open-settings]','[data-testid=open-upgrades]','[data-testid=toggle-province-panel]'])await fit(page,sel,width,height);
   expect(await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}))).toEqual({width,height});
+  // Use real touch events, not clicks in a resized desktop browser.
+  const portrait=page.getByTestId('portrait-talents');
+  await expect(portrait).toHaveAttribute('title',/查看领袖天赋/);
+  await expect(page.getByTestId('commander-portrait')).toHaveText('指挥官');
+  await portrait.tap();await expect(page.getByRole('dialog',{name:'领袖天赋',exact:true})).toBeVisible();
+  await expect(page.locator('canvas')).toHaveAttribute('data-input-context','blocked');
+  await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByTestId('mobile-talents').tap();await expect(page.getByRole('dialog',{name:'领袖天赋',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
   await page.getByTestId('toggle-province-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','true');await fit(page,'#province-panel',width,height);
   await page.getByTestId('toggle-strategic-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');await expect(page.getByTestId('toggle-strategic-panel')).toHaveAttribute('aria-expanded','true');
   await page.getByTestId('toggle-strategic-panel').tap();

@@ -24,6 +24,6 @@ export function CommanderPortrait({ player, language, color, onTalents }: { play
     <div className="commander-art"><LeaderBust leader={player.leader} label={`${leaderName} · ${label(language, 'portrait')}`}/></div>
     <div className="commander-portrait-copy"><h2 className="commander-player" title={name}>{name}</h2></div>
     <button type="button" className="commander-talents" data-testid="portrait-talents" onClick={onTalents}
-      title={name} aria-haspopup="dialog" aria-label={`${name} · ${label(language, pending ? 'choose' : 'open')}`}/>
+      title={`${name} · ${label(language, pending ? 'choose' : 'open')}`} aria-haspopup="dialog" aria-label={`${name} · ${label(language, pending ? 'choose' : 'open')}`}/>
   </aside>;
 }

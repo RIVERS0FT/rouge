@@ -92,8 +92,13 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await assertLayout(page);
     await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
     await expect(page.getByTestId('portrait-talents')).toHaveAccessibleName(`${playerName} · View leader talents`);
+    await expect(page.getByTestId('portrait-talents')).toHaveAttribute('title',`${playerName} · View leader talents`);
     await page.getByTestId('portrait-talents').focus();await page.keyboard.press('Enter');await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByTestId('portrait-talents')).toBeFocused();
+    await page.keyboard.press('Space');await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('button',{name:'Close',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByTestId('portrait-talents')).toBeFocused();
     await page.setViewportSize({width:1280,height:720});await assertLayout(page);
     await page.screenshot({path:`artifacts/hud-${leader}-1280.png`});
     await page.setViewportSize({width:800,height:600});await assertLayout(page);
