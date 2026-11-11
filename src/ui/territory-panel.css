@@ -1,0 +1,37 @@
+/* Keep the same compact reading order in every existing HUD placement. */
+#province-panel{padding:16px 18px}
+#province-panel .province-heading{margin-bottom:16px}
+#province-panel .panel-kicker{min-height:30px;font-size:11px;letter-spacing:.12em}
+#province-panel .icon-button{display:grid;place-items:center;flex-shrink:0;width:32px;height:32px;margin:-6px -6px -6px 8px;border-radius:3px;color:#b9c6b9}
+#province-panel .icon-button:hover,#province-panel .icon-button:focus-visible{background:#ffffff0c;color:var(--gold)}
+#province-panel h2{margin:6px 0 10px;font-size:25px;font-weight:500;line-height:1.25;letter-spacing:.02em;overflow-wrap:anywhere;text-wrap:pretty}
+#province-panel .province-meta{display:inline-flex;max-width:100%;gap:6px;padding:4px 7px;border:1px solid #a8c5ad24;border-radius:3px;background:#91b69d0a;color:#b0c3b3;font-size:11px;line-height:1.4}
+#province-panel .status-dot{width:5px;height:5px;flex-shrink:0;background:#98b49d}
+#province-panel .province-meta[data-state=contested]{color:#e4c28d;border-color:#e4c28d35}
+#province-panel .province-meta[data-state=contested] .status-dot{background:#e4c28d}
+#province-panel .province-meta[data-state=recovering] .status-dot{background:#bdd3ce}
+#province-panel .province-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;margin:0;padding:14px 0;border-block:1px solid var(--line)}
+#province-panel .province-summary>div{min-width:0}
+#province-panel .province-summary dt,#province-panel .province-production>label{color:#a6b8ab;font-size:11px;line-height:1.4}
+#province-panel .province-summary dd{margin:7px 0 0}
+#province-panel .province-ownership dd{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#province-panel .province-ownership .faction-dot{width:7px;height:7px;flex-shrink:0;margin-top:6px}
+#province-panel .province-garrison{padding-left:14px;border-left:1px solid var(--line);text-align:right}
+#province-panel .province-garrison dd{font-size:23px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+#province-panel .province-garrison dd>span{font-size:13px;font-weight:400;color:#a6b8ab}
+#province-panel .province-production{display:grid;gap:8px;margin-top:14px}
+#province-panel .province-production>label{display:block}
+#province-panel .province-production select{width:100%;min-width:0;min-height:40px;padding:9px 10px;font-size:13px;border-radius:3px}
+#province-panel .production-line{gap:10px;margin:0;min-height:17px}
+#province-panel .production-line>span{font-size:11px;line-height:1.5;font-variant-numeric:tabular-nums;color:#a6b8ab}
+#province-panel .progress{height:4px;border-radius:2px}
+#province-panel .province-capture{display:grid;gap:8px;margin-top:14px;color:#e4c28d;font-size:11px}
+#province-panel .province-actions{margin-top:14px}
+#province-panel .territory-manage-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;min-height:40px;padding:9px 12px;font-size:12px;text-align:left;border-radius:3px}
+#province-panel .territory-manage-trigger>span:last-child{font-size:20px;line-height:1;color:var(--gold)}
+@media (max-width:800px), (max-width:1000px) and (max-height:500px), (pointer:coarse) and (max-height:560px){
+ #province-panel .province-summary dt,#province-panel .province-production>label,#province-panel .province-meta,#province-panel .production-line>span{font-size:12px}
+ #province-panel .province-ownership dd,#province-panel .territory-manage-trigger{font-size:14px}
+ #province-panel .province-production select{min-height:44px;font-size:16px}
+ #province-panel .territory-manage-trigger{min-height:44px}
+}

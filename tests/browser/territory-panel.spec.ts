@@ -1,7 +1,29 @@
-import {test,expect} from '@playwright/test';
+import {test,expect,type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {loadMapOrderFixture,mapOrderFixture,targetPoint,saveOrders,worldView} from './map-orders.ts';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
+
+async function expectPanelLayout(page:Page,owned=true){
+ const panel=page.locator('#province-panel');
+ await expect(panel).toBeVisible();
+ await expect(panel.locator('.province-summary')).toHaveCount(1);
+ const layout=await panel.evaluate(element=>{
+  const box=(selector:string)=>element.querySelector(selector)!.getBoundingClientRect();
+  const heading=box('.province-heading'),summary=box('.province-summary'),action=box('.province-actions');
+  const production=element.querySelector('.province-production')?.getBoundingClientRect();
+  const ownership=box('.province-ownership'),garrison=box('.province-garrison');
+  return {
+   overflows:[element,...element.querySelectorAll('h2,.province-summary,.province-ownership,.province-garrison')].some(node=>node.scrollWidth>node.clientWidth+1),
+   ordered:heading.bottom<=summary.top&&summary.bottom<=(production?.top??action.top)&&(production?.bottom??summary.bottom)<=action.top,
+   columns:ownership.right<=garrison.left&&Math.abs(ownership.top-garrison.top)<1,
+   production:Boolean(production)
+  };
+ });
+ expect(layout).toEqual({overflows:false,ordered:true,columns:true,production:owned});
+ await expect(panel.getByTestId('open-territory-management')).toBeEnabled();
+ if(owned)await expect(panel.getByRole('combobox')).toHaveAccessibleName(/自动生产|Auto-production/);
+}
+
 
 for(const language of ['zh','en'] as const)test(`${language}: territory panel shows ownership, production and garrison without orders`,async({page})=>{
  await loadMapOrderFixture(page);
@@ -12,6 +34,8 @@ for(const language of ['zh','en'] as const)test(`${language}: territory panel sh
  await expect(panel).toContainText(language==='zh'?'属于者':'Owned by');
  await expect(page.getByTestId('province-owner-name')).toHaveText('Panel Commander');
  await expect(panel).toContainText(language==='zh'?'自动生产':'Auto-production');
+ await expectPanelLayout(page);
+ await page.screenshot({path:`artifacts/territory-panel-owned-${language}.png`});
  await expect(page.locator('.hud-top')).not.toContainText(/本方势力|阵营 1|指挥官|铁壁统帅|Your faction|Faction 1|Panel Commander|Warden/);
  await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
  await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
@@ -20,6 +44,7 @@ for(const language of ['zh','en'] as const)test(`${language}: territory panel sh
  for(const [id,name] of [[mapOrderFixture.enemy,mapOrderFixture.country.name[language==='zh'?0:1]],[mapOrderFixture.target,language==='zh'?'中立':'Neutral']] as const){
   await page.getByTestId('map-search').fill(atlas.provinces[id].id);await page.locator('.map-search-results button').first().click();
   await expect(page.getByTestId('province-owner-name')).toHaveText(name);
+  await expectPanelLayout(page,false);
  }
  await page.screenshot({path:`artifacts/territory-panel-${language}.png`});
 });
@@ -60,5 +85,38 @@ test.describe('touch orders',()=>{
   await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
   const orders=await saveOrders(page);expect(orders).toHaveLength(9);
   expect(orders.every((u:any)=>u.destination===mapOrderFixture.target)).toBe(true);await cdp.detach();
+ });
+});
+
+
+test.describe('territory information on touch screens',()=>{
+ test.use({hasTouch:true,isMobile:true,viewport:{width:390,height:844}});
+ for(const language of ['zh','en'] as const)test(`${language}: consistent portrait and landscape layout, long names and repeated controls`,async({page})=>{
+  test.setTimeout(120000);
+  await loadMapOrderFixture(page);
+  if(language==='en'){
+   await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
+  }
+  const toggle=page.getByTestId('toggle-province-panel'),panel=page.locator('#province-panel');
+  for(const viewport of [{width:390,height:844},{width:844,height:390}]){
+   await page.setViewportSize(viewport);
+   if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.tap();
+   await expectPanelLayout(page);
+   await panel.getByRole('combobox').selectOption('infantry');
+   await expect(panel.getByRole('combobox')).toHaveValue('infantry');
+   await page.getByTestId('open-territory-management').tap();
+   await expect(page.getByTestId('territory-management')).toBeVisible();
+   await page.getByRole('button',{name:language==='zh'?'关闭':'Close',exact:true}).tap();
+   await expect(page.getByTestId('territory-management')).toHaveCount(0);
+   await expect(page.locator('canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
+   await toggle.tap();await expect(panel).toBeHidden();
+   await toggle.tap();await expectPanelLayout(page);
+   await page.screenshot({path:`artifacts/territory-panel-${language}-${viewport.width}.png`});
+  }
+  const longest=atlas.provinces.filter((p:any)=>p.playable&&![mapOrderFixture.source,mapOrderFixture.enemy].includes(p.index)).sort((a:any,b:any)=>b.name[language==='zh'?0:1].length-a.name[language==='zh'?0:1].length)[0];
+  await page.getByTestId('map-search').fill(longest.id);await page.locator('.map-search-results button').first().click();
+  await expect(panel.locator('h2')).toHaveText(longest.name[language==='zh'?0:1]);
+  await expectPanelLayout(page,false);
+  await page.screenshot({path:`artifacts/territory-panel-long-name-${language}.png`});
  });
 });

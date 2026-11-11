@@ -1,6 +1,6 @@
 import {StartMenu,storedLanguage,type StartAction} from './StartMenu.tsx';
 import {UnitAttributes,UnitSelection} from './UnitSelection.tsx';
-import {regionCapacity} from '../game/territoryEconomy.ts';
+import {TerritoryPanel} from './TerritoryPanel.tsx';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
 import {InputDeviceTracker,type PointerIntent} from './inputDevice.ts';
 import {talentSelectionStatus} from './talentSelection.ts';
@@ -12,14 +12,13 @@ import type { Flag } from '../game/flags.ts';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createGame,isEliminated} from '../game/engine.ts';
 import {MAP,PLAYABLE_COUNT,searchProvinces} from '../game/map.ts';
-import {LEADERS,STATS,UNITS,stats,upgradeCost} from '../game/content.ts';
+import {LEADERS,STATS,stats,upgradeCost} from '../game/content.ts';
 import {listSaves,readSave,writeSave,deleteSave,encodeSave,decodeSave,MAX_SAVE_BYTES,type SaveInfo} from '../game/save.ts';
 import type {GameState,Kind,Leader,Command,Result,PlayerSetup} from '../game/types.ts';
 import {localSession,preloadLocalSession,remoteSession,createRoom,joinRoom,configureRoom,api,type Session,type Ticket,type RoomInfo} from '../platform/session.ts';
 import {factionColor,factionTextColor} from '../game/factionColors.ts';
 import {WorldRenderer} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
-import {regionGarrison} from '../game/capacity.ts';
 import {FactionIdentity, CommanderPortrait} from './CommanderHud.tsx';
 import {t,timeLabel,playerName,type Language} from './i18n.ts';
 import {ModalDialog} from './ModalDialog.tsx';
@@ -184,13 +183,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
     </header>
     <button className="settings-trigger" data-testid="open-settings" onClick={openSettings} aria-label={text('settings')} aria-haspopup="dialog"><span aria-hidden="true">⚙</span><span>{text('settings')}</span></button>
     <nav className="army-actions" aria-label={text('armyActions')}><button className="upgrade-trigger" onClick={()=>setModal('upgrades')} data-testid="open-upgrades" aria-haspopup="dialog"><span className="upgrade-icon" aria-hidden="true">↟</span><span>{text('upgrades')}</span><span aria-hidden="true">›</span></button></nav>
-    {province&&<aside id="province-panel" className={`province-panel panel ${mobilePanel==='province'?'mobile-panel-open':''}`}><div className="panel-kicker"><span>{text('province')}</span><button className="icon-button" onClick={()=>world.current?.focusProvince(selected)} title={text('focus')}>⌖</button></div><h2>{MAP[selected].name[language==='zh'?0:1]}</h2><div className="province-meta"><span>{text('managementRegion')}</span><span className="status-dot"/>{text(province.capture>0?'contested':province.recovery>0?'recovering':'stable')}</div>
-      <button className="secondary full territory-manage-trigger" data-testid="open-territory-management" aria-haspopup="dialog" onClick={()=>setModal('territories')}>{text('territories')}</button>
-      <div className="province-owner"><span className="faction-dot" style={{background:factionColor(province.owner)}}/><div className="province-owner-name"><small>{text('owner')}</small><span data-testid="province-owner-name">{province.owner<0?text('neutralOwner'):playerName(language,game.players[province.owner])}</span></div><b data-testid="region-capacity" title={text('garrisonCapacityHint')}>{regionGarrison(game,province.owner,selected)} / {regionCapacity(selected)}<small>{text('garrison')}</small></b></div>
-      {province.capture>0&&<div className="capture"><span>{text('capture')}</span><div className="progress"><i style={{width:`${province.capture/8*100}%`}}/></div></div>}
-      {province.owner===actor?<><label className="field-label">{text('production')}</label><select disabled={eliminated} value={province.kind} onChange={e=>issue({type:'production',province:selected,kind:e.target.value as Kind})}>{player.loadout.map(k=><option key={k} value={k}>{text(k)}</option>)}</select><div className="production-line"><div className="progress"><i style={{width:`${province.production/UNITS[province.kind].train*100}%`}}/></div><span>{Math.floor(province.production)} / {UNITS[province.kind].train}{text('seconds')}</span></div>
-      </>:null}
-    </aside>}
+    {province&&<TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} mobileOpen={mobilePanel==='province'} onFocus={()=>world.current?.focusProvince(selected)} onManage={()=>setModal('territories')} onCommand={issue}/>}
     <aside id="strategic-panel" className={`strategic-panel ${mobilePanel==='intel'?'mobile-panel-open':''}`}><section className="panel objective"><span className="eyebrow gold">{text('objective')}</span><h3>{text('theatre')}</h3><p>{text('objectiveDesc').replace('{count}',String(Math.ceil(PLAYABLE_COUNT*0.6)))}</p><div className="faction-bars">{game.players.map(p=><span key={p.id} title={playerName(language,p)} style={{background:factionColor(p.id),width:`${(ownershipCounts.get(p.id)??0)/PLAYABLE_COUNT*100}%`}}/>)}</div>{game.domination[actor]>0&&<b className="gold">{text('domination')} {Math.floor(game.domination[actor])} / 30{text('seconds')}</b>}</section>
       <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:factionTextColor(e.player)}}>{playerName(language,game.players[e.player])}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>
     </aside>
