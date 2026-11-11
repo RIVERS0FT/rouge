@@ -76,7 +76,10 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await host.getByTestId('open-upgrades').click();
     await expect(host.locator('.upgrade-card').first()).not.toContainText('1/8');
     await guest.reload();
-    await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest);
+    // The host keeps a real SwiftShader map running. Trace evidence shows the
+    // guest mounts successfully, but first-render work can starve a 30s poll.
+    // Give only this dual-renderer reload extra time, then assert game re-entry.
+    await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest,60000);
     await expect(guest.locator('.app')).toHaveClass(/is-game/,{timeout:30000});
     await expect(guest.locator('.commander-player')).toContainText('Guest');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
