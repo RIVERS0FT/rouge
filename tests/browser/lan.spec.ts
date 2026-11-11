@@ -59,6 +59,8 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await host.getByRole('button',{name:/Start match/}).click();
     await expect(host.locator('.commander-player')).toContainText('Host');
     await expect(guest.locator('.commander-player')).toContainText('Guest');
+    await expect(host.getByTestId('commander-portrait')).toHaveText('Host');
+    await expect(guest.getByTestId('commander-portrait')).toHaveText('Guest');
     await expect(guest.locator('.province-owner')).toContainText('Guest');
     await expect(host.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
@@ -84,6 +86,8 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest,60000);
     await expect(guest.locator('.app')).toHaveClass(/is-game/,{timeout:30000});
     await expect(guest.locator('.commander-player')).toContainText('Guest');
+    await expect(host.getByTestId('commander-portrait')).toHaveText('Host');
+    await expect(guest.getByTestId('commander-portrait')).toHaveText('Guest');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
     await expect(guest.getByTestId('faction-identity').getByRole('img',{name:'Japan',exact:true})).toBeVisible();
     await guest.getByTestId('open-upgrades').click();

@@ -8,10 +8,19 @@ async function assertLayout(page: Page) {
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
   const viewport=page.viewportSize()!;
+  await expect(page.locator('.commander-player')).toBeVisible();
+  expect(name).not.toBeNull();expect(talent).not.toBeNull();
+  expect(name!.x).toBeGreaterThanOrEqual(portrait!.x);
+  expect(name!.x+name!.width).toBeLessThanOrEqual(portrait!.x+portrait!.width);
+  expect(name!.y).toBeGreaterThanOrEqual(portrait!.y);
+  expect(name!.y+name!.height).toBeLessThanOrEqual(portrait!.y+portrait!.height);
+  expect(talent!.width).toBeGreaterThanOrEqual(portrait!.width-2);
+  expect(talent!.height).toBeGreaterThanOrEqual(portrait!.height-2);
+  await expect(page.locator('.commander-player')).toHaveAttribute('title',/\S/);
   expect(flag).not.toBeNull();expect(portrait).not.toBeNull();
   if(await page.getByTestId('toggle-province-panel').isVisible()){
     // Compact layouts intentionally collapse the side panel and move the portrait
-    // beside search. Verify reachable functionality, not desktop-only placement.
+    // above the action bar. Verify reachable functionality, not desktop-only placement.
     const toggle=page.getByTestId('toggle-province-panel');
     await expect(toggle).toHaveAttribute('aria-expanded','false');
     await expect(page.locator('.province-panel')).toBeHidden();
@@ -40,22 +49,23 @@ async function assertLayout(page: Page) {
   expect(panel!.y+panel!.height).toBeLessThanOrEqual(portrait!.y-10);
   expect(portrait!.y+portrait!.height).toBeLessThanOrEqual(viewport.height-8);
   expect(portrait!.x+portrait!.width).toBeLessThan(viewport.width);
-  expect(name).not.toBeNull();expect(talent).not.toBeNull();
-  expect(name!.x+name!.width).toBeLessThanOrEqual(talent!.x-8);
-  await expect(page.locator('.commander-portrait-copy h2')).toHaveAttribute('title',/\S/);
+
 }
 
 for (const leader of ['warden','vanguard','steward'] as const) {
   test(`HUD ${leader}: half-body portrait, stable faction identity, responsive layout and talent entry`,async({page})=>{
-    test.setTimeout(150000);
+    test.setTimeout(180000);
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
     await expect(page.getByTestId('commander-portrait')).toHaveCount(0);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);
     await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();await page.getByTestId(`choose-leader-${leader}`).click();
     await page.keyboard.press('Escape');
-    await page.getByTestId('commander-name').fill(`HUD ${leader}`);await page.getByTestId('begin-campaign').click();
+    const playerName=leader==='steward'?'Alexandra 王 Commander 88':`HUD ${leader}`;
+    await page.getByTestId('commander-name').fill(playerName);await page.getByTestId('begin-campaign').click();
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
+    await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+    await expect(page.locator('.commander-rank,.commander-experience,.commander-portrait .eyebrow')).toHaveCount(0);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('role','img');
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('src',new RegExp(`${leader}.*\\.webp`));
@@ -80,11 +90,22 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
     await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
     await assertLayout(page);
-    await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+    await expect(page.getByTestId('portrait-talents')).toHaveAccessibleName(`${playerName} · View leader talents`);
+    await page.getByTestId('portrait-talents').focus();await page.keyboard.press('Enter');await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.setViewportSize({width:1280,height:720});await assertLayout(page);
     await page.screenshot({path:`artifacts/hud-${leader}-1280.png`});
     await page.setViewportSize({width:800,height:600});await assertLayout(page);
+    if(leader==='steward')for(const size of [{width:390,height:844},{width:667,height:375},{width:320,height:568}]){
+      await page.setViewportSize(size);await assertLayout(page);
+      const portrait=await page.getByTestId('commander-portrait').boundingBox(),upgrades=await page.getByTestId('open-upgrades').boundingBox();
+      expect(portrait!.x+portrait!.width).toBeLessThanOrEqual(upgrades!.x-6);
+      await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+      await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
+      await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+      await page.screenshot({path:`artifacts/hud-player-${size.width}x${size.height}.png`});
+    }
     await page.setViewportSize({width:1440,height:960});
     if(leader==='steward') {
       await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
@@ -92,6 +113,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
       await page.reload();await page.getByTestId('open-saves').click();
       await page.locator('.save-card').filter({hasText:'HUD preserved'}).getByRole('button',{name:'Load',exact:true}).click();
       await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','steward');
+      await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
       await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     }
     expect(errors).toEqual([]);
