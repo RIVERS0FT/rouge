@@ -55,7 +55,8 @@ jobs:
     # Do not depend on validate: a failed core check must not suppress coverage.
     name: Browser acceptance (${{ matrix.shard }}/3)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # Leave enough time for every software-rendered WebGL case in the shard.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
