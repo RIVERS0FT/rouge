@@ -7,5 +7,6 @@ import './ui/fullscreen-hud.css';
 import './ui/mobile-landscape.css';
 import './ui/start-screen.css';
 import './ui/territory-panel.css';
+import './ui/field-dispatches.css';
 installRandomUUID();
 createRoot(document.getElementById('root')!).render(<Bootstrap/>);
