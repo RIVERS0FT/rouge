@@ -6,6 +6,8 @@ const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
 async function expectPanelLayout(page:Page,owned=true){
  const panel=page.locator('#province-panel');
  await expect(panel).toBeVisible();
+ await expect(panel.locator('h2')).toBeInViewport({ratio:1});
+ await expect.poll(()=>panel.evaluate(element=>element.scrollTop)).toBe(0);
  await expect(panel.locator('.province-summary')).toHaveCount(1);
  const layout=await panel.evaluate(element=>{
   const box=(selector:string)=>element.querySelector(selector)!.getBoundingClientRect();
