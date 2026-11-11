@@ -5,8 +5,10 @@ import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,ov
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
+import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
+import {unitMotionSegment} from './unitMotionSegment.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
-import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
+import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH} from '../game/buildings.ts';
 import * as THREE from 'three';
 import {LineSegments2} from 'three/addons/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
@@ -78,7 +80,8 @@ export class WorldRenderer {
   private backgroundFrame=true;private renderRevision=0;
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
-  private smoothed=new Map<number,Vec2>();
+  private unitMotion=new UnitMotion(unitMotionSegment);private unitsWereMoving=false;
+  private visibleUnitIds=new Set<number>();
   constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
@@ -207,7 +210,8 @@ export class WorldRenderer {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
     // movements accumulate from the last rendered state, never the previous tick.
     if(this.state!==state&&unitPresentationChanged(this.renderedUnits,state.units,this.distance,this.host.clientHeight))this.invalidated=true;
-    if(this.state?.campaign!==state.campaign){this.smoothed.clear();this.invalidated=true;}
+    if(this.state!==state)this.unitMotion.update(state,performance.now());
+    if(this.state?.campaign!==state.campaign)this.invalidated=true;
     this.state=state;
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
@@ -463,11 +467,15 @@ export class WorldRenderer {
     // updates and the network simulation continue; reopening the map redraws the
     // newest state. Finish camera easing and allow resize/artwork refresh frames.
     if(!this.mapInput.active&&!moving&&!this.backgroundFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
-    // A paused strategic map needs no continuous frames; snapshots invalidate moving units.
-    if(!moving&&!this.invalidated&&!this.dirty.size&&this.blend<0.1)return;
-    if(time-this.lastRender<(this.distance>320?100:1000/30))return;
+    const motion=this.unitMotion.activity(time,moving?undefined:this.visibleUnitIds);
+    // Continue between snapshots and draw the exact endpoint before sleeping.
+    // Camera motion and perceptible army motion may use 60fps in either mode.
+    if(!moving&&!motion.active&&!this.unitsWereMoving&&!this.invalidated&&!this.dirty.size)return;
+    const interval=moving?1000/60:motion.active?unitMotionFrameInterval(motion.speed,this.distance,this.host.clientHeight):1000/30;
+    if(time-this.lastRender<interval-0.5)return;
+    this.unitsWereMoving=motion.active;
     this.lastRender=time;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;
-    const elapsed=Math.max(0,(time-this.last)/1000||0.016),dt=Math.min(elapsed,0.1);this.last=time;
+    const elapsed=Math.max(0,(time-this.last)/1000||0.016);this.last=time;
     this.distance=advanceCameraDistance(this.distance,this.desiredDistance,elapsed,this.lastCameraTarget!==this.desiredDistance);this.lastCameraTarget=this.desiredDistance;
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
@@ -483,11 +491,9 @@ export class WorldRenderer {
     const sprites=presentation==='2d',pixels=unitSpritePixels(this.distance);
     const glyphs=this.unitSprites.geometry.getAttribute('unitGlyph') as THREE.InstancedBufferAttribute;
     this.unitSprites.visible=sprites;this.bodies.visible=this.heads.visible=!sprites;
-    let n=0;const live=new Set<number>();
+    let n=0;this.visibleUnitIds.clear();
     for(const u of this.state?.units??[]) {
-      live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);const next={x:pos.x+(u.x-pos.x)*t,z:pos.z+(u.z-pos.z)*t};
-      // Interpolation must not cut a corner through a house between safe ticks.
-      if(!u.transport?.embarked&&!buildingSegment(pos,next,UNIT_RADIUS[u.kind])){pos.x=u.x;pos.z=u.z;}else{pos.x=next.x;pos.z=next.z;}this.smoothed.set(u.id,pos);
+      const pos=this.unitMotion.position(u,time);
       if(!inRect(pos,BOUNDS))continue;
       // Both representations share the same canonical position, wrap and viewport
       // test. A mode switch never spawns, deletes or duplicates simulation units.
@@ -495,6 +501,7 @@ export class WorldRenderer {
       const screen=this.unitPoint.set(x,y+0.55,z).project(this.camera);
       const marginX=16/Math.max(1,this.host.clientWidth),marginY=16/Math.max(1,this.host.clientHeight);
       if(screen.z<-1||screen.z>1||Math.abs(screen.x)>1+marginX||Math.abs(screen.y)>1+marginY)continue;
+      this.visibleUnitIds.add(u.id);
       this.unitColor.set(u.owner<0?0x595f50:factionColor(u.owner));
       if(sprites){
         const depth=-this.unitPoint.set(x,y+0.55,z).applyMatrix4(this.camera.matrixWorldInverse).z;
@@ -509,7 +516,6 @@ export class WorldRenderer {
       }
       n++;
     }
-    for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
     this.unitSprites.count=sprites?n:0;this.bodies.count=this.heads.count=sprites?0:n;
     if(sprites){this.unitSprites.instanceMatrix.needsUpdate=true;glyphs.needsUpdate=true;if(this.unitSprites.instanceColor)this.unitSprites.instanceColor.needsUpdate=true;}
     else{this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;}
