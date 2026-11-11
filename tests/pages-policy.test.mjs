@@ -72,7 +72,7 @@ test('post-deployment browser shards preserve coverage, independent runners and 
  assert.equal((ci.match(/npm run build/g)||[]).length,1);
  assert.doesNotMatch(validate,/playwright install|npm run test:e2e/);
  assert.match(browser,/runs-on: ubuntu-24.04/);
- assert.match(browser,/timeout-minutes: 20/);
+ assert.match(browser,/timeout-minutes: 30/);
  assert.match(browser,/fail-fast: false/);
  assert.match(browser,/shard: \[1, 2, 3\]/);
  assert.doesNotMatch(browser,/needs:|continue-on-error:|--grep|--max-failures|--pass-with-no-tests/);
