@@ -2,9 +2,11 @@ import {waitForRuntime} from './readiness.ts';
 import {test,expect} from '@playwright/test';
 
 test('two humans in isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
-  // Two independent software-rendered world maps plus a full reload in CI.
-  test.setTimeout(180000);
-  const hostContext=await browser.newContext(),guestContext=await browser.newContext();
+  // Two independent software-rendered maps, three cold starts and a full reload.
+  // Keep both real renderers active, at a representative desktop viewport.
+  test.setTimeout(240000);
+  const options={viewport:{width:960,height:640}};
+  const hostContext=await browser.newContext(options),guestContext=await browser.newContext(options);
   const host=await hostContext.newPage(),guest=await guestContext.newPage();
   const errors:string[]=[];
   for(const page of [host,guest])page.on('pageerror',error=>errors.push(error.message));
@@ -83,6 +85,7 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
     expect(errors).toEqual([]);
   }finally{
-    await hostContext.close();await guestContext.close();
+    // Preserve the original assertion error if a timed-out browser is already closed.
+    await Promise.allSettled([hostContext.close(),guestContext.close()]);
   }
 });

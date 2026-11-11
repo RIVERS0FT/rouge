@@ -1,15 +1,16 @@
 import {test,expect} from '@playwright/test';
+import {waitForRuntime} from './readiness.ts';
 
-test('mobile landscape: battle HUD and dialogs fit common phone viewports',async({page})=>{
- test.setTimeout(180000);
+for(const [width,height] of [[844,390],[915,412],[667,375],[740,430]])test(`mobile landscape ${width}x${height}: battle HUD and dialogs fit`,async({page})=>{
+ test.setTimeout(90000);
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- for(const [width,height] of [[844,390],[915,412],[667,375],[740,430]]){
   await page.setViewportSize({width,height});
   await page.goto('/');
   await expect(page.getByTestId('single-player')).toBeVisible();
-  await page.getByTestId('single-player').click();
+  await page.getByTestId('single-player').click();await waitForRuntime(page);
   await expect(page.getByTestId('begin-campaign')).toBeVisible();
   await page.getByTestId('begin-campaign').click();
+  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
   await expect(page.getByTestId('open-settings')).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
   const canvas=await page.locator('canvas').boundingBox();expect(canvas).toEqual({x:0,y:0,width,height});
@@ -24,7 +25,6 @@ test('mobile landscape: battle HUD and dialogs fit common phone viewports',async
   let dialog=await page.getByRole('dialog').boundingBox();expect(dialog!.y).toBeGreaterThanOrEqual(0);expect(dialog!.y+dialog!.height).toBeLessThanOrEqual(height);
   await page.keyboard.press('Escape');await page.getByTestId('open-upgrades').click();await expect(page.getByRole('dialog')).toBeVisible();
   dialog=await page.getByRole('dialog').boundingBox();expect(dialog!.y+dialog!.height).toBeLessThanOrEqual(height);
-  await page.keyboard.press('Escape');await page.reload();
- }
+  await page.keyboard.press('Escape');
  expect(errors).toEqual([]);
 });

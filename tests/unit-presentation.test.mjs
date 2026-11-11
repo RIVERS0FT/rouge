@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {KINDS} from '../src/game/content.ts';
-import {UNIT_GLYPHS,unitGlyph,unitRenderMode,unitSpritePixels,unitSpriteWorldSize} from '../src/render/unitPresentation.ts';
+import {UNIT_GLYPHS,unitGlyph,unitRenderMode,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from '../src/render/unitPresentation.ts';
 import {createUnitSpriteMesh} from '../src/render/unitSprites.ts';
 
 test('2D and 3D units switch exclusively at the existing map mode boundary',()=>{
@@ -32,4 +32,22 @@ test('sprite batches support large armies with one shared material and one glyph
   mesh.dispose();mesh.geometry.dispose();mesh.material.dispose();
  }
  texture.dispose();
+});
+
+const visualUnit={id:1,owner:0,kind:'infantry',x:10,z:20};
+test('tick, cooldown and health-only snapshots do not redraw a strategic map',()=>{
+ assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,hp:40,cooldown:2}],2400,960),false);
+});
+test('strategic movement accumulates against the last draw until it spans half a pixel',()=>{
+ const threshold=unitSpriteWorldSize(2400,960,.5);
+ assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,x:10+threshold*.75}],2400,960),false);
+ assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,x:10+threshold*1.25}],2400,960),true);
+ assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,z:20+threshold*1.25}],2400,960),true);
+});
+test('count, identity, ownership, class and embarkation changes invalidate immediately',()=>{
+ assert.equal(unitPresentationChanged([], [visualUnit],2400,960),true);
+ assert.equal(unitPresentationChanged([visualUnit],[],2400,960),true);
+ for(const change of [{id:2},{owner:1},{kind:'cavalry'},{transport:{embarked:true}}]){
+  assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,...change}],2400,960),true);
+ }
 });
