@@ -3,6 +3,8 @@ import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
+import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize} from './unitPresentation.ts';
+import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
 import * as THREE from 'three';
@@ -52,7 +54,11 @@ export class WorldRenderer {
   private labelTimer:ReturnType<typeof setTimeout>|null=null;
   private bodies:THREE.InstancedMesh;
   private heads:THREE.InstancedMesh;
+  private unitSprites:THREE.InstancedMesh;
+  private unitSpriteTexture:THREE.CanvasTexture;
   private unitInstanceCapacity=512;
+  private unitColor=new THREE.Color();
+  private unitPoint=new THREE.Vector3();
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
   private state:GameState|null=null;
@@ -149,6 +155,7 @@ export class WorldRenderer {
     }
     this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),512);
     this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),512);
+    this.unitSpriteTexture=createUnitSpriteTexture();this.unitSprites=createUnitSpriteMesh(this.unitSpriteTexture,this.unitInstanceCapacity);this.scene.add(this.unitSprites);
     this.towns=new THREE.InstancedMesh(new THREE.BoxGeometry(HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH),new THREE.MeshStandardMaterial({color:0xc8bba0,roughness:1}),192);
     for(const mesh of [this.bodies,this.heads,this.towns]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
     const c=this.renderer.domElement;c.tabIndex=0;c.addEventListener('keydown',this.keyDown);c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('lostpointercapture',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});c.addEventListener('contextmenu',this.contextMenu);
@@ -163,7 +170,9 @@ export class WorldRenderer {
       next.frustumCulled=false;next.instanceMatrix.setUsage(THREE.DynamicDrawUsage);next.count=0;
       this.scene.remove(old);old.dispose();this.scene.add(next);return next;
     };
-    this.bodies=grow(this.bodies);this.heads=grow(this.heads);this.unitInstanceCapacity=capacity;
+    this.bodies=grow(this.bodies);this.heads=grow(this.heads);
+    const old=this.unitSprites;this.scene.remove(old);old.dispose();old.geometry.dispose();(old.material as THREE.Material).dispose();
+    this.unitSprites=createUnitSpriteMesh(this.unitSpriteTexture,capacity);this.scene.add(this.unitSprites);this.unitInstanceCapacity=capacity;
   }
   private lines(points:number[],color:number,opacity:number) {
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
@@ -191,6 +200,10 @@ export class WorldRenderer {
     material.customProgramCacheKey=()=> 'earth-relief-v1';
   }
   update(state:GameState,selected:number,lang:'zh'|'en') {
+    // Strategic units now move too. New snapshots invalidate the bounded 10fps
+    // far view; paused, unchanged strategic scenes still sleep.
+    if(this.state!==state)this.invalidated=true;
+    if(this.state?.campaign!==state.campaign)this.smoothed.clear();
     this.state=state;
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
@@ -434,7 +447,7 @@ export class WorldRenderer {
     this.animation=requestAnimationFrame(this.frame);
     if(document.hidden)return;
     const moving=Math.abs(this.distance-this.desiredDistance)>0.01;
-    // A stationary strategic map has no animated units. Render only when invalidated.
+    // A paused strategic map needs no continuous frames; snapshots invalidate moving units.
     if(!moving&&!this.invalidated&&!this.dirty.size&&this.blend<0.1)return;
     if(time-this.lastRender<(this.distance>320?100:1000/30))return;
     this.lastRender=time;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;
@@ -444,28 +457,46 @@ export class WorldRenderer {
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
-    const mode=this.blend>0.5?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
+    const presentation=unitRenderMode(this.blend),mode=presentation==='3d'?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
     (this.admin.material as THREE.LineBasicMaterial).opacity=internalBorderOpacity(this.distance);
     this.renderer.domElement.dataset.internalBorderOpacity=String(internalBorderOpacity(this.distance));
     if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
     const selectedRange=this.ranges[this.selected];
     if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
-    if(this.blend>0.1)this.ensureUnitCapacity(this.state?.units.length??0);
+    this.ensureUnitCapacity(this.state?.units.length??0);
+    const sprites=presentation==='2d',pixels=unitSpritePixels(this.distance);
+    const glyphs=this.unitSprites.geometry.getAttribute('unitGlyph') as THREE.InstancedBufferAttribute;
+    this.unitSprites.visible=sprites;this.bodies.visible=this.heads.visible=!sprites;
     let n=0;const live=new Set<number>();
     for(const u of this.state?.units??[]) {
       live.add(u.id);const pos=this.smoothed.get(u.id)??{x:u.x,z:u.z},t=1-Math.exp(-dt*16);const next={x:pos.x+(u.x-pos.x)*t,z:pos.z+(u.z-pos.z)*t};
       // Interpolation must not cut a corner through a house between safe ticks.
       if(!u.transport?.embarked&&!buildingSegment(pos,next,UNIT_RADIUS[u.kind])){pos.x=u.x;pos.z=u.z;}else{pos.x=next.x;pos.z=next.z;}this.smoothed.set(u.id,pos);
-      if(this.blend<0.1||!inRect(pos,BOUNDS)||Math.abs(nearestWorldX(pos.x,this.focus.x)-this.focus.x)>this.distance||Math.abs(pos.z-this.focus.z)>this.distance)continue;
-      // One simulation unit is one model, matching the garrison counter. Keep
-      // its actual position rather than adding decorative three-soldier copies.
-      const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-      const x=pos.x,z=pos.z,y=heightAt(x,z)*this.blend;
-      this.dummy.position.set(nearestWorldX(x,this.focus.x),y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner)));
-      this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);n++;
+      if(!inRect(pos,BOUNDS))continue;
+      // Both representations share the same canonical position, wrap and viewport
+      // test. A mode switch never spawns, deletes or duplicates simulation units.
+      const x=nearestWorldX(pos.x,this.focus.x),z=pos.z,y=heightAt(pos.x,z)*this.blend;
+      const screen=this.unitPoint.set(x,y+0.55,z).project(this.camera);
+      const marginX=16/Math.max(1,this.host.clientWidth),marginY=16/Math.max(1,this.host.clientHeight);
+      if(screen.z<-1||screen.z>1||Math.abs(screen.x)>1+marginX||Math.abs(screen.y)>1+marginY)continue;
+      this.unitColor.set(u.owner<0?0x595f50:factionColor(u.owner));
+      if(sprites){
+        const depth=-this.unitPoint.set(x,y+0.55,z).applyMatrix4(this.camera.matrixWorldInverse).z;
+        this.dummy.position.set(x,y+0.55,z);this.dummy.quaternion.copy(this.camera.quaternion);
+        this.dummy.scale.setScalar(unitSpriteWorldSize(depth,this.host.clientHeight,pixels));this.dummy.updateMatrix();
+        this.unitSprites.setMatrixAt(n,this.dummy.matrix);this.unitSprites.setColorAt(n,this.unitColor);glyphs.setX(n,unitGlyph(u.kind,!!u.transport?.embarked));
+      }else{
+        // One simulation unit remains one 3D model, matching the garrison count.
+        const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,this.unitColor);
+        this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);
+      }
+      n++;
     }
     for(const id of this.smoothed.keys())if(!live.has(id))this.smoothed.delete(id);
-    this.bodies.count=this.heads.count=n;this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;
+    this.unitSprites.count=sprites?n:0;this.bodies.count=this.heads.count=sprites?0:n;
+    if(sprites){this.unitSprites.instanceMatrix.needsUpdate=true;glyphs.needsUpdate=true;if(this.unitSprites.instanceColor)this.unitSprites.instanceColor.needsUpdate=true;}
+    else{this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;}
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
@@ -473,9 +504,10 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
+    this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites=String(this.unitSprites.count);this.renderer.domElement.dataset.renderedModels=String(this.bodies.count);this.renderer.domElement.dataset.unitSpritePixels=String(pixels);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){this.mapSurface.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
-    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
+  dispose(){this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
 }

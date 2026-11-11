@@ -97,6 +97,20 @@ try{
  await page.locator('.save-card').filter({hasText:'Map order fixture'}).getByRole('button',{name:/^(载入|Load)$/}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true');
  await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+ const unitsCanvas=page.locator('canvas'),unitCount=await unitsCanvas.getAttribute('data-total-units');
+ await unitsCanvas.focus();await page.keyboard.press('End');for(let n=0;n<4;n++)await page.keyboard.press('+');
+ await expect(unitsCanvas).toHaveAttribute('data-settled','true');
+ await expect(unitsCanvas).toHaveAttribute('data-unit-render-mode','3d');
+ await expect(unitsCanvas).toHaveAttribute('data-rendered-sprites','0');
+ assert.ok(Number(await unitsCanvas.getAttribute('data-rendered-models'))>0);
+ await page.screenshot({path:'artifacts/pages-units-3d.png'});
+ await page.keyboard.press('Home');await expect(unitsCanvas).toHaveAttribute('data-settled','true');
+ await expect(unitsCanvas).toHaveAttribute('data-unit-render-mode','2d');
+ await expect(unitsCanvas).toHaveAttribute('data-rendered-models','0');
+ assert.ok(Number(await unitsCanvas.getAttribute('data-rendered-sprites'))>0);
+ await expect(unitsCanvas).toHaveAttribute('data-total-units',unitCount);
+ await page.screenshot({path:'artifacts/pages-units-2d.png'});
+ checks.push('2D strategic unit sprites and 3D terrain models switch without changing troop count');
  await page.locator('canvas').focus();await page.keyboard.press('Home');
  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
  const targetPoint=await page.locator('canvas').evaluate((canvas,world)=>{
