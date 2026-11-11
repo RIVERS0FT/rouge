@@ -8,5 +8,6 @@ import './ui/mobile-landscape.css';
 import './ui/start-screen.css';
 import './ui/territory-panel.css';
 import './ui/field-dispatches.css';
+import './ui/flag-cloth.css';
 installRandomUUID();
 createRoot(document.getElementById('root')!).render(<Bootstrap/>);

@@ -8,7 +8,9 @@ Existing land triangles and coastline lines cover the same flat sea plane in bot
 ## Ocean appearance and cost
 
 The sea now represents the **water surface**, not ocean-bottom relief or depth.
-A subdued blue-gray base carries three low-contrast, static ripple frequencies.
+A deep teal base carries soft, irregular grain at four scales and subdued,
+noise-warped static ripples, like the supplied historical-map reference. The
+existing faint geographic graticule stays above the water and below the land.
 The 2D view remains quiet behind political colors, coastlines and text. In the
 close, tilted 3D view, a gently broken sky/sun highlight follows the camera angle
 using the renderer's existing view-transition uniform. It is an optical effect,
@@ -16,13 +18,29 @@ not a reflection render pass. This does not depict measured depth or real waves.
 
 - The shader in `src/render/oceanSurface.ts` is original procedural artwork.
   Ocean Bottom images are no longer loaded or bundled.
-- Ripples change base brightness by at most 5.5%. Near-view reflection is separately
+- Grain and ripples together change linear base brightness by at most 26.5%; the
+  ripple contribution alone is at most 2.5%. Near-view reflection is separately
   bounded and fades away in the 2D view. Screen-space derivative filtering removes
   subpixel waves on distant views and small/mobile screens instead of shimmering.
-- Integer longitude frequencies match across the repeated atlas at the date line.
+- Every noise octave wraps at the date line; integer longitude ripple frequencies
+  also match across the repeated atlas.
 - There is no sea texture allocation, network request, animation clock, CPU wave
   update, extra mesh or draw call. Existing menu, hidden-tab and paused-render
   suspension remains effective. Movement does not depend on the cosmetic shader.
+
+## Coastal relief shadow
+
+The real coastline also carries a soft shadow fading five CSS pixels offshore.
+One instanced ribbon uses two triangles per source coastal segment; shared
+endpoints form miter joins instead of overlapping round caps. A screen-sized
+mask combines the strongest contribution, so intricate shores and small islands
+cannot accumulate black patches. Subpixel islands fade their shadow strength
+with their connected coastline's projected extent. The mask updates only when the camera, viewport
+or longitude-wrap mode changes. A sea-plane composite lies below the opaque
+land, whose depth masks the inland half. Internal and political boundaries never
+cast this shadow. The mask texture costs four bytes per drawing-buffer pixel,
+without a depth buffer. The renderer releases it and the shared geometry/materials
+on disposal. No new image download, animation clock or simulation change is added.
 
 ## Land source and permission
 

@@ -46,7 +46,12 @@
  .is-game .atlas-credit{display:none}
  .is-game .commander-portrait{display:block;left:var(--mobile-left);right:auto;top:auto;bottom:calc(var(--mobile-bottom) + 64px);width:min(220px,calc(100% - var(--mobile-left) - var(--mobile-right) - 152px));height:44px;z-index:12}
  .is-game .commander-art{inset:0;width:44px;height:100%}
- .is-game .commander-portrait-copy{display:flex;align-items:center;left:50px;right:8px;bottom:0;height:100%}
+ .is-game .commander-portrait-copy{display:flex;align-items:center;left:50px;right:58px;bottom:0;height:100%}
+ .is-game .commander-rank{left:auto;right:8px;top:0;bottom:0;flex-direction:row;align-items:center;gap:3px}
+ .is-game .commander-rank>span{font-size:10px}
+ .is-game .commander-rank>strong{font-size:16px}
+ .is-game .strategic-panel.mobile-panel-open{pointer-events:auto}
+ .is-game .strategic-panel .dispatches{margin-top:16px;max-height:none;overflow:visible}
  .is-game .commander-player{font-size:14px}
  .is-game .commander-portrait::after,.is-game .commander-portrait::before{display:none}
  .is-game .commander-talents{min-width:44px;min-height:44px}

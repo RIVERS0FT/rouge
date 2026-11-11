@@ -1,5 +1,6 @@
 import { type Flag, type FlagShape } from '../game/flags.ts';
 import type { Language } from './i18n.ts';
+import {useId} from 'react';
 export const FLAG_NAMES={cn:['中国','China'],fr:['法国','France'],de:['德国','Germany'],it:['意大利','Italy'],jp:['日本','Japan'],gb:['英国','United Kingdom'],us:['美国','United States'],ch:['瑞士','Switzerland']} as const;
 export const PATTERN_NAMES={solid:['纯色','Solid'],horizontal:['横三色','Horizontal stripes'],vertical:['竖三色','Vertical stripes'],cross:['十字','Cross']} as const;
 export function flagName(flag:Flag,language:Language){return flag.type==='preset'?FLAG_NAMES[flag.id][language==='zh'?0:1]:language==='zh'?'自定义旗帜':'Custom flag';}
@@ -11,7 +12,8 @@ export function FlagShapeArt({shape:s}:{shape:FlagShape}){
  const points=s.kind==='triangle'?`${s.x+s.width/2},${s.y} ${s.x+s.width},${s.y+s.height} ${s.x},${s.y+s.height}`:Array.from({length:10},(_,i)=>{const a=i*Math.PI/5-Math.PI/2,r=i%2?.382:1;return `${s.x+s.width/2+Math.cos(a)*s.width/2*r},${s.y+s.height/2+Math.sin(a)*s.height/2*r}`;}).join(' ');
  return <polygon points={points} fill={s.color}/>;
 }
-export function FlagImage({flag,language}:{flag:Flag;language:Language}){
+export function FlagImage({flag,language,cloth=true}:{flag:Flag;language:Language;cloth?:boolean}){
+ const id=`flag-${useId().replace(/:/g,'')}`;
  let art;
  if(flag.type==='custom'){const c=flag.colors;art=flag.pattern==='solid'?<rect width="90" height="60" fill={c[0]}/>:flag.pattern==='cross'?<><rect width="90" height="60" fill={c[0]}/><path d="M0 30H90M32 0V60" stroke={c[1]} strokeWidth="18"/><path d="M0 30H90M32 0V60" stroke={c[2]} strokeWidth="9"/></>:<Stripes colors={c} vertical={flag.pattern==='vertical'}/>;}
  else switch(flag.id){
@@ -24,7 +26,28 @@ export function FlagImage({flag,language}:{flag:Flag;language:Language}){
  case 'gb':art=<><rect width="90" height="60" fill="#012169"/><path d="M0 0L90 60M90 0L0 60" stroke="white" strokeWidth="12"/><path d="M0 0L90 60M90 0L0 60" stroke="#c8102e" strokeWidth="5"/><path d="M45 0V60M0 30H90" stroke="white" strokeWidth="20"/><path d="M45 0V60M0 30H90" stroke="#c8102e" strokeWidth="12"/></>;break;
  case 'us':art=<><Stripes colors={Array.from({length:13},(_,i)=>i%2?'#ffffff':'#b22234')}/><rect width="36" height={60*7/13} fill="#3c3b6e"/>{Array.from({length:9},(_,row)=>Array.from({length:row%2?5:6},(_,col)=><text key={`${row}-${col}`} x={row%2?6+col*6:3+col*6} y={3.5+row*3.5} fontSize="4" textAnchor="middle" fill="white">★</text>))}</>;break;
  }
- return <svg className="player-flag" viewBox="0 0 90 60" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>{art}{flag.type==='custom'&&flag.shapes?.map((shape,i)=><FlagShapeArt key={i} shape={shape}/>)}</svg>;
+ const content=<>{art}{flag.type==='custom'&&flag.shapes?.map((shape,i)=><FlagShapeArt key={i} shape={shape}/>)}</>;
+ if(!cloth)return <svg className="player-flag" viewBox="0 0 90 60" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>{content}</svg>;
+ return <svg className="player-flag is-cloth" viewBox="-3 -6 98 72" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>
+  <defs>
+   <clipPath id={`${id}-clip`}><rect width="90" height="60"/></clipPath>
+   <linearGradient id={`${id}-folds`} x1="0" y1="0" x2="90" y2="0" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stopColor="#000" stopOpacity=".35"/><stop offset=".12" stopColor="#fff" stopOpacity=".26"/>
+    <stop offset=".32" stopColor="#000" stopOpacity=".42"/><stop offset=".54" stopColor="#fff" stopOpacity=".32"/>
+    <stop offset=".77" stopColor="#000" stopOpacity=".34"/><stop offset="1" stopColor="#fff" stopOpacity=".2"/>
+   </linearGradient>
+   <filter id={`${id}-wave`} x="-4" y="-6" width="98" height="72" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".018 0" numOctaves="1" seed="8" result="wave"/>
+    <feColorMatrix in="wave" type="matrix" values="2.4 0 0 0 -.7  0 1 0 0 0  0 0 1 0 0  0 0 0 0 .5" result="vertical-wave"/>
+    <feDisplacementMap in="SourceGraphic" in2="vertical-wave" scale="12" xChannelSelector="A" yChannelSelector="R"/>
+   </filter>
+  </defs>
+  <g filter={`url(#${id}-wave)`}><g clipPath={`url(#${id}-clip)`}>{content}
+   <rect className="flag-sheen" x="-6" width="102" height="60" fill={`url(#${id}-folds)`}/>
+   <path d="M.5 0V60" stroke="#f4e2b4" strokeOpacity=".6" strokeWidth=".6"/>
+   <rect x=".5" y=".5" width="89" height="59" fill="none" stroke="#fff" strokeOpacity=".12"/>
+  </g></g>
+ </svg>;
 }
 
 export {FlagEditor} from './FlagEditor.tsx';

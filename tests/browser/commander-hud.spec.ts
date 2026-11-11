@@ -7,6 +7,7 @@ async function assertLayout(page: Page) {
   await expect(page.locator('.hud-bottom')).toHaveCount(0);
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
+  const rank=(await page.getByTestId('commander-level').boundingBox())!;
   const viewport=page.viewportSize()!;
   await expect(page.locator('.commander-player')).toBeVisible();
   expect(name).not.toBeNull();expect(talent).not.toBeNull();
@@ -14,6 +15,10 @@ async function assertLayout(page: Page) {
   expect(name!.x+name!.width).toBeLessThanOrEqual(portrait!.x+portrait!.width);
   expect(name!.y).toBeGreaterThanOrEqual(portrait!.y);
   expect(name!.y+name!.height).toBeLessThanOrEqual(portrait!.y+portrait!.height);
+  expect(rank.x).toBeGreaterThanOrEqual(portrait!.x);
+  expect(rank.x+rank.width).toBeLessThanOrEqual(portrait!.x+portrait!.width);
+  expect(rank.y).toBeGreaterThanOrEqual(portrait!.y);
+  expect(rank.y+rank.height).toBeLessThanOrEqual(portrait!.y+portrait!.height);
   expect(talent!.width).toBeGreaterThanOrEqual(portrait!.width-2);
   expect(talent!.height).toBeGreaterThanOrEqual(portrait!.height-2);
   await expect(page.locator('.commander-player')).toHaveAttribute('title',/\S/);
@@ -64,8 +69,9 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     const playerName=leader==='steward'?'Alexandra 王 Commander 88':`HUD ${leader}`;
     await page.getByTestId('commander-name').fill(playerName);await page.getByTestId('begin-campaign').click();
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);
-    await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
-    await expect(page.locator('.commander-rank,.commander-experience,.commander-portrait .eyebrow')).toHaveCount(0);
+    await expect(page.locator('.commander-player')).toHaveText(playerName);
+    await expect(page.getByTestId('commander-level')).toHaveAccessibleName('等级 1');
+    await expect(page.locator('.commander-experience,.commander-portrait .eyebrow')).toHaveCount(0);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('data-leader',leader);
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('role','img');
     await expect(page.getByTestId('leader-bust')).toHaveAttribute('src',new RegExp(`${leader}.*\\.webp`));
@@ -90,7 +96,8 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
     await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
     await assertLayout(page);
-    await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+    await expect(page.locator('.commander-player')).toHaveText(playerName);
+    await expect(page.getByTestId('commander-level')).toHaveAccessibleName('Level 1');
     await expect(page.getByTestId('portrait-talents')).toHaveAccessibleName(`${playerName} · View leader talents`);
     await expect(page.getByTestId('portrait-talents')).toHaveAttribute('title',`${playerName} · View leader talents`);
     await page.getByTestId('portrait-talents').focus();await page.keyboard.press('Enter');await expect(page.getByRole('dialog')).toBeVisible();
@@ -106,7 +113,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
       await page.setViewportSize(size);await assertLayout(page);
       const portrait=await page.getByTestId('commander-portrait').boundingBox(),upgrades=await page.getByTestId('open-upgrades').boundingBox();
       expect(portrait!.x+portrait!.width).toBeLessThanOrEqual(upgrades!.x-6);
-      await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+      await expect(page.locator('.commander-player')).toHaveText(playerName);
       await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
       await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
       await page.screenshot({path:`artifacts/hud-player-${size.width}x${size.height}.png`});
@@ -118,7 +125,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
       await page.reload();await page.getByTestId('open-saves').click();
       await page.locator('.save-card').filter({hasText:'HUD preserved'}).getByRole('button',{name:'Load',exact:true}).click();
       await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','steward');
-      await expect(page.getByTestId('commander-portrait')).toHaveText(playerName);
+      await expect(page.locator('.commander-player')).toHaveText(playerName);
       await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     }
     expect(errors).toEqual([]);
