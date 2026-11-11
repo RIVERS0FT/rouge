@@ -1,7 +1,7 @@
 import {MapSurface} from './mapSurface.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
-import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryComponent,type LabelRect} from './countryLabels.ts';
+import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
 import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
@@ -41,8 +41,10 @@ export class WorldRenderer {
   private ranges:Range[]=[];
   private colors:THREE.Float32BufferAttribute;
   private labels:Label[]=[];
-  private countryComponents:CountryComponent[]=[];
-  private countryAreas=regionAreas(MAP);
+  private countryComponents:CountryLabel[]=[];
+  private countryGeometry=regionMoments(MAP);
+  private countryCampaign='';
+  private countryAnchorRevision=0;
   private countryLayer:HTMLDivElement;
   private countryLabels=new Map<number,HTMLSpanElement>();
   private provinceLayer:HTMLDivElement;
@@ -211,10 +213,12 @@ export class WorldRenderer {
     let ownershipChanged=false;
     for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);ownershipChanged=true;}
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
-    if(ownershipChanged||countryStamp!==this.countryStamp){
-      this.countryStamp=countryStamp;this.countryComponents=primaryCountryComponents(buildCountryComponents(MAP,this.ownerIds,this.countryAreas));this.lastLabels=0;this.invalidated=true;
+    if(ownershipChanged||state.campaign!==this.countryCampaign){
+      this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
+      this.renderer.domElement.dataset.countryAnchorRevision=String(++this.countryAnchorRevision);
       this.renderer.domElement.dataset.countryComponents=String(this.countryComponents.length);
     }
+    if(countryStamp!==this.countryStamp){this.countryStamp=countryStamp;this.lastLabels=0;this.invalidated=true;}
     if(stamp!==this.groupingStamp||ownershipChanged){
       this.groupingStamp=stamp;
       const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[];
@@ -399,13 +403,13 @@ export class WorldRenderer {
   private drawMapNames() {
     const width=this.host.clientWidth,height=this.host.clientHeight,scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
     let countryCount=0,provinceCount=0;const activeOwners=new Set<number>(),point=new THREE.Vector3();
-    const draw=(pool:Map<number,HTMLSpanElement>,layer:HTMLDivElement,id:number,name:string,region:number,font:number,country:boolean)=>{
-      const anchor=MAP[region].center,baseX=nearestWorldX(anchor.x,this.focus.x);
-      const family='Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`600 ${font}px ${family}`,key=`${fontKey}:${name}`;
+    const draw=(pool:Map<number,HTMLSpanElement>,layer:HTMLDivElement,id:number,name:string,anchor:Vec2,region:number|null,font:number,country:boolean,spacing=.035)=>{
+      const baseX=nearestWorldX(anchor.x,this.focus.x);
+      const family=country?COUNTRY_LABEL_FONT:'Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`${country?500:600} ${font}px ${family}`,key=`${fontKey}:${spacing}:${name}`;
       let textWidth=this.labelWidths.get(key);
       if(textWidth===undefined){
         this.labelMeasure.font=fontKey;const metrics=this.labelMeasure.measureText(name);
-        textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*.035+4);
+        textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*spacing+4);
         if(this.labelWidths.size>=16384)this.labelWidths.clear();this.labelWidths.set(key,textWidth);
       }
       const textHeight=font*1.2;let visible=0;
@@ -413,11 +417,11 @@ export class WorldRenderer {
       // edge instead of teleporting one node from one side to the other.
       for(const offset of [-1,0,1]){
         const p=point.set(baseX+offset*WORLD_WIDTH,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera);
-        const x=(p.x+1)*width/2,y=(1-p.y)*height/2-(country?24:0);
+        const x=(p.x+1)*width/2,y=(1-p.y)*height/2;
         const rect={left:x-textWidth/2-2,right:x+textWidth/2+2,top:y-textHeight/2-2,bottom:y+textHeight/2+2},poolId=id*3+offset+1;
         let label=pool.get(poolId);
-        // Cull only complete text bounds outside the viewport. A fixed 24px
-        // country offset separates its title from the anchor province's name.
+        // Cull only complete text bounds outside the viewport. Neither the HUD
+        // nor nearby province names move the country away from its centroid.
         if(p.z<-1||p.z>1||!labelIntersectsViewport(rect,width,height)){if(label)label.hidden=true;continue;}
         if(!label){label=document.createElement('span');label.className=country?'country-label':'province-label';pool.set(poolId,label);layer.append(label);}
         if(label.textContent!==name)label.textContent=name;if(label.hidden)label.hidden=false;
@@ -426,7 +430,11 @@ export class WorldRenderer {
         if(label.style.width!==`${textWidth}px`)label.style.width=`${textWidth}px`;
         if(label.style.height!==`${textHeight}px`)label.style.height=`${textHeight}px`;
         if(label.style.fontSize!==`${font}px`)label.style.fontSize=`${font}px`;
-        if(label.dataset.region!==String(region)){label.dataset.region=String(region);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);}
+        if(label.style.fontFamily!==family)label.style.fontFamily=family;
+        if(label.style.letterSpacing!==`${spacing}em`)label.style.letterSpacing=`${spacing}em`;
+        if(region!==null)label.dataset.region=String(region);
+        label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);
+        if(country)label.dataset.anchorKind='territory-centroid';
         label.dataset.copy=String(Math.round((baseX-anchor.x)/WORLD_WIDTH)+offset);label.dataset.primary=String(offset===0);
         if(country&&label.dataset.owner!==String(id))label.dataset.owner=String(id);
         visible++;
@@ -434,12 +442,12 @@ export class WorldRenderer {
       return visible;
     };
     if(provinceNamesVisible(this.distance)){
-      for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.id,12,false);
+      for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.center,province.id,12,false);
     }else for(const label of this.provinceLabels.values())label.hidden=true;
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
-      const font=Math.round(Math.min(20,Math.max(14,12+Math.sqrt(component.area)*scale/45)));
-      countryCount+=draw(this.countryLabels,this.countryLayer,component.owner,countryName(this.lang,player),component.anchors[0],font,true);
+      const name=countryName(this.lang,player),{font,spacing}=countryTypography(name,component.area,scale);
+      countryCount+=draw(this.countryLabels,this.countryLayer,component.owner,name,component.anchor,null,font,true,spacing);
     }
     for(const [poolId,label] of this.countryLabels)if(!activeOwners.has(Math.floor(poolId/3))){label.remove();this.countryLabels.delete(poolId);}
     this.renderer.domElement.dataset.countryLabelRevision=String(++this.countryLabelRevision);
