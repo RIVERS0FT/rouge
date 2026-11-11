@@ -1,0 +1,9 @@
+/* Cloth presentation is shared by the HUD, setup preview and LAN lobby.
+   The drawing canvas uses the original flat 90x60 artwork for exact editing. */
+.player-flag.is-cloth{overflow:visible;transform-origin:4% 50%;filter:drop-shadow(1px 3px 2px #0006);animation:flag-billow 5.2s ease-in-out infinite}
+.flag-sheen{animation:flag-sheen 5.2s ease-in-out infinite;pointer-events:none}
+.faction-emblem-frame:has(>.player-flag.is-cloth){padding:0;background:transparent;box-shadow:none}
+@keyframes flag-billow{0%,100%{transform:perspective(220px) rotateY(-15deg) skewY(1.2deg)}50%{transform:perspective(220px) rotateY(10deg) skewY(-2deg)}}
+@keyframes flag-sheen{0%,100%{transform:translateX(-3px);opacity:.85}50%{transform:translateX(3px);opacity:1}}
+.is-game:has(.modal-backdrop) .hud-top .is-cloth,.is-game:has(.modal-backdrop) .hud-top .flag-sheen{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.player-flag.is-cloth,.flag-sheen{animation:none}}

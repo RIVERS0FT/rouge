@@ -1,4 +1,6 @@
 import {MapSurface} from './mapSurface.ts';
+import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
+import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
@@ -33,6 +35,7 @@ export class WorldRenderer {
   readonly camera=new THREE.PerspectiveCamera(40,1,0.05,20000);
   private atlas=new THREE.Group();
   private mapSurface:MapSurface;
+  private coastShadow:CoastShadow;
   private repeats:THREE.Group[]=[];
   private land:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>;
   private admin:THREE.LineSegments;
@@ -49,6 +52,8 @@ export class WorldRenderer {
   private countryAnchorRevision=0;
   private countryLayer:HTMLDivElement;
   private countryLabels=new Map<number,HTMLSpanElement>();
+  private countryPlacements=new Map<number,CountryPlacement>();
+  private countryPlacementCache:CountryPlacementCache=new Map();
   private provinceLayer:HTMLDivElement;
   private provinceLabels=new Map<number,HTMLSpanElement>();
   private labelMeasure=document.createElement('canvas').getContext('2d')!;
@@ -120,6 +125,8 @@ export class WorldRenderer {
       this.ranges.push({start,count:positions.length/3-start});
     }
     const edges=buildBorderEdges(MAP,BOUNDS),coasts=borderPositions(edges.filter(e=>e.atoms.length===1),0.27);
+    this.coastShadow=new CoastShadow(edges,BOUNDS);this.atlas.add(this.coastShadow.surface);
+    this.renderer.domElement.dataset.coastShadow='offshore';this.renderer.domElement.dataset.coastShadowWidth=String(COAST_SHADOW_WIDTH);
     // Keep coasts for selection too; political updates classify and skip them.
     this.boundaryEdges=edges;
     let minLandZ=Infinity,maxLandZ=-Infinity;for(let i=2;i<positions.length;i+=3){minLandZ=Math.min(minLandZ,positions[i]);maxLandZ=Math.max(maxLandZ,positions[i]);}
@@ -221,6 +228,7 @@ export class WorldRenderer {
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
     if(ownershipChanged||state.campaign!==this.countryCampaign){
       this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
+      this.countryPlacements=buildCountryPlacements(MAP,this.ownerIds,this.countryComponents,this.boundaryEdges,this.countryPlacementCache);
       this.renderer.domElement.dataset.countryAnchorRevision=String(++this.countryAnchorRevision);
       this.renderer.domElement.dataset.countryComponents=String(this.countryComponents.length);
     }
@@ -411,51 +419,61 @@ export class WorldRenderer {
   private drawMapNames() {
     const width=this.host.clientWidth,height=this.host.clientHeight,scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
     let countryCount=0,provinceCount=0;const activeOwners=new Set<number>(),point=new THREE.Vector3();
-    const draw=(pool:Map<number,HTMLSpanElement>,layer:HTMLDivElement,id:number,name:string,anchor:Vec2,region:number|null,font:number,country:boolean,spacing=.035)=>{
-      const baseX=nearestWorldX(anchor.x,this.focus.x);
-      const family=country?COUNTRY_LABEL_FONT:'Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`${country?500:600} ${font}px ${family}`,key=`${fontKey}:${spacing}:${name}`;
+    const drawProvince=(id:number,name:string,anchor:Vec2)=>{
+      const font=12,spacing=.035,family='Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`600 ${font}px ${family}`,key=`${fontKey}:${name}`;
       let textWidth=this.labelWidths.get(key);
-      if(textWidth===undefined){
-        this.labelMeasure.font=fontKey;const metrics=this.labelMeasure.measureText(name);
-        textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*spacing+4);
-        if(this.labelWidths.size>=16384)this.labelWidths.clear();this.labelWidths.set(key,textWidth);
-      }
-      const textHeight=font*1.2;let visible=0;
-      // Adjacent globe copies keep a partially visible title at each date-line
-      // edge instead of teleporting one node from one side to the other.
+      if(textWidth===undefined){this.labelMeasure.font=fontKey;const metrics=this.labelMeasure.measureText(name);textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*spacing+4);if(this.labelWidths.size>=16384)this.labelWidths.clear();this.labelWidths.set(key,textWidth);}
+      const textHeight=font*1.2,baseX=nearestWorldX(anchor.x,this.focus.x);let visible=0;
       for(const offset of [-1,0,1]){
-        const p=point.set(baseX+offset*WORLD_WIDTH,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera);
-        const x=(p.x+1)*width/2,y=(1-p.y)*height/2;
-        const rect={left:x-textWidth/2-2,right:x+textWidth/2+2,top:y-textHeight/2-2,bottom:y+textHeight/2+2},poolId=id*3+offset+1;
-        let label=pool.get(poolId);
-        // Cull only complete text bounds outside the viewport. Neither the HUD
-        // nor nearby province names move the country away from its centroid.
+        const p=point.set(baseX+offset*WORLD_WIDTH,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera),x=(p.x+1)*width/2,y=(1-p.y)*height/2;
+        const rect={left:x-textWidth/2-2,right:x+textWidth/2+2,top:y-textHeight/2-2,bottom:y+textHeight/2+2},poolId=id*3+offset+1;let label=this.provinceLabels.get(poolId);
         if(p.z<-1||p.z>1||!labelIntersectsViewport(rect,width,height)){if(label)label.hidden=true;continue;}
-        if(!label){label=document.createElement('span');label.className=country?'country-label':'province-label';pool.set(poolId,label);layer.append(label);}
-        if(label.textContent!==name)label.textContent=name;if(label.hidden)label.hidden=false;
-        const transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
-        if(label.style.transform!==transform)label.style.transform=transform;
-        if(label.style.width!==`${textWidth}px`)label.style.width=`${textWidth}px`;
-        if(label.style.height!==`${textHeight}px`)label.style.height=`${textHeight}px`;
-        if(label.style.fontSize!==`${font}px`)label.style.fontSize=`${font}px`;
-        if(label.style.fontFamily!==family)label.style.fontFamily=family;
-        if(label.style.letterSpacing!==`${spacing}em`)label.style.letterSpacing=`${spacing}em`;
-        if(region!==null)label.dataset.region=String(region);
-        label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);
-        if(country)label.dataset.anchorKind='territory-centroid';
-        label.dataset.copy=String(Math.round((baseX-anchor.x)/WORLD_WIDTH)+offset);label.dataset.primary=String(offset===0);
-        if(country&&label.dataset.owner!==String(id))label.dataset.owner=String(id);
-        visible++;
+        if(!label){label=document.createElement('span');label.className='province-label';this.provinceLabels.set(poolId,label);this.provinceLayer.append(label);}
+        if(label.textContent!==name)label.textContent=name;label.hidden=false;
+        label.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;label.style.width=`${textWidth}px`;label.style.height=`${textHeight}px`;label.style.fontSize=`${font}px`;label.style.fontFamily=family;label.style.letterSpacing=`${spacing}em`;
+        label.dataset.region=String(id);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);label.dataset.copy=String(Math.round((baseX-anchor.x)/WORLD_WIDTH)+offset);label.dataset.primary=String(offset===0);visible++;
       }
       return visible;
     };
     if(provinceNamesVisible(this.distance)){
-      for(const province of MAP)if(province.visible)provinceCount+=draw(this.provinceLabels,this.provinceLayer,province.id,province.name[this.lang==='zh'?0:1],province.center,province.id,12,false);
+      for(const province of MAP)if(province.visible)provinceCount+=drawProvince(province.id,province.name[this.lang==='zh'?0:1],province.center);
     }else for(const label of this.provinceLabels.values())label.hidden=true;
+    for(const label of this.countryLabels.values())label.hidden=true;
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
-      const name=countryName(this.lang,player),{font,spacing}=countryTypography(name,component.area,scale);
-      countryCount+=draw(this.countryLabels,this.countryLayer,component.owner,name,component.anchor,null,font,true,spacing);
+      const placement=this.countryPlacements.get(component.owner);if(!placement)continue;
+      const name=countryName(this.lang,player),style=countryTypography(name,component.area,scale),spacing=Math.min(.14,style.spacing),count=Array.from(name).length;
+      const measureKey=`curve:${name}:${spacing}`;let advanceEm=this.labelWidths.get(measureKey);
+      if(advanceEm===undefined){this.labelMeasure.font=`400 100px ${COUNTRY_LABEL_FONT}`;advanceEm=this.labelMeasure.measureText(name).width/100+Math.max(0,count-1)*spacing;this.labelWidths.set(measureKey,advanceEm);}
+      const fit=fitCountryCurve(placement,advanceEm);if(!fit)continue;
+      const {curve}=fit,referenceX=nearestWorldX(curve.anchor.x,this.focus.x),copy=Math.round((referenceX-curve.anchor.x)/WORLD_WIDTH);
+      const center=new THREE.Vector3(referenceX,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z).project(this.camera);
+      const probe=new THREE.Vector3(referenceX+1,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z).project(this.camera);
+      const northProbe=new THREE.Vector3(referenceX,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z+1).project(this.camera);
+      const ax=(probe.x-center.x)*width/2,ay=(probe.y-center.y)*height/2,bx=(northProbe.x-center.x)*width/2,by=(northProbe.y-center.y)*height/2,trace=ax*ax+ay*ay+bx*bx+by*by;
+      const localScale=Math.sqrt(Math.max(0,(trace-Math.sqrt(Math.max(0,trace*trace-4*(ax*by-ay*bx)**2)))/2)),font=Math.min(style.font,fit.fontWorld*localScale*.95);if(font<10||localScale<=0)continue;
+      const fontWorld=font/localScale,section=countryCurveSegment(curve,advanceEm*fontWorld/0.86),pathPoints=section.points;
+      for(const offset of [-1,0,1]){
+        const projected=pathPoints.map(p=>{const point=new THREE.Vector3(p.x+(copy+offset)*WORLD_WIDTH,heightAt(p.x,p.z)*this.blend+.8,p.z).project(this.camera);return {x:(point.x+1)*width/2,y:(1-point.y)*height/2,depth:point.z};});
+        const padding=font*1.4+2,left=Math.min(...projected.map(p=>p.x))-padding,right=Math.max(...projected.map(p=>p.x))+padding,top=Math.min(...projected.map(p=>p.y))-padding,bottom=Math.max(...projected.map(p=>p.y))+padding;
+        const poolId=component.owner*3+offset+1;
+        if(projected.every(p=>p.depth<-1||p.depth>1)||!labelIntersectsViewport({left,right,top,bottom},width,height))continue;
+        let label=this.countryLabels.get(poolId);
+        if(!label){label=document.createElement('span');label.className='country-label';this.countryLabels.set(poolId,label);this.countryLayer.append(label);}
+        if(!label.querySelector('textPath')){
+          const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),defs=document.createElementNS(ns,'defs'),path=document.createElementNS(ns,'path'),text=document.createElementNS(ns,'text'),textPath=document.createElementNS(ns,'textPath');
+          const id=`country-curve-${poolId}`;path.id=id;defs.append(path);textPath.setAttribute('href',`#${id}`);textPath.setAttribute('startOffset','50%');text.setAttribute('text-anchor','middle');text.append(textPath);svg.append(defs,text);label.replaceChildren(svg);
+        }
+        const svg=label.firstElementChild as SVGSVGElement,path=svg.querySelector('path')!,text=svg.querySelector('text')!,textPath=svg.querySelector('textPath')!;
+        const w=right-left,h=bottom-top;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('width',String(w));svg.setAttribute('height',String(h));
+        const control=new THREE.Vector3(section.control.x+(copy+offset)*WORLD_WIDTH,heightAt(section.control.x,section.control.z)*this.blend+.8,section.control.z).project(this.camera),start=projected[0],end=projected[projected.length-1];
+        path.setAttribute('d',`M${(start.x-left).toFixed(3)},${(start.y-top).toFixed(3)} Q${((control.x+1)*width/2-left).toFixed(3)},${((1-control.y)*height/2-top).toFixed(3)} ${(end.x-left).toFixed(3)},${(end.y-top).toFixed(3)}`);
+        if(textPath.textContent!==name)textPath.textContent=name;
+        text.setAttribute('font-family',COUNTRY_LABEL_FONT);text.setAttribute('font-size',String(font));text.setAttribute('letter-spacing',`${spacing}em`);
+        label.style.transform=`translate(${left+w/2}px,${top+h/2}px) translate(-50%,-50%)`;label.style.width=`${w}px`;label.style.height=`${h}px`;label.style.fontSize=`${font}px`;label.style.fontFamily=COUNTRY_LABEL_FONT;
+        label.dataset.owner=String(component.owner);label.dataset.copy=String(copy+offset);label.dataset.primary=String(offset===0);label.dataset.anchorX=String(curve.anchor.x);label.dataset.anchorZ=String(curve.anchor.z);label.dataset.anchorKind='interior-curve';
+        label.dataset.clearance=String(curve.clearance);label.dataset.fontWorld=String(fontWorld);label.hidden=false;countryCount++;
+      }
     }
     for(const [poolId,label] of this.countryLabels)if(!activeOwners.has(Math.floor(poolId/3))){label.remove();this.countryLabels.delete(poolId);}
     this.renderer.domElement.dataset.countryLabelRevision=String(++this.countryLabelRevision);
@@ -528,7 +546,7 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
+    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
     this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
@@ -537,6 +555,6 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+  dispose(){this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
 }

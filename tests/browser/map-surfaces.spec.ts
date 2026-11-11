@@ -19,6 +19,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile map surfaces':'des
   await expect(canvas).toHaveAttribute('data-relief-state','ready');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
   await expect(canvas).toHaveAttribute('data-relief-width',mobile?'2048':'4096');
   await expect(canvas).toHaveAttribute('data-ocean-source','procedural-water-surface');await expect(canvas).toHaveAttribute('data-ocean-animation','static');
+  await expect(canvas).toHaveAttribute('data-coast-shadow','offshore');
   // Static water must not wake a settled, paused strategic map.
   await page.waitForTimeout(1200);const revision=await canvas.getAttribute('data-render-revision');
   await page.waitForTimeout(800);expect(await canvas.getAttribute('data-render-revision')).toBe(revision);

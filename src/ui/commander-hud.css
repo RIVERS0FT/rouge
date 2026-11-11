@@ -17,10 +17,13 @@
 .commander-portrait::before{content:'';position:absolute;z-index:2;inset:6px;border:1px solid #bca77826;pointer-events:none}
 .commander-portrait::after{content:'';position:absolute;z-index:1;inset:0;background:linear-gradient(0deg,#0b1c22 0%,#0d2026d9 19%,transparent 53%);pointer-events:none}
 .commander-art{position:absolute;inset:0;pointer-events:none}
+.commander-rank{position:absolute;z-index:3;top:18px;left:20px;display:flex;flex-direction:column;gap:3px;color:#ecdfbf;text-shadow:0 2px 6px #06191e;pointer-events:none}
+.commander-rank>span{font-size:12px;line-height:1.3;color:var(--gold)}
+.commander-rank>strong{font-family:var(--serif);font-size:28px;line-height:1.1;font-weight:400;font-variant-numeric:tabular-nums}
 .leader-bust{display:block;height:100%;width:100%;object-fit:contain;object-position:center bottom;user-select:none;-webkit-user-drag:none}
 .commander-portrait-copy{position:absolute;z-index:3;left:20px;right:20px;bottom:21px;min-width:0;pointer-events:none}
 .commander-player{display:block;width:100%;font-family:var(--serif);font-size:22px;line-height:1.3;font-weight:400;margin:0;color:#ecdfbf;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* The portrait remains the talent entry without adding more visible labels. */
+/* The entire portrait remains the talent entry, including its level badge. */
 .commander-talents{position:absolute;z-index:4;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
 .commander-talents:hover{background:#d7c18e08}
 .commander-talents:focus-visible{outline:2px solid #f0d9a5;outline-offset:-4px;background:#d7c18e08}

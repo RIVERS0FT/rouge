@@ -4,7 +4,7 @@ import {WORLD_BOUNDS} from '../game/geo.ts';
  * Multiply all political RGB channels equally, retaining their hue and identity. */
 export const RELIEF_MIDPOINT=206/255;
 export const RELIEF_STRENGTH=.85;
-export const OCEAN_FALLBACK='#3e5d68';
+export const OCEAN_FALLBACK='#103e48';
 
 /** Land relief is already inverse-Miller resampled to this exact map crop. */
 export function surfaceUv(x:number,z:number):{u:number;v:number}{

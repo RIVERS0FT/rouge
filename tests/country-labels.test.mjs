@@ -80,10 +80,21 @@ test('country typography has readable bounds and keeps long names compact withou
  const short=countryTypography('大明',10000,2),long=countryTypography('阿尔汉格尔斯克共和国',10000,2);
  assert.ok(short.font>long.font);assert.ok(short.spacing>long.spacing);
  for(const area of [0,1,1000,1e10])for(const scale of [.001,.1,1,100])for(const name of ['A','France','中华人民共和国','Very long country name that remains complete']){
-  const style=countryTypography(name,area,scale);assert.ok(style.font>=13&&style.font<=24);assert.ok(style.spacing>0);
+  const style=countryTypography(name,area,scale);assert.ok(style.font>=13&&style.font<=40);assert.ok(style.spacing>0);
  }
  const css=fs.readFileSync(new URL('../src/ui/style.css',import.meta.url),'utf8');
- assert.match(css,/\.country-label\{font-weight:500;color:#24352e/);assert.match(css,/paint-order:stroke fill/);
+ assert.match(css,/\.country-label\{font-weight:400;color:#38372f/);assert.match(css,/paint-order:stroke fill/);
+});
+
+test('country lettering follows the land axis without moving the centroid or depending on administrative splits',()=>{
+ const rotate=ring=>ring.map(({x,z})=>({x:x*Math.cos(Math.PI/6)-z*Math.sin(Math.PI/6),z:x*Math.sin(Math.PI/6)+z*Math.cos(Math.PI/6)}));
+ const whole=cell(0,0,0,100,10);whole.parts=[[rotate(whole.parts[0][0])]];
+ const split=[cell(0,-25,0,50,10),cell(1,25,0,50,10)];for(const part of split)part.parts=[[rotate(part.parts[0][0])]];
+ const label=ownerLabel([whole],[0]),divided=ownerLabel(split,[0,0]);
+ assert.equal(label.angle,30);assert.equal(divided.angle,label.angle);close(label.anchor.x,0);close(label.anchor.z,0);
+ const reversed={...whole,parts:whole.parts.map(part=>part.map(ring=>[...ring].reverse()))};assert.equal(ownerLabel([reversed],[0]).angle,30);
+ assert.equal(ownerLabel([cell(0,0,0,20,20)],[0]).angle,0);
+ assert.equal(ownerLabel([cell(0,0,0,10,100)],[0]).angle,75);
 });
 
 test('screen collision accounts for HUD padding and dense unit buckets',()=>{
@@ -105,5 +116,5 @@ test('province names retain the original below-500 zoom range independently of c
  assert.equal(provinceNamesVisible(100),true);assert.equal(provinceNamesVisible(499.999),true);
  assert.equal(provinceNamesVisible(500),false);assert.equal(provinceNamesVisible(800),false);
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
- assert.match(renderer,/if\(provinceNamesVisible\(this\.distance\)\)\{[\s\S]*?this\.provinceLabels[\s\S]*?\}else for\(const label of this\.provinceLabels\.values\(\)\)label\.hidden=true;\s*for\(const component of this\.countryComponents\)/);
+ assert.match(renderer,/if\(provinceNamesVisible\(this\.distance\)\)\{[\s\S]*?drawProvince[\s\S]*?\}else for\(const label of this\.provinceLabels\.values\(\)\)label\.hidden=true;/);
 });

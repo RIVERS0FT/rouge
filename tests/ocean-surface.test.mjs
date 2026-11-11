@@ -16,7 +16,7 @@ test('water shading is bounded, static and follows the existing view transition'
  assert.doesNotMatch(shader.vertexShader,/transformed\s*[.\[]|transformed\s*=/);
  assert.doesNotMatch(shader.fragmentShader,/uTime|texture2D|discard/);
  near.value=1;assert.equal(shader.uniforms.uOceanNear.value,1);
- assert.match(material.customProgramCacheKey(),/ocean-surface-v1/);
+ assert.match(material.customProgramCacheKey(),/ocean-surface-v2/);
  material.dispose();
 });
 test('no ocean-bottom asset or animation is attached to the renderer',()=>{

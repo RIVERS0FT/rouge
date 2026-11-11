@@ -1,7 +1,7 @@
 import {nearestWorldX,wrapX,WORLD_WIDTH} from '../game/geo.ts';
 import type {ProvinceDef,Vec2} from '../game/types.ts';
-export interface CountryLabel {owner:number;area:number;anchor:Vec2}
-interface LandMoment {area:number;center:Vec2;left:number;right:number}
+export interface CountryLabel {owner:number;area:number;anchor:Vec2;angle:number}
+interface LandMoment {area:number;center:Vec2;left:number;right:number;xx:number;xz:number;zz:number}
 export type RegionMoments=readonly (readonly LandMoment[])[];
 export interface LabelRect {left:number;right:number;top:number;bottom:number}
 export function overlaps(a:LabelRect,b:LabelRect,gap=6):boolean{return a.left<b.right+gap&&a.right>b.left-gap&&a.top<b.bottom+gap&&a.bottom>b.top-gap;}
@@ -13,25 +13,32 @@ function ringMoment(ring:readonly Vec2[]):LandMoment|null{
  if(ring.length<3)return null;
  const points:Vec2[]=[];let previous=ring[0].x;
  for(const point of ring){const x=nearestWorldX(point.x,previous);points.push({x,z:point.z});previous=x;}
- const origin=points[0];let twiceArea=0,mx=0,mz=0,left=Infinity,right=-Infinity;
+ const origin=points[0];let twiceArea=0,mx=0,mz=0,qxx=0,qxz=0,qzz=0,left=Infinity,right=-Infinity;
  for(let i=0,j=points.length-1;i<points.length;j=i++){
   const a={x:points[j].x-origin.x,z:points[j].z-origin.z},b={x:points[i].x-origin.x,z:points[i].z-origin.z},cross=a.x*b.z-b.x*a.z;
   twiceArea+=cross;mx+=(a.x+b.x)*cross;mz+=(a.z+b.z)*cross;left=Math.min(left,points[i].x);right=Math.max(right,points[i].x);
+  qxx+=(a.x*a.x+a.x*b.x+b.x*b.x)*cross;qzz+=(a.z*a.z+a.z*b.z+b.z*b.z)*cross;
+  qxz+=(2*a.x*a.z+a.x*b.z+b.x*a.z+2*b.x*b.z)*cross;
  }
  if(Math.abs(twiceArea)<1e-9)return null;
- return {area:Math.abs(twiceArea)/2,center:{x:origin.x+mx/(3*twiceArea),z:origin.z+mz/(3*twiceArea)},left,right};
+ const x=mx/(3*twiceArea),z=mz/(3*twiceArea);
+ return {area:Math.abs(twiceArea)/2,center:{x:origin.x+x,z:origin.z+z},left,right,
+  xx:Math.max(0,qxx/(6*twiceArea)-x*x),xz:qxz/(12*twiceArea)-x*z,zz:Math.max(0,qzz/(6*twiceArea)-z*z)};
 }
 /** Cache immutable geometry once per atlas. All islands and original geometry
  * contribute, including cropped/offscreen land. Holes subtract regardless of winding. */
 export function regionMoments(map:readonly ProvinceDef[]):RegionMoments{
  return map.map(province=>province.parts.flatMap(part=>{
   const outer=ringMoment(part[0]??[]);if(!outer)return [];
-  let area=outer.area,mx=0,mz=0;
+  let area=outer.area,mx=0,mz=0,qxx=outer.xx*outer.area,qxz=outer.xz*outer.area,qzz=outer.zz*outer.area;
   for(const ring of part.slice(1)){
    const hole=ringMoment(ring);if(!hole)continue;
-   area-=hole.area;mx-=(nearestWorldX(hole.center.x,outer.center.x)-outer.center.x)*hole.area;mz-=(hole.center.z-outer.center.z)*hole.area;
+   const x=nearestWorldX(hole.center.x,outer.center.x)-outer.center.x,z=hole.center.z-outer.center.z;
+   area-=hole.area;mx-=x*hole.area;mz-=z*hole.area;
+   qxx-=(hole.xx+x*x)*hole.area;qxz-=(hole.xz+x*z)*hole.area;qzz-=(hole.zz+z*z)*hole.area;
   }
-  return area>1e-9?[{area,center:{x:outer.center.x+mx/area,z:outer.center.z+mz/area},left:outer.left,right:outer.right}]:[];
+  return area>1e-9?[{area,center:{x:outer.center.x+mx/area,z:outer.center.z+mz/area},left:outer.left,right:outer.right,
+   xx:Math.max(0,qxx/area-(mx/area)**2),xz:qxz/area-mx*mz/(area*area),zz:Math.max(0,qzz/area-(mz/area)**2)}]:[];
  }));
 }
 /** Choose a camera-independent longitude cut through the largest empty gap.
@@ -69,17 +76,27 @@ export function buildCountryLabels(map:readonly ProvinceDef[],owners:readonly nu
   if(!parts.length)continue;
   const reference=longitudeCut(parts)+WORLD_WIDTH/2;let area=0,mx=0,mz=0;
   for(const part of parts){area+=part.area;mx+=nearestWorldX(part.center.x,reference)*part.area;mz+=part.center.z*part.area;}
-  if(area>1e-9)labels.push({owner,area,anchor:{x:wrapX(mx/area),z:mz/area}});
+  if(area>1e-9){
+   const x=mx/area,z=mz/area;let xx=0,xz=0,zz=0;
+   for(const part of parts){const dx=nearestWorldX(part.center.x,reference)-x,dz=part.center.z-z;
+    xx+=(part.xx+dx*dx)*part.area;xz+=(part.xz+dx*dz)*part.area;zz+=(part.zz+dz*dz)*part.area;
+   }
+   // A long realm reads along its principal land axis. Nearly round realms
+   // stay horizontal; quantization keeps insignificant geometry noise still.
+   const elongated=Math.hypot(xx-zz,2*xz)>.4*(xx+zz);
+   const angle=elongated?Math.round(Math.max(-75,Math.min(75,Math.atan2(2*xz,xx-zz)*90/Math.PI))*2)/2:0;
+   labels.push({owner,area,anchor:{x:wrapX(x),z},angle});
+  }
  }
  return labels.sort((a,b)=>b.area-a.area||a.owner-b.owner);
 }
 
-export const COUNTRY_LABEL_FONT='"Palatino Linotype","Book Antiqua",Georgia,"Noto Serif CJK SC","Songti SC","SimSun",serif';
+export const COUNTRY_LABEL_FONT='Georgia,"Times New Roman","Noto Serif CJK SC","Songti SC","SimSun",serif';
 /** Restrained engraved-atlas typography: large realms read first; long names
  * stay compact without truncation, viewport-driven hiding, or anchor movement. */
 export function countryTypography(name:string,area:number,scale:number):{font:number;spacing:number}{
  const length=Array.from(name).length,cjk=/[\u3400-\u9fff]/u.test(name),compact=Math.min(1,Math.sqrt((cjk?7:18)/Math.max(1,length)));
- return {font:Math.round(Math.min(24,Math.max(13,(14+Math.sqrt(area)*scale/32)*compact))),spacing:cjk?(length>8?.06:.12):.1};
+ return {font:Math.round(Math.max(13,Math.min(40,14+Math.sqrt(area)*scale/12)*compact)),spacing:cjk?(length>8?.1:.2):(length>24?.12:.2)};
 }
 
 /** Screen-space bucket index keeps dense army/HUD collision work bounded. */

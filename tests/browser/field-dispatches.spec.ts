@@ -35,6 +35,12 @@ async function expectDispatches(page:Page,language:'zh'|'en',mobile=false){
   };
  });
  expect(layout).toEqual({overflow:false,aligned:true,separated:true,playerSize:mobile?14:12,wrapping:true});
+ if(!mobile){
+  const box=(await section.boundingBox())!,objective=(await page.locator('.objective').boundingBox())!,viewport=page.viewportSize()!;
+  expect(viewport.width-box.x-box.width).toBeLessThanOrEqual(24);
+  expect(viewport.height-box.y-box.height).toBeLessThanOrEqual(24);
+  expect(box.y).toBeGreaterThanOrEqual(objective.y+objective.height+12);
+ }
  // The scrolling HUD must keep the last item reachable even on short screens.
  await section.locator('.dispatch-entry').last().scrollIntoViewIfNeeded();
  await expect(section.locator('.dispatch-entry').last()).toBeInViewport();

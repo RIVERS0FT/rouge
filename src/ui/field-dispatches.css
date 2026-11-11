@@ -1,5 +1,5 @@
 /* Keep dispatches readable above the map, with one shared time/content rhythm. */
-.is-game .dispatches{padding:16px;background:#173038;border:1px solid #c4c2a522;border-radius:4px;margin-top:10px;text-shadow:none}
+.is-game .dispatches{padding:16px;background:#173038;border:1px solid #c4c2a522;border-radius:4px;margin-top:auto;min-height:0;max-height:45dvh;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:auto;text-shadow:none}
 .dispatches #dispatch-heading{margin:0;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:11px;line-height:1.5;font-weight:600;letter-spacing:.12em;color:#d5c9a4}
 .dispatches .dispatch-list{margin:0;padding:0;list-style:none}
 .dispatches .dispatch-entry{display:grid;grid-template-columns:var(--dispatch-time-width) minmax(0,1fr);align-items:start;column-gap:10px;padding:12px 0;font-size:12px;line-height:1.6}
