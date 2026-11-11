@@ -43,3 +43,31 @@ test('queued level choices stay open until the final authoritative choice is app
  await page.getByTestId('portrait-talents').click();
  await expect(page.locator('.talent-card')).toHaveCount(0);await expect(page.locator('.chosen-talents>span')).toHaveCount(2);
 });
+
+
+test.describe('touch talent choices',()=>{
+ test.use({hasTouch:true,isMobile:true,viewport:{width:390,height:844}});
+ test('portrait tap opens queued talents and the final choice closes without losing the entry',async({page})=>{
+  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-talents-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
+  await page.goto('/');await page.getByTestId('open-saves').tap();
+  await page.locator('.save-card').filter({hasText:'Queued talent choices'}).getByRole('button',{name:'载入',exact:true}).tap();
+  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+  const entry=page.getByTestId('portrait-talents');
+  await expect(page.getByTestId('commander-portrait')).toHaveText('Queued choices');
+  await expect(entry).toHaveAttribute('title','Queued choices · 有天赋待选择');
+  await entry.tap();await expect(page.getByRole('dialog',{name:'领袖天赋',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('commander-portrait')).toHaveClass(/has-talent/);
+  await entry.tap();await expect(page.getByRole('dialog')).toBeVisible();
+  const first=await page.locator('.talent-card h3').first().textContent();
+  await page.locator('.talent-card').first().tap();await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.locator('.chosen-talents')).toContainText(first!);
+  await expect(page.locator('.talent-card').first()).toBeEnabled();
+  await page.locator('.talent-card').first().tap();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('commander-portrait')).not.toHaveClass(/has-talent/);
+  await expect(entry).toHaveAttribute('title','Queued choices · 查看领袖天赋');
+  await entry.tap();await expect(page.locator('.talent-card')).toHaveCount(0);await expect(page.locator('.chosen-talents>span')).toHaveCount(2);
+  await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
+ });
+});
