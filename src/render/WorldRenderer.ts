@@ -3,7 +3,7 @@ import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryComponents,primaryCountryComponents,regionAreas,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryComponent,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
-import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize} from './unitPresentation.ts';
+import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH,buildingSegment} from '../game/buildings.ts';
@@ -62,6 +62,7 @@ export class WorldRenderer {
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
   private state:GameState|null=null;
+  private renderedUnits:GameState['units']=[];
   private boundaryEdges:BorderEdge[]=[];private groupingStamp='';
   private selected=-1;private hover=-1;private lang:'zh'|'en'='zh';
   private ownerIds=MAP.map(()=>-1);
@@ -200,10 +201,10 @@ export class WorldRenderer {
     material.customProgramCacheKey=()=> 'earth-relief-v1';
   }
   update(state:GameState,selected:number,lang:'zh'|'en') {
-    // Strategic units now move too. New snapshots invalidate the bounded 10fps
-    // far view; paused, unchanged strategic scenes still sleep.
-    if(this.state!==state)this.invalidated=true;
-    if(this.state?.campaign!==state.campaign)this.smoothed.clear();
+    // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
+    // movements accumulate from the last rendered state, never the previous tick.
+    if(this.state!==state&&unitPresentationChanged(this.renderedUnits,state.units,this.distance,this.host.clientHeight))this.invalidated=true;
+    if(this.state?.campaign!==state.campaign){this.smoothed.clear();this.invalidated=true;}
     this.state=state;
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
@@ -500,7 +501,7 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.drawMapNames();this.renderer.render(this.scene,this.camera);
+    this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
