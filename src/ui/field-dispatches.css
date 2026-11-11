@@ -1,0 +1,20 @@
+/* Keep dispatches readable above the map, with one shared time/content rhythm. */
+.is-game .dispatches{padding:16px;background:#173038;border:1px solid #c4c2a522;border-radius:4px;margin-top:10px;text-shadow:none}
+.dispatches #dispatch-heading{margin:0;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:11px;line-height:1.5;font-weight:600;letter-spacing:.12em;color:#d5c9a4}
+.dispatches .dispatch-list{margin:0;padding:0;list-style:none}
+.dispatches .dispatch-entry{display:grid;grid-template-columns:var(--dispatch-time-width) minmax(0,1fr);align-items:start;column-gap:10px;padding:12px 0;font-size:12px;line-height:1.6}
+.dispatches .dispatch-entry+ .dispatch-entry{border-top:1px solid #ffffff0d}
+.dispatches .dispatch-entry:last-child{padding-bottom:0}
+.dispatches .dispatch-time{display:block;margin:0;color:#a3b5ad;font-size:11px;line-height:19.2px;font-variant-numeric:tabular-nums;white-space:nowrap;direction:ltr}
+.dispatches .dispatch-content{min-width:0;overflow-wrap:anywhere}
+.dispatches .dispatch-player{display:block;font-weight:600;line-height:1.6}
+.dispatches .dispatch-event{display:block;margin-top:3px;color:#aebdb5}
+.dispatches .dispatch-region{font-weight:500;color:#e1e5d5}
+.dispatches .dispatch-empty{margin:12px 0 0;color:#a3b5ad;font-size:12px;line-height:1.6}
+@media (max-width:800px), (max-width:1000px) and (max-height:500px), (pointer:coarse) and (max-height:560px){
+ .is-game .dispatches{padding:14px}
+ .dispatches #dispatch-heading{font-size:12px}
+ .dispatches .dispatch-entry{font-size:14px;column-gap:12px}
+ .is-game .dispatches .dispatch-time{font-size:12px;line-height:22.4px}
+ .is-game .dispatches .dispatch-empty{font-size:14px}
+}

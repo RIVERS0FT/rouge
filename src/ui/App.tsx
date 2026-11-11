@@ -1,6 +1,7 @@
 import {StartMenu,storedLanguage,type StartAction} from './StartMenu.tsx';
 import {UnitAttributes,UnitSelection} from './UnitSelection.tsx';
 import {TerritoryPanel} from './TerritoryPanel.tsx';
+import {FieldDispatches} from './FieldDispatches.tsx';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
 import {InputDeviceTracker,type PointerIntent} from './inputDevice.ts';
 import {talentSelectionStatus} from './talentSelection.ts';
@@ -16,7 +17,7 @@ import {LEADERS,STATS,stats,upgradeCost} from '../game/content.ts';
 import {listSaves,readSave,writeSave,deleteSave,encodeSave,decodeSave,MAX_SAVE_BYTES,type SaveInfo} from '../game/save.ts';
 import type {GameState,Kind,Leader,Command,Result,PlayerSetup} from '../game/types.ts';
 import {localSession,preloadLocalSession,remoteSession,createRoom,joinRoom,configureRoom,api,type Session,type Ticket,type RoomInfo} from '../platform/session.ts';
-import {factionColor,factionTextColor} from '../game/factionColors.ts';
+import {factionColor} from '../game/factionColors.ts';
 import {WorldRenderer} from '../render/WorldRenderer.ts';
 import {World} from './World.tsx';
 import {FactionIdentity, CommanderPortrait} from './CommanderHud.tsx';
@@ -185,7 +186,7 @@ export function App({initialAction=null,initialFocus=null,initialLanguage}:{init
     <nav className="army-actions" aria-label={text('armyActions')}><button className="upgrade-trigger" onClick={()=>setModal('upgrades')} data-testid="open-upgrades" aria-haspopup="dialog"><span className="upgrade-icon" aria-hidden="true">↟</span><span>{text('upgrades')}</span><span aria-hidden="true">›</span></button></nav>
     {province&&<TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} mobileOpen={mobilePanel==='province'} onFocus={()=>world.current?.focusProvince(selected)} onManage={()=>setModal('territories')} onCommand={issue}/>}
     <aside id="strategic-panel" className={`strategic-panel ${mobilePanel==='intel'?'mobile-panel-open':''}`}><section className="panel objective"><span className="eyebrow gold">{text('objective')}</span><h3>{text('theatre')}</h3><p>{text('objectiveDesc').replace('{count}',String(Math.ceil(PLAYABLE_COUNT*0.6)))}</p><div className="faction-bars">{game.players.map(p=><span key={p.id} title={playerName(language,p)} style={{background:factionColor(p.id),width:`${(ownershipCounts.get(p.id)??0)/PLAYABLE_COUNT*100}%`}}/>)}</div>{game.domination[actor]>0&&<b className="gold">{text('domination')} {Math.floor(game.domination[actor])} / 30{text('seconds')}</b>}</section>
-      <section className="dispatches"><span className="eyebrow">{text('latest')}</span>{game.events.length?game.events.slice(-4).reverse().map((e,i)=><p key={`${e.tick}-${i}`}><time>{timeLabel(e.tick)}</time><span style={{color:factionTextColor(e.player)}}>{playerName(language,game.players[e.player])}</span> {text(`event.${e.key}`)}{e.province!==undefined?' '+MAP[e.province].name[language==='zh'?0:1]:''}</p>):<p className="muted">{text('noEvents')}</p>}</section>
+      <FieldDispatches events={game.events} players={game.players} language={language}/>
     </aside>
     <nav className="mobile-actions" aria-label={text('mobileActions')}>
       <button data-testid="toggle-province-panel" disabled={!province} aria-controls={province?'province-panel':undefined} aria-expanded={Boolean(province)&&mobilePanel==='province'} onClick={()=>setMobilePanel(mobilePanel==='province'?null:'province')}>{text(mobilePanel==='province'?'hideProvince':'showProvince')}</button>
