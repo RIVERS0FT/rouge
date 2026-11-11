@@ -99,3 +99,10 @@ The overlay also interpolates the original terrain triangle heights. It never
 resamples a different relief surface that could dip below the land and expose
 triangular dark gaps. Squared-distance queries, inherited vertex samples and a
 bounded corner tolerance keep the largest coast's rebuild within its budget.
+Depth separation now scales with camera distance and viewport height: it remains
+at its original safe value far away, but projects to less than half a CSS pixel
+at the closest terrain zoom. Coast, country, internal and selection edges use
+one scale so tiny islands do not gain a second floating outline. No border
+colors, widths or classification rules change. The browser evidence waits for
+the campaign to finish loading and captures Greenland, a hole-bearing Hungarian
+region and Fiji in addition to desktop/phone strategic and terrain views.

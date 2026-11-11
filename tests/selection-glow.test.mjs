@@ -123,3 +123,16 @@ test('subdivided glow stays on the original terrain plane instead of dipping und
  const source=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
  assert.match(source,/transformed\.y \+= uRelief \* landRelief/);
 });
+
+test('edge depth lifts stay subpixel at close zoom on desktop and phones',async()=>{
+ const {selectionOverlayLift}=await import('../src/render/selectionGlow.ts');
+ for(const height of [390,844,960,2160])for(const distance of [5,16,32,90,240,4400]){
+  const lift=selectionOverlayLift(distance,height),pixels=.16*lift*Math.sin(.6)*height/(2*Math.tan(20*Math.PI/180)*distance);
+  assert.ok(lift>0&&lift<=1);assert.ok(pixels<.5,'No floating edge at the closest camera');
+ }
+ assert.equal(selectionOverlayLift(4400,960),1,'Distant depth separation is unchanged');
+ assert.equal(selectionOverlayLift(16,0),1);
+ const source=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(source,/this\.overlayLiftUniform\.value=selectionOverlayLift/);
+ assert.match(source,/transformed\.y = 0\.16 \+ \(transformed\.y - 0\.16\) \* uOverlayLift/);
+});
