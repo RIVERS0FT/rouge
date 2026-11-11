@@ -4,7 +4,7 @@ import {MAP} from '../src/game/map.ts';
 import {encodeSave,SAVE_PREFIX} from '../src/game/save.ts';
 const names=['ABCDEFGHIJKLMNOPQRSTUVWX','卡拉达尔比亚联合共和国','قائد الحدود'];
 const state=createGame(names.map(name=>({name,leader:'warden',loadout:['infantry']})),77,'dispatch-qa');
-const longest=language=>MAP.filter(p=>p.playable).reduce((a,b)=>b.name[language].length>a.name[language].length?b:a).index;
+const longest=language=>MAP.indexOf(MAP.filter(p=>p.playable).reduce((a,b)=>b.name[language].length>a.name[language].length?b:a));
 const regions=[longest(0),longest(1)];
 state.tick=120060;
 state.events=[
