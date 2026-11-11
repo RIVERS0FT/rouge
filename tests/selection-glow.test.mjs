@@ -34,7 +34,7 @@ test('largest source boundary has bounded selection rebuild work',()=>{
  const count=p=>p.parts.flat().reduce((n,r)=>n+r.length,0),p=[...MAP].sort((a,b)=>count(b)-count(a))[0];
  const triangles=tessellate(p.parts),started=performance.now(),mesh=innerGlowMesh(triangles,buildBorderEdges([p],BOUNDS).map(e=>[e.a,e.b]),2),elapsed=performance.now()-started;
  console.log(`Largest selection ${p.code}: ${count(p)} boundary vertices, ${triangles.length} land triangles, ${mesh.points.length} glow vertices, ${elapsed.toFixed(1)} ms`);
- assert.ok(mesh.points.length<1500000,'Bounded overlay geometry');assert.ok(elapsed<5000,'Regression guard, not a mobile frame-time guarantee');
+ assert.ok(mesh.points.length<750000,'Bounded overlay geometry');assert.ok(elapsed<5000,'Regression guard, not a mobile frame-time guarantee');
 });
 
 test('concave notch stays empty instead of bridging an inward corner',()=>{
@@ -114,4 +114,12 @@ test('acute and shallow zigzag corners stay single-sided and smoothly faded',()=
   assert.ok(containsPart(parts[0],center.x,center.z),'Glow never leaks across the zigzag border');
   assert.ok(mesh.distance.slice(i,i+3).every(d=>d>=0&&d<=2));
  }
+});
+
+test('subdivided glow stays on the original terrain plane instead of dipping under it',()=>{
+ const triangle=[{x:0,z:0,relief:.2},{x:20,z:0,relief:.6},{x:0,z:20,relief:.4}],mesh=innerGlowMesh([triangle],segments([triangle]));
+ assert.ok(mesh.points.length>0);
+ for(const p of mesh.points)assert.ok(Math.abs((p.relief??0)-(.2+.02*p.x+.01*p.z))<1e-9,'Barycentric relief remains continuous through subdivision and fade clipping');
+ const source=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(source,/transformed\.y \+= uRelief \* landRelief/);
 });
