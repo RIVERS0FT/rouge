@@ -73,6 +73,7 @@ export class WorldRenderer {
   private desiredFocusZ=WORLD_CENTER.z;
   private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
+  private backgroundFrame=true;private renderRevision=0;
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
   private smoothed=new Map<number,Vec2>();
@@ -121,7 +122,7 @@ export class WorldRenderer {
     this.colors=new THREE.Float32BufferAttribute(colors,3);this.colors.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('color',this.colors);
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
-    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;});this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
+    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;});this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
     this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
     const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
     this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
@@ -224,7 +225,7 @@ export class WorldRenderer {
       this.renderer.domElement.dataset.managementRevision=String(grouping.revision);this.renderer.domElement.dataset.managementBorderSegments=String(internal.length);
       this.renderer.domElement.dataset.countryBorderSegments=String(countries.length);this.invalidated=true;
     }
-    if(this.lang!==lang){this.invalidated=true;this.lastLabels=0;}this.lang=lang;this.renderer.domElement.setAttribute('aria-label',lang==='zh'?'世界战场':'World theatre');
+    if(this.lang!==lang){this.invalidated=true;this.backgroundFrame=true;this.lastLabels=0;}this.lang=lang;this.renderer.domElement.setAttribute('aria-label',lang==='zh'?'世界战场':'World theatre');
     if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.invalidated=true;}
   }
   private drawSelection() {
@@ -253,7 +254,7 @@ export class WorldRenderer {
       worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;elapsed:number}})=>{
         if(this.selectionGlowWorker!==worker)return;
         const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));replaceGlow(geometry);
-        this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.invalidated=true;
+        this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.invalidated=true;this.backgroundFrame=true;
         worker.terminate();this.selectionGlowWorker=null;
       };
       worker.onerror=()=>{if(this.selectionGlowWorker===worker){this.renderer.domElement.dataset.selectionGlowPending='false';this.renderer.domElement.dataset.selectionGlowError='workerFailed';worker.terminate();this.selectionGlowWorker=null;}};
@@ -271,7 +272,7 @@ export class WorldRenderer {
     const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);this.desiredFocusZ=p.center.z;
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
+  private resize=()=>{this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:PointerEvent):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -290,7 +291,8 @@ export class WorldRenderer {
     else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
   setInputContext(context:MapInputContext){
-    this.invalidated=true;this.lastLabels=0;
+    if(this.labelTimer!==null){clearTimeout(this.labelTimer);this.labelTimer=null;}
+    this.backgroundFrame=true;this.invalidated=true;this.lastLabels=0;
     this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
     this.renderer.domElement.dataset.inputContext=context;
   }
@@ -371,7 +373,7 @@ export class WorldRenderer {
   private drawLabels(time:number) {
     if(time-this.lastLabels<180){
       // A final camera/state change must not leave labels at the previous view.
-      if(this.labelTimer===null)this.labelTimer=setTimeout(()=>{this.labelTimer=null;this.invalidated=true;},180-(time-this.lastLabels));
+      if(this.labelTimer===null)this.labelTimer=setTimeout(()=>{this.labelTimer=null;this.invalidated=true;this.backgroundFrame=true;},180-(time-this.lastLabels));
       return;
     }
     this.lastLabels=time;const near=this.distance<500;
@@ -448,6 +450,11 @@ export class WorldRenderer {
     this.animation=requestAnimationFrame(this.frame);
     if(document.hidden)return;
     const moving=Math.abs(this.distance-this.desiredDistance)>0.01;
+    // Menus/dialogs already block map interaction. Keep their backdrop still
+    // instead of competing with loading, controls or another LAN client. State
+    // updates and the network simulation continue; reopening the map redraws the
+    // newest state. Finish camera easing and allow resize/artwork refresh frames.
+    if(!this.mapInput.active&&!moving&&!this.backgroundFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
     // A paused strategic map needs no continuous frames; snapshots invalidate moving units.
     if(!moving&&!this.invalidated&&!this.dirty.size&&this.blend<0.1)return;
     if(time-this.lastRender<(this.distance>320?100:1000/30))return;
@@ -501,7 +508,8 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];
+    this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
+    this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';

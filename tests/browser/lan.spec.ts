@@ -75,9 +75,11 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
     await host.getByTestId('open-upgrades').click();
     await expect(host.locator('.upgrade-card').first()).not.toContainText('1/8');
+    await expect(host.locator('canvas')).toHaveAttribute('data-render-paused','true');
+    const hostTick=Number(await host.getByTestId('game-clock').getAttribute('data-tick'));
     await guest.reload();
-    // The host keeps a real SwiftShader map running. Trace evidence shows the
-    // guest mounts successfully, but first-render work can starve a 30s poll.
+    // Both sessions retain real WebGL maps. Allow a bounded cold-start budget
+    // for the guest's geometry and worker setup on shared CI hardware.
     // Give only this dual-renderer reload extra time, then assert game re-entry.
     await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest,60000);
     await expect(guest.locator('.app')).toHaveClass(/is-game/,{timeout:30000});
@@ -86,6 +88,18 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(guest.getByTestId('faction-identity').getByRole('img',{name:'Japan',exact:true})).toBeVisible();
     await guest.getByTestId('open-upgrades').click();
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
+    // Covered rendering sleeps, but the host simulation and both connections live.
+    // Async artwork may request one final frame. Verify steady sleep once it
+    // settles rather than requiring all late assets to have loaded beforehand.
+    await expect.poll(async()=>{
+      const before=await host.locator('canvas').getAttribute('data-render-revision');
+      await host.waitForTimeout(500);
+      return await host.locator('canvas').getAttribute('data-render-revision')===before;
+    }).toBe(true);
+    const hostFrame=await host.locator('canvas').getAttribute('data-render-revision');
+    await expect.poll(async()=>Number(await host.getByTestId('game-clock').getAttribute('data-tick'))).toBeGreaterThan(hostTick);
+    await host.keyboard.press('Escape');await expect(host.locator('canvas')).toHaveAttribute('data-render-paused','false');
+    await expect.poll(async()=>Number(await host.locator('canvas').getAttribute('data-render-revision'))).toBeGreaterThan(Number(hostFrame));
     expect(errors).toEqual([]);
   }finally{
     // Preserve the original assertion error if a timed-out browser is already closed.
