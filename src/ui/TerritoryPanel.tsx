@@ -1,3 +1,4 @@
+import {useLayoutEffect,useRef} from 'react';
 import {regionGarrison} from '../game/capacity.ts';
 import {UNITS} from '../game/content.ts';
 import {factionColor} from '../game/factionColors.ts';
@@ -13,10 +14,12 @@ type Props={
 
 /** One information hierarchy for desktop and both mobile orientations. */
 export function TerritoryPanel({state,selected,actor,eliminated,language,mobileOpen,onFocus,onManage,onCommand}:Props){
+ const panel=useRef<HTMLElement>(null);
+ useLayoutEffect(()=>{if(panel.current)panel.current.scrollTop=0;},[selected,mobileOpen]);
  const province=state.provinces[selected],player=state.players[actor],text=(key:string)=>t(language,key);
  const status=province.capture>0?'contested':province.recovery>0?'recovering':'stable';
  const productionTime=UNITS[province.kind].train;
- return <aside id="province-panel" aria-labelledby="province-title" className={`province-panel panel ${mobileOpen?'mobile-panel-open':''}`}>
+ return <aside ref={panel} id="province-panel" aria-labelledby="province-title" className={`province-panel panel ${mobileOpen?'mobile-panel-open':''}`}>
   <header className="province-heading">
    <div className="panel-kicker"><span>{text('province')}</span><button className="icon-button" onClick={onFocus} title={text('focus')} aria-label={text('focus')}>⌖</button></div>
    <h2 id="province-title">{MAP[selected].name[language==='zh'?0:1]}</h2>
