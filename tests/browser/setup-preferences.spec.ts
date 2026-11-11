@@ -29,6 +29,9 @@ test('queued level choices stay open until the final authoritative choice is app
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Queued talent choices'}).getByRole('button',{name:'载入',exact:true}).click();
+ await expect(page.getByTestId('commander-portrait')).toHaveClass(/has-talent/);
+ await expect(page.getByTestId('portrait-talents')).toHaveAccessibleName(/有天赋待选择/);
+ await expect(page.getByTestId('portrait-talents')).toHaveText('');
  await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
  const first=await page.locator('.talent-card h3').first().textContent();
  await page.locator('.talent-card').first().click();

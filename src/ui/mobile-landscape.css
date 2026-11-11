@@ -21,7 +21,7 @@
  .settings-trigger{top:var(--mobile-top);right:var(--mobile-right);width:44px;height:68px;padding:0;gap:0;font-size:0}
  .settings-trigger>span:first-child{font-size:22px}
  .settings-trigger>span:last-child{display:none}
- .is-game .map-search{top:calc(var(--mobile-top) + 76px);left:var(--mobile-left);right:calc(var(--mobile-right) + 52px);transform:none;width:auto;max-width:none;z-index:13}
+ .is-game .map-search{top:calc(var(--mobile-top) + 76px);left:var(--mobile-left);right:var(--mobile-right);transform:none;width:auto;max-width:none;z-index:13}
  .is-game .map-search input{min-height:44px;padding:10px 12px;font-size:16px}
  .is-game .map-search-results{max-height:40dvh;overflow:auto}
  .is-game .map-search-results button{font-size:14px;padding:8px 12px}
@@ -44,13 +44,12 @@
  .is-game .strategic-panel .objective{padding:12px}
  .is-game .strategic-panel p,.is-game .dispatches p,.is-game .dispatches time{font-size:13px}
  .is-game .atlas-credit{display:none}
- .is-game .commander-portrait{display:block;left:auto;right:var(--mobile-right);top:calc(var(--mobile-top) + 76px);bottom:auto;width:44px;height:44px;z-index:12}
- .is-game .commander-art{inset:0;width:100%;height:100%}
- .is-game .commander-art svg{width:100%;height:100%}
- .is-game .commander-rank,.is-game .commander-portrait-copy,.is-game .commander-portrait::after,.is-game .commander-portrait::before{display:none}
- .is-game .commander-talents{inset:0;opacity:0;padding:0;min-width:44px;min-height:44px}
- .is-game .commander-talents:focus-visible{opacity:1}
- .is-game .commander-experience{height:3px}
+ .is-game .commander-portrait{display:block;left:var(--mobile-left);right:auto;top:auto;bottom:calc(var(--mobile-bottom) + 64px);width:min(220px,calc(100% - var(--mobile-left) - var(--mobile-right) - 152px));height:44px;z-index:12}
+ .is-game .commander-art{inset:0;width:44px;height:100%}
+ .is-game .commander-portrait-copy{display:flex;align-items:center;left:50px;right:8px;bottom:0;height:100%}
+ .is-game .commander-player{font-size:14px}
+ .is-game .commander-portrait::after,.is-game .commander-portrait::before{display:none}
+ .is-game .commander-talents{min-width:44px;min-height:44px}
  .army-actions{top:auto;right:var(--mobile-right);bottom:calc(var(--mobile-bottom) + 64px);width:140px;z-index:12}
  .upgrade-trigger{min-height:44px;padding:8px;font-size:13px;gap:5px}
  .upgrade-icon{width:20px;height:20px;font-size:20px}
