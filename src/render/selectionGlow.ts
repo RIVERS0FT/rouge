@@ -2,6 +2,12 @@ import type {Vec2} from '../game/types.ts';
 export const SELECTION_GLOW_WIDTH=2;
 export type GlowPoint=Vec2&{relief?:number};
 export const SELECTION_GLOW_OPACITY=.24;
+/** Keep depth separation, but cap its apparent displacement below one CSS pixel
+ * at the steepest terrain angle. Fixed world-space lifts visibly float above
+ * tiny islands at the closest camera distance. */
+export function selectionOverlayLift(distance:number,viewportHeight:number):number {
+ return Number.isFinite(distance)&&distance>0&&Number.isFinite(viewportHeight)&&viewportHeight>0?Math.min(1,Math.max(.001,3*distance/viewportHeight)):1;
+}
 const cross=(a:Vec2,b:Vec2,p:Vec2)=>(b.x-a.x)*(p.z-a.z)-(b.z-a.z)*(p.x-a.x);
 const bounds=(points:readonly Vec2[])=>({left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),top:Math.min(...points.map(p=>p.z)),bottom:Math.max(...points.map(p=>p.z))});
 const overlaps=(a:ReturnType<typeof bounds>,b:ReturnType<typeof bounds>,padding=0)=>a.left<=b.right+padding&&a.right>=b.left-padding&&a.top<=b.bottom+padding&&a.bottom>=b.top-padding;

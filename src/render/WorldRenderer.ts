@@ -2,7 +2,7 @@ import {MapSurface} from './mapSurface.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
-import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY} from './selectionGlow.ts';
+import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY,selectionOverlayLift} from './selectionGlow.ts';
 import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
@@ -65,6 +65,7 @@ export class WorldRenderer {
   private unitPoint=new THREE.Vector3();
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
+  private overlayLiftUniform={value:1};
   private state:GameState|null=null;
   private renderedUnits:GameState['units']=[];
   private boundaryEdges:BorderEdge[]=[];private groupingStamp='';
@@ -142,14 +143,14 @@ export class WorldRenderer {
     glowMaterial.onBeforeCompile=shader=>{
       // Subdivision follows the original land triangle plane, not a differently
       // tessellated relief wave that could dip below the terrain and create gaps.
-      shader.uniforms.uRelief=this.blendUniform;
+      shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;
       shader.uniforms.uGlowWidth={value:SELECTION_GLOW_WIDTH};
-      shader.vertexShader='uniform float uRelief; attribute float landRelief; attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
-      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance; transformed.y += uRelief * landRelief;');
+      shader.vertexShader='uniform float uRelief; uniform float uOverlayLift; attribute float landRelief; attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance; transformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift; transformed.y += uRelief * landRelief;');
       shader.fragmentShader='uniform float uGlowWidth; varying float vEdgeDistance;\n'+shader.fragmentShader;
       shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fade = 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);\ndiffuseColor.a *= fade * fade;');
     };
-    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v3-land-plane';
+    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v4-subpixel-lift';
     const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));initialGlow.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));
     this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.atlas.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
@@ -192,10 +193,10 @@ export class WorldRenderer {
     const geometry=new LineSegmentsGeometry().setPositions(points);
     const material=new LineMaterial({color,linewidth:width,worldUnits:false,transparent:true,depthWrite:false,alphaToCoverage:true});
     material.onBeforeCompile=shader=>{
-      shader.uniforms.uRelief=this.blendUniform;shader.vertexShader='uniform float uRelief;\n'+shader.vertexShader;
-      for(const endpoint of ['instanceStart','instanceEnd'])shader.vertexShader=shader.vertexShader.replace(`vec4( ${endpoint}, 1.0 )`,`vec4( ${endpoint} + vec3(0.0, uRelief * (0.32 * (1.0 + sin(${endpoint}.x * 0.18) * cos(${endpoint}.z * 0.22))), 0.0), 1.0 )`);
+      shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uRelief; uniform float uOverlayLift;\n'+shader.vertexShader;
+      for(const endpoint of ['instanceStart','instanceEnd'])shader.vertexShader=shader.vertexShader.replace(`vec4( ${endpoint}, 1.0 )`,`vec4( vec3(${endpoint}.x, 0.16 + (${endpoint}.y - 0.16) * uOverlayLift, ${endpoint}.z) + vec3(0.0, uRelief * (0.32 * (1.0 + sin(${endpoint}.x * 0.18) * cos(${endpoint}.z * 0.22))), 0.0), 1.0 )`);
     };
-    material.customProgramCacheKey=()=> 'earth-wide-border-relief-v1';
+    material.customProgramCacheKey=()=> 'earth-wide-border-relief-v2-subpixel-lift';
     const lines=new LineSegments2(geometry,material);lines.visible=points.length>0;return lines;
   }
   private replaceWideGeometry(lines:LineSegments2,points:number[]) {
@@ -203,9 +204,9 @@ export class WorldRenderer {
     for(const copy of this.repeats){const repeat=copy.getObjectByName(lines.name) as LineSegments2;repeat.geometry=geometry;repeat.visible=lines.visible;}
   }
   private relief(material:THREE.Material) {
-    material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.vertexShader='uniform float uRelief;\n'+shader.vertexShader;
-      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y += uRelief * (0.32 * (1.0 + sin(position.x * 0.18) * cos(position.z * 0.22)));');};
-    material.customProgramCacheKey=()=> 'earth-relief-v1';
+    material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uRelief; uniform float uOverlayLift;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift; transformed.y += uRelief * (0.32 * (1.0 + sin(position.x * 0.18) * cos(position.z * 0.22)));');};
+    material.customProgramCacheKey=()=> 'earth-relief-v2-subpixel-lift';
   }
   update(state:GameState,selected:number,lang:'zh'|'en') {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
@@ -481,6 +482,8 @@ export class WorldRenderer {
     const elapsed=Math.max(0,(time-this.last)/1000||0.016);this.last=time;
     this.distance=advanceCameraDistance(this.distance,this.desiredDistance,elapsed,this.lastCameraTarget!==this.desiredDistance);this.lastCameraTarget=this.desiredDistance;
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
+    this.overlayLiftUniform.value=selectionOverlayLift(this.distance,this.host.clientHeight);
+    this.renderer.domElement.dataset.overlayLiftScale=this.overlayLiftUniform.value.toFixed(5);
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
