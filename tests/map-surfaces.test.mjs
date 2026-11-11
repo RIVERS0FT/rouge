@@ -27,9 +27,9 @@ test('bundled raster bytes, dimensions and budgets are recorded with public-doma
   assert.equal(createHash('sha256').update(buffer).digest('hex'),entry.sha256);assert.equal(buffer.length,entry.bytes);
   assert.equal(buffer.subarray(0,4).toString(),'RIFF');assert.equal(buffer.subarray(8,12).toString(),'WEBP');
   assert.equal(entry.height,Math.round(entry.width*(WORLD_BOUNDS.bottom-WORLD_BOUNDS.top)/3600));
-  if(name==='natural-earth-relief-4096.webp'||name==='natural-earth-ocean-2048.webp')full+=entry.bytes;else compact+=entry.bytes;
+  if(name==='natural-earth-relief-4096.webp')full+=entry.bytes;else compact+=entry.bytes;
  }
- assert.ok(full<1_200_000);assert.ok(compact<320_000);assert.equal(audit.license,'public-domain');
+ assert.ok(full<610_000);assert.ok(compact<170_000);assert.equal(audit.ocean.externalAssets,false);assert.equal(audit.ocean.simulationChanged,false);assert.equal(audit.license,'public-domain');
 });
 test('subtle scalar relief preserves flat political color and stays bounded',()=>{
  assert.equal(reliefMultiplier(RELIEF_MIDPOINT),1);

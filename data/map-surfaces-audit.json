@@ -30,26 +30,6 @@
         10800,
         5400
       ]
-    },
-    "ocean": {
-      "name": "Natural Earth 1:50m Ocean Bottom",
-      "version": "3.2.0",
-      "page": "https://www.naturalearthdata.com/downloads/50m-raster-data/50m-ocean-bottom/",
-      "url": "https://naturalearth.s3.amazonaws.com/50m_raster/OB_50M.zip",
-      "archiveSha256": "7339ee90615232596bbfd67f20c09bbefaef596ab0fdddc45dcb56edc3b98710",
-      "tifSha256": "ca069ad9003334af5433ea230b17259e1092970c57ce239ae0993fcf4f10f605",
-      "worldFile": [
-        0.03333333333333,
-        0.0,
-        0.0,
-        -0.03333333333333,
-        -179.98333333333332,
-        89.98333333333333
-      ],
-      "size": [
-        10800,
-        5400
-      ]
     }
   },
   "outputs": {
@@ -64,18 +44,12 @@
       "height": 904,
       "bytes": 159428,
       "sha256": "030be2c4b5b949400ae04cebbeba892fb8ed8927f17f30b5f4fc8b9fafe174a4"
-    },
-    "natural-earth-ocean-2048.webp": {
-      "width": 2048,
-      "height": 904,
-      "bytes": 526468,
-      "sha256": "08753650452dd9a23f32108dede3923dd067de189ee7176c4c9c4ea5f3a4ac91"
-    },
-    "natural-earth-ocean-1024.webp": {
-      "width": 1024,
-      "height": 452,
-      "bytes": 127890,
-      "sha256": "55c83c0d072e0ba2bfd1e70c425d53baab1f06215498582f5c3f92d0569c17ee"
     }
+  },
+  "ocean": {
+    "implementation": "src/render/oceanSurface.ts",
+    "style": "static low-contrast surface ripples with view-dependent near reflection",
+    "externalAssets": false,
+    "simulationChanged": false
   }
 }

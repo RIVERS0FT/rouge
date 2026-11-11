@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline, reproducible visual assets. Requires Pillow and NumPy, not at runtime.
-Download the two official archives recorded below, then pass their local paths.
+Download the official relief archive recorded below, then pass its local path.
 No navigation, elevation, collision, coastline, or simulation data is generated.
 """
 import argparse, hashlib, io, json, math, subprocess, zipfile
@@ -13,9 +13,7 @@ SOURCES = {
     "relief": {"name": "Natural Earth 1:50m Shaded Relief", "version": "3.2.0",
         "page": "https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/",
         "url": "https://naturalearth.s3.amazonaws.com/50m_raster/SR_50M.zip"},
-    "ocean": {"name": "Natural Earth 1:50m Ocean Bottom", "version": "3.2.0",
-        "page": "https://www.naturalearthdata.com/downloads/50m-raster-data/50m-ocean-bottom/",
-        "url": "https://naturalearth.s3.amazonaws.com/50m_raster/OB_50M.zip"},
+
 }
 
 def digest(data):
@@ -56,27 +54,23 @@ def project(image, width, bounds):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--relief",type=Path,required=True)
-    parser.add_argument("--ocean",type=Path,required=True)
     args=parser.parse_args()
     config=json.loads(subprocess.check_output(["node","--experimental-strip-types","--input-type=module","-e",
         "import {WORLD_BOUNDS,CROP_ID,PROJECTION_ID} from './src/game/geo.ts'; console.log(JSON.stringify({bounds:WORLD_BOUNDS,crop:CROP_ID,projection:PROJECTION_ID}));"],cwd=ROOT))
     outputs={}
     destination=ROOT/"src/assets/map"
     destination.mkdir(parents=True,exist_ok=True)
-    for kind in ["relief","ocean"]:
+    for kind in ["relief"]:
         image=source(getattr(args,kind),SOURCES[kind])
-        if kind == "ocean":
-            # The original green channel describes the illustrated depth/relief.
-            # It is a visual tone, NOT a bathymetric measurement or movement cost.
-            image=image.getchannel("G").point(lambda v: round(max(0,min(1,(v-145)/45))*255))
-        for width in ([4096,2048] if kind == "relief" else [2048,1024]):
+        for width in [4096,2048]:
             projected=project(image,width,config["bounds"])
             filename=f"natural-earth-{kind}-{width}.webp"
             path=destination/filename
             projected.save(path,"WEBP",quality=90,method=6)
             outputs[filename]={"width":projected.width,"height":projected.height,"bytes":path.stat().st_size,"sha256":digest(path.read_bytes())}
     audit={"license":"public-domain","terms":"https://www.naturalearthdata.com/about/terms-of-use/",
-        "use":"visual shading only; no simulation data",**config,"sources":SOURCES,"outputs":outputs}
+        "use":"visual shading only; no simulation data",**config,"sources":SOURCES,"outputs":outputs,
+        "ocean":{"implementation":"src/render/oceanSurface.ts","style":"static low-contrast surface ripples with view-dependent near reflection","externalAssets":False,"simulationChanged":False}}
     (ROOT/"data/map-surfaces-audit.json").write_text(json.dumps(audit,indent=2)+"\n")
     print(json.dumps(outputs,indent=2))
 
