@@ -81,3 +81,37 @@ test('renderer selection retains island coast edges for outline and glow input',
  const mesh=innerGlowMesh(tessellate(selected.parts),expected.map(e=>[e.a,e.b]),2);
  assert.ok(mesh.points.length>0,'Island coastline produces glow');
 });
+
+test('inner corners have one coverage layer instead of stacked per-edge wedges',()=>{
+ const ring=square(0,0,20,20),mesh=innerGlowMesh(tessellate([[ring]]),segments([ring]),2);
+ const sample=p=>{
+  const distances=[];
+  for(let i=0;i<mesh.points.length;i+=3){
+   const [a,b,c]=mesh.points.slice(i,i+3),area=(b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x);
+   const u=((b.x-p.x)*(c.z-p.z)-(b.z-p.z)*(c.x-p.x))/area,v=((c.x-p.x)*(a.z-p.z)-(c.z-p.z)*(a.x-p.x))/area,w=1-u-v;
+   if(Math.min(u,v,w)>1e-9)distances.push(u*mesh.distance[i]+v*mesh.distance[i+1]+w*mesh.distance[i+2]);
+  }
+  return distances;
+ };
+ for(const p of [{x:.43,z:.79},{x:1.21,z:.37},{x:19.31,z:.41},{x:19.23,z:18.81},{x:10.13,z:1.17}]){
+  const values=sample(p);assert.equal(values.length,1,`Single coverage at ${JSON.stringify(p)}`);
+  const expected=Math.min(p.x,20-p.x,p.z,20-p.z);assert.ok(Math.abs(values[0]-expected)<.06,'Nearest-edge fade has no triangular brightness spikes');
+ }
+ assert.equal(sample({x:10.13,z:10.27}).length,0,'Center keeps its original fill');
+});
+
+test('duplicate segments and boundary direction cannot increase glow intensity',()=>{
+ const ring=square(0,0,20,20),triangles=tessellate([[ring]]),edges=segments([ring]);
+ const normal=innerGlowMesh(triangles,edges),duplicates=innerGlowMesh(triangles,[...edges,...edges.map(([a,b])=>[b,a])]);
+ assert.deepEqual(duplicates,normal,'The nearest-boundary field is independent of edge multiplicity');
+});
+
+test('acute and shallow zigzag corners stay single-sided and smoothly faded',()=>{
+ const ring=[{x:0,z:0},{x:3,z:.5},{x:6,z:0},{x:6.2,z:2},{x:9,z:.1},{x:12,z:0},{x:12,z:12},{x:0,z:12}],parts=[[ring]],mesh=innerGlowMesh(tessellate(parts),segments([ring]));
+ assert.ok(mesh.points.length>0);assert.ok(mesh.points.length<100000);
+ for(let i=0;i<mesh.points.length;i+=3){
+  const t=mesh.points.slice(i,i+3),center={x:t.reduce((sum,p)=>sum+p.x,0)/3,z:t.reduce((sum,p)=>sum+p.z,0)/3};
+  assert.ok(containsPart(parts[0],center.x,center.z),'Glow never leaks across the zigzag border');
+  assert.ok(mesh.distance.slice(i,i+3).every(d=>d>=0&&d<=2));
+ }
+});

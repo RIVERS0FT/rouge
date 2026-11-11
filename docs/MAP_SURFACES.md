@@ -83,3 +83,15 @@ political color/name/border preservation, coast and near-water screenshots,
 orientation without duplicate downloads and missing/slow relief images.
 Screenshots accompany post-deployment acceptance in the repository's
 PR squash → main deploy → main test workflow.
+
+## Selected territory inner glow
+
+The selected border keeps its fine outline and original ownership fill. The
+inner glow now samples the nearest finite boundary into one non-overlapping
+land mesh instead of stacking one transparent strip per boundary segment.
+This removes bright triangular fans and dark gaps at jagged turns. Adaptive
+subdivision keeps curved joins smooth while straight fades stay compact.
+Opacity is 0.24 with a squared smooth falloff over two map units. Holes,
+islands, dissolved source seams, crop clipping and world repeats use the same
+land/border geometry as before. Rebuilding remains in a cancellable worker;
+selection changes discard old geometry and stale worker results.

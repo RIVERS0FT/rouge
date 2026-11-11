@@ -2,7 +2,7 @@ import {MapSurface} from './mapSurface.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
-import {SELECTION_GLOW_WIDTH} from './selectionGlow.ts';
+import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY} from './selectionGlow.ts';
 import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
@@ -138,7 +138,7 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.coastBorderSegments=String(coasts.length/6);
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
     this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
-    const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:0.38,depthWrite:false,side:THREE.DoubleSide});
+    const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:SELECTION_GLOW_OPACITY,depthWrite:false,side:THREE.DoubleSide});
     this.relief(glowMaterial);const reliefCompile=glowMaterial.onBeforeCompile;
     glowMaterial.onBeforeCompile=(shader,renderer)=>{
       reliefCompile(shader,renderer);
@@ -146,9 +146,9 @@ export class WorldRenderer {
       shader.vertexShader='attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
       shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance;');
       shader.fragmentShader='uniform float uGlowWidth; varying float vEdgeDistance;\n'+shader.fragmentShader;
-      shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.a *= 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);');
+      shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fade = 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);\ndiffuseColor.a *= fade * fade;');
     };
-    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v1';
+    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v2-single-coverage';
     const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));
     this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.atlas.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
@@ -248,6 +248,8 @@ export class WorldRenderer {
     const replaceGlow=(geometry:THREE.BufferGeometry)=>{this.selectionGlow.geometry.dispose();this.selectionGlow.geometry=geometry;for(const copy of this.repeats)(copy.getObjectByName('selected-inner-glow') as THREE.Mesh).geometry=geometry;};
     const empty=new THREE.BufferGeometry();empty.setAttribute('position',new THREE.Float32BufferAttribute([],3));empty.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));replaceGlow(empty);
     this.renderer.domElement.dataset.selectionStyle='outline-inner-glow';
+    this.renderer.domElement.dataset.selectionGlowCoverage='single-nearest-boundary';
+    this.renderer.domElement.dataset.selectionGlowOpacity=String(SELECTION_GLOW_OPACITY);
     this.renderer.domElement.dataset.selectionGlowVertices='0';this.renderer.domElement.dataset.selectionGlowPending='false';delete this.renderer.domElement.dataset.selectionGlowError;
     this.renderer.domElement.dataset.selectionGlowWidth=String(SELECTION_GLOW_WIDTH);
     this.renderer.domElement.dataset.selectedRegion=String(this.selected);
