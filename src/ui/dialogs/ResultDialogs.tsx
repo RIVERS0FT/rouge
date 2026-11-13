@@ -1,17 +1,18 @@
 import type {GameState} from '../../game/types.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
+import {factionFlag} from '../../game/factionFlags.ts';
 import {FlagImage} from '../Flag.tsx';
 import {Icon} from '../icons.tsx';
 import {t, timeLabel, playerName, type Language} from '../i18n.ts';
 
 /** End-of-campaign proclamation. It cannot be dismissed into a finished match. */
 export function VictoryOverlay({state, actor, owned, language, onLeave}: {state: GameState; actor: number; owned: number; language: Language; onLeave: () => void}) {
- const text = (key: string) => t(language, key), winner = state.players[state.winner!], won = state.winner === actor;
+ const text = (key: string) => t(language, key), winner = state.players[state.winner!], won = state.winner === actor, flag = factionFlag(state.players, winner.id);
  return <div className="modal-backdrop">
   <section className="modal result-modal" role="dialog" aria-modal="true" aria-label={text(won ? 'victory' : 'defeat')} data-outcome={won ? 'victory' : 'defeat'}>
    <header className="window-band"><span className="window-kicker">{text('winner')}</span><h2>{text(won ? 'victory' : 'defeat')}</h2></header>
    <div className="modal-body">
-    <div className="result-emblem" aria-hidden="true">{winner.flag ? <FlagImage flag={winner.flag} language={language}/> : <Icon name="crown" size={56}/>}</div>
+    <div className="result-emblem" aria-hidden="true">{flag ? <FlagImage flag={flag} language={language}/> : <Icon name="crown" size={56}/>}</div>
     <div className="eyebrow gold">{text('winner')} / {playerName(language, winner)}</div>
     <dl className="result-stats">
      <div><dt>{text('campaignTime')}</dt><dd>{timeLabel(state.tick)}</dd></div>

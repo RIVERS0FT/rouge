@@ -9,7 +9,7 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
   await page.goto('/');await page.getByTestId('open-saves').click();
   await page.locator('.save-card').filter({hasText:'Historical palette fixture'}).getByRole('button',{name:'Load',exact:true}).click();
   await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:30000});
-  const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-input-context','game');
+  const canvas=page.locator('.world canvas');await expect(canvas).toHaveAttribute('data-input-context','game');
   await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await expect(page.getByTestId('faction-identity').locator('svg rect').first()).toHaveAttribute('fill','#ff0000');
   await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);

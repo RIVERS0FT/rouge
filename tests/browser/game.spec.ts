@@ -9,7 +9,7 @@ test('menu → setup → real WebGL game → upgrade → multi-slot save → rel
  await page.screenshot({path:'artifacts/menu.png'});
  await page.getByTestId('single-player').click();await page.getByTestId('commander-name').fill('E2E Commander');await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
- await expect(page.locator('.commander-player')).toContainText('E2E Commander');await expect(page.locator('.render-error')).toHaveCount(0);await expect(page.locator('canvas')).toBeVisible();
+ await expect(page.locator('.commander-player')).toContainText('E2E Commander');await expect(page.locator('.render-error')).toHaveCount(0);await expect(page.locator('.world canvas')).toBeVisible();
  await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
  await page.getByTestId('open-upgrades').click();
  await page.getByTestId('upgrade-infantry-attack').click();await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
@@ -17,7 +17,7 @@ test('menu → setup → real WebGL game → upgrade → multi-slot save → rel
  await page.getByPlaceholder('Save name').fill('First slot');await page.getByTestId('create-save').click();
  await page.getByPlaceholder('Save name').fill('Second slot');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card')).toHaveCount(2);await page.getByRole('button',{name:'Close',exact:true}).first().click();
- await page.locator('canvas').focus();await page.keyboard.press('End');await page.waitForTimeout(1500);await page.screenshot({path:'artifacts/game-3d.png'});
+ await page.locator('.world canvas').focus();await page.keyboard.press('End');await page.waitForTimeout(1500);await page.screenshot({path:'artifacts/game-3d.png'});
  await page.reload();await waitForRuntime(page);await page.getByTestId('open-saves').click();await expect(page.locator('.save-card')).toHaveCount(2);await page.locator('.save-card').filter({hasText:'First slot'}).getByRole('button',{name:'Load',exact:true}).click();
  await expect(page.locator('.commander-player')).toContainText('E2E Commander');expect(errors).toEqual([]);
 });

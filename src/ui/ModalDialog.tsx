@@ -26,7 +26,9 @@ export function ModalDialog({children, className, label, closeLabel, onClose, pa
   return () => {document.removeEventListener('keydown', key); if(previous?.isConnected) previous.focus({preventScroll: true});};
  }, []);
  useEffect(() => {
-  dialog.current?.querySelector<HTMLElement>('button')?.focus({preventScroll: true});
+  // A new page takes focus, unless the player is already typing in one of its fields.
+  const active = document.activeElement;
+  if(!(active && dialog.current?.contains(active) && active.matches('input,select,textarea'))) dialog.current?.querySelector<HTMLElement>('button')?.focus({preventScroll: true});
   body.current?.scrollTo(0, 0);
  }, [pageKey]);
  return <div className="modal-backdrop" onClick={event => {if(event.target === event.currentTarget) onClose();}}>

@@ -29,10 +29,13 @@ test('cloth previews animate while reduced motion and the drawing surface remain
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('edit-player-flag').click();
  await page.getByLabel('旗帜类型',{exact:true}).selectOption('custom');
  const preview=page.locator('.flag-controls .player-flag');await expect(preview).toHaveClass(/is-cloth/);
- const flags=await page.locator('.is-cloth').evaluateAll(nodes=>nodes.map(node=>({ids:[...node.querySelectorAll('[id]')].map(el=>el.id),filter:node.querySelector('g[filter]')!.getAttribute('filter'),animation:getComputedStyle(node).animationName})));
+ // Every clip, gradient and href inside a banner resolves to an id of that same banner.
+ const flags=await page.locator('.is-cloth').evaluateAll(nodes=>nodes.map(node=>({ids:[...node.querySelectorAll('[id]')].map(el=>el.id),
+  refs:[...node.querySelectorAll('*')].flatMap(el=>[...el.attributes].map(a=>a.value.match(/^url\(#(.+)\)$/)?.[1]??(a.name==='href'&&a.value.startsWith('#')?a.value.slice(1):null)).filter(Boolean)),
+  animation:getComputedStyle(node).animationName})));
  expect(flags.length).toBeGreaterThanOrEqual(1);
  const ids=flags.flatMap(flag=>flag.ids);expect(new Set(ids).size).toBe(ids.length);
- for(const flag of flags){expect(flag.animation).toBe('flag-billow');expect(ids).toContain(flag.filter!.slice(5,-1));}
+ for(const flag of flags){expect(flag.animation).toBe('flag-billow');expect(flag.refs.length).toBeGreaterThan(0);for(const ref of flag.refs)expect(flag.ids).toContain(ref);}
  const before=await preview.evaluate(node=>getComputedStyle(node).transform);
  await expect.poll(()=>preview.evaluate(node=>getComputedStyle(node).transform)).not.toBe(before);
  await expect(page.locator('.flag-drawing-canvas .player-flag')).not.toHaveClass(/is-cloth/);
@@ -40,4 +43,16 @@ test('cloth previews animate while reduced motion and the drawing surface remain
  await page.emulateMedia({reducedMotion:'reduce'});
  expect(await preview.evaluate(node=>node.getAnimations({subtree:true}).length)).toBe(0);
  await expect(preview).toBeVisible();await page.screenshot({path:'artifacts/cloth-flags-reduced-motion.png'});
+});
+
+test('every computer faction flies a distinct real flag beside its name',async({page})=>{
+ await page.goto('/');await page.getByTestId('single-player').click();
+ await page.getByTestId('setup-ai-count').fill('7');await page.getByTestId('begin-campaign').click();
+ await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+ await expect(page.getByTestId('province-owner-name')).toHaveText('指挥官');
+ await expect(page.locator('#province-panel .owner-swatch>svg[role="img"]')).toHaveAttribute('aria-label','中国');
+ await page.getByTestId('outliner-all-nations').click();
+ await expect(page.locator('#nations-panel .nation-row')).toHaveCount(8);
+ const names=await page.locator('#nations-panel .faction-swatch>svg[role="img"]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('aria-label')));
+ expect(names).toHaveLength(8);expect(names.every(name=>name&&name!=='自定义旗帜')).toBe(true);expect(new Set(names).size).toBe(8);
 });

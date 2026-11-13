@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 test('selection preserves owner fill and uses bounded inner glow in strategic and terrain views',async({page},testInfo)=>{
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
  test.setTimeout(150000);
- const canvas=page.locator('canvas');
+ const canvas=page.locator('.world canvas');
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await expect(page.locator('.modal-backdrop')).toHaveCount(0);
  await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');

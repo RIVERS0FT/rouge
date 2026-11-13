@@ -4,6 +4,7 @@ import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
 import type {GameState} from '../../game/types.ts';
 import {FactionIdentity} from '../CommanderHud.tsx';
+import {factionFlag} from '../../game/factionFlags.ts';
 import {leaderProgress} from '../commanderIdentity.ts';
 import {Icon, type IconName} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
@@ -34,7 +35,7 @@ export function TopBar({state, actor, owned, language, onTalents, clock, menu}: 
  const rival = state.players.filter(p => p.id !== actor).map(p => ({player: p, value: state.domination[p.id] ?? 0})).sort((a, b) => b.value - a.value)[0];
  const share = owned / PLAYABLE_COUNT * 100;
  return <header className="hud-top">
-  <FactionIdentity flag={player.flag} actor={actor} language={language} color={factionColor(actor)}/>
+  <FactionIdentity flag={factionFlag(state.players, actor)} actor={actor} language={language} color={factionColor(actor)}/>
   <div className="hud-ledger" role="group" aria-label={text('stateLedger')}>
    <Metric icon="coin" label={text('gold')} className="resource-treasury" tip={<>
     <TipTitle aside={Math.floor(player.gold).toLocaleString()}>{text('treasuryLabel')}</TipTitle>

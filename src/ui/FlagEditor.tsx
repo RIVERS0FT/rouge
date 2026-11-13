@@ -1,7 +1,10 @@
 import {useRef,useState,type PointerEvent} from 'react';
 import {FLAG_PRESETS,FLAG_PATTERNS,FLAG_SHAPES,MAX_FLAG_SHAPES,flagShapeFromDrag,type Flag,type FlagShape} from '../game/flags.ts';
-import {FlagImage,FlagShapeArt,FLAG_NAMES,PATTERN_NAMES} from './Flag.tsx';
+import {FLAG_CATALOG,FLAG_REGIONS,FLAG_REGION_NAMES,type FlagPresetId} from '../game/flagCatalog.ts';
+import {FlagImage,FlagShapeArt,PATTERN_NAMES} from './Flag.tsx';
 import type {Language} from './i18n.ts';
+/** Real flags grouped by continent and sorted by their localized name. */
+function presetGroups(index:0|1){const collator=new Intl.Collator(index?'en':'zh-Hans-CN-u-co-pinyin');return FLAG_REGIONS.map(region=>({region,ids:FLAG_PRESETS.filter(id=>FLAG_CATALOG[id].region===region).sort((a,b)=>collator.compare(FLAG_CATALOG[a].names[index],FLAG_CATALOG[b].names[index]))}));}
 const SHAPE_NAMES={circle:['圆形','Circle'],rect:['矩形','Rectangle'],triangle:['三角形','Triangle'],star:['星形','Star']} as const;
 export function FlagEditor({value,onChange,language}:{value:Flag;onChange:(flag:Flag)=>void;language:Language}){
  const zh=language==='zh',index=zh?0:1;
@@ -22,7 +25,7 @@ export function FlagEditor({value,onChange,language}:{value:Flag;onChange:(flag:
   if(shape&&value.type==='custom'&&(value.shapes?.length??0)<MAX_FLAG_SHAPES){setSelected(value.shapes?.length??0);commit({...value,shapes:[...(value.shapes??[]),shape]});}
  };
  return <section className="flag-editor" data-testid="flag-editor">
-  <div className="flag-controls"><FlagImage flag={value} language={language}/><label>{zh?'预设 / 自定义':'Preset / Custom'}<select aria-label={zh?'旗帜类型':'Flag type'} value={value.type==='preset'?value.id:'custom'} onChange={e=>{cancel();setSelected(-1);commit(e.target.value==='custom'?{type:'custom',pattern:'horizontal',colors:['#243e4b','#ffffff','#d0b67d']}:{type:'preset',id:e.target.value as typeof FLAG_PRESETS[number]});}}>{FLAG_PRESETS.map(id=><option key={id} value={id}>{FLAG_NAMES[id][index]}</option>)}<option value="custom">{zh?'自定义':'Custom'}</option></select></label>
+  <div className="flag-controls"><FlagImage flag={value} language={language}/><label>{zh?'预设 / 自定义':'Preset / Custom'}<select aria-label={zh?'旗帜类型':'Flag type'} value={value.type==='preset'?value.id:'custom'} onChange={e=>{cancel();setSelected(-1);commit(e.target.value==='custom'?{type:'custom',pattern:'horizontal',colors:['#243e4b','#ffffff','#d0b67d']}:{type:'preset',id:e.target.value as FlagPresetId});}}>{presetGroups(index).map(({region,ids})=><optgroup key={region} label={FLAG_REGION_NAMES[region][index]}>{ids.map(id=><option key={id} value={id}>{FLAG_CATALOG[id].names[index]}</option>)}</optgroup>)}<option value="custom">{zh?'自定义':'Custom'}</option></select></label>
   {value.type==='custom'&&<><label>{zh?'图案':'Pattern'}<select aria-label={zh?'旗帜图案':'Flag pattern'} value={value.pattern} onChange={e=>commit({...value,pattern:e.target.value as typeof FLAG_PATTERNS[number]})}>{FLAG_PATTERNS.map(p=><option key={p} value={p}>{PATTERN_NAMES[p][index]}</option>)}</select></label>{value.colors.map((color,i)=><label key={i}>{zh?'颜色':'Color'} {i+1}<input type="color" aria-label={`${zh?'旗帜颜色':'Flag color'} ${i+1}`} value={color} onChange={e=>{const colors=[...value.colors] as [string,string,string];colors[i]=e.target.value;commit({...value,colors});}}/></label>)}</>}</div>
   {value.type==='custom'&&<div className="flag-drawing">
    <div className="flag-brushes"><label>{zh?'形状画笔':'Shape brush'}<select data-testid="flag-shape-brush" value={brush} onChange={e=>{cancel();setBrush(e.target.value as FlagShape['kind']);}}>{FLAG_SHAPES.map(k=><option key={k} value={k}>{SHAPE_NAMES[k][index]}</option>)}</select></label><label>{zh?'画笔颜色':'Brush color'}<input type="color" data-testid="flag-brush-color" value={ink} onChange={e=>setInk(e.target.value)}/></label></div>

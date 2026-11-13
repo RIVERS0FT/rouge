@@ -3,7 +3,7 @@ import {test,expect,type Page} from '@playwright/test';
 test.use({hasTouch:true,isMobile:true});
 async function ready(page:Page){
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
- await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-input-context','game');
  await expect(page.getByRole('dialog')).toHaveCount(0);
 }
 async function fit(page:Page,selector:string,width:number,height:number){
@@ -18,8 +18,8 @@ for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x
   await expect(page.locator('.setup-modal')).toBeVisible();await fit(page,'.setup-modal',width,height);
   await page.getByTestId('choose-unit-horseArtillery').tap();
   await page.getByTestId('begin-campaign').tap();await ready(page);await expect(page.getByTestId('open-settings')).toBeVisible();
-  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
-  expect(await page.locator('canvas').boundingBox()).toEqual({x:0,y:0,width,height});
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true');
+  expect(await page.locator('.world canvas').boundingBox()).toEqual({x:0,y:0,width,height});
   for(const sel of ['[data-testid=open-settings]','[data-testid=open-upgrades]','[data-testid=toggle-province-panel]'])await fit(page,sel,width,height);
   expect(await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}))).toEqual({width,height});
   // Use real touch events, not clicks in a resized desktop browser.
@@ -27,11 +27,11 @@ for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x
   await expect(portrait).toHaveAttribute('title',/查看领袖天赋/);
   await expect(page.getByTestId('commander-portrait')).toHaveText('指挥官');
   await portrait.tap();await expect(page.getByRole('dialog',{name:'领袖天赋',exact:true})).toBeVisible();
-  await expect(page.locator('canvas')).toHaveAttribute('data-input-context','blocked');
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-input-context','blocked');
   await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByTestId('mobile-talents').tap();await expect(page.getByRole('dialog',{name:'领袖天赋',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-input-context','game');
   await page.getByTestId('toggle-province-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','true');await fit(page,'#province-panel',width,height);
   await page.getByTestId('toggle-strategic-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');await expect(page.getByTestId('toggle-strategic-panel')).toHaveAttribute('aria-expanded','true');
   await page.getByTestId('toggle-strategic-panel').tap();
@@ -45,8 +45,8 @@ test('pinch zoom, one-finger drag and cancellation do not cause accidental selec
  await page.setViewportSize({width:390,height:844});await page.goto('/');
  await page.getByTestId('single-player').tap();await page.getByTestId('begin-campaign').tap();await ready(page);
  await expect(page.locator('.view-controls')).toHaveCount(0);
- const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-ready','true');
- await page.locator('canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true');
+ const canvas=page.locator('.world canvas');await expect(canvas).toHaveAttribute('data-ready','true');
+ await page.locator('.world canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true');
  const distance=Number(await canvas.getAttribute('data-distance'));
  const cdp=await context.newCDPSession(page);
  const touch=async(type:'touchStart'|'touchMove'|'touchEnd'|'touchCancel',points:{x:number;y:number;id:number}[])=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points});
@@ -69,7 +69,7 @@ test('pinch zoom, one-finger drag and cancellation do not cause accidental selec
 test('hybrid touch laptop switches hints by intent and modal context blocks all map actions',async({page})=>{
  await page.setViewportSize({width:1280,height:800});await page.goto('/');
  await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();await ready(page);
- const app=page.locator('.app'),canvas=page.locator('canvas');
+ const app=page.locator('.app'),canvas=page.locator('.world canvas');
  await expect(canvas).toHaveAttribute('data-input-context','game');
  await canvas.dispatchEvent('pointerdown',{pointerId:10,pointerType:'touch',clientX:600,clientY:400});
  await canvas.dispatchEvent('pointercancel',{pointerId:10,pointerType:'touch'});

@@ -9,7 +9,7 @@ for(const touch of [false,true])test.describe(touch?'touch borders':'desktop bor
   await page.goto('/');await page.getByTestId('open-saves').click();
   await page.locator('.save-card').filter({hasText:'Country border fixture'}).getByRole('button',{name:'Load',exact:true}).click();
   await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:30000});
-  const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+  const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await expect(canvas).toHaveAttribute('data-country-borders','true');await expect(canvas).toHaveAttribute('data-neutral-borders','independent-territories');
   await expect(canvas).toHaveAttribute('data-country-border-segments',String(fixture.counts.country));
   await expect(canvas).toHaveAttribute('data-management-border-segments',String(fixture.counts.internal));

@@ -1,22 +1,19 @@
-/* Cloth presentation is shared by the HUD, setup preview and LAN lobby.
+/* Cloth presentation is shared by the HUD, setup preview, lobby and results.
    The drawing canvas uses the original flat 90x60 artwork for exact editing.
-   A travelling wave runs from the hoist to the fly across vertical strips; one
-   continuous crease pattern slides with it, and a slow gust sways the banner.
-   Only transform animates, so nothing re-lays out. */
-.player-flag.is-cloth{overflow:visible;transform-origin:3% 50%;filter:drop-shadow(1px 3px 2px #0007);animation:flag-billow 7s ease-in-out infinite}
-.flag-strip{transform:translateY(var(--rest,0px));animation:flag-wave var(--period,2.8s) ease-in-out infinite}
-.flag-creases{pointer-events:none;animation:flag-crease-travel var(--period,2.8s) linear infinite}
-.flag-hoist{fill:none;stroke:#f4e2b4;stroke-opacity:.55;stroke-width:.7;stroke-linecap:round}
-
-@keyframes flag-wave{0%,100%{transform:translateY(calc(var(--wave,0px) * -1))}50%{transform:translateY(var(--wave,0px))}}
-@keyframes flag-crease-travel{from{transform:translateX(0)}to{transform:translateX(var(--travel,64px))}}
-@keyframes flag-billow{0%,100%{transform:perspective(240px) rotateY(-9deg) skewY(.7deg)}50%{transform:perspective(240px) rotateY(-3deg) skewY(-.5deg)}}
+   A canvas animates the travelling wave per pixel column (ClothFlag.tsx); CSS
+   only adds the slow gust that dips and lifts the fly. The gust is a vertical
+   shear, never a perspective turn, so the fly stays exactly as tall as the hoist.
+   Light comes from the upper left, so the banner's shadow falls to the lower right. */
+/* The canvas sits out of flow, so its pixel size can never resize the banner's box. */
+.player-flag.is-cloth{position:relative;overflow:visible;aspect-ratio:3/2;transform-origin:3% 50%;animation:flag-billow 7s ease-in-out infinite}
+.player-flag.is-cloth>canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
+.player-flag.is-cloth>.cloth-source{display:none}
+@keyframes flag-billow{0%,100%{transform:skewY(.9deg)}50%{transform:skewY(-.6deg)}}
 
 /* A waving banner needs no frame: it hangs free like a state banner. */
-.faction-emblem-frame:has(>.player-flag.is-cloth){padding:0;background:transparent;box-shadow:none;border-color:transparent}
+.faction-emblem-frame:has(>.player-flag.is-cloth){padding:0;background:radial-gradient(ellipse 50% 40% at 58% 68%,#000a,transparent 72%);box-shadow:none;border-color:transparent}
 .faction-emblem-frame:has(>.player-flag.is-cloth)::before,.faction-emblem-frame:has(>.player-flag.is-cloth)::after{display:none}
-.hud-top .faction-emblem-frame:has(>.player-flag.is-cloth)>.player-flag{filter:drop-shadow(2px 5px 4px #000a) drop-shadow(0 0 1px #000)}
 
 /* Dialogs over the battlefield freeze the HUD banner; nothing animates under reduced motion. */
-.is-game:has(.modal-backdrop) .hud-top .is-cloth,.is-game:has(.modal-backdrop) .hud-top .is-cloth *{animation-play-state:paused}
-@media(prefers-reduced-motion:reduce){.player-flag.is-cloth,.player-flag.is-cloth *{animation:none}}
+.is-game:has(.modal-backdrop) .hud-top .is-cloth{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.player-flag.is-cloth{animation:none}}

@@ -61,7 +61,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
   test(`HUD ${leader}: half-body portrait, stable faction identity, responsive layout and talent entry`,async({page})=>{
     test.setTimeout(180000);
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-    await page.goto('/');await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+    await page.goto('/');await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
     await expect(page.getByTestId('commander-portrait')).toHaveCount(0);
     await expect(page.getByTestId('country-flag')).toHaveCount(0);
     await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();await page.getByTestId(`choose-leader-${leader}`).click();
@@ -83,10 +83,10 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     // The HUD renders before the worker is ready. Do not activate the startup
     // dialog's focused Cancel button with Space.
     await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
-    await page.locator('canvas').focus();await page.keyboard.press('Space');
+    await page.locator('.world canvas').focus();await page.keyboard.press('Space');
     await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
     await page.keyboard.press('Home');
-    await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
+    await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
     await assertLayout(page);await page.screenshot({path:`artifacts/hud-${leader}-1440.png`});
     // Browsing another country must not change either local-player identity element.
     await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();

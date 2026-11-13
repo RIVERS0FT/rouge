@@ -55,7 +55,7 @@ test('menu and settings work before shared assets arrive and the latest early ac
   await expect(page.getByTestId('single-player')).toBeEnabled();
   await expect.poll(()=>loading.requested.size).toBe(2);
   await expect(page.locator('.app')).toHaveAttribute('data-resource-state','loading');
-  await expect(page.locator('canvas')).toHaveCount(0);
+  await expect(page.locator('.world canvas')).toHaveCount(0);
   await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
   await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
   await page.getByRole('button',{name:'English',exact:true}).click();
@@ -91,7 +91,7 @@ test('cancelled early setup does not reopen when background downloads finish',as
   await page.getByRole('dialog').getByRole('button',{name:'English',exact:true}).click();
   await expect.poll(()=>loading.requested.size).toBe(2);
   loading.release();
-  await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
   await expect(page.getByTestId('settings-resume')).toBeVisible();
   await expect(page.getByTestId('commander-name')).toHaveCount(0);
   await expect(page.locator('html')).toHaveAttribute('lang','en');
@@ -114,14 +114,14 @@ test('failed shared downloads leave the menu usable and offer a working reload',
  await page.keyboard.press('Escape');await expect(page.getByTestId('home-settings')).toBeFocused();
  await page.unroute(sharedMapData);
  await page.getByTestId('reload-resources').click();
- await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
  await expect(page.getByTestId('single-player')).toBeVisible();
  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('left-side menu keeps identity in setup and remembers appearance across matches',async({page})=>{
  await page.goto('/');await waitForRuntime(page);
- await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
  await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
  await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
  const menu=await bounds(page.locator('.menu-content'),1440,960);expect(menu.x).toBeLessThan(160);
@@ -173,7 +173,7 @@ test.describe('touch identity and unit selection',()=>{
   test.setTimeout(180000);
   for(const [width,height] of [[390,844],[360,640],[844,390]]){
    await page.setViewportSize({width,height});await page.goto('/');await waitForRuntime(page);
-   await expect(page.locator('canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
+   await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true',{timeout:30000});
    await expect(page.getByTestId('edit-player-flag')).toHaveCount(0);
    await expect(page.getByTestId('edit-player-leader')).toHaveCount(0);
    const title=await bounds(page.locator('.menu-content h1'),width,height);

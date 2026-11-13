@@ -93,7 +93,7 @@ npm run test:e2e
 
 The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
 
-The game-creation flag editor includes eight real-country flag presets (China, France, Germany, Italy, Japan, United Kingdom, United States, Switzerland) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Existing saves without a flag keep the neutral faction emblem. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
+The game-creation flag editor offers 128 real national flags (UN member states, grouped by continent and drawn as original SVG at 3:2) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Every computer faction also flies a real flag: the flag of the country its first region belongs to, or — when a player or an earlier faction already flies that flag, or the country has no catalog flag — the nearest flag nobody flies yet; flags repeat only once all 128 are in use. AI flags are derived from the shared game state, so they need no new save or network fields, every client shows the same banners, and old saves get them too. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
 
 ### 手机操作
 
@@ -110,6 +110,8 @@ The game-creation flag editor includes eight real-country flag presets (China, F
 出生资源上限不代表设备或网络负载保证。大量阵营会增加模拟、路径规划、画面和网络开销，手机与普通局域网建议先从较少人数开始。AI按阵营错峰思考；离线存档与联机状态支持高编号阵营，配色按编号生成。地图数据更新后运行 `npm run prepare:map && node --experimental-strip-types scripts/build-spawn-sites.mjs` 重新生成 `data/spawn-sites.json`；算法在合法双向陆路邻接图上做最大匹配，不使用手写席位上限。详见 [开局容量与性能验证](docs/OPEN_GAME_SETUP.md)。
 
 国旗与玩家领袖形象在单人和多人创建游戏时设置，使用同一原创肖像，并与单位、AI、姓名及必要联机设置集中展示。修改外观后返回原创建窗口，不丢失未完成的其他选项。已有国旗和领袖偏好会自动填入，无需每次重新选择；开始菜单不再展示外观编辑入口。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
+
+预设旗帜为128面现实国旗（联合国会员国，按大洲分组、按名称排序），全部以原创SVG按3:2绘制，徽章做了适合小尺寸的简化。每个AI也都有国旗：取其出生地块所在国家的国旗；该国旗已被玩家或更早的AI使用，或该国不在旗库中时，改用距离最近的未使用国旗；128面全部用完后才会重复。AI国旗由对局状态推导，不新增存档或联机字段，各客户端显示一致，旧存档同样生效。列国排名、局势栏和地块领有者处显示小旗，旗下色条是该势力的地图颜色。
 
 连续升级积累多次待选天赋时，选完一项会继续显示下一组；等待权威状态确认后，最后一项完成才关闭窗口。经验与升级规则不变。
 
@@ -173,7 +175,7 @@ The game-creation flag editor includes eight real-country flag presets (China, F
 
 国名字样参考维多利亚 3 官方实机截图的细衬线墨字和疏朗字距，使用系统字体与 SVG textPath，逐字沿曲线转向。路径按国土归属缓存，征服或失地后仅重新计算受影响国家；平移、缩放、语言和 HUD 操作只更新投影或文字排版。跨日期线的国土统一展开，避免国名在两端之间跳动。省名保留原有近景显示范围。
 
-国旗是一面真正飘动的布：旗面切成24条竖带，波浪从旗杆向旗尾传播，旗杆端几乎不动、旗尾摆幅最大，连续的褶皱明暗随波平移，另有缓慢的整体阵风摆动；只动画 transform，应用于阵营栏、外观预览和联机大厅。弹窗遮挡战场时旗帜暂停，系统设置减少动态效果时显示冻结的静态波形布面。自定义旗帜绘图画布保持平面坐标，预设与自绘内容仍按原格式存档和联机同步。视觉参考：[Victoria 3 官方截图](https://store.steampowered.com/app/529340/Victoria_3/)。
+国旗是一面真正飘动的布：画布逐像素列绘制连续行波，没有分条接缝；波浪从旗杆向旗尾传播，旗杆端几乎不动、旗尾摆幅最大。光线来自左上方，褶皱明暗随波平移，旗面左上亮、右下暗，投影落向右下。整体阵风只做竖向错切，不做透视转动，旗尾与旗杆始终等高；应用于阵营栏、外观预览和联机大厅。弹窗遮挡战场时旗帜暂停，系统设置减少动态效果时显示冻结的静态波形布面。自定义旗帜绘图画布保持平面坐标，预设与自绘内容仍按原格式存档和联机同步。视觉参考：[Victoria 3 官方截图](https://store.steampowered.com/app/529340/Victoria_3/)。
 
 左下角领袖画像显示玩家名称，左上角显示当前等级；手机在头像姓名条右侧显示等级，长姓名省略显示但保留完整标题。点击或键盘激活整张画像仍打开天赋，待选天赋用边框与无障碍标签提示。经验和天赋详情仍在原有面板，单人存档与多人身份规则不变。
 
@@ -193,5 +195,4 @@ The game-creation flag editor includes eight real-country flag presets (China, F
 ### 地图美术
 
 - **国界晕染**：每个玩家势力的颜色在国界与海岸处加深并略增饱和，形成水彩晕边。晕染在领土归属变化时一次性烘焙进覆盖整张地图的单通道贴图，陆地着色器按地图坐标采样；相机移动时零额外开销，日期线两侧连续，CPU 顶点颜色保持原始势力色。
-- **纸纹**：战略视角下陆地叠加极淡的印刷纸纹，近景地形视角自动淡出。
 - **占领斜纹**：正在被占领的地块显示占领方颜色的斜条纹，条纹随占领进度加宽，占领完成或中断后消失。

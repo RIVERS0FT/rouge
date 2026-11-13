@@ -12,8 +12,8 @@ for(const [width,height] of [[844,390],[915,412],[667,375],[740,430]])test(`mobi
   await page.getByTestId('begin-campaign').click();
   await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
   await expect(page.getByTestId('open-settings')).toBeVisible();
-  await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
-  const canvas=await page.locator('canvas').boundingBox();expect(canvas).toEqual({x:0,y:0,width,height});
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+  const canvas=await page.locator('.world canvas').boundingBox();expect(canvas).toEqual({x:0,y:0,width,height});
   for(const selector of ['[data-testid="open-settings"]','[data-testid="open-upgrades"]','.commander-portrait','[data-testid=toggle-province-panel]']){
    const box=await page.locator(selector).boundingBox();expect(box).not.toBeNull();
    expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.y).toBeGreaterThanOrEqual(0);

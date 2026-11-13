@@ -42,7 +42,7 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
  await expect(page.locator('.commander-player')).toHaveText(zh?'指挥官':'Commander');
  await expect(page.getByTestId('commander-level')).toHaveAccessibleName(zh?'等级 1':'Level 1');
  await expect(page.locator('.commander-experience')).toHaveCount(0);
- await expect(page.locator('canvas')).toHaveAccessibleName(zh?'世界战场':'World theatre');
+ await expect(page.locator('.world canvas')).toHaveAccessibleName(zh?'世界战场':'World theatre');
  await expect(page.locator('.production-line')).toContainText(zh?'秒':'s');
  await expect(page.locator('.province-panel')).not.toContainText(zh?/[A-Za-z]/:/\p{Script=Han}/u);
  await page.getByTestId('open-territory-management').click();

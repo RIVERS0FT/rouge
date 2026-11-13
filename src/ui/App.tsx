@@ -136,7 +136,14 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }, [pendingTalent, player?.talents, player?.drafts, player?.choices]);
  const appearanceOrigin = useRef<'setupSolo' | 'setupLan'>('setupSolo');
  const initialFocusRef = useRef(initialFocus);
- function restoreFocus(testId: string | null) {if(testId) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.focus({preventScroll: true}));}
+ function restoreFocus(testId: string | null) {
+  if(!testId) return;
+  requestAnimationFrame(() => {
+   // Never steal focus from a field the player has already started typing into.
+   if(document.activeElement?.matches('input,select,textarea,[contenteditable="true"]')) return;
+   document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.focus({preventScroll: true});
+  });
+ }
  function openAppearance(next: 'playerLeader' | 'playerFlag') {if(modal === 'setupSolo' || modal === 'setupLan') appearanceOrigin.current = modal; setModal(next);}
  function closeModal() {
   if(modal === 'playerLeader' || modal === 'playerFlag') {setModal(appearanceOrigin.current); restoreFocus(modal === 'playerLeader' ? 'edit-player-leader' : 'edit-player-flag');}
@@ -296,7 +303,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
    <CommandRail language={language} dock={dock} outlinerOpen={outlinerOpen} hasRegion={Boolean(province)} pendingTalents={player.choices.length ? player.drafts + 1 : 0}
     onDock={toggleDock} onTalents={() => setModal('talents')} onOutliner={toggleOutliner}/>
    <div className={`hud-dock${dock ? ' mobile-panel-open' : ''}`} data-dock={dock ?? 'none'}>
-    {dock === 'region' && province && <TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language}
+    {/* The selected region stays mounted (hidden when another window is docked), so its figures remain readable. */}
+    {province && <TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} hidden={dock !== 'region'}
      onFocus={() => world.current?.focusProvince(selected)} onManage={() => setModal('territories')} onClose={closeDock} onCommand={issue}/>}
     {dock === 'military' && <MilitaryPanel player={player} eliminated={eliminated} language={language} onCommand={issue} onClose={closeDock}/>}
     {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={focusNation} onClose={closeDock}/>}
