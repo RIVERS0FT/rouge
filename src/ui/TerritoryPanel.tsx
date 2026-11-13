@@ -5,6 +5,7 @@ import {factionColor} from '../game/factionColors.ts';
 import {MAP} from '../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../game/territoryEconomy.ts';
 import type {Command, GameState, Kind} from '../game/types.ts';
+import {FactionSwatch} from './FactionSwatch.tsx';
 import {DockPanel, Pips, SectionRibbon} from './hud/DockPanel.tsx';
 import {CAPTURE_THRESHOLD, INCOME_PER_RATE} from './hud/hudModel.ts';
 import {Icon} from './icons.tsx';
@@ -13,7 +14,7 @@ import {Tip, TipNote, TipRow, TipTitle} from './Tooltip.tsx';
 import {UnitIcon} from './UnitSelection.tsx';
 
 type Props = {
- state: GameState; selected: number; actor: number; eliminated: boolean; language: Language;
+ state: GameState; selected: number; actor: number; eliminated: boolean; language: Language; hidden?: boolean;
  onFocus: () => void; onManage: () => void; onClose: () => void; onCommand: (command: Command) => void;
 };
 
@@ -22,9 +23,16 @@ type Props = {
  * garrison ledger, capture threat, the production queue and administration.
  * One reading order serves desktop docks and the compact bottom sheet.
  */
-export function TerritoryPanel({state, selected, actor, eliminated, language, onFocus, onManage, onClose, onCommand}: Props) {
+export function TerritoryPanel({state, selected, actor, eliminated, language, hidden = false, onFocus, onManage, onClose, onCommand}: Props) {
  const body = useRef<HTMLDivElement>(null);
- useLayoutEffect(() => {if(body.current) body.current.scrollTop = 0;}, [selected]);
+ // Either the body (wide docks) or the whole sheet (compact layouts) scrolls; start both at
+ // the top for a new region and whenever the window is shown again.
+ useLayoutEffect(() => {
+  if(!body.current || hidden) return;
+  body.current.scrollTop = 0;
+  const panel = body.current.closest<HTMLElement>('.dock-panel');
+  if(panel) panel.scrollTop = 0;
+ }, [selected, hidden]);
  const text = (key: string) => t(language, key);
  const province = state.provinces[selected], player = state.players[actor];
  const status = province.capture > 0 ? 'contested' : province.recovery > 0 ? 'recovering' : 'stable';
@@ -32,7 +40,7 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, on
  const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
- return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body}
+ return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}
   kicker={text('province')} title={MAP[selected].name[language === 'zh' ? 0 : 1]} titleId="province-title"
   leading={<button type="button" className="icon-button" onClick={onFocus} title={text('focus')} aria-label={text('focus')}><Icon name="focus" size={18}/></button>}
   status={<div className="province-meta" data-state={status}><span className="status-dot" aria-hidden="true"/>{text(status)}</div>}
@@ -45,7 +53,8 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, on
   <dl className="province-summary province-owner">
    <div className="province-ownership">
     <dt>{text('owner')}</dt>
-    <dd><span className="faction-dot" style={{background: factionColor(province.owner)}} aria-hidden="true"/><span data-testid="province-owner-name">{owner}</span></dd>
+    <dd>{province.owner < 0 ? <span className="faction-dot" style={{background: factionColor(province.owner)}} aria-hidden="true"/>
+     : <FactionSwatch state={state} id={province.owner} language={language} className="owner-swatch"/>}<span data-testid="province-owner-name">{owner}</span></dd>
    </div>
    <div className="province-garrison">
     <dt>{text('garrison')}</dt>

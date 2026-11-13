@@ -10,11 +10,11 @@ export async function loadMapOrderFixture(page:Page){
  await worldView(page);
 }
 export async function worldView(page:Page){
- await page.locator('canvas').focus();await page.keyboard.press('Home');
- await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+ await page.locator('.world canvas').focus();await page.keyboard.press('Home');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
 }
 export async function targetPoint(page:Page){
- return page.locator('canvas').evaluate((canvas,world)=>{
+ return page.locator('.world canvas').evaluate((canvas,world)=>{
   const rect=canvas.getBoundingClientRect(),d=canvas.dataset;
   const scale=rect.height/(2*(Number(d.distance)-.16)*Math.tan(20*Math.PI/180));
   const x=rect.x+rect.width/2+(world.x-Number(d.focusX))*scale,y=rect.y+rect.height/2+(world.z-Number(d.focusZ))*scale;

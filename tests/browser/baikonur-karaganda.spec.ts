@@ -7,7 +7,7 @@ test('Baikonur searches and actions resolve to the single Karaganda region and p
  await page.addInitScript(({key,value,oldKey})=>{localStorage.setItem(key,value);localStorage.setItem(oldKey,'original v2 campaign bytes');localStorage.setItem('rouge.language','zh');},{...fixture,oldKey});
  await page.goto('/');await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Baikonur merge fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:45000});
- const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+ const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
  await expect(canvas).toHaveAttribute('data-region-count',String(fixture.regionCount));
  for(const query of ['拜科努尔','KAB+00?','卡拉干达','KAZ-3203']){
   await page.getByTestId('map-search').fill(query);await expect(page.locator('.map-search-results button')).toHaveCount(1);await page.locator('.map-search-results button').click();

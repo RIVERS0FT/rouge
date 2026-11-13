@@ -10,7 +10,7 @@ test('each unit has one map model and matches its garrison count for every facti
  await page.locator('.save-card').filter({hasText:'Unit model fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await page.getByTestId('toggle-pause').click();
- const canvas=page.locator('canvas');
+ const canvas=page.locator('.world canvas');
  for(const region of fixture.regions){
   await page.getByTestId('map-search').fill(region.code);await page.locator('.map-search-results button').first().click();
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});

@@ -4,17 +4,17 @@ import {project} from '../../src/game/geo.ts';
 async function ready(page:Page){
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
- const canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-input-context','game');
+ const canvas=page.locator('.world canvas');await expect(canvas).toHaveAttribute('data-input-context','game');
  await canvas.focus();await page.keyboard.press('Space');await home(page);
 }
 async function home(page:Page){
- await page.locator('canvas').focus();await page.keyboard.press('Home');
- await expect(page.locator('canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
+ await page.locator('.world canvas').focus();await page.keyboard.press('Home');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
 }
 // Test real hit testing at known ocean/land coordinates, not a synthetic deselect callback.
 async function point(page:Page,lon:number,lat:number){
  const world=project(lon,lat);
- return page.locator('canvas').evaluate((canvas,world)=>{
+ return page.locator('.world canvas').evaluate((canvas,world)=>{
   const rect=canvas.getBoundingClientRect(),d=canvas.dataset;
   const scale=rect.height/(2*(Number(d.distance)-.16)*Math.tan(20*Math.PI/180));
   const x=rect.x+rect.width/2+(world.x-Number(d.focusX))*scale;
@@ -24,9 +24,9 @@ async function point(page:Page,lon:number,lat:number){
  },world);
 }
 async function emptySelection(page:Page){
- await expect(page.locator('canvas')).toHaveAttribute('data-selected-region','-1');
- await expect(page.locator('canvas')).toHaveAttribute('data-selection-glow-vertices','0');
- await expect(page.locator('canvas')).toHaveAttribute('data-selection-glow-pending','false');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region','-1');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-vertices','0');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-pending','false');
  await expect(page.locator('#province-panel')).toHaveCount(0);
  await expect(page.locator('.hud-top')).toBeVisible();
  await expect(page.getByTestId('open-settings')).toBeVisible();
@@ -35,7 +35,7 @@ async function emptySelection(page:Page){
 
 test('ocean clicks clear selection and only the province panel; land and search can select again',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));await ready(page);
- const canvas=page.locator('canvas'),ocean=await point(page,-30,0),land=await point(page,10,25);
+ const canvas=page.locator('.world canvas'),ocean=await point(page,-30,0),land=await point(page,10,25);
  const selected=await canvas.getAttribute('data-selected-region');
  // HUD interactions and order gestures are not deselection.
  await page.getByTestId('open-settings').click();await page.keyboard.press('Escape');
@@ -70,7 +70,7 @@ test.describe('touch and pen deselection',()=>{
  test.use({hasTouch:true,isMobile:true,viewport:{width:844,height:390}});
  test('a tap closes an open mobile province panel; cancelled drags and pinches preserve selection',async({page,context})=>{
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));await ready(page);
-  const canvas=page.locator('canvas'),ocean=await point(page,-30,0),selected=await canvas.getAttribute('data-selected-region');
+  const canvas=page.locator('.world canvas'),ocean=await point(page,-30,0),selected=await canvas.getAttribute('data-selected-region');
   const cdp=await context.newCDPSession(page);
   const touch=(type:'touchStart'|'touchMove'|'touchEnd'|'touchCancel',points:{x:number;y:number;id:number}[])=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points});
   await touch('touchStart',[{...ocean,id:1}]);await touch('touchMove',[{x:ocean.x+35,y:ocean.y,id:1}]);await touch('touchMove',[{...ocean,id:1}]);await touch('touchEnd',[]);

@@ -6,11 +6,11 @@ import {Icon} from '../icons.tsx';
  * keylines, an independently scrolling body and an optional footer. Docked
  * windows are non-modal; the map stays live beside them.
  */
-export function DockPanel({id, className = '', bandClassName = '', bodyRef, kicker, title, titleId, status, leading, closeLabel, onClose, children, footer}: {
- id: string; className?: string; bandClassName?: string; bodyRef?: Ref<HTMLDivElement>; kicker: ReactNode; title: ReactNode; titleId: string;
+export function DockPanel({id, className = '', bandClassName = '', bodyRef, hidden = false, kicker, title, titleId, status, leading, closeLabel, onClose, children, footer}: {
+ id: string; className?: string; bandClassName?: string; bodyRef?: Ref<HTMLDivElement>; hidden?: boolean; kicker: ReactNode; title: ReactNode; titleId: string;
  status?: ReactNode; leading?: ReactNode; closeLabel: string; onClose: () => void; children: ReactNode; footer?: ReactNode;
 }) {
- return <aside id={id} className={`dock-panel ${className}`} aria-labelledby={titleId}>
+ return <aside id={id} className={`dock-panel ${className}`} aria-labelledby={titleId} hidden={hidden}>
   <header className={`dock-band ${bandClassName}`}>
    {leading && <div className="dock-band-leading">{leading}</div>}
    <span className="dock-kicker">{kicker}</span>

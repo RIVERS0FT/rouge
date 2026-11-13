@@ -56,7 +56,7 @@ for(const shift of [false,true])test(`${shift?'Shift-click':'right-click'} still
  if(shift)await page.keyboard.down('Shift');
  await page.mouse.click(point.x,point.y,{button:shift?'left':'right'});
  if(shift)await page.keyboard.up('Shift');
- await expect(page.locator('canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
  await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
  const orders=await saveOrders(page);expect(orders).toHaveLength(9);
  expect(orders.every((u:any)=>u.destination===mapOrderFixture.target&&u.travel?.points.length>=2)).toBe(true);
@@ -65,7 +65,7 @@ for(const shift of [false,true])test(`${shift?'Shift-click':'right-click'} still
 test.describe('touch orders',()=>{
  test.use({hasTouch:true,isMobile:true,viewport:{width:844,height:390}});
  test('long press orders once; interrupted, dragged and pinched holds never order',async({page,context})=>{
-  await loadMapOrderFixture(page);const canvas=page.locator('canvas');
+  await loadMapOrderFixture(page);const canvas=page.locator('.world canvas');
   await expect(page.getByTestId('toggle-province-panel')).toHaveText('地块');
   await page.getByTestId('toggle-province-panel').tap();await expect(page.getByTestId('province-owner-name')).toHaveText('Panel Commander');
   await page.getByTestId('toggle-province-panel').tap();
@@ -110,7 +110,7 @@ test.describe('territory information on touch screens',()=>{
    await expect(page.getByTestId('territory-management')).toBeVisible();
    await page.getByRole('button',{name:language==='zh'?'关闭':'Close',exact:true}).tap();
    await expect(page.getByTestId('territory-management')).toHaveCount(0);
-   await expect(page.locator('canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
+   await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
    await toggle.tap();await expect(panel).toBeHidden();
    await toggle.tap();await expectPanelLayout(page);
    await page.screenshot({path:`artifacts/territory-panel-${language}-${viewport.width}.png`});

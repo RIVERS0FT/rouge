@@ -1,5 +1,6 @@
 /* Docked windows: claret title band, scrolling body, optional footer. */
 .dock-panel{display:flex;flex-direction:column;min-height:0;max-height:100%;overflow:hidden;border-radius:var(--radius);background:var(--panel-bg);border:1px solid var(--ink-0);box-shadow:var(--frame);animation:dock-in .18s ease-out}
+.dock-panel[hidden]{display:none}
 /* Fade only: a sliding transform would briefly push the window off its measured, on-screen box. */
 @keyframes dock-in{from{opacity:0}}
 .dock-band{position:relative;flex:none;padding:12px 50px 14px;text-align:center;background:var(--band-bg);border-bottom:1px solid var(--brass-lo);box-shadow:inset 0 1px 0 #efd79f2e,inset 0 -1px 0 #000a}
@@ -79,6 +80,11 @@
 .nation-name{display:flex;align-items:center;gap:9px;min-width:0}
 .nation-swatch{display:block;flex:none;width:28px;height:19px;overflow:hidden;border-radius:1px;box-shadow:0 0 0 1px #000b,0 0 0 2px var(--brass-lo)}
 .nation-swatch .player-flag{width:100%;height:100%}
+/* Every faction flies a flag; the strip under it is the faction's map colour. */
+.faction-swatch{position:relative;display:block;flex:none;overflow:hidden;background:var(--faction)}
+.faction-swatch>.player-flag{width:100%;height:100%}
+.faction-swatch::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--faction);box-shadow:0 -1px 0 #0000008c}
+#province-panel .province-ownership .owner-swatch{width:25px;height:17px;margin-top:4px;border-radius:1px;box-shadow:0 0 0 1px #000b,0 0 0 2px var(--brass-lo)}
 .nation-copy{display:flex;flex-direction:column;min-width:0}
 .nation-copy bdi{font-size:13px;font-weight:600;color:var(--parchment);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nation-copy small{font-size:11px;line-height:1.4;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

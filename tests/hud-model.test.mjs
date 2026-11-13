@@ -6,7 +6,7 @@ import {regionProductionRate} from '../src/game/territoryEconomy.ts';
 import {isRegionGarrison} from '../src/game/capacity.ts';
 import {armyBreakdown, compactNumber, factionFocusRegion, factionSummaries, incomePerSecond, ownedRegions, signed, territoryCounts, victoryTarget} from '../src/ui/hud/hudModel.ts';
 import {placeTip} from '../src/ui/tipPlacement.ts';
-import {clothStrips, CLOTH_PERIOD, CLOTH_SEAM, CLOTH_STRIP_COUNT, CLOTH_STRIP_WIDTH, CREASE_STOPS, FLAG_WIDTH} from '../src/ui/flagCloth.ts';
+import {clothAmplitude, clothOffset, clothShade, CLOTH_PERIOD, CLOTH_WAVELENGTH, FLAG_WIDTH} from '../src/ui/flagCloth.ts';
 import {politicalRibbonGeometry} from '../src/render/politicalTint.ts';
 
 const setups = ['warden', 'vanguard', 'steward'].map((leader, i) => ({name: `Seat ${i}`, leader, loadout: ['infantry']}));
@@ -89,26 +89,23 @@ test('tooltips stay inside the viewport and flip when the preferred side is full
  }
 });
 
-test('cloth strips tile the flag, swing more toward the fly and travel from hoist to fly', () => {
- const strips = clothStrips();
- assert.equal(strips.length, CLOTH_STRIP_COUNT);
- assert.ok(Math.abs(strips.at(-1).x + CLOTH_STRIP_WIDTH - FLAG_WIDTH) < 1e-9);
- for(let i = 1; i < strips.length; i++) {
-  assert.ok(Math.abs(strips[i].x - strips[i - 1].x - CLOTH_STRIP_WIDTH) < 1e-9);
-  assert.ok(strips[i].amplitude > strips[i - 1].amplitude, 'amplitude grows toward the fly');
-  // A later delay means the same keyframe is reached later further from the hoist.
-  assert.ok(strips[i].delay > strips[i - 1].delay, 'phase lag increases toward the fly');
+test('cloth wave keeps the hoist still, swings the fly and travels from hoist to fly', () => {
+ assert.ok(clothAmplitude(0) < .3 && clothAmplitude(FLAG_WIDTH) <= 2.6);
+ for(let x = 1; x <= FLAG_WIDTH; x++) assert.ok(clothAmplitude(x) > clothAmplitude(x - 1), 'amplitude grows toward the fly');
+ for(const t of [0, .4, 1.3, 2.7]) for(let x = 0; x <= FLAG_WIDTH; x += 3) {
+  assert.ok(Math.abs(clothOffset(x, t)) <= clothAmplitude(x) + 1e-12);
+  assert.ok(Math.abs(clothShade(x, t)) <= 1 + 1e-12);
  }
- assert.ok(strips[0].amplitude < .4 && strips.at(-1).amplitude <= 2.6);
- assert.ok(strips.every(s => s.delay < 0 && s.delay > -2 * CLOTH_PERIOD), 'negative delays avoid a start-up stall');
- assert.ok(strips.every(s => Math.abs(s.rest) <= s.amplitude + 1e-12));
- assert.ok(CLOTH_SEAM > 0 && CLOTH_SEAM < CLOTH_STRIP_WIDTH / 4);
- assert.deepEqual([CREASE_STOPS[0][0], CREASE_STOPS.at(-1)[0]], [0, 1]);
- assert.equal(CREASE_STOPS[0][2], CREASE_STOPS.at(-1)[2], 'the repeating crease gradient is seamless');
- for(let i = 1; i < CREASE_STOPS.length; i++) {
-  assert.ok(CREASE_STOPS[i][0] > CREASE_STOPS[i - 1][0]);
-  if(CREASE_STOPS[i][1] !== CREASE_STOPS[i - 1][1]) assert.ok(CREASE_STOPS[i][2] <= .02 && CREASE_STOPS[i - 1][2] <= .02, 'black meets white only near zero alpha');
+ // A crest at x moves to x + λ·dt/T after dt: the wave travels toward the fly.
+ const dt = .3, shift = CLOTH_WAVELENGTH * dt / CLOTH_PERIOD;
+ for(const x of [10, 30, 50]) {
+  const before = clothOffset(x, 1) / clothAmplitude(x), after = clothOffset(x + shift, 1 + dt) / clothAmplitude(x + shift);
+  assert.ok(Math.abs(before - after) < 1e-9);
  }
+ // Periodic in time, so the animation loops without a jump.
+ for(const x of [0, 45, 90]) assert.ok(Math.abs(clothOffset(x, .7) - clothOffset(x, .7 + CLOTH_PERIOD)) < 1e-9);
+ // Neighbouring pixel columns move continuously: no strip seams.
+ for(let x = 0; x < FLAG_WIDTH; x += .5) assert.ok(Math.abs(clothOffset(x + .5, 1.1) - clothOffset(x, 1.1)) < .2);
 });
 
 test('political ribbons mitre through shared vertices and extrapolate at open ends', () => {

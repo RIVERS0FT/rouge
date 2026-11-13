@@ -14,7 +14,7 @@ function errorsOn(page:Page){
 }
 test('2D sprites and 3D models switch repeatedly without changing units or selection',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);await load(page);
- const canvas=page.locator('canvas');
+ const canvas=page.locator('.world canvas');
  await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  const selected=await canvas.getAttribute('data-selected-region');
@@ -42,7 +42,7 @@ test('2D sprites and 3D models switch repeatedly without changing units or selec
 });
 test('phone pinch switches unit representation and resizing preserves the active batch',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);await page.setViewportSize({width:390,height:844});await load(page);
- const canvas=page.locator('canvas');
+ const canvas=page.locator('.world canvas');
  await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  const selected=await canvas.getAttribute('data-selected-region');
@@ -77,7 +77,7 @@ test('strategic sprites grow past the original 512-unit allocation',async({page}
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Capacity regression fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});await page.getByTestId('toggle-pause').click();
- const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+ const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');
  await expect.poll(async()=>Number(await canvas.getAttribute('data-total-units'))).toBeGreaterThan(512);
  await expect.poll(async()=>Number(await canvas.getAttribute('data-unit-capacity'))).toBeGreaterThanOrEqual(1024);

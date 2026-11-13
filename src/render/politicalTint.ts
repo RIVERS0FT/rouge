@@ -12,8 +12,6 @@ import type {BorderEdge} from './territoryBorders.ts';
  * tests read) remain the exact owner colours. */
 export const POLITICAL_TINT_REACH=9;
 export const POLITICAL_TINT_STRENGTH=.3;
-/** Peak-to-peak brightness variation of the printed-paper grain at strategic zoom. */
-export const PAPER_GRAIN=.08;
 const key=(p:{x:number;z:number})=>`${p.x.toFixed(6)},${p.z.toFixed(6)}`;
 
 /** Instanced ribbon quads with mitred joins, so consecutive segments never
@@ -112,22 +110,11 @@ export class PoliticalTint {
    shader.vertexShader='attribute vec4 captureTint; varying vec4 vCaptureTint;\n'+shader.vertexShader;
    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvCaptureTint = captureTint;');
    shader.fragmentShader=`uniform sampler2D uPoliticalTint; uniform float uPoliticalTintStrength; uniform float uRelief; uniform float uStripePeriod; varying vec4 vCaptureTint;
-    float paperHash(vec2 p){return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);}
-    // Value noise with whole cells across the map width, so the date line is seamless.
-    float paperNoise(vec2 uv, vec2 cells){
-     vec2 p = uv * cells, i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-     float x0 = mod(i.x, cells.x), x1 = mod(i.x + 1.0, cells.x);
-     return mix(mix(paperHash(vec2(x0, i.y)), paperHash(vec2(x1, i.y)), f.x), mix(paperHash(vec2(x0, i.y + 1.0)), paperHash(vec2(x1, i.y + 1.0)), f.x), f.y);
-    }
     `+shader.fragmentShader;
    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
     float politicalEdge = texture2D(uPoliticalTint, vSurfaceUv).r * (1.0 - 0.55 * uRelief);
     float politicalLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     diffuseColor.rgb = mix(vec3(politicalLuma), diffuseColor.rgb, 1.0 + 0.5 * politicalEdge) * (1.0 - uPoliticalTintStrength * politicalEdge);
-    // Printed-paper grain on the strategic map; the fine octave fades before it can shimmer.
-    float paperFine = mix(0.5, paperNoise(vSurfaceUv, vec2(1440.0, 636.0)), 1.0 - smoothstep(0.35, 0.9, fwidth(vSurfaceUv.x) * 1440.0));
-    float paper = paperFine * 0.55 + paperNoise(vSurfaceUv, vec2(240.0, 106.0)) * 0.45;
-    diffuseColor.rgb *= 1.0 + (paper - 0.5) * ${PAPER_GRAIN.toFixed(3)} * (1.0 - uRelief);
     // Occupation hatching: diagonal stripes in the captor's colour widen as capture advances.
     if (vCaptureTint.a > 0.0) {
      float band = fract((gl_FragCoord.x + gl_FragCoord.y) / uStripePeriod);
@@ -136,7 +123,7 @@ export class PoliticalTint {
      diffuseColor.rgb = mix(diffuseColor.rgb, vCaptureTint.rgb * 0.92, stripe * 0.9);
     }`);
   };
-  material.customProgramCacheKey=()=>`${previousKey}:political-tint-paper-capture-v1`;
+  material.customProgramCacheKey=()=>`${previousKey}:political-tint-capture-v1`;
  }
  dispose(){this.target.dispose();this.ribbon.geometry.dispose();this.ribbon.material.dispose();}
 }

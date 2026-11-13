@@ -1,6 +1,5 @@
-import {factionColor} from '../../game/factionColors.ts';
 import type {GameState} from '../../game/types.ts';
-import {FlagImage} from '../Flag.tsx';
+import {FactionSwatch} from '../FactionSwatch.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {DockPanel} from './DockPanel.tsx';
 import type {FactionSummary} from './hudModel.ts';
@@ -31,7 +30,7 @@ export function NationRow({faction, rank, state, actor, language, onFocus, compa
   onClick={() => onFocus(faction.id)} aria-label={`${rank}. ${name} · ${text('territoryColumn')} ${faction.territory} · ${text('armyColumn')} ${faction.army}`}>
   <span className="nation-rank">{rank}</span>
   <span className="nation-name">
-   <span className="nation-swatch" style={{background: factionColor(faction.id)}} aria-hidden="true">{player.flag && <FlagImage flag={player.flag} language={language} cloth={false}/>}</span>
+   <FactionSwatch state={state} id={faction.id} language={language} className="nation-swatch"/>
    <span className="nation-copy"><bdi>{name}</bdi>{!compact && <small>{tags.join(' · ')}</small>}</span>
   </span>
   <span className="nation-stat">{faction.territory}</span>

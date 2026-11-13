@@ -1,34 +1,28 @@
-/** Cloth is a travelling wave across vertical strips of the 90×60 flag artwork.
- * Wind runs from the hoist (x=0) to the fly (x=90): each strip rises and falls
- * one phase later than its neighbour, the hoist stays nearly still while the fly
- * swings widest, and a continuous crease pattern slides one wavelength per
- * period so the shading rides the wave. */
+/** Cloth is a continuous travelling wave across the 90×60 flag artwork. Wind runs
+ * from the hoist (x=0) to the fly (x=90): every pixel column of the flag is
+ * displaced by y = −A(x)·cos(2π(t/T − x/λ)), so the hoist stays nearly still
+ * while the fly swings widest, and the shading follows the local slope.
+ * Drawing per pixel column (not per strip) leaves no seams or banding. */
 export const FLAG_WIDTH = 90;
-export const CLOTH_STRIP_COUNT = 24;
-export const CLOTH_STRIP_WIDTH = FLAG_WIDTH / CLOTH_STRIP_COUNT;
-/** Neighbouring strips overlap slightly so antialiased edges never show a gap. */
-export const CLOTH_SEAM = .12;
+export const FLAG_HEIGHT = 60;
 export const CLOTH_PERIOD = 2.8;
 export const CLOTH_WAVELENGTH = 64;
+/** Room around the flag, in flag units, for the swing and the hoist edge. */
+export const CLOTH_MARGIN = {left: 4, top: 7, width: 99, height: 74} as const;
 
-export interface ClothStrip {index: number; x: number; amplitude: number; delay: number; rest: number}
-
-export function clothStrips(count = CLOTH_STRIP_COUNT): ClothStrip[] {
- const width = FLAG_WIDTH / count, wraps = Math.ceil(FLAG_WIDTH / CLOTH_WAVELENGTH);
- return Array.from({length: count}, (_, index) => {
-  const x = index * width, centre = x + width / 2, amplitude = .2 + 2.3 * Math.pow(centre / FLAG_WIDTH, 1.25);
-  const phase = centre / CLOTH_WAVELENGTH;
-  // A positive phase lag travels toward the fly; whole periods keep every delay negative (no start-up stall).
-  const delay = (phase - wraps) * CLOTH_PERIOD;
-  // Keyframes run −A → +A → −A, i.e. y = −A·cos(2π(t/T − phase)); reduced motion freezes t = 0.
-  return {index, x, amplitude, delay, rest: -amplitude * Math.cos(2 * Math.PI * phase)};
- });
+/** Swing amplitude in flag units at a position along the flag. */
+export function clothAmplitude(x: number): number {
+ const u = Math.min(1, Math.max(0, x / FLAG_WIDTH));
+ return .2 + 2.3 * Math.pow(u, 1.25);
 }
-
-/** A sampled cosine for the crease gradient (offset, colour, opacity): shadow on
- * the descending slope, a softer glint on the rising one, and near-zero alpha
- * wherever black meets white so no grey seam appears. */
-export const CREASE_STOPS: readonly [number, string, number][] = [
- [0, '#000', .02], [.125, '#000', .13], [.25, '#000', .23], [.375, '#000', .13], [.5, '#000', .02],
- [.55, '#fff', .01], [.625, '#fff', .06], [.75, '#fff', .11], [.875, '#fff', .06], [.95, '#fff', .01], [1, '#000', .02],
-];
+function phase(x: number, seconds: number) {return 2 * Math.PI * (seconds / CLOTH_PERIOD - x / CLOTH_WAVELENGTH);}
+/** Vertical displacement (flag units, +down) of the column at x after `seconds`. */
+export function clothOffset(x: number, seconds: number): number {
+ return -clothAmplitude(x) * Math.cos(phase(x, seconds));
+}
+/** Shading in [−1, 1] for light from the upper left: positive darkens cloth that
+ * falls away to the right (its folds face away from the light), negative is a
+ * glint where it rises toward the light. Proportional to the slope, so it rides the wave. */
+export function clothShade(x: number, seconds: number): number {
+ return -Math.sin(phase(x, seconds)) * Math.min(1, clothAmplitude(x) / 1.6);
+}

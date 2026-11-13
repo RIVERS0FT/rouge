@@ -2,7 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 
 async function tick(page:Page){return Number(await page.getByTestId('game-clock').getAttribute('data-tick'));}
 async function assertFullscreen(page:Page){
- const view=page.viewportSize()!,canvas=page.locator('canvas');
+ const view=page.viewportSize()!,canvas=page.locator('.world canvas');
  await expect(canvas).toHaveAttribute('data-framing','cover');
  await expect(canvas).toHaveAttribute('data-viewport-width',String(view.width));
  await expect(canvas).toHaveAttribute('data-viewport-height',String(view.height));
@@ -11,12 +11,12 @@ async function assertFullscreen(page:Page){
  await expect(page.locator('.hud-bottom')).toHaveCount(0);
  // Region actions may use a section footer, but never a global bottom bar.
  await expect(page.locator('.is-game > footer')).toHaveCount(0);
- // The region window may use a section footer (it is a closed, unrendered sheet on compact layouts).
- const compactLayout=await page.locator('.app').getAttribute('data-layout')==='compact';
+ // Region actions may use a section footer, but never a global bottom bar. The
+ // selected region's window stays mounted, hidden while it is not docked.
  const regionFooter=page.locator('#province-panel > footer.province-actions');
- await expect(regionFooter).toHaveCount(compactLayout?0:1);
- if(!compactLayout)await expect(regionFooter.getByTestId('open-territory-management')).toHaveCount(1);
- await expect(page.locator('.is-game footer')).toHaveCount(compactLayout?0:1);
+ await expect(regionFooter).toHaveCount(1);
+ await expect(regionFooter.getByTestId('open-territory-management')).toHaveCount(1);
+ await expect(page.locator('.is-game footer')).toHaveCount(1);
  const settings=await page.getByTestId('open-settings').boundingBox();
  expect(settings!.x).toBeGreaterThan(view.width-130);expect(settings!.y).toBeLessThan(25);
  const upgrade=await page.getByTestId('open-upgrades').boundingBox();
@@ -91,9 +91,9 @@ test('full-screen HUD: settings, archives, focus, pause preservation and respons
  await page.getByTestId('open-upgrades').click();await page.getByTestId('upgrade-infantry-attack').click();
  await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
  // The military window is docked, not modal: the map keeps accepting input.
- await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-input-context','game');
  await page.keyboard.press('Escape');await expect(page.locator('#military-panel')).toHaveCount(0);
- await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('#province-panel')).toHaveCount(0);
+ await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('#province-panel')).toBeHidden();
  await page.getByTestId('toggle-province-panel').click();await expect(page.locator('#province-panel')).toBeVisible();
  for(const [width,height] of [[1280,720],[800,600],[2560,1080]]){
   await page.setViewportSize({width,height});await assertFullscreen(page);
@@ -103,7 +103,7 @@ test('full-screen HUD: settings, archives, focus, pause preservation and respons
  // Pan to both latitude limits and zoom out: no blank polar bands appear.
  for(const y of [930,190]){
   await page.mouse.move(760,550);await page.mouse.down();await page.mouse.move(760,y,{steps:10});await page.mouse.up();
-  await page.locator('canvas').focus();await page.keyboard.press('-');await assertFullscreen(page);
+  await page.locator('.world canvas').focus();await page.keyboard.press('-');await assertFullscreen(page);
  }
  await page.reload();await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Fullscreen slot'}).getByRole('button',{name:'Load',exact:true}).click();

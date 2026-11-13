@@ -1,10 +1,13 @@
-/** Cosmetic only: never determines ownership, spawn position or combat rules. */
-export const FLAG_PRESETS=['cn','fr','de','it','jp','gb','us','ch'] as const;
+import {FLAG_PRESET_IDS,type FlagPresetId} from './flagCatalog.ts';
+/** Cosmetic only: never determines ownership, spawn position or combat rules.
+ * Presets are real national flags (see flagCatalog.ts); the first eight keep their old ids. */
+export const FLAG_PRESETS:readonly FlagPresetId[]=FLAG_PRESET_IDS;
+export type {FlagPresetId};
 export const FLAG_PATTERNS=['solid','horizontal','vertical','cross'] as const;
 export const FLAG_SHAPES=['circle','rect','triangle','star'] as const;
 export const MAX_FLAG_SHAPES=24;
 export interface FlagShape {kind:typeof FLAG_SHAPES[number];x:number;y:number;width:number;height:number;color:string}
-export type Flag = {type:'preset';id:typeof FLAG_PRESETS[number]} | {type:'custom';pattern:typeof FLAG_PATTERNS[number];colors:[string,string,string];shapes?:FlagShape[]};
+export type Flag = {type:'preset';id:FlagPresetId} | {type:'custom';pattern:typeof FLAG_PATTERNS[number];colors:[string,string,string];shapes?:FlagShape[]};
 const color=(v:unknown):v is string=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
 const coordinate=(v:unknown,min:number,max:number):v is number=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max&&Math.abs(v*100-Math.round(v*100))<1e-7;
 export function validFlagShape(value:unknown):value is FlagShape {
@@ -24,7 +27,7 @@ export function flagShapeFromDrag(kind:FlagShape['kind'],color:string,start:{x:n
 export function validFlag(value:unknown):value is Flag {
  if(!value||typeof value!=='object')return false;
  const f=value as Record<string,unknown>;
- if(f.type==='preset')return Object.keys(f).length===2&&FLAG_PRESETS.includes(f.id as typeof FLAG_PRESETS[number]);
+ if(f.type==='preset')return Object.keys(f).length===2&&FLAG_PRESETS.includes(f.id as FlagPresetId);
  if(f.type!=='custom'||!Object.keys(f).every(k=>['type','pattern','colors','shapes'].includes(k))||!FLAG_PATTERNS.includes(f.pattern as typeof FLAG_PATTERNS[number])||!Array.isArray(f.colors)||f.colors.length!==3||!f.colors.every(color))return false;
  if(Object.hasOwn(f,'shapes')&&(!Array.isArray(f.shapes)||f.shapes.length>MAX_FLAG_SHAPES||!f.shapes.every(validFlagShape)))return false;
  // A full setup including 24 shapes remains comfortably below the LAN 8 KiB request limit.

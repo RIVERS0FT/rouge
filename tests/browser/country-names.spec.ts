@@ -10,7 +10,7 @@ async function assertInside(page:Page,allowEmpty=false){
   const {wrapX}=await import('/src/game/geo.ts');
   // @ts-expect-error browser module URL
   const THREE=await import('/node_modules/three/build/three.module.js');
-  const canvas=document.querySelector('canvas')!,d=canvas.dataset,width=canvas.clientWidth,height=canvas.clientHeight,scale=2*(Number(d.distance)-.8)*Math.tan(Math.PI/9)/height;
+  const canvas=document.querySelector('.world canvas')!,d=canvas.dataset,width=canvas.clientWidth,height=canvas.clientHeight,scale=2*(Number(d.distance)-.8)*Math.tan(Math.PI/9)/height;
   const distance=Number(d.distance),t=Math.max(0,Math.min(1,(distance-90)/230)),blend=1-t*t*(3-2*t),camera=new THREE.PerspectiveCamera(40,width/height,.05,20000);
   camera.up.set(0,0,-1);camera.position.set(Number(d.focusX),distance*Math.cos(blend*.6),Number(d.focusZ)+distance*Math.sin(blend*.6));camera.lookAt(Number(d.focusX),0,Number(d.focusZ));camera.updateMatrixWorld();
   const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-.16),hit=new THREE.Vector3();
@@ -40,7 +40,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
   await page.addInitScript(({key,value})=>{localStorage.setItem(key,value);localStorage.setItem('rouge.language','en');},fixture);
   await page.goto('/');await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Country names fixture'}).getByRole('button',{name:'Load',exact:true}).click();
   await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
-  const canvas=page.locator('canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
+  const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   const revision=await canvas.getAttribute('data-country-anchor-revision');await assertInside(page);
   const anchors=()=>page.locator('.country-label:visible').evaluateAll(nodes=>nodes.map(n=>({owner:(n as HTMLElement).dataset.owner,x:(n as HTMLElement).dataset.anchorX,z:(n as HTMLElement).dataset.anchorZ,path:n.querySelector('path')!.getAttribute('d')})));

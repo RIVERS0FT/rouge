@@ -57,6 +57,9 @@
  /* Sheets. */
  .is-game .hud-dock{left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15}
  .is-game .hud-dock:not(.mobile-panel-open){display:none}
+ /* Sheets scroll as a whole, so the footer follows the content instead of covering it. */
+ .is-game .hud-dock>.dock-panel{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brass-lo) transparent}
+ .is-game .hud-dock .dock-body{flex:none;overflow:visible}
  .is-game .strategic-panel{display:none;left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15;gap:8px;overflow:auto;overscroll-behavior:contain;border-radius:var(--radius)}
  .is-game .strategic-panel.mobile-panel-open{display:flex}
  .is-game .strategic-panel .outliner{flex:none;overflow:visible}
@@ -72,7 +75,8 @@
  .dock-band-leading{top:8px;left:8px}
  .dock-close{top:8px;right:8px;width:44px;height:44px}
  .icon-button{width:44px;height:44px}
- .dock-body{padding:14px}
+ /* Horizontal padding matches the ribbons' negative margins, so nothing spills past the sheet. */
+ .dock-body{padding:14px 16px}
  #province-panel .province-summary dt,#province-panel .province-meta,#province-panel .production-line>span{font-size:12px}
  #province-panel .province-production select{min-height:44px;font-size:16px}
  #province-panel .territory-manage-trigger{min-height:44px;font-size:14px}
