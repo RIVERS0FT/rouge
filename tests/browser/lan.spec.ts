@@ -77,6 +77,9 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(guest.locator('.upgrade-card').first()).toContainText('1/8');
     await host.getByTestId('open-upgrades').click();
     await expect(host.locator('.upgrade-card').first()).not.toContainText('1/8');
+    // The docked military window keeps the map live; a modal (settings) covers it and lets rendering sleep.
+    await expect(host.locator('canvas')).toHaveAttribute('data-input-context','game');
+    await host.getByTestId('open-settings').click();
     await expect(host.locator('canvas')).toHaveAttribute('data-render-paused','true');
     const hostTick=Number(await host.getByTestId('game-clock').getAttribute('data-tick'));
     await guest.reload();

@@ -11,29 +11,38 @@ async function assertFullscreen(page:Page){
  await expect(page.locator('.hud-bottom')).toHaveCount(0);
  // Region actions may use a section footer, but never a global bottom bar.
  await expect(page.locator('.is-game > footer')).toHaveCount(0);
+ // The region window may use a section footer (it is a closed, unrendered sheet on compact layouts).
+ const compactLayout=await page.locator('.app').getAttribute('data-layout')==='compact';
  const regionFooter=page.locator('#province-panel > footer.province-actions');
- await expect(regionFooter).toHaveCount(1);
- await expect(regionFooter.getByTestId('open-territory-management')).toHaveCount(1);
- await expect(page.locator('.is-game footer')).toHaveCount(1);
+ await expect(regionFooter).toHaveCount(compactLayout?0:1);
+ if(!compactLayout)await expect(regionFooter.getByTestId('open-territory-management')).toHaveCount(1);
+ await expect(page.locator('.is-game footer')).toHaveCount(compactLayout?0:1);
  const settings=await page.getByTestId('open-settings').boundingBox();
  expect(settings!.x).toBeGreaterThan(view.width-130);expect(settings!.y).toBeLessThan(25);
  const upgrade=await page.getByTestId('open-upgrades').boundingBox();
  const search=await page.getByTestId('map-search').boundingBox();
- expect(upgrade!.x).toBeGreaterThan(view.width*.6);expect(upgrade!.y).toBeGreaterThan(settings!.y+settings!.height+5);
- if(await page.getByTestId('toggle-province-panel').isVisible()){
-  // Compact search is at the top, upgrades at the bottom: horizontal overlap
-  // is harmless, but actual rectangles must stay separated and on-screen.
-  for(const rect of [settings,upgrade,search]){
-   expect(rect).not.toBeNull();expect(rect!.x).toBeGreaterThanOrEqual(0);expect(rect!.y).toBeGreaterThanOrEqual(0);
-   expect(rect!.x+rect!.width).toBeLessThanOrEqual(view.width);expect(rect!.y+rect!.height).toBeLessThanOrEqual(view.height);
-   expect(rect!.height).toBeGreaterThanOrEqual(44);
-  }
-  const separated=search!.x+search!.width<=upgrade!.x-5||upgrade!.x+upgrade!.width<=search!.x-5||
-   search!.y+search!.height<=upgrade!.y-5||upgrade!.y+upgrade!.height<=search!.y-5;
-  expect(separated).toBe(true);
+ const apart=(a:any,b:any)=>a.x+a.width<=b.x-4||b.x+b.width<=a.x-4||a.y+a.height<=b.y-4||b.y+b.height<=a.y-4;
+ // Every primary control is on-screen and no two of them overlap.
+ for(const rect of [settings,upgrade,search]){
+  expect(rect).not.toBeNull();expect(rect!.x).toBeGreaterThanOrEqual(0);expect(rect!.y).toBeGreaterThanOrEqual(0);
+  expect(rect!.x+rect!.width).toBeLessThanOrEqual(view.width);expect(rect!.y+rect!.height).toBeLessThanOrEqual(view.height);
+ }
+ expect(apart(search,upgrade)).toBe(true);expect(apart(search,settings)).toBe(true);expect(apart(upgrade,settings)).toBe(true);
+ if(await page.locator('.app').getAttribute('data-layout')==='compact'){
+  // The command rail becomes the bottom navigation; sheets start closed.
+  for(const rect of [settings,upgrade,search])expect(rect!.height).toBeGreaterThanOrEqual(44);
+  expect(upgrade!.y).toBeGreaterThan(view.height*.7);
   await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('.province-panel')).toBeHidden();
- }else expect(search!.x+search!.width).toBeLessThan(upgrade!.x-5);
+ }else{
+  // Grand-strategy layout: command rail on the left under the banner, the
+  // docked region window beside it, the outliner on the right and the finder between.
+  expect(upgrade!.x).toBeLessThan(80);expect(upgrade!.y).toBeGreaterThan(settings!.y+settings!.height);
+  const dock=await page.locator('#province-panel').boundingBox(),outliner=await page.locator('#strategic-panel').boundingBox();
+  expect(dock).not.toBeNull();expect(outliner).not.toBeNull();
+  expect(dock!.x).toBeGreaterThan(upgrade!.x+upgrade!.width);expect(apart(dock,search)).toBe(true);expect(apart(outliner,search)).toBe(true);
+  expect(outliner!.x).toBeGreaterThan(view.width*.6);
+ }
  const d=Number(await canvas.getAttribute('data-distance')),height=2*d*Math.tan(Math.PI/9);
  expect(height).toBeLessThanOrEqual(1589.0625+1);
  expect(height*view.width/view.height).toBeLessThanOrEqual(3601);
@@ -80,7 +89,12 @@ test('full-screen HUD: settings, archives, focus, pause preservation and respons
  await page.getByTestId('settings-resume').click();await expect.poll(()=>tick(page)).toBeGreaterThan(pausedTick);
  await page.getByTestId('toggle-pause').click();
  await page.getByTestId('open-upgrades').click();await page.getByTestId('upgrade-infantry-attack').click();
- await expect(page.locator('.upgrade-card').first()).toContainText('1/8');await page.keyboard.press('Escape');
+ await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
+ // The military window is docked, not modal: the map keeps accepting input.
+ await expect(page.locator('canvas')).toHaveAttribute('data-input-context','game');
+ await page.keyboard.press('Escape');await expect(page.locator('#military-panel')).toHaveCount(0);
+ await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('#province-panel')).toHaveCount(0);
+ await page.getByTestId('toggle-province-panel').click();await expect(page.locator('#province-panel')).toBeVisible();
  for(const [width,height] of [[1280,720],[800,600],[2560,1080]]){
   await page.setViewportSize({width,height});await assertFullscreen(page);
   await page.screenshot({path:`artifacts/fullscreen-hud-${width}.png`});

@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 async function assertLayout(page: Page) {
   const flag=await page.getByTestId('faction-identity').boundingBox();
   const portrait=await page.getByTestId('commander-portrait').boundingBox();
-  const panel=await page.locator('.province-panel').boundingBox();
+  // Closed sheets are not rendered at all on compact layouts; measure the dock only on wide ones.
   await expect(page.locator('.hud-bottom')).toHaveCount(0);
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
@@ -23,9 +23,9 @@ async function assertLayout(page: Page) {
   expect(talent!.height).toBeGreaterThanOrEqual(portrait!.height-2);
   await expect(page.locator('.commander-player')).toHaveAttribute('title',/\S/);
   expect(flag).not.toBeNull();expect(portrait).not.toBeNull();
-  if(await page.getByTestId('toggle-province-panel').isVisible()){
-    // Compact layouts intentionally collapse the side panel and move the portrait
-    // above the action bar. Verify reachable functionality, not desktop-only placement.
+  if(await page.locator('.app').getAttribute('data-layout')==='compact'){
+    // Compact layouts collapse docked windows into sheets and fold the portrait
+    // into a pill above the bottom navigation. Verify reachable functionality.
     const toggle=page.getByTestId('toggle-province-panel');
     await expect(toggle).toHaveAttribute('aria-expanded','false');
     await expect(page.locator('.province-panel')).toBeHidden();
@@ -48,7 +48,7 @@ async function assertLayout(page: Page) {
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
     return;
   }
-  expect(panel).not.toBeNull();
+  const panel=await page.locator('.province-panel').boundingBox();expect(panel).not.toBeNull();
   expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
   expect(portrait!.x).toBeLessThan(40);expect(portrait!.y).toBeGreaterThan(viewport.height*.5);
   expect(panel!.y+panel!.height).toBeLessThanOrEqual(portrait!.y-10);
@@ -112,7 +112,8 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     if(leader==='steward')for(const size of [{width:390,height:844},{width:667,height:375},{width:320,height:568}]){
       await page.setViewportSize(size);await assertLayout(page);
       const portrait=await page.getByTestId('commander-portrait').boundingBox(),upgrades=await page.getByTestId('open-upgrades').boundingBox();
-      expect(portrait!.x+portrait!.width).toBeLessThanOrEqual(upgrades!.x-6);
+      // The portrait pill and the bottom navigation never overlap.
+      expect(portrait!.y+portrait!.height<=upgrades!.y-4||portrait!.x+portrait!.width<=upgrades!.x-4).toBe(true);
       await expect(page.locator('.commander-player')).toHaveText(playerName);
       await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
       await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);

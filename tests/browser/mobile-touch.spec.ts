@@ -35,7 +35,7 @@ for(const [width,height]of [[390,844],[360,640],[844,390]])test(`phone ${width}x
   await page.getByTestId('toggle-province-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','true');await fit(page,'#province-panel',width,height);
   await page.getByTestId('toggle-strategic-panel').tap();await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');await expect(page.getByTestId('toggle-strategic-panel')).toHaveAttribute('aria-expanded','true');
   await page.getByTestId('toggle-strategic-panel').tap();
-  await page.getByTestId('open-upgrades').tap();await fit(page,'[role=dialog]',width,height);
+  await page.getByTestId('open-upgrades').tap();await fit(page,'#military-panel',width,height);
   await page.getByTestId('upgrade-horseArtillery-speed').tap();
   await expect(page.getByTestId('upgrade-horseArtillery-speed').locator('..')).toContainText('1/8');
   await page.keyboard.press('Escape');await page.getByTestId('open-settings').tap();await fit(page,'[role=dialog]',width,height);

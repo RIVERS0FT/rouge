@@ -10,7 +10,7 @@ export function UnitAttributes({values,language}:{values:UnitStats;language:Lang
 }
 
 /** Local vector insignia stay sharp at any size and do not depend on a symbol font. */
-function UnitIcon({kind}:{kind:Kind}){
+export function UnitIcon({kind}:{kind:Kind}){
  const cavalry=kind==='cavalry'||kind==='heavyCavalry',cannon=kind==='artillery'||kind==='horseArtillery';
  return <svg className="unit-icon" viewBox="0 0 120 100" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
   <path className="unit-icon-shield" d="M60 8 98 23v33L60 91 22 56V23Z"/>
