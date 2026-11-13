@@ -31,6 +31,10 @@ export function validateState(value:unknown):value is GameState{
   }
   for(const[i,p]of s.provinces.entries())if(!p||p.id!==i||!integer(p.owner,-1,s.players.length-1)||!KINDS.includes(p.kind)||!number(p.production,0,100)||!number(p.recovery,0,15)||!integer(p.captor,-1,s.players.length-1)||!number(p.capture,0,8.1)||(!MAP[i].playable&&(p.owner!==-1||p.production!==0||p.captor!==-1||p.capture!==0||p.recovery!==0))||(p.owner>=0&&!s.players[p.owner].loadout.includes(p.kind)))return false;
   if(!validGroupingState(s))return false;
+  for(const p of s.provinces)if(p.march!==undefined){
+    const order=p.march;
+    if(!order||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable||!Array.isArray(order.unitIds)||order.unitIds.length<1||order.unitIds.length>regionCapacity(p.id)||new Set(order.unitIds).size!==order.unitIds.length||!order.unitIds.every(id=>integer(id,1,s.nextId-1)))return false;
+  }
   const ids=new Set<number>(),population=new Map<string,number>();
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;

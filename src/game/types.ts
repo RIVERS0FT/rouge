@@ -8,7 +8,7 @@ export type Leader = 'warden' | 'vanguard' | 'steward';
 export type Upgrade = 'attack' | 'health' | 'speed';
 export type Terrain = 'plain' | 'forest' | 'highland';
 export interface ProvinceDef { id:number; code:string; name:[string,string]; sourceId:number; sourceAtoms?:readonly string[]; locked?:boolean; center:Vec2; polygon:Vec2[]; parts:Vec2[][][]; neighbors:number[]; terrain:Terrain; playable:boolean; visible:boolean; cropped:boolean; navigationPart:number; bounds:{left:number;right:number;top:number;bottom:number} }
-export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number }
+export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number; march?:{to:number;unitIds:number[]} }
 export interface Unit { travel?:TravelPlan; id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; origin:number; destination:number|null; route:number[]; transport?:{from:number;to:number;index:number;embarked:boolean}; cooldown:number }
 export interface Player { id:number; name:string; country?:CountryIdentity; flag?:Flag; leader:Leader; loadout:Kind[]; ai:boolean; gold:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerolls:number }
 export interface GameEvent { tick:number; key:'capture'|'level'|'victory'; player:number; province?:number }

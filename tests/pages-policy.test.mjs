@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import fs from 'node:fs';
+const workflow=name=>fs.readFileSync(new URL(`../.github/workflows/${name}.yml`,import.meta.url),'utf8').replace(/\r\n/g,'\n');
 const {selectSource,isCurrentMain}=createRequire(import.meta.url)('../.github/scripts/pages-source.cjs');
 function fixture() {
  const repository='RIVERS0FT/rouge',sha='a'.repeat(40);
@@ -33,10 +34,10 @@ test('manual Pages resolves only current main PR without CI and rejects alternat
  f.context.ref='refs/heads/main';f.state.pulls=[];assert.equal(await selectSource(f),null);
 });
 test('deployment mutex excludes acceptance, which verifies the same deployed SHA without a trigger loop',()=>{
- const pages=fs.readFileSync(new URL('../.github/workflows/pages.yml',import.meta.url),'utf8');
- const acceptance=fs.readFileSync(new URL('../.github/workflows/acceptance.yml',import.meta.url),'utf8');
- const ci=fs.readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
- const priority=fs.readFileSync(new URL('../.github/workflows/deployment-priority.yml',import.meta.url),'utf8');
+ const pages=workflow('pages');
+ const acceptance=workflow('acceptance');
+ const ci=workflow('ci');
+ const priority=workflow('deployment-priority');
  assert.match(pages,/on:\n  push:\n    branches: \[main\]\n  workflow_dispatch:/);
  assert.doesNotMatch(pages,/workflow_run:|game_ref|pull_request_target|run: npm test|\n  checks:|\n  verify:/);
  assert.doesNotMatch(pages,/^concurrency:/m);
@@ -64,8 +65,8 @@ test('deployment mutex excludes acceptance, which verifies the same deployed SHA
 });
 
 test('post-deployment browser shards preserve coverage, independent runners and evidence',()=>{
- const ci=fs.readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
- const acceptance=fs.readFileSync(new URL('../.github/workflows/acceptance.yml',import.meta.url),'utf8');
+ const ci=workflow('ci');
+ const acceptance=workflow('acceptance');
  const [validate,browser]=ci.split('  browser:');
  assert.ok(browser,'browser tests have their own job');
  assert.equal((ci.match(/npm test/g)||[]).length,1);

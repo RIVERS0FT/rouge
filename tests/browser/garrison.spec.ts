@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 
@@ -9,7 +10,7 @@ test('region details exclude dispatched troops still inside the source after loa
   await page.goto('/');await page.getByTestId('open-saves').click();
   await page.locator('.save-card').filter({hasText:'Garrison regression fixture'}).getByRole('button',{name:'载入',exact:true}).click();
   await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});await page.getByTestId('toggle-pause').click();
-  await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
   await expect(page.getByTestId('region-capacity')).toContainText('6 / 12');
   await expect(page.getByTestId('region-capacity')).toHaveAttribute('title',/不含已派出部队/);
   await expect(page.getByTestId('army-total')).toHaveText('12');

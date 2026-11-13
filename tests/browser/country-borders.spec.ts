@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 for(const touch of [false,true])test.describe(touch?'touch borders':'desktop borders',()=>{
@@ -17,7 +18,7 @@ for(const touch of [false,true])test.describe(touch?'touch borders':'desktop bor
   await expect(canvas).toHaveAttribute('data-country-border-width','2.2');await expect(canvas).toHaveAttribute('data-selection-border-width','3');
   for(const code of [fixture.selectedCode,fixture.aiCode,'FJI-2619']){
    if(touch&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').tap();
-   await page.getByTestId('map-search').fill(code);await page.locator('.map-search-results button').first().click();
+   await openMapSearch(page);await page.getByTestId('map-search').fill(code);await page.locator('.map-search-results button').first().click();
    await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect.poll(async()=>(await canvas.getAttribute('data-selected-fill-color'))===(await canvas.getAttribute('data-selected-owner-color'))).toBe(true);
    expect(Number(await canvas.getAttribute('data-internal-border-opacity'))).toBeLessThanOrEqual(.23);

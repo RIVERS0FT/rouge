@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {loadMapOrderFixture,mapOrderFixture,targetPoint,worldView} from './map-orders.ts';
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
@@ -17,17 +18,17 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  const sourceCode=atlas.provinces[Number(await page.locator('.world canvas').getAttribute('data-selected-region'))].id;
  await page.locator('.world canvas').focus();await page.keyboard.press('Home');await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-world.png'});
- await page.getByTestId('map-search').fill('GBR-2764');await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill('GBR-2764');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText(regionForSource('GBR-2764').name[0]);await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  // Pull back from a single region to view the British region boundaries together.
  await page.mouse.move(740,440);await page.mouse.wheel(0,85);await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/state-regions-britain.png'});
- await page.getByTestId('map-search').fill(sourceCode);await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill(sourceCode);await page.locator('.map-search-results button').first().click();
  await worldView(page);const point=await targetPoint(page);
  const plan=mapOrderFixture;
  await expect(page.getByTestId('region-capacity')).toContainText(/\/\s*[1-9]\d*/);
  await page.mouse.click(point.x,point.y,{button:'right'});
- await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
+ await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
  await page.screenshot({path:'artifacts/remote-order.png'});
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();

@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 
@@ -12,7 +13,7 @@ test('each unit has one map model and matches its garrison count for every facti
  await page.getByTestId('toggle-pause').click();
  const canvas=page.locator('.world canvas');
  for(const region of fixture.regions){
-  await page.getByTestId('map-search').fill(region.code);await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(region.code);await page.locator('.map-search-results button').first().click();
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect(page.getByTestId('region-capacity')).toContainText(`${fixture.count} / ${region.capacity}`);
   await expect(canvas).toHaveAttribute('data-rendered-instances',String(fixture.count));

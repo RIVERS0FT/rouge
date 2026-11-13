@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 
 test('ocean labels are italic in both languages while land labels stay upright',async({page})=>{
@@ -45,7 +46,7 @@ test('ocean labels are italic in both languages while land labels stay upright',
    return names.every(name=>labels.some(label=>label.name===name&&label.font.startsWith('italic ')&&label.differsFromUpright));
   },visibleOceanNames[language])).toBe(true);
   await page.screenshot({path:`artifacts/ocean-labels-${language}.png`});
-  await page.getByTestId('map-search').fill(language==='zh'?'江苏':'Jiangsu');
+  await openMapSearch(page);await page.getByTestId('map-search').fill(language==='zh'?'江苏':'Jiangsu');
   await page.locator('.map-search-results button').first().click();
   await canvas.focus();await page.keyboard.press('End');
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});

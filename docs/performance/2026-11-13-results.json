@@ -1,0 +1,6468 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "runtimeChangesApplied": false,
+  "runs": {
+    "frame-baseline": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "5000",
+        "running": true,
+        "profile": true,
+        "output": ".cache/frame-baseline.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "global-idle",
+          "action": "idle",
+          "variant": "baseline",
+          "elapsedMs": 5006.5,
+          "rafFps": 142.61460101867573,
+          "renderFps": 0,
+          "rafGapMs": {
+            "count": 714,
+            "mean": 7.011904761904762,
+            "p50": 7,
+            "p95": 7.200000000000728,
+            "max": 14.200000000000728,
+            "total": 5006.5
+          },
+          "renderGapMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "frameCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {},
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "triangles": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 272
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 0,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 982,
+            "LayoutCount": 0,
+            "RecalcStyleCount": 716,
+            "LayoutDuration": 0,
+            "RecalcStyleDuration": 0.069392,
+            "ScriptDuration": 0.137844,
+            "TaskDuration": 0.490101,
+            "JSHeapUsedSize": 183636780
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5062.200000000001,
+          "rafFps": 22.322310457903676,
+          "renderFps": 12.642724507131286,
+          "rafGapMs": {
+            "count": 113,
+            "mean": 44.79823008849558,
+            "p50": 41.60000000000218,
+            "p95": 111.20000000000073,
+            "max": 215.20000000000073,
+            "total": 5062.200000000001
+          },
+          "renderGapMs": {
+            "count": 63,
+            "mean": 80.24920634920636,
+            "p50": 76.39999999999782,
+            "p95": 118.39999999999782,
+            "max": 222.20000000000073,
+            "total": 5055.700000000001
+          },
+          "frameCpuMs": {
+            "count": 64,
+            "mean": 2.867187477648258,
+            "p50": 2.5999999046325684,
+            "p95": 5,
+            "max": 5.300000190734863,
+            "total": 183.49999856948853
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 64,
+              "mean": 0.05156247317790985,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.6999998092651367,
+              "total": 3.2999982833862305
+            },
+            "threeRender": {
+              "count": 128,
+              "mean": 0.45625001937150955,
+              "p50": 0.3000001907348633,
+              "p95": 1.200000286102295,
+              "max": 2,
+              "total": 58.40000247955322
+            },
+            "coastMask": {
+              "count": 64,
+              "mean": 0.25312504172325134,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 0.7999997138977051,
+              "total": 16.200002670288086
+            },
+            "politicalTint": {
+              "count": 64,
+              "mean": 0.0015625059604644775,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 64,
+              "mean": 0.37187498062849045,
+              "p50": 0.3000001907348633,
+              "p95": 0.7999997138977051,
+              "max": 1.1999998092651367,
+              "total": 23.79999876022339
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 64,
+            "mean": 18.859375,
+            "p50": 19,
+            "p95": 22,
+            "max": 22,
+            "total": 1207
+          },
+          "triangles": {
+            "count": 64,
+            "mean": 2118768.59375,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 135601190
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 22,
+            "RecalcStyleCount": 140,
+            "LayoutDuration": 0.006203,
+            "RecalcStyleDuration": 0.013314999999999994,
+            "ScriptDuration": 0.20087499999999997,
+            "TaskDuration": 0.36062099999999997,
+            "JSHeapUsedSize": 161118456
+          }
+        },
+        {
+          "name": "global-zoom",
+          "action": "zoom",
+          "variant": "baseline",
+          "elapsedMs": 5048.700000000004,
+          "rafFps": 16.836017192544602,
+          "renderFps": 12.478459801533058,
+          "rafGapMs": {
+            "count": 85,
+            "mean": 59.396470588235346,
+            "p50": 69.29999999999927,
+            "p95": 111.20000000000073,
+            "max": 118.39999999999418,
+            "total": 5048.700000000004
+          },
+          "renderGapMs": {
+            "count": 62,
+            "mean": 81.31451612903231,
+            "p50": 76.60000000000218,
+            "p95": 117.90000000000146,
+            "max": 125.30000000000291,
+            "total": 5041.500000000004
+          },
+          "frameCpuMs": {
+            "count": 63,
+            "mean": 3.01111110051473,
+            "p50": 2.9000000953674316,
+            "p95": 4.699999809265137,
+            "max": 4.899999618530273,
+            "total": 189.69999933242798
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 63,
+              "mean": 0.04920634012373667,
+              "p50": 0,
+              "p95": 0.19999980926513672,
+              "max": 0.20000028610229492,
+              "total": 3.09999942779541
+            },
+            "threeRender": {
+              "count": 126,
+              "mean": 0.4539682486700633,
+              "p50": 0.39999961853027344,
+              "p95": 1,
+              "max": 1.8000001907348633,
+              "total": 57.19999933242798
+            },
+            "coastMask": {
+              "count": 63,
+              "mean": 0.2444444459582132,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 0.5999999046325684,
+              "total": 15.400000095367432
+            },
+            "politicalTint": {
+              "count": 63,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 63,
+              "mean": 0.3888888888888889,
+              "p50": 0.3000001907348633,
+              "p95": 0.6999998092651367,
+              "max": 1.0999999046325684,
+              "total": 24.5
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 63,
+            "mean": 16,
+            "p50": 16,
+            "p95": 16,
+            "max": 16,
+            "total": 1008
+          },
+          "triangles": {
+            "count": 63,
+            "mean": 1904444.0634920634,
+            "p50": 1904446,
+            "p95": 1904502,
+            "max": 1904502,
+            "total": 119979976
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 213
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 2,
+            "provinces": 0
+          },
+          "distance": 1756.2020914024886,
+          "mainThread": {
+            "Nodes": 738,
+            "LayoutCount": 8,
+            "RecalcStyleCount": 149,
+            "LayoutDuration": 0.003455999999999999,
+            "RecalcStyleDuration": 0.01632299999999999,
+            "ScriptDuration": 0.20526900000000003,
+            "TaskDuration": 0.3799680000000001,
+            "JSHeapUsedSize": 143816980
+          }
+        },
+        {
+          "name": "near-idle",
+          "action": "idle",
+          "variant": "baseline",
+          "elapsedMs": 5006.799999999996,
+          "rafFps": 140.80850043940254,
+          "renderFps": 0,
+          "rafGapMs": {
+            "count": 705,
+            "mean": 7.101843971631199,
+            "p50": 7,
+            "p95": 7.299999999995634,
+            "max": 14.400000000001455,
+            "total": 5006.799999999996
+          },
+          "renderGapMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "frameCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {},
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "triangles": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 2
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1093,
+            "LayoutCount": 0,
+            "RecalcStyleCount": 706,
+            "LayoutDuration": 0,
+            "RecalcStyleDuration": 0.075017,
+            "ScriptDuration": 0.12868400000000002,
+            "TaskDuration": 0.5063259999999998,
+            "JSHeapUsedSize": 144606860
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5041.5,
+          "rafFps": 24.9925617375781,
+          "renderFps": 15.471585837548348,
+          "rafGapMs": {
+            "count": 126,
+            "mean": 40.01190476190476,
+            "p50": 34.80000000000291,
+            "p95": 90.20000000000437,
+            "max": 208.09999999999854,
+            "total": 5041.5
+          },
+          "renderGapMs": {
+            "count": 77,
+            "mean": 65.38701298701292,
+            "p50": 62.299999999995634,
+            "p95": 124.89999999999418,
+            "max": 229.3000000000029,
+            "total": 5034.799999999996
+          },
+          "frameCpuMs": {
+            "count": 78,
+            "mean": 5.74358973136315,
+            "p50": 5.099999904632568,
+            "p95": 9.5,
+            "max": 13.5,
+            "total": 447.9999990463257
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 78,
+              "mean": 0.08717947739821214,
+              "p50": 0,
+              "p95": 0.40000009536743164,
+              "max": 0.7000002861022949,
+              "total": 6.799999237060547
+            },
+            "threeRender": {
+              "count": 156,
+              "mean": 0.2852564071997618,
+              "p50": 0.20000028610229492,
+              "p95": 0.7999997138977051,
+              "max": 1.5,
+              "total": 44.49999952316284
+            },
+            "coastMask": {
+              "count": 78,
+              "mean": 0.19743593533833823,
+              "p50": 0.19999980926513672,
+              "p95": 0.3000001907348633,
+              "max": 0.7999997138977051,
+              "total": 15.40000295639038
+            },
+            "politicalTint": {
+              "count": 78,
+              "mean": 0.001282050059391902,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 78,
+              "mean": 2.756410280863444,
+              "p50": 2.1999998092651367,
+              "p95": 5.099999904632568,
+              "max": 6.599999904632568,
+              "total": 215.00000190734863
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 78,
+            "mean": 12.256410256410257,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 956
+          },
+          "triangles": {
+            "count": 78,
+            "mean": 1895315.282051282,
+            "p50": 1895356,
+            "p95": 1895404,
+            "max": 1895452,
+            "total": 147834592
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1093,
+            "LayoutCount": 44,
+            "RecalcStyleCount": 205,
+            "LayoutDuration": 0.042046,
+            "RecalcStyleDuration": 0.077826,
+            "ScriptDuration": 0.368854,
+            "TaskDuration": 0.6655289999999998,
+            "JSHeapUsedSize": 144597088
+          }
+        },
+        {
+          "name": "near-zoom",
+          "action": "zoom",
+          "variant": "baseline",
+          "elapsedMs": 5028,
+          "rafFps": 20.286396181384248,
+          "renderFps": 19.49085123309467,
+          "rafGapMs": {
+            "count": 102,
+            "mean": 49.294117647058826,
+            "p50": 41.900000000001455,
+            "p95": 83.80000000000291,
+            "max": 104.19999999999709,
+            "total": 5028
+          },
+          "renderGapMs": {
+            "count": 97,
+            "mean": 51.75876288659792,
+            "p50": 42.10000000000582,
+            "p95": 89.90000000000146,
+            "max": 104.19999999999709,
+            "total": 5020.5999999999985
+          },
+          "frameCpuMs": {
+            "count": 98,
+            "mean": 5.361224461574944,
+            "p50": 5,
+            "p95": 9.199999809265137,
+            "max": 11.400000095367432,
+            "total": 525.3999972343445
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 98,
+              "mean": 0.053061212812151225,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.5999999046325684,
+              "total": 5.19999885559082
+            },
+            "threeRender": {
+              "count": 196,
+              "mean": 0.23877550387869076,
+              "p50": 0.19999980926513672,
+              "p95": 0.5999999046325684,
+              "max": 1.5,
+              "total": 46.79999876022339
+            },
+            "coastMask": {
+              "count": 98,
+              "mean": 0.15408164141129474,
+              "p50": 0.10000038146972656,
+              "p95": 0.40000009536743164,
+              "max": 0.5,
+              "total": 15.100000858306885
+            },
+            "politicalTint": {
+              "count": 98,
+              "mean": 0.002040819245941785,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "drawMapNames": {
+              "count": 98,
+              "mean": 2.404081641411295,
+              "p50": 2.1999998092651367,
+              "p95": 3.6999998092651367,
+              "max": 5.900000095367432,
+              "total": 235.60000085830688
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 98,
+            "mean": 11,
+            "p50": 11,
+            "p95": 11,
+            "max": 11,
+            "total": 1078
+          },
+          "triangles": {
+            "count": 98,
+            "mean": 1895073.7142857143,
+            "p50": 1895060,
+            "p95": 1895156,
+            "max": 1895156,
+            "total": 185717224
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 67.47476175612019,
+          "mainThread": {
+            "Nodes": 1093,
+            "LayoutCount": 76,
+            "RecalcStyleCount": 201,
+            "LayoutDuration": 0.07384500000000001,
+            "RecalcStyleDuration": 0.09043899999999999,
+            "ScriptDuration": 0.3961159999999999,
+            "TaskDuration": 0.6879369999999998,
+            "JSHeapUsedSize": 144819484
+          }
+        },
+        {
+          "name": "running-idle",
+          "action": "idle",
+          "variant": "baseline",
+          "elapsedMs": 5006.5999999999985,
+          "rafFps": 131.02704430152204,
+          "renderFps": 6.591299484680224,
+          "rafGapMs": {
+            "count": 656,
+            "mean": 7.632012195121949,
+            "p50": 7,
+            "p95": 13.900000000001455,
+            "max": 34.80000000000291,
+            "total": 5006.5999999999985
+          },
+          "renderGapMs": {
+            "count": 32,
+            "mean": 86.15625,
+            "p50": 76.40000000000146,
+            "p95": 124.69999999999709,
+            "max": 590,
+            "total": 2757
+          },
+          "frameCpuMs": {
+            "count": 33,
+            "mean": 6.830303018743342,
+            "p50": 6.5,
+            "p95": 10.899999618530273,
+            "max": 14.799999713897705,
+            "total": 225.39999961853027
+          },
+          "updateCpuMs": {
+            "count": 43,
+            "mean": 0.8581395925477494,
+            "p50": 0.8000001907348633,
+            "p95": 1.6000003814697266,
+            "max": 1.700000286102295,
+            "total": 36.90000247955322
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 33,
+              "mean": 0.1696970101558801,
+              "p50": 0,
+              "p95": 0.5999999046325684,
+              "max": 0.9000000953674316,
+              "total": 5.600001335144043
+            },
+            "coastMask": {
+              "count": 33,
+              "mean": 0.006060614730372574,
+              "p50": 0,
+              "p95": 0.09999990463256836,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "politicalTint": {
+              "count": 33,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 33,
+              "mean": 3.4242424242424243,
+              "p50": 3.1999998092651367,
+              "p95": 6.299999713897705,
+              "max": 8.099999904632568,
+              "total": 113
+            },
+            "threeRender": {
+              "count": 33,
+              "mean": 0.545454487656102,
+              "p50": 0.5,
+              "p95": 1,
+              "max": 1.5,
+              "total": 17.999998092651367
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 33,
+            "mean": 10,
+            "p50": 10,
+            "p95": 10,
+            "max": 10,
+            "total": 330
+          },
+          "triangles": {
+            "count": 33,
+            "mean": 969832,
+            "p50": 969832,
+            "p95": 969832,
+            "max": 969832,
+            "total": 32004456
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 2
+          },
+          "ticks": 86,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 2119,
+            "LayoutCount": 629,
+            "RecalcStyleCount": 732,
+            "LayoutDuration": 0.187867,
+            "RecalcStyleDuration": 0.16502,
+            "ScriptDuration": 0.6953460000000002,
+            "TaskDuration": 2.0096369999999997,
+            "JSHeapUsedSize": 172869224
+          }
+        },
+        {
+          "name": "running-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5035.100000000006,
+          "rafFps": 26.61317550793427,
+          "renderFps": 15.491251415066218,
+          "rafGapMs": {
+            "count": 134,
+            "mean": 37.5753731343284,
+            "p50": 34.69999999999709,
+            "p95": 90.40000000000146,
+            "max": 124.79999999999563,
+            "total": 5035.100000000006
+          },
+          "renderGapMs": {
+            "count": 77,
+            "mean": 65.20779220779231,
+            "p50": 62.5,
+            "p95": 103.89999999999418,
+            "max": 124.79999999999563,
+            "total": 5021.000000000007
+          },
+          "frameCpuMs": {
+            "count": 78,
+            "mean": 5.7243589743589745,
+            "p50": 5.300000190734863,
+            "p95": 9.5,
+            "max": 9.900000095367432,
+            "total": 446.5
+          },
+          "updateCpuMs": {
+            "count": 51,
+            "mean": 1.2568627525778377,
+            "p50": 1.0999999046325684,
+            "p95": 2.3000001907348633,
+            "max": 2.5,
+            "total": 64.10000038146973
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 78,
+              "mean": 0.06923077656672551,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.5,
+              "total": 5.40000057220459
+            },
+            "threeRender": {
+              "count": 156,
+              "mean": 0.3269230738664285,
+              "p50": 0.2999997138977051,
+              "p95": 1,
+              "max": 1.5999999046325684,
+              "total": 50.99999952316284
+            },
+            "coastMask": {
+              "count": 78,
+              "mean": 0.20512819901490822,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 0.5999999046325684,
+              "total": 15.999999523162842
+            },
+            "politicalTint": {
+              "count": 78,
+              "mean": 0.001282050059391902,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 78,
+              "mean": 2.7423076996436486,
+              "p50": 2.4000000953674316,
+              "p95": 4.5,
+              "max": 5.099999904632568,
+              "total": 213.9000005722046
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 78,
+            "mean": 12.102564102564102,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 944
+          },
+          "triangles": {
+            "count": 78,
+            "mean": 1895302.358974359,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 147833584
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 102,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 2511,
+            "LayoutCount": 190,
+            "RecalcStyleCount": 265,
+            "LayoutDuration": 0.05749500000000002,
+            "RecalcStyleDuration": 0.09353800000000001,
+            "ScriptDuration": 0.761911,
+            "TaskDuration": 1.1519629999999994,
+            "JSHeapUsedSize": 200695004
+          }
+        },
+        {
+          "name": "cpu-profile-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5027.800000000003,
+          "rafFps": 19.889414853415,
+          "renderFps": 13.32590795178805,
+          "rafGapMs": {
+            "count": 100,
+            "mean": 50.27800000000003,
+            "p50": 55.60000000000582,
+            "p95": 104.39999999999418,
+            "max": 132,
+            "total": 5027.800000000003
+          },
+          "renderGapMs": {
+            "count": 66,
+            "mean": 75.86212121212134,
+            "p50": 76.10000000000582,
+            "p95": 118.19999999999709,
+            "max": 132,
+            "total": 5006.900000000009
+          },
+          "frameCpuMs": {
+            "count": 67,
+            "mean": 6.701492537313433,
+            "p50": 6.699999809265137,
+            "p95": 11.5,
+            "max": 15.199999809265137,
+            "total": 449
+          },
+          "updateCpuMs": {
+            "count": 51,
+            "mean": 1.2196078393973557,
+            "p50": 1,
+            "p95": 2.5999999046325684,
+            "max": 3,
+            "total": 62.19999980926514
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 67,
+              "mean": 0.09402985359305766,
+              "p50": 0,
+              "p95": 0.40000009536743164,
+              "max": 0.8000001907348633,
+              "total": 6.300000190734863
+            },
+            "threeRender": {
+              "count": 134,
+              "mean": 0.3798507683312715,
+              "p50": 0.3000001907348633,
+              "p95": 1,
+              "max": 1.5,
+              "total": 50.90000295639038
+            },
+            "coastMask": {
+              "count": 67,
+              "mean": 0.23134329781603458,
+              "p50": 0.19999980926513672,
+              "p95": 0.5999999046325684,
+              "max": 1.1999998092651367,
+              "total": 15.500000953674316
+            },
+            "politicalTint": {
+              "count": 67,
+              "mean": 0.0014925358900383337,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 67,
+              "mean": 3.11641788482666,
+              "p50": 3.0999999046325684,
+              "p95": 5.400000095367432,
+              "max": 6.599999904632568,
+              "total": 208.79999828338623
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 67,
+            "mean": 12.223880597014926,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 819
+          },
+          "triangles": {
+            "count": 67,
+            "mean": 1895316.8358208956,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 126986228
+          },
+          "units": {
+            "before": 325,
+            "after": 332,
+            "visible": 0
+          },
+          "ticks": 118,
+          "labels": {
+            "countries": 7,
+            "provinces": 160
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 3163,
+            "LayoutCount": 146,
+            "RecalcStyleCount": 219,
+            "LayoutDuration": 0.055823999999999985,
+            "RecalcStyleDuration": 0.10281700000000005,
+            "ScriptDuration": 0.8315640000000002,
+            "TaskDuration": 1.228465,
+            "JSHeapUsedSize": 225083284
+          }
+        }
+      ]
+    },
+    "frame-ab": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 85293,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "5000",
+        "actions": "pan",
+        "variants": "baseline,coast-off,land-off,borders-off,ocean-flat,names-off,scale075",
+        "output": ".cache/frame-ab.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5153.0999999999985,
+          "rafFps": 21.152316081581965,
+          "renderFps": 11.837534687857797,
+          "rafGapMs": {
+            "count": 109,
+            "mean": 47.276146788990815,
+            "p50": 42.10000000000218,
+            "p95": 111.20000000000073,
+            "max": 180.70000000000073,
+            "total": 5153.0999999999985
+          },
+          "renderGapMs": {
+            "count": 60,
+            "mean": 85.76666666666667,
+            "p50": 83.40000000000146,
+            "p95": 138.5,
+            "max": 180.70000000000073,
+            "total": 5146
+          },
+          "frameCpuMs": {
+            "count": 61,
+            "mean": 2.9262295081967213,
+            "p50": 2.5,
+            "p95": 4.700000286102295,
+            "max": 5.899999618530273,
+            "total": 178.5
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 61,
+              "mean": 0.04590163465406074,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.6000003814697266,
+              "total": 2.799999713897705
+            },
+            "threeRender": {
+              "count": 122,
+              "mean": 0.45491802496988265,
+              "p50": 0.3000001907348633,
+              "p95": 1.1000003814697266,
+              "max": 1.8000001907348633,
+              "total": 55.499999046325684
+            },
+            "coastMask": {
+              "count": 61,
+              "mean": 0.26557373609699186,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 0.6999998092651367,
+              "total": 16.199997901916504
+            },
+            "politicalTint": {
+              "count": 61,
+              "mean": 0.0016393505158971567,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 61,
+              "mean": 0.3622950882208152,
+              "p50": 0.3000001907348633,
+              "p95": 0.6999998092651367,
+              "max": 0.8000001907348633,
+              "total": 22.100000381469727
+            },
+            "gpuMainMs": {
+              "count": 58,
+              "mean": 36.393173499999996,
+              "p50": 35.863856,
+              "p95": 56.555856,
+              "max": 87.076401,
+              "total": 2110.8040629999996
+            },
+            "gpuCoastMs": {
+              "count": 59,
+              "mean": 34.386480593220334,
+              "p50": 34.669861,
+              "p95": 56.916272,
+              "max": 71.108882,
+              "total": 2028.8023549999998
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 61,
+            "mean": 18.9672131147541,
+            "p50": 20,
+            "p95": 22,
+            "max": 22,
+            "total": 1157
+          },
+          "triangles": {
+            "count": 61,
+            "mean": 2121814.62295082,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361610,
+            "total": 129430692
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 923,
+            "LayoutCount": 20,
+            "RecalcStyleCount": 135,
+            "LayoutDuration": 0.006641,
+            "RecalcStyleDuration": 0.012572,
+            "ScriptDuration": 0.197479,
+            "TaskDuration": 0.288302,
+            "JSHeapUsedSize": 164055080
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "coast-off",
+          "elapsedMs": 5027.800000000003,
+          "rafFps": 39.77882970683,
+          "renderFps": 17.1048967739369,
+          "rafGapMs": {
+            "count": 200,
+            "mean": 25.139000000000014,
+            "p50": 7.200000000000728,
+            "p95": 69.70000000000073,
+            "max": 138.5,
+            "total": 5027.800000000003
+          },
+          "renderGapMs": {
+            "count": 85,
+            "mean": 59.068235294117684,
+            "p50": 55.69999999999709,
+            "p95": 97.70000000000073,
+            "max": 145.8000000000029,
+            "total": 5020.800000000003
+          },
+          "frameCpuMs": {
+            "count": 86,
+            "mean": 3.0523255703061127,
+            "p50": 3,
+            "p95": 4.599999904632568,
+            "max": 6.699999809265137,
+            "total": 262.4999990463257
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 86,
+              "mean": 0.02558139867560808,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.10000038146972656,
+              "total": 2.200000286102295
+            },
+            "politicalTint": {
+              "count": 86,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 86,
+              "mean": 0.45348838872687763,
+              "p50": 0.40000009536743164,
+              "p95": 0.9000000953674316,
+              "max": 1.6000003814697266,
+              "total": 39.000001430511475
+            },
+            "threeRender": {
+              "count": 86,
+              "mean": 0.7639534584311551,
+              "p50": 0.7000002861022949,
+              "p95": 1.299999713897705,
+              "max": 1.4000000953674316,
+              "total": 65.69999742507935
+            },
+            "gpuMainMs": {
+              "count": 84,
+              "mean": 39.1373588452381,
+              "p50": 38.618844,
+              "p95": 64.740323,
+              "max": 85.429407,
+              "total": 3287.538143
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 86,
+            "mean": 14.848837209302326,
+            "p50": 15,
+            "p95": 18,
+            "max": 18,
+            "total": 1277
+          },
+          "triangles": {
+            "count": 86,
+            "mean": 1186171.6279069767,
+            "p50": 978914,
+            "p95": 1435988,
+            "max": 1435990,
+            "total": 102010760
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 30,
+            "RecalcStyleCount": 288,
+            "LayoutDuration": 0.009243999999999999,
+            "RecalcStyleDuration": 0.030465999999999993,
+            "ScriptDuration": 0.297956,
+            "TaskDuration": 0.468151,
+            "JSHeapUsedSize": 168325084
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "land-off",
+          "elapsedMs": 5076.399999999998,
+          "rafFps": 20.880939248286197,
+          "renderFps": 13.001339531951782,
+          "rafGapMs": {
+            "count": 106,
+            "mean": 47.89056603773583,
+            "p50": 48.5,
+            "p95": 104.20000000000073,
+            "max": 180.60000000000218,
+            "total": 5076.399999999998
+          },
+          "renderGapMs": {
+            "count": 65,
+            "mean": 77.9892307692307,
+            "p50": 76.70000000000073,
+            "p95": 117.70000000000073,
+            "max": 180.60000000000218,
+            "total": 5069.299999999996
+          },
+          "frameCpuMs": {
+            "count": 66,
+            "mean": 3.192424268433542,
+            "p50": 3.0999999046325684,
+            "p95": 6.200000286102295,
+            "max": 9.099999904632568,
+            "total": 210.70000171661377
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 66,
+              "mean": 0.036363623358986595,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.3000001907348633,
+              "total": 2.3999991416931152
+            },
+            "threeRender": {
+              "count": 132,
+              "mean": 0.43409089608625934,
+              "p50": 0.3000001907348633,
+              "p95": 1.3000001907348633,
+              "max": 3.6999998092651367,
+              "total": 57.29999828338623
+            },
+            "coastMask": {
+              "count": 66,
+              "mean": 0.27424243002226856,
+              "p50": 0.20000028610229492,
+              "p95": 0.5999999046325684,
+              "max": 0.8000001907348633,
+              "total": 18.100000381469727
+            },
+            "politicalTint": {
+              "count": 66,
+              "mean": 0.0015151500701904297,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 66,
+              "mean": 0.42272728139703925,
+              "p50": 0.39999961853027344,
+              "p95": 0.8999996185302734,
+              "max": 1.3000001907348633,
+              "total": 27.90000057220459
+            },
+            "gpuMainMs": {
+              "count": 64,
+              "mean": 21.506805953124992,
+              "p50": 16.2386,
+              "p95": 49.178385,
+              "max": 54.919946,
+              "total": 1376.4355809999995
+            },
+            "gpuCoastMs": {
+              "count": 64,
+              "mean": 38.373257359374996,
+              "p50": 38.25468,
+              "p95": 61.263838,
+              "max": 71.701963,
+              "total": 2455.8884709999998
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 66,
+            "mean": 17.333333333333332,
+            "p50": 18,
+            "p95": 20,
+            "max": 20,
+            "total": 1144
+          },
+          "triangles": {
+            "count": 66,
+            "mean": 1447454.8181818181,
+            "p50": 1447456,
+            "p95": 1447478,
+            "max": 1447480,
+            "total": 95532018
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 21,
+            "RecalcStyleCount": 174,
+            "LayoutDuration": 0.006784999999999999,
+            "RecalcStyleDuration": 0.017977999999999994,
+            "ScriptDuration": 0.227259,
+            "TaskDuration": 0.4633879999999999,
+            "JSHeapUsedSize": 144503432
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "borders-off",
+          "elapsedMs": 5007.399999999994,
+          "rafFps": 24.7633502416424,
+          "renderFps": 14.378719495147198,
+          "rafGapMs": {
+            "count": 124,
+            "mean": 40.38225806451608,
+            "p50": 41.700000000004366,
+            "p95": 90.29999999999563,
+            "max": 167.09999999999854,
+            "total": 5007.399999999994
+          },
+          "renderGapMs": {
+            "count": 71,
+            "mean": 70.42816901408443,
+            "p50": 62.80000000000291,
+            "p95": 104.20000000000437,
+            "max": 174,
+            "total": 5000.399999999994
+          },
+          "frameCpuMs": {
+            "count": 72,
+            "mean": 2.668055580721961,
+            "p50": 2.5,
+            "p95": 4.099999904632568,
+            "max": 5.599999904632568,
+            "total": 192.1000018119812
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 72,
+              "mean": 0.023611134952969022,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.20000028610229492,
+              "total": 1.7000017166137695
+            },
+            "threeRender": {
+              "count": 144,
+              "mean": 0.31111110912428963,
+              "p50": 0.2999997138977051,
+              "p95": 0.7000002861022949,
+              "max": 1.3999996185302734,
+              "total": 44.799999713897705
+            },
+            "coastMask": {
+              "count": 72,
+              "mean": 0.25138890080981785,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 0.6000003814697266,
+              "total": 18.100000858306885
+            },
+            "politicalTint": {
+              "count": 72,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 72,
+              "mean": 0.3236110806465149,
+              "p50": 0.2999997138977051,
+              "p95": 0.5999999046325684,
+              "max": 1.4000000953674316,
+              "total": 23.299997806549072
+            },
+            "gpuMainMs": {
+              "count": 69,
+              "mean": 22.944474710144927,
+              "p50": 22.260243,
+              "p95": 42.431329,
+              "max": 74.727283,
+              "total": 1583.168755
+            },
+            "gpuCoastMs": {
+              "count": 69,
+              "mean": 36.46687413043479,
+              "p50": 34.222779,
+              "p95": 67.30448,
+              "max": 79.793847,
+              "total": 2516.2143150000006
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 72,
+            "mean": 15.472222222222221,
+            "p50": 17,
+            "p95": 18,
+            "max": 18,
+            "total": 1114
+          },
+          "triangles": {
+            "count": 72,
+            "mean": 1608599.138888889,
+            "p50": 1392778,
+            "p95": 1849852,
+            "max": 1849854,
+            "total": 115819138
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 26,
+            "RecalcStyleCount": 198,
+            "LayoutDuration": 0.0071319999999999995,
+            "RecalcStyleDuration": 0.018114999999999992,
+            "ScriptDuration": 0.21001399999999992,
+            "TaskDuration": 0.32023899999999994,
+            "JSHeapUsedSize": 145464760
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "ocean-flat",
+          "elapsedMs": 5055.9000000000015,
+          "rafFps": 20.372238374967854,
+          "renderFps": 12.460689491485192,
+          "rafGapMs": {
+            "count": 103,
+            "mean": 49.086407766990305,
+            "p50": 55.400000000001455,
+            "p95": 97.40000000000146,
+            "max": 222.60000000000582,
+            "total": 5055.9000000000015
+          },
+          "renderGapMs": {
+            "count": 62,
+            "mean": 81.43387096774195,
+            "p50": 83.19999999999709,
+            "p95": 111,
+            "max": 222.60000000000582,
+            "total": 5048.9000000000015
+          },
+          "frameCpuMs": {
+            "count": 63,
+            "mean": 2.8777778035118464,
+            "p50": 2.5,
+            "p95": 4.099999904632568,
+            "max": 17.199999809265137,
+            "total": 181.30000162124634
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 63,
+              "mean": 0.03968255482022724,
+              "p50": 0,
+              "p95": 0.19999980926513672,
+              "max": 0.2999997138977051,
+              "total": 2.5000009536743164
+            },
+            "threeRender": {
+              "count": 126,
+              "mean": 0.43888889418707955,
+              "p50": 0.2999997138977051,
+              "p95": 0.9000000953674316,
+              "max": 15.5,
+              "total": 55.30000066757202
+            },
+            "coastMask": {
+              "count": 63,
+              "mean": 0.21269844448755656,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 0.6000003814697266,
+              "total": 13.400002002716064
+            },
+            "politicalTint": {
+              "count": 63,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 63,
+              "mean": 0.32698408762613934,
+              "p50": 0.2999997138977051,
+              "p95": 0.5999999046325684,
+              "max": 1,
+              "total": 20.599997520446777
+            },
+            "gpuCoastMs": {
+              "count": 60,
+              "mean": 35.48211586666667,
+              "p50": 34.203863,
+              "p95": 62.970748,
+              "max": 68.679974,
+              "total": 2128.9269520000003
+            },
+            "gpuMainMs": {
+              "count": 60,
+              "mean": 33.149306416666654,
+              "p50": 32.641369,
+              "p95": 53.79395,
+              "max": 70.972381,
+              "total": 1988.9583849999995
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 63,
+            "mean": 18.873015873015873,
+            "p50": 19,
+            "p95": 22,
+            "max": 22,
+            "total": 1189
+          },
+          "triangles": {
+            "count": 63,
+            "mean": 2114915.9365079366,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 133239704
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 21,
+            "RecalcStyleCount": 167,
+            "LayoutDuration": 0.0057390000000000045,
+            "RecalcStyleDuration": 0.015055000000000013,
+            "ScriptDuration": 0.196442,
+            "TaskDuration": 0.29115100000000016,
+            "JSHeapUsedSize": 145866880
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "names-off",
+          "elapsedMs": 5097.200000000004,
+          "rafFps": 19.814800282508028,
+          "renderFps": 12.359726908891146,
+          "rafGapMs": {
+            "count": 101,
+            "mean": 50.467326732673314,
+            "p50": 48.900000000001455,
+            "p95": 124.40000000000146,
+            "max": 187.40000000000146,
+            "total": 5097.200000000004
+          },
+          "renderGapMs": {
+            "count": 62,
+            "mean": 82.10483870967742,
+            "p50": 76.30000000000291,
+            "p95": 159.3000000000029,
+            "max": 187.40000000000146,
+            "total": 5090.5
+          },
+          "frameCpuMs": {
+            "count": 63,
+            "mean": 2.2095237837897406,
+            "p50": 1.9000000953674316,
+            "p95": 3.5,
+            "max": 4.099999904632568,
+            "total": 139.19999837875366
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 63,
+              "mean": 0.042857132260761564,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.20000028610229492,
+              "total": 2.6999993324279785
+            },
+            "threeRender": {
+              "count": 126,
+              "mean": 0.30555556690882124,
+              "p50": 0.20000028610229492,
+              "p95": 0.9000000953674316,
+              "max": 1.4000000953674316,
+              "total": 38.500001430511475
+            },
+            "coastMask": {
+              "count": 63,
+              "mean": 0.16984130465795125,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 0.5,
+              "total": 10.700002193450928
+            },
+            "politicalTint": {
+              "count": 63,
+              "mean": 0.0015873000735328311,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "gpuMainMs": {
+              "count": 61,
+              "mean": 34.02406514754098,
+              "p50": 33.262282,
+              "p95": 54.52528,
+              "max": 75.869863,
+              "total": 2075.4679739999997
+            },
+            "gpuCoastMs": {
+              "count": 61,
+              "mean": 33.8147971147541,
+              "p50": 30.302378,
+              "p95": 61.297421,
+              "max": 64.67824,
+              "total": 2062.702624
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 63,
+            "mean": 18.825396825396826,
+            "p50": 19,
+            "p95": 22,
+            "max": 22,
+            "total": 1186
+          },
+          "triangles": {
+            "count": 63,
+            "mean": 2114917.492063492,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 133239802
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 733,
+            "LayoutCount": 2,
+            "RecalcStyleCount": 104,
+            "LayoutDuration": 0.00040899999999999964,
+            "RecalcStyleDuration": 0.010172000000000014,
+            "ScriptDuration": 0.1650100000000001,
+            "TaskDuration": 0.22965400000000002,
+            "JSHeapUsedSize": 147318724
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "scale075",
+          "elapsedMs": 5041.799999999996,
+          "rafFps": 29.55293744297674,
+          "renderFps": 15.669007100638675,
+          "rafGapMs": {
+            "count": 149,
+            "mean": 33.83758389261742,
+            "p50": 21.200000000004366,
+            "p95": 90.09999999999854,
+            "max": 159.8000000000029,
+            "total": 5041.799999999996
+          },
+          "renderGapMs": {
+            "count": 78,
+            "mean": 64.63846153846148,
+            "p50": 62.5,
+            "p95": 104,
+            "max": 159.8000000000029,
+            "total": 5041.799999999996
+          },
+          "frameCpuMs": {
+            "count": 79,
+            "mean": 2.3594936720932584,
+            "p50": 2.0999999046325684,
+            "p95": 4.100000381469727,
+            "max": 6.200000286102295,
+            "total": 186.40000009536743
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 79,
+              "mean": 0.025316443624375743,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.3000001907348633,
+              "total": 1.9999990463256836
+            },
+            "threeRender": {
+              "count": 158,
+              "mean": 0.28987339176709137,
+              "p50": 0.20000028610229492,
+              "p95": 0.7999997138977051,
+              "max": 1.3000001907348633,
+              "total": 45.79999589920044
+            },
+            "coastMask": {
+              "count": 79,
+              "mean": 0.18860758407206474,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 0.5999999046325684,
+              "total": 14.899999141693115
+            },
+            "politicalTint": {
+              "count": 79,
+              "mean": 0.0012658215776274475,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 79,
+              "mean": 0.3012658433069157,
+              "p50": 0.2999997138977051,
+              "p95": 0.6999998092651367,
+              "max": 1,
+              "total": 23.800001621246338
+            },
+            "gpuCoastMs": {
+              "count": 76,
+              "mean": 29.420920197368428,
+              "p50": 25.522064,
+              "p95": 54.780447,
+              "max": 64.113576,
+              "total": 2235.9899350000005
+            },
+            "gpuMainMs": {
+              "count": 76,
+              "mean": 25.629330552631576,
+              "p50": 23.752737,
+              "p95": 51.686459,
+              "max": 55.474611,
+              "total": 1947.8291219999996
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 79,
+            "mean": 18.924050632911392,
+            "p50": 20,
+            "p95": 22,
+            "max": 22,
+            "total": 1495
+          },
+          "triangles": {
+            "count": 79,
+            "mean": 2124375.139240506,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 167825636
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 274
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 27,
+            "RecalcStyleCount": 235,
+            "LayoutDuration": 0.006085999999999994,
+            "RecalcStyleDuration": 0.018395999999999996,
+            "ScriptDuration": 0.20998899999999998,
+            "TaskDuration": 0.493004,
+            "JSHeapUsedSize": 145804224
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 5034.300000000003,
+          "rafFps": 21.651470909560402,
+          "renderFps": 13.90461434558925,
+          "rafGapMs": {
+            "count": 109,
+            "mean": 46.18623853211012,
+            "p50": 48.400000000001455,
+            "p95": 104.20000000000437,
+            "max": 131.6999999999971,
+            "total": 5034.300000000003
+          },
+          "renderGapMs": {
+            "count": 69,
+            "mean": 72.86811594202901,
+            "p50": 69.5,
+            "p95": 125.29999999999563,
+            "max": 145.90000000000146,
+            "total": 5027.9000000000015
+          },
+          "frameCpuMs": {
+            "count": 70,
+            "mean": 5.881428589139666,
+            "p50": 5.599999904632568,
+            "p95": 9,
+            "max": 11.799999713897705,
+            "total": 411.7000012397766
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 70,
+              "mean": 0.07857143538338797,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.40000009536743164,
+              "total": 5.500000476837158
+            },
+            "threeRender": {
+              "count": 140,
+              "mean": 0.2521428448813302,
+              "p50": 0.19999980926513672,
+              "p95": 0.7000002861022949,
+              "max": 1.0999999046325684,
+              "total": 35.29999828338623
+            },
+            "coastMask": {
+              "count": 70,
+              "mean": 0.17428570474897112,
+              "p50": 0.19999980926513672,
+              "p95": 0.3000001907348633,
+              "max": 0.5,
+              "total": 12.199999332427979
+            },
+            "politicalTint": {
+              "count": 70,
+              "mean": 0.001428570066179548,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 70,
+              "mean": 2.6014285836900983,
+              "p50": 2.299999713897705,
+              "p95": 4.800000190734863,
+              "max": 6.199999809265137,
+              "total": 182.10000085830688
+            },
+            "gpuMainMs": {
+              "count": 66,
+              "mean": 20.01082339393939,
+              "p50": 14.085443,
+              "p95": 46.898143,
+              "max": 51.281127,
+              "total": 1320.7143439999998
+            },
+            "gpuCoastMs": {
+              "count": 66,
+              "mean": 32.98376742424244,
+              "p50": 33.509531,
+              "p95": 57.003188,
+              "max": 71.275714,
+              "total": 2176.9286500000007
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 70,
+            "mean": 12.228571428571428,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 856
+          },
+          "triangles": {
+            "count": 70,
+            "mean": 1895321.0857142857,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 132672476
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 44,
+            "RecalcStyleCount": 181,
+            "LayoutDuration": 0.036751000000000006,
+            "RecalcStyleDuration": 0.093244,
+            "ScriptDuration": 0.31911299999999976,
+            "TaskDuration": 0.5667710000000001,
+            "JSHeapUsedSize": 145997328
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "coast-off",
+          "elapsedMs": 5006.600000000006,
+          "rafFps": 85.28742060480157,
+          "renderFps": 24.567570806535343,
+          "rafGapMs": {
+            "count": 427,
+            "mean": 11.72505854800938,
+            "p50": 7.099999999991269,
+            "p95": 35,
+            "max": 83.30000000000291,
+            "total": 5006.600000000006
+          },
+          "renderGapMs": {
+            "count": 122,
+            "mean": 40.92622950819672,
+            "p50": 34.89999999999418,
+            "p95": 69.20000000001164,
+            "max": 97.09999999999127,
+            "total": 4993
+          },
+          "frameCpuMs": {
+            "count": 123,
+            "mean": 5.7577235718083575,
+            "p50": 5.300000190734863,
+            "p95": 9.199999809265137,
+            "max": 12.5,
+            "total": 708.199999332428
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 123,
+              "mean": 0.0471544614652308,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.6999998092651367,
+              "total": 5.799998760223389
+            },
+            "politicalTint": {
+              "count": 123,
+              "mean": 0.0016260224629223831,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000076293945312
+            },
+            "drawMapNames": {
+              "count": 123,
+              "mean": 2.7951219527702023,
+              "p50": 2.5,
+              "p95": 4.199999809265137,
+              "max": 8,
+              "total": 343.80000019073486
+            },
+            "threeRender": {
+              "count": 123,
+              "mean": 0.41463414246473856,
+              "p50": 0.3000001907348633,
+              "p95": 0.8000001907348633,
+              "max": 1.1000003814697266,
+              "total": 50.99999952316284
+            },
+            "gpuMainMs": {
+              "count": 122,
+              "mean": 20.0247349262295,
+              "p50": 13.651441,
+              "p95": 47.885473,
+              "max": 65.892403,
+              "total": 2443.017660999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 123,
+            "mean": 8.284552845528456,
+            "p50": 9,
+            "p95": 9,
+            "max": 9,
+            "total": 1019
+          },
+          "triangles": {
+            "count": 123,
+            "mean": 969698.162601626,
+            "p50": 969734,
+            "p95": 969830,
+            "max": 969830,
+            "total": 119272874
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 71,
+            "RecalcStyleCount": 551,
+            "LayoutDuration": 0.041242,
+            "RecalcStyleDuration": 0.19159200000000004,
+            "ScriptDuration": 0.5909089999999999,
+            "TaskDuration": 1.1791610000000006,
+            "JSHeapUsedSize": 144919588
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "land-off",
+          "elapsedMs": 5007.200000000012,
+          "rafFps": 33.35197315865146,
+          "renderFps": 17.175267614634887,
+          "rafGapMs": {
+            "count": 167,
+            "mean": 29.9832335329342,
+            "p50": 20.69999999999709,
+            "p95": 76.5,
+            "max": 125.39999999999418,
+            "total": 5007.200000000012
+          },
+          "renderGapMs": {
+            "count": 85,
+            "mean": 58.498823529411695,
+            "p50": 55.5,
+            "p95": 97.10000000000582,
+            "max": 125.39999999999418,
+            "total": 4972.399999999994
+          },
+          "frameCpuMs": {
+            "count": 86,
+            "mean": 5.554651182751323,
+            "p50": 4.900000095367432,
+            "p95": 9.300000190734863,
+            "max": 10.299999713897705,
+            "total": 477.70000171661377
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 86,
+              "mean": 0.07441862239394077,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.6999998092651367,
+              "total": 6.400001525878906
+            },
+            "threeRender": {
+              "count": 172,
+              "mean": 0.22558140477468802,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 1.5,
+              "total": 38.80000162124634
+            },
+            "coastMask": {
+              "count": 86,
+              "mean": 0.17093022479567416,
+              "p50": 0.10000038146972656,
+              "p95": 0.40000009536743164,
+              "max": 0.6000003814697266,
+              "total": 14.699999332427979
+            },
+            "politicalTint": {
+              "count": 86,
+              "mean": 0.0023255847221197085,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "drawMapNames": {
+              "count": 86,
+              "mean": 2.5941860564919406,
+              "p50": 2.1999998092651367,
+              "p95": 4.200000286102295,
+              "max": 5.699999809265137,
+              "total": 223.10000085830688
+            },
+            "gpuMainMs": {
+              "count": 83,
+              "mean": 13.103510156626507,
+              "p50": 7.751052,
+              "p95": 30.505044,
+              "max": 57.663683,
+              "total": 1087.591343
+            },
+            "gpuCoastMs": {
+              "count": 83,
+              "mean": 29.115231795180733,
+              "p50": 24.566985,
+              "p95": 56.591188,
+              "max": 67.344063,
+              "total": 2416.5642390000007
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 86,
+            "mean": 11.30232558139535,
+            "p50": 12,
+            "p95": 12,
+            "max": 12,
+            "total": 972
+          },
+          "triangles": {
+            "count": 86,
+            "mean": 1438252.3255813953,
+            "p50": 1438290,
+            "p95": 1438386,
+            "max": 1438386,
+            "total": 123689700
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 49,
+            "RecalcStyleCount": 254,
+            "LayoutDuration": 0.028782000000000002,
+            "RecalcStyleDuration": 0.11634600000000006,
+            "ScriptDuration": 0.38298699999999997,
+            "TaskDuration": 0.7412939999999999,
+            "JSHeapUsedSize": 146001228
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "borders-off",
+          "elapsedMs": 5048.5,
+          "rafFps": 22.38288600574428,
+          "renderFps": 14.261661879766267,
+          "rafGapMs": {
+            "count": 113,
+            "mean": 44.676991150442475,
+            "p50": 48.39999999999418,
+            "p95": 90.5,
+            "max": 145.79999999998836,
+            "total": 5048.5
+          },
+          "renderGapMs": {
+            "count": 71,
+            "mean": 71.01126760563385,
+            "p50": 69.30000000000291,
+            "p95": 110.69999999999709,
+            "max": 145.79999999998836,
+            "total": 5041.800000000003
+          },
+          "frameCpuMs": {
+            "count": 72,
+            "mean": 6.269444465637207,
+            "p50": 6.300000190734863,
+            "p95": 9,
+            "max": 9.199999809265137,
+            "total": 451.4000015258789
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 72,
+              "mean": 0.08055555820465088,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.5999999046325684,
+              "total": 5.800000190734863
+            },
+            "threeRender": {
+              "count": 144,
+              "mean": 0.2569444676240285,
+              "p50": 0.20000028610229492,
+              "p95": 0.6999998092651367,
+              "max": 1.0999999046325684,
+              "total": 37.00000333786011
+            },
+            "coastMask": {
+              "count": 72,
+              "mean": 0.1902778016196357,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 0.5999999046325684,
+              "total": 13.70000171661377
+            },
+            "politicalTint": {
+              "count": 72,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 72,
+              "mean": 2.9374999735090466,
+              "p50": 3,
+              "p95": 4.599999904632568,
+              "max": 4.899999618530273,
+              "total": 211.49999809265137
+            },
+            "gpuCoastMs": {
+              "count": 69,
+              "mean": 31.14019695652173,
+              "p50": 32.700119,
+              "p95": 56.140525,
+              "max": 82.847668,
+              "total": 2148.6735899999994
+            },
+            "gpuMainMs": {
+              "count": 69,
+              "mean": 16.815476898550727,
+              "p50": 8.468132,
+              "p95": 46.673977,
+              "max": 54.711697,
+              "total": 1160.2679060000003
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 72,
+            "mean": 9.277777777777779,
+            "p50": 10,
+            "p95": 10,
+            "max": 10,
+            "total": 668
+          },
+          "triangles": {
+            "count": 72,
+            "mean": 1383554.888888889,
+            "p50": 1383598,
+            "p95": 1383694,
+            "max": 1383694,
+            "total": 99615952
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 42,
+            "RecalcStyleCount": 187,
+            "LayoutDuration": 0.025259000000000004,
+            "RecalcStyleDuration": 0.10691499999999998,
+            "ScriptDuration": 0.359251,
+            "TaskDuration": 0.6190690000000005,
+            "JSHeapUsedSize": 145509944
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "ocean-flat",
+          "elapsedMs": 5013.800000000003,
+          "rafFps": 25.529538473812263,
+          "renderFps": 15.756512026806007,
+          "rafGapMs": {
+            "count": 128,
+            "mean": 39.17031250000002,
+            "p50": 34.69999999999709,
+            "p95": 90.60000000000582,
+            "max": 173.59999999999127,
+            "total": 5013.800000000003
+          },
+          "renderGapMs": {
+            "count": 78,
+            "mean": 64.18846153846168,
+            "p50": 62.30000000000291,
+            "p95": 97.29999999998836,
+            "max": 173.59999999999127,
+            "total": 5006.700000000012
+          },
+          "frameCpuMs": {
+            "count": 79,
+            "mean": 5.868354405028911,
+            "p50": 5.199999809265137,
+            "p95": 10,
+            "max": 10.799999713897705,
+            "total": 463.59999799728394
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 79,
+              "mean": 0.08734176732316802,
+              "p50": 0,
+              "p95": 0.5,
+              "max": 0.7000002861022949,
+              "total": 6.899999618530273
+            },
+            "threeRender": {
+              "count": 158,
+              "mean": 0.2962025298347956,
+              "p50": 0.20000028610229492,
+              "p95": 0.8000001907348633,
+              "max": 5.5,
+              "total": 46.799999713897705
+            },
+            "coastMask": {
+              "count": 79,
+              "mean": 0.1924050608767739,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 1.0999999046325684,
+              "total": 15.199999809265137
+            },
+            "politicalTint": {
+              "count": 79,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 79,
+              "mean": 2.673417749284189,
+              "p50": 2.4000000953674316,
+              "p95": 4.5,
+              "max": 6.699999809265137,
+              "total": 211.20000219345093
+            },
+            "gpuCoastMs": {
+              "count": 75,
+              "mean": 32.188967240000004,
+              "p50": 28.30547,
+              "p95": 60.74559,
+              "max": 83.954497,
+              "total": 2414.172543
+            },
+            "gpuMainMs": {
+              "count": 75,
+              "mean": 16.724477653333334,
+              "p50": 10.442457,
+              "p95": 47.070311,
+              "max": 68.37564,
+              "total": 1254.335824
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 79,
+            "mean": 12.215189873417721,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 965
+          },
+          "triangles": {
+            "count": 79,
+            "mean": 1895314.9367088608,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 149729880
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 50,
+            "RecalcStyleCount": 209,
+            "LayoutDuration": 0.029645000000000005,
+            "RecalcStyleDuration": 0.10477599999999998,
+            "ScriptDuration": 0.37009700000000034,
+            "TaskDuration": 0.7212990000000001,
+            "JSHeapUsedSize": 144578644
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "names-off",
+          "elapsedMs": 5034.699999999997,
+          "rafFps": 36.744989770989356,
+          "renderFps": 17.28007627068148,
+          "rafGapMs": {
+            "count": 185,
+            "mean": 27.21459459459458,
+            "p50": 13.5,
+            "p95": 83.5,
+            "max": 118.5,
+            "total": 5034.699999999997
+          },
+          "renderGapMs": {
+            "count": 86,
+            "mean": 58.46395348837203,
+            "p50": 48.80000000000291,
+            "p95": 97.09999999999127,
+            "max": 118.5,
+            "total": 5027.899999999994
+          },
+          "frameCpuMs": {
+            "count": 87,
+            "mean": 1.3609195796922706,
+            "p50": 1.200000286102295,
+            "p95": 2.299999713897705,
+            "max": 3.0999999046325684,
+            "total": 118.40000343322754
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 87,
+              "mean": 0.06091954790312668,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.5999999046325684,
+              "total": 5.3000006675720215
+            },
+            "threeRender": {
+              "count": 174,
+              "mean": 0.21724139410873938,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 1.0999999046325684,
+              "total": 37.800002574920654
+            },
+            "coastMask": {
+              "count": 87,
+              "mean": 0.162068964421064,
+              "p50": 0.19999980926513672,
+              "p95": 0.3000001907348633,
+              "max": 0.5,
+              "total": 14.099999904632568
+            },
+            "politicalTint": {
+              "count": 87,
+              "mean": 0.0011494241911789466,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "gpuMainMs": {
+              "count": 85,
+              "mean": 22.832257870588236,
+              "p50": 18.222343,
+              "p95": 56.219608,
+              "max": 62.744415,
+              "total": 1940.741919
+            },
+            "gpuCoastMs": {
+              "count": 85,
+              "mean": 27.71636783529412,
+              "p50": 25.292232,
+              "p95": 46.514313,
+              "max": 55.196611,
+              "total": 2355.891266
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 87,
+            "mean": 12.172413793103448,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 1059
+          },
+          "triangles": {
+            "count": 87,
+            "mean": 1895310.5747126436,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 164892020
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1224,
+            "LayoutCount": 2,
+            "RecalcStyleCount": 188,
+            "LayoutDuration": 0.0004989999999999994,
+            "RecalcStyleDuration": 0.017205999999999944,
+            "ScriptDuration": 0.15199300000000004,
+            "TaskDuration": 0.24451599999999907,
+            "JSHeapUsedSize": 145982676
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "scale075",
+          "elapsedMs": 5000,
+          "rafFps": 24.6,
+          "renderFps": 16,
+          "rafGapMs": {
+            "count": 123,
+            "mean": 40.65040650406504,
+            "p50": 41.69999999999709,
+            "p95": 83.80000000000291,
+            "max": 152.6999999999971,
+            "total": 5000
+          },
+          "renderGapMs": {
+            "count": 79,
+            "mean": 63.29113924050633,
+            "p50": 62.30000000000291,
+            "p95": 104,
+            "max": 160,
+            "total": 5000
+          },
+          "frameCpuMs": {
+            "count": 80,
+            "mean": 5.507499974966049,
+            "p50": 4.800000190734863,
+            "p95": 8.300000190734863,
+            "max": 10.099999904632568,
+            "total": 440.59999799728394
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 80,
+              "mean": 0.0550000011920929,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.3000001907348633,
+              "total": 4.400000095367432
+            },
+            "threeRender": {
+              "count": 160,
+              "mean": 0.23500000238418578,
+              "p50": 0.19999980926513672,
+              "p95": 0.6000003814697266,
+              "max": 1,
+              "total": 37.60000038146973
+            },
+            "coastMask": {
+              "count": 80,
+              "mean": 0.15750005841255188,
+              "p50": 0.10000038146972656,
+              "p95": 0.3000001907348633,
+              "max": 0.6000003814697266,
+              "total": 12.60000467300415
+            },
+            "politicalTint": {
+              "count": 80,
+              "mean": 0.0012499988079071045,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 80,
+              "mean": 2.6962499916553497,
+              "p50": 2.299999713897705,
+              "p95": 4.599999904632568,
+              "max": 5.699999809265137,
+              "total": 215.69999933242798
+            },
+            "gpuMainMs": {
+              "count": 77,
+              "mean": 16.927041922077926,
+              "p50": 15.249352,
+              "p95": 32.757118,
+              "max": 40.920836,
+              "total": 1303.3822280000002
+            },
+            "gpuCoastMs": {
+              "count": 77,
+              "mean": 31.101068415584407,
+              "p50": 27.952388,
+              "p95": 60.715921,
+              "max": 63.056831,
+              "total": 2394.7822679999995
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 80,
+            "mean": 12.275,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 982
+          },
+          "triangles": {
+            "count": 80,
+            "mean": 1895314.4,
+            "p50": 1895356,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 151625152
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1224,
+            "LayoutCount": 53,
+            "RecalcStyleCount": 209,
+            "LayoutDuration": 0.026951999999999976,
+            "RecalcStyleDuration": 0.09979000000000005,
+            "ScriptDuration": 0.3534769999999998,
+            "TaskDuration": 0.6932430000000007,
+            "JSHeapUsedSize": 146984060
+          }
+        }
+      ]
+    },
+    "frame-pan60": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 85293,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "7000",
+        "actions": "pan",
+        "variants": "baseline,coast-off",
+        "pan60": true,
+        "output": ".cache/frame-pan60.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7097.0999999999985,
+          "rafFps": 22.403516929450063,
+          "renderFps": 13.667554353186516,
+          "rafGapMs": {
+            "count": 159,
+            "mean": 44.63584905660377,
+            "p50": 41.900000000001455,
+            "p95": 111,
+            "max": 152.70000000000073,
+            "total": 7097.0999999999985
+          },
+          "renderGapMs": {
+            "count": 96,
+            "mean": 73.85520833333332,
+            "p50": 69.40000000000146,
+            "p95": 118,
+            "max": 152.70000000000073,
+            "total": 7090.0999999999985
+          },
+          "frameCpuMs": {
+            "count": 97,
+            "mean": 2.527835029916665,
+            "p50": 2.0999999046325684,
+            "p95": 5.199999809265137,
+            "max": 6.599999904632568,
+            "total": 245.1999979019165
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 97,
+              "mean": 0.03298969367115768,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.7000002861022949,
+              "total": 3.200000286102295
+            },
+            "threeRender": {
+              "count": 194,
+              "mean": 0.36958764263035093,
+              "p50": 0.3000001907348633,
+              "p95": 1,
+              "max": 2.0999999046325684,
+              "total": 71.70000267028809
+            },
+            "coastMask": {
+              "count": 97,
+              "mean": 0.22680416303811615,
+              "p50": 0.20000028610229492,
+              "p95": 0.40000009536743164,
+              "max": 0.9000000953674316,
+              "total": 22.000003814697266
+            },
+            "politicalTint": {
+              "count": 97,
+              "mean": 0.001030926851882148,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 97,
+              "mean": 0.3030927500773951,
+              "p50": 0.2999997138977051,
+              "p95": 0.5999999046325684,
+              "max": 1,
+              "total": 29.399996757507324
+            },
+            "gpuMainMs": {
+              "count": 94,
+              "mean": 33.72117954255319,
+              "p50": 30.084878,
+              "p95": 58.051684,
+              "max": 98.765438,
+              "total": 3169.790877
+            },
+            "gpuCoastMs": {
+              "count": 94,
+              "mean": 30.124194553191487,
+              "p50": 25.830063,
+              "p95": 56.976855,
+              "max": 63.083747,
+              "total": 2831.6742879999997
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 97,
+            "mean": 18.75257731958763,
+            "p50": 19,
+            "p95": 22,
+            "max": 22,
+            "total": 1819
+          },
+          "triangles": {
+            "count": 97,
+            "mean": 2121276.907216495,
+            "p50": 1904538,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 205763860
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 268
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 19,
+            "RecalcStyleCount": 214,
+            "LayoutDuration": 0.006713,
+            "RecalcStyleDuration": 0.018979,
+            "ScriptDuration": 0.270516,
+            "TaskDuration": 0.48378199999999993,
+            "JSHeapUsedSize": 148941404
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "coast-off",
+          "elapsedMs": 7042,
+          "rafFps": 26.8389662027833,
+          "renderFps": 20.164725930133486,
+          "rafGapMs": {
+            "count": 189,
+            "mean": 37.25925925925926,
+            "p50": 34.79999999999927,
+            "p95": 83.5,
+            "max": 111.70000000000073,
+            "total": 7042
+          },
+          "renderGapMs": {
+            "count": 141,
+            "mean": 49.8936170212766,
+            "p50": 48.70000000000073,
+            "p95": 90,
+            "max": 111.70000000000073,
+            "total": 7035
+          },
+          "frameCpuMs": {
+            "count": 142,
+            "mean": 2.6035211187013436,
+            "p50": 2.4000000953674316,
+            "p95": 4.199999809265137,
+            "max": 7.099999904632568,
+            "total": 369.6999988555908
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 142,
+              "mean": 0.021830985243891328,
+              "p50": 0,
+              "p95": 0.09999990463256836,
+              "max": 0.3000001907348633,
+              "total": 3.0999999046325684
+            },
+            "politicalTint": {
+              "count": 142,
+              "mean": 0.0014084527190302459,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "drawMapNames": {
+              "count": 142,
+              "mean": 0.35281690745286537,
+              "p50": 0.3000001907348633,
+              "p95": 0.6999998092651367,
+              "max": 1.3000001907348633,
+              "total": 50.100000858306885
+            },
+            "threeRender": {
+              "count": 142,
+              "mean": 0.6352112629044224,
+              "p50": 0.5999999046325684,
+              "p95": 1.200000286102295,
+              "max": 1.6999998092651367,
+              "total": 90.19999933242798
+            },
+            "gpuMainMs": {
+              "count": 138,
+              "mean": 37.3530636594203,
+              "p50": 35.808438,
+              "p95": 66.724648,
+              "max": 101.141178,
+              "total": 5154.722785000002
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 142,
+            "mean": 14.908450704225352,
+            "p50": 16,
+            "p95": 18,
+            "max": 18,
+            "total": 2117
+          },
+          "triangles": {
+            "count": 142,
+            "mean": 1200996.1971830986,
+            "p50": 978918,
+            "p95": 1435988,
+            "max": 1435990,
+            "total": 170541460
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 270
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 31,
+            "RecalcStyleCount": 332,
+            "LayoutDuration": 0.009589,
+            "RecalcStyleDuration": 0.033577,
+            "ScriptDuration": 0.391172,
+            "TaskDuration": 0.6607649999999999,
+            "JSHeapUsedSize": 144298188
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7027.800000000003,
+          "rafFps": 15.794416460343202,
+          "renderFps": 14.798372179060298,
+          "rafGapMs": {
+            "count": 111,
+            "mean": 63.31351351351354,
+            "p50": 62.69999999999709,
+            "p95": 124.69999999999709,
+            "max": 145.5,
+            "total": 7027.800000000003
+          },
+          "renderGapMs": {
+            "count": 103,
+            "mean": 68.16504854368932,
+            "p50": 62.900000000001455,
+            "p95": 124.69999999999709,
+            "max": 145.5,
+            "total": 7021
+          },
+          "frameCpuMs": {
+            "count": 104,
+            "mean": 6.588461522872631,
+            "p50": 6,
+            "p95": 10.899999618530273,
+            "max": 12.5,
+            "total": 685.1999983787537
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 104,
+              "mean": 0.0913461446762085,
+              "p50": 0,
+              "p95": 0.40000009536743164,
+              "max": 0.8000001907348633,
+              "total": 9.499999046325684
+            },
+            "threeRender": {
+              "count": 208,
+              "mean": 0.2798077143155612,
+              "p50": 0.20000028610229492,
+              "p95": 0.8000001907348633,
+              "max": 1.200000286102295,
+              "total": 58.20000457763672
+            },
+            "coastMask": {
+              "count": 104,
+              "mean": 0.2240384450325599,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 0.8000001907348633,
+              "total": 23.29999828338623
+            },
+            "politicalTint": {
+              "count": 104,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 104,
+              "mean": 2.8240384597044725,
+              "p50": 2.4000000953674316,
+              "p95": 4.5,
+              "max": 6,
+              "total": 293.69999980926514
+            },
+            "gpuMainMs": {
+              "count": 98,
+              "mean": 25.670603806122454,
+              "p50": 23.706236,
+              "p95": 51.934542,
+              "max": 64.660073,
+              "total": 2515.7191730000004
+            },
+            "gpuCoastMs": {
+              "count": 98,
+              "mean": 27.895439846938764,
+              "p50": 24.248319,
+              "p95": 49.474885,
+              "max": 61.919584,
+              "total": 2733.753104999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 104,
+            "mean": 11.942307692307692,
+            "p50": 11,
+            "p95": 13,
+            "max": 13,
+            "total": 1242
+          },
+          "triangles": {
+            "count": 104,
+            "mean": 1895292.923076923,
+            "p50": 1895300,
+            "p95": 1895404,
+            "max": 1895452,
+            "total": 197110464
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 73,
+            "RecalcStyleCount": 216,
+            "LayoutDuration": 0.064515,
+            "RecalcStyleDuration": 0.157319,
+            "ScriptDuration": 0.5073440000000001,
+            "TaskDuration": 0.9711870000000002,
+            "JSHeapUsedSize": 145637908
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "coast-off",
+          "elapsedMs": 7062.600000000006,
+          "rafFps": 34.54818338855376,
+          "renderFps": 23.787273808512428,
+          "rafGapMs": {
+            "count": 244,
+            "mean": 28.945081967213138,
+            "p50": 21.400000000001455,
+            "p95": 62.700000000004366,
+            "max": 104.29999999999563,
+            "total": 7062.600000000006
+          },
+          "renderGapMs": {
+            "count": 167,
+            "mean": 42.24970059880242,
+            "p50": 41.5,
+            "p95": 76.59999999999854,
+            "max": 104.29999999999563,
+            "total": 7055.700000000004
+          },
+          "frameCpuMs": {
+            "count": 168,
+            "mean": 7.2047619223594666,
+            "p50": 6.900000095367432,
+            "p95": 10.900000095367432,
+            "max": 15.199999809265137,
+            "total": 1210.4000029563904
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 168,
+              "mean": 0.060714284578959145,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.9000000953674316,
+              "total": 10.199999809265137
+            },
+            "politicalTint": {
+              "count": 168,
+              "mean": 0.0011904778934660413,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "drawMapNames": {
+              "count": 168,
+              "mean": 3.308333320277078,
+              "p50": 3,
+              "p95": 5.699999809265137,
+              "max": 8.300000190734863,
+              "total": 555.7999978065491
+            },
+            "threeRender": {
+              "count": 168,
+              "mean": 0.5089285629136222,
+              "p50": 0.40000009536743164,
+              "p95": 1.0999999046325684,
+              "max": 1.799999713897705,
+              "total": 85.49999856948853
+            },
+            "gpuMainMs": {
+              "count": 165,
+              "mean": 22.730120187878796,
+              "p50": 15.109189,
+              "p95": 52.055875,
+              "max": 68.516806,
+              "total": 3750.4698310000012
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 168,
+            "mean": 7.892857142857143,
+            "p50": 7,
+            "p95": 9,
+            "max": 9,
+            "total": 1326
+          },
+          "triangles": {
+            "count": 168,
+            "mean": 969659.9285714285,
+            "p50": 969678,
+            "p95": 969782,
+            "max": 969830,
+            "total": 162902868
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 228
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1222,
+            "LayoutCount": 120,
+            "RecalcStyleCount": 414,
+            "LayoutDuration": 0.088197,
+            "RecalcStyleDuration": 0.306509,
+            "ScriptDuration": 0.9025550000000002,
+            "TaskDuration": 1.7376629999999995,
+            "JSHeapUsedSize": 145456604
+          }
+        }
+      ]
+    },
+    "frame-coast-tiles": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 85293,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "7000",
+        "actions": "pan",
+        "variants": "baseline,coast-tiles,baseline,coast-tiles",
+        "output": ".cache/frame-coast-tiles.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7055.5,
+          "rafFps": 18.99227552972858,
+          "renderFps": 13.039472751753951,
+          "rafGapMs": {
+            "count": 134,
+            "mean": 52.65298507462686,
+            "p50": 48.599999999998545,
+            "p95": 111.29999999999927,
+            "max": 229,
+            "total": 7055.5
+          },
+          "renderGapMs": {
+            "count": 91,
+            "mean": 77.46153846153847,
+            "p50": 76.5,
+            "p95": 118.29999999999927,
+            "max": 229,
+            "total": 7049
+          },
+          "frameCpuMs": {
+            "count": 92,
+            "mean": 2.5934782339179,
+            "p50": 2.299999713897705,
+            "p95": 4.400000095367432,
+            "max": 12.5,
+            "total": 238.59999752044678
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 92,
+              "mean": 0.03695651240970777,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 1,
+              "total": 3.3999991416931152
+            },
+            "threeRender": {
+              "count": 184,
+              "mean": 0.3592391428740128,
+              "p50": 0.2999997138977051,
+              "p95": 1,
+              "max": 1.700000286102295,
+              "total": 66.10000228881836
+            },
+            "coastMask": {
+              "count": 92,
+              "mean": 0.22934785096541696,
+              "p50": 0.20000028610229492,
+              "p95": 0.40000009536743164,
+              "max": 0.5999999046325684,
+              "total": 21.10000228881836
+            },
+            "politicalTint": {
+              "count": 92,
+              "mean": 0.0010869606681492019,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 92,
+              "mean": 0.3771738746891851,
+              "p50": 0.2999997138977051,
+              "p95": 0.5999999046325684,
+              "max": 8.800000190734863,
+              "total": 34.69999647140503
+            },
+            "gpuCoastMs": {
+              "count": 89,
+              "mean": 32.88227716853932,
+              "p50": 28.575719,
+              "p95": 56.854522,
+              "max": 67.606896,
+              "total": 2926.522667999999
+            },
+            "gpuMainMs": {
+              "count": 89,
+              "mean": 35.35404093258427,
+              "p50": 34.74411,
+              "p95": 65.088239,
+              "max": 78.310019,
+              "total": 3146.509643
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 92,
+            "mean": 18.619565217391305,
+            "p50": 17,
+            "p95": 22,
+            "max": 22,
+            "total": 1713
+          },
+          "triangles": {
+            "count": 92,
+            "mean": 2103247.152173913,
+            "p50": 1904534,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 193498738
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 270
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 20,
+            "RecalcStyleCount": 184,
+            "LayoutDuration": 0.005657,
+            "RecalcStyleDuration": 0.015506999999999998,
+            "ScriptDuration": 0.262668,
+            "TaskDuration": 0.434869,
+            "JSHeapUsedSize": 162137744
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "coast-tiles",
+          "elapsedMs": 7006.5,
+          "rafFps": 30.54306715193035,
+          "renderFps": 15.985156640262613,
+          "rafGapMs": {
+            "count": 214,
+            "mean": 32.74065420560748,
+            "p50": 27.600000000002183,
+            "p95": 83.5,
+            "max": 173.60000000000218,
+            "total": 7006.5
+          },
+          "renderGapMs": {
+            "count": 111,
+            "mean": 61.557657657657636,
+            "p50": 55.60000000000218,
+            "p95": 103.90000000000146,
+            "max": 145.89999999999782,
+            "total": 6832.899999999998
+          },
+          "frameCpuMs": {
+            "count": 112,
+            "mean": 4.1928571334906986,
+            "p50": 3.5999999046325684,
+            "p95": 7.5,
+            "max": 14,
+            "total": 469.59999895095825
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 112,
+              "mean": 0.024999997445515225,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.19999980926513672,
+              "total": 2.799999713897705
+            },
+            "threeRender": {
+              "count": 224,
+              "mean": 1.0660714166504996,
+              "p50": 0.8999996185302734,
+              "p95": 2.8000001907348633,
+              "max": 9.700000286102295,
+              "total": 238.7999973297119
+            },
+            "coastMask": {
+              "count": 112,
+              "mean": 1.698214271238872,
+              "p50": 1.200000286102295,
+              "p95": 3.700000286102295,
+              "max": 9.900000095367432,
+              "total": 190.19999837875366
+            },
+            "politicalTint": {
+              "count": 112,
+              "mean": 0.0008928605488368443,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 112,
+              "mean": 0.35178573642458233,
+              "p50": 0.3000001907348633,
+              "p95": 0.6999998092651367,
+              "max": 1.5,
+              "total": 39.40000247955322
+            },
+            "gpuCoastMs": {
+              "count": 109,
+              "mean": 12.394649981651378,
+              "p50": 7.419636,
+              "p95": 31.724372,
+              "max": 90.512386,
+              "total": 1351.0168480000002
+            },
+            "gpuMainMs": {
+              "count": 109,
+              "mean": 35.50963653211008,
+              "p50": 33.896447,
+              "p95": 61.778168,
+              "max": 74.202286,
+              "total": 3870.550381999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 112,
+            "mean": 189.38392857142858,
+            "p50": 190,
+            "p95": 200,
+            "max": 200,
+            "total": 21211
+          },
+          "triangles": {
+            "count": 112,
+            "mean": 1476952.142857143,
+            "p50": 1670526,
+            "p95": 1703574,
+            "max": 1703582,
+            "total": 165418640
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 270
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 31,
+            "RecalcStyleCount": 328,
+            "LayoutDuration": 0.007612,
+            "RecalcStyleDuration": 0.029637000000000004,
+            "ScriptDuration": 0.5016400000000001,
+            "TaskDuration": 0.91741,
+            "JSHeapUsedSize": 146572076
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7013.800000000003,
+          "rafFps": 19.532920813253863,
+          "renderFps": 11.691237275086253,
+          "rafGapMs": {
+            "count": 137,
+            "mean": 51.19562043795622,
+            "p50": 55.80000000000291,
+            "p95": 111,
+            "max": 166.90000000000146,
+            "total": 7013.800000000003
+          },
+          "renderGapMs": {
+            "count": 81,
+            "mean": 86.50617283950618,
+            "p50": 83.5,
+            "p95": 118.20000000000073,
+            "max": 166.90000000000146,
+            "total": 7007
+          },
+          "frameCpuMs": {
+            "count": 82,
+            "mean": 2.5304877990629615,
+            "p50": 2.4000000953674316,
+            "p95": 4.199999809265137,
+            "max": 6,
+            "total": 207.49999952316284
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 82,
+              "mean": 0.029268282215769697,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.20000028610229492,
+              "total": 2.3999991416931152
+            },
+            "threeRender": {
+              "count": 164,
+              "mean": 0.3481707078654592,
+              "p50": 0.2999997138977051,
+              "p95": 0.8999996185302734,
+              "max": 1.700000286102295,
+              "total": 57.0999960899353
+            },
+            "coastMask": {
+              "count": 82,
+              "mean": 0.23048777696562978,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 0.8999996185302734,
+              "total": 18.89999771118164
+            },
+            "politicalTint": {
+              "count": 82,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 82,
+              "mean": 0.28414637867997333,
+              "p50": 0.2999997138977051,
+              "p95": 0.5,
+              "max": 1.1000003814697266,
+              "total": 23.300003051757812
+            },
+            "gpuMainMs": {
+              "count": 79,
+              "mean": 38.24739537974684,
+              "p50": 37.844514,
+              "p95": 70.180301,
+              "max": 78.504934,
+              "total": 3021.5442350000003
+            },
+            "gpuCoastMs": {
+              "count": 79,
+              "mean": 33.221073303797475,
+              "p50": 30.899709,
+              "p95": 63.134497,
+              "max": 93.678625,
+              "total": 2624.4647910000003
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 82,
+            "mean": 19.024390243902438,
+            "p50": 21,
+            "p95": 22,
+            "max": 22,
+            "total": 1560
+          },
+          "triangles": {
+            "count": 82,
+            "mean": 2144204.0975609757,
+            "p50": 2361566,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 175824736
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 270
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 19,
+            "RecalcStyleCount": 220,
+            "LayoutDuration": 0.004736000000000001,
+            "RecalcStyleDuration": 0.020836999999999994,
+            "ScriptDuration": 0.228611,
+            "TaskDuration": 0.33814600000000006,
+            "JSHeapUsedSize": 147645044
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "coast-tiles",
+          "elapsedMs": 7000.0999999999985,
+          "rafFps": 39.57086327338182,
+          "renderFps": 17.856887758746307,
+          "rafGapMs": {
+            "count": 277,
+            "mean": 25.271119133574,
+            "p50": 7.200000000004366,
+            "p95": 69.70000000000437,
+            "max": 174.10000000000582,
+            "total": 7000.0999999999985
+          },
+          "renderGapMs": {
+            "count": 124,
+            "mean": 55.21693548387098,
+            "p50": 42,
+            "p95": 97,
+            "max": 174.10000000000582,
+            "total": 6846.9000000000015
+          },
+          "frameCpuMs": {
+            "count": 125,
+            "mean": 3.466400001525879,
+            "p50": 3,
+            "p95": 5.700000286102295,
+            "max": 10.199999809265137,
+            "total": 433.30000019073486
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 125,
+              "mean": 0.02479999542236328,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.19999980926513672,
+              "total": 3.09999942779541
+            },
+            "threeRender": {
+              "count": 250,
+              "mean": 0.836,
+              "p50": 0.6999998092651367,
+              "p95": 2.0999999046325684,
+              "max": 6.899999618530273,
+              "total": 209
+            },
+            "coastMask": {
+              "count": 125,
+              "mean": 1.3120000114440917,
+              "p50": 1,
+              "p95": 2.5,
+              "max": 7.100000381469727,
+              "total": 164.00000143051147
+            },
+            "politicalTint": {
+              "count": 125,
+              "mean": 0.0015999984741210938,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.19999980926513672
+            },
+            "drawMapNames": {
+              "count": 125,
+              "mean": 0.27919998168945315,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 0.9000000953674316,
+              "total": 34.89999771118164
+            },
+            "gpuCoastMs": {
+              "count": 123,
+              "mean": 11.232534211382111,
+              "p50": 7.28172,
+              "p95": 28.803051,
+              "max": 95.651449,
+              "total": 1381.6017079999997
+            },
+            "gpuMainMs": {
+              "count": 123,
+              "mean": 32.883509666666676,
+              "p50": 29.291465,
+              "p95": 56.34444,
+              "max": 62.002668,
+              "total": 4044.6716890000007
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 125,
+            "mean": 189.984,
+            "p50": 191,
+            "p95": 200,
+            "max": 200,
+            "total": 23748
+          },
+          "triangles": {
+            "count": 125,
+            "mean": 1484854.4,
+            "p50": 1670526,
+            "p95": 1703576,
+            "max": 1703582,
+            "total": 185606800
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 270
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 35,
+            "RecalcStyleCount": 405,
+            "LayoutDuration": 0.008650999999999999,
+            "RecalcStyleDuration": 0.032649,
+            "ScriptDuration": 0.46978300000000006,
+            "TaskDuration": 0.857694,
+            "JSHeapUsedSize": 148321040
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7055.5,
+          "rafFps": 30.047480688824322,
+          "renderFps": 17.291474736021545,
+          "rafGapMs": {
+            "count": 212,
+            "mean": 33.280660377358494,
+            "p50": 27.799999999995634,
+            "p95": 90.29999999999563,
+            "max": 111.20000000000437,
+            "total": 7055.5
+          },
+          "renderGapMs": {
+            "count": 121,
+            "mean": 58.256198347107436,
+            "p50": 55.19999999999709,
+            "p95": 97.29999999999563,
+            "max": 125.09999999999854,
+            "total": 7049
+          },
+          "frameCpuMs": {
+            "count": 122,
+            "mean": 5.503278669763784,
+            "p50": 5,
+            "p95": 8.900000095367432,
+            "max": 13.099999904632568,
+            "total": 671.3999977111816
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 122,
+              "mean": 0.0860655776789931,
+              "p50": 0,
+              "p95": 0.40000009536743164,
+              "max": 1,
+              "total": 10.500000476837158
+            },
+            "threeRender": {
+              "count": 244,
+              "mean": 0.23647542273411987,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 1.1999998092651367,
+              "total": 57.700003147125244
+            },
+            "coastMask": {
+              "count": 122,
+              "mean": 0.1631147470630583,
+              "p50": 0.10000038146972656,
+              "p95": 0.3000001907348633,
+              "max": 0.5999999046325684,
+              "total": 19.899999141693115
+            },
+            "politicalTint": {
+              "count": 122,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 122,
+              "mean": 2.572131149104384,
+              "p50": 2.200000286102295,
+              "p95": 4.099999904632568,
+              "max": 5.900000095367432,
+              "total": 313.80000019073486
+            },
+            "gpuCoastMs": {
+              "count": 116,
+              "mean": 22.90927959482758,
+              "p50": 20.467334,
+              "p95": 45.782732,
+              "max": 65.624986,
+              "total": 2657.4764329999994
+            },
+            "gpuMainMs": {
+              "count": 116,
+              "mean": 20.898982534482766,
+              "p50": 17.051178,
+              "p95": 48.289638,
+              "max": 72.42646,
+              "total": 2424.281974000001
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 122,
+            "mean": 11.901639344262295,
+            "p50": 11,
+            "p95": 13,
+            "max": 13,
+            "total": 1452
+          },
+          "triangles": {
+            "count": 122,
+            "mean": 1895288.8196721312,
+            "p50": 1895300,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 231225236
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 157
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1080,
+            "LayoutCount": 86,
+            "RecalcStyleCount": 335,
+            "LayoutDuration": 0.07114699999999999,
+            "RecalcStyleDuration": 0.12873400000000002,
+            "ScriptDuration": 0.5364040000000001,
+            "TaskDuration": 0.9966290000000004,
+            "JSHeapUsedSize": 147550868
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "coast-tiles",
+          "elapsedMs": 7006.699999999997,
+          "rafFps": 71.78843107311576,
+          "renderFps": 20.694478142349475,
+          "rafGapMs": {
+            "count": 503,
+            "mean": 13.929821073558642,
+            "p50": 7.099999999998545,
+            "p95": 48.5,
+            "max": 131.89999999999418,
+            "total": 7006.699999999997
+          },
+          "renderGapMs": {
+            "count": 144,
+            "mean": 47.64791666666669,
+            "p50": 41.599999999998545,
+            "p95": 83.59999999999854,
+            "max": 111.30000000000291,
+            "total": 6861.300000000003
+          },
+          "frameCpuMs": {
+            "count": 145,
+            "mean": 6.502758624635894,
+            "p50": 6.200000286102295,
+            "p95": 10.900000095367432,
+            "max": 14.700000286102295,
+            "total": 942.9000005722046
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 145,
+              "mean": 0.04896552973780139,
+              "p50": 0,
+              "p95": 0.20000028610229492,
+              "max": 0.40000009536743164,
+              "total": 7.100001811981201
+            },
+            "threeRender": {
+              "count": 290,
+              "mean": 0.6834482784928947,
+              "p50": 0.5999999046325684,
+              "p95": 1.5,
+              "max": 2.4000000953674316,
+              "total": 198.20000076293945
+            },
+            "coastMask": {
+              "count": 145,
+              "mean": 0.9889655277646822,
+              "p50": 0.9000000953674316,
+              "p95": 1.8999996185302734,
+              "max": 2.4000000953674316,
+              "total": 143.4000015258789
+            },
+            "politicalTint": {
+              "count": 145,
+              "mean": 0.0013793123179468615,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.20000028610229492
+            },
+            "drawMapNames": {
+              "count": 145,
+              "mean": 2.6572413806257575,
+              "p50": 2.4000000953674316,
+              "p95": 4.199999809265137,
+              "max": 5.700000286102295,
+              "total": 385.30000019073486
+            },
+            "gpuCoastMs": {
+              "count": 145,
+              "mean": 1.6210948551724138,
+              "p50": 0.736997,
+              "p95": 8.413882,
+              "max": 17.236346,
+              "total": 235.058754
+            },
+            "gpuMainMs": {
+              "count": 144,
+              "mean": 22.701475305555558,
+              "p50": 16.261598,
+              "p95": 52.238705,
+              "max": 62.179251,
+              "total": 3269.0124440000004
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 145,
+            "mean": 24.427586206896553,
+            "p50": 25,
+            "p95": 26,
+            "max": 26,
+            "total": 3542
+          },
+          "triangles": {
+            "count": 145,
+            "mean": 1017137.875862069,
+            "p50": 1016804,
+            "p95": 1017828,
+            "max": 1017828,
+            "total": 147484992
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 157
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1080,
+            "LayoutCount": 98,
+            "RecalcStyleCount": 649,
+            "LayoutDuration": 0.06987399999999999,
+            "RecalcStyleDuration": 0.18134899999999998,
+            "ScriptDuration": 0.8308059999999999,
+            "TaskDuration": 1.5627689999999994,
+            "JSHeapUsedSize": 152931452
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7020.700000000004,
+          "rafFps": 25.9233409773954,
+          "renderFps": 16.237697095731185,
+          "rafGapMs": {
+            "count": 182,
+            "mean": 38.57527472527475,
+            "p50": 34.69999999999709,
+            "p95": 97.10000000000582,
+            "max": 236,
+            "total": 7020.700000000004
+          },
+          "renderGapMs": {
+            "count": 113,
+            "mean": 62.06902654867259,
+            "p50": 55.40000000000873,
+            "p95": 111,
+            "max": 236,
+            "total": 7013.800000000003
+          },
+          "frameCpuMs": {
+            "count": 114,
+            "mean": 5.179824573951855,
+            "p50": 4.5,
+            "p95": 9,
+            "max": 10.799999713897705,
+            "total": 590.5000014305115
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 114,
+              "mean": 0.061403512954711914,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.40000009536743164,
+              "total": 7.000000476837158
+            },
+            "threeRender": {
+              "count": 228,
+              "mean": 0.2263157848726239,
+              "p50": 0.19999980926513672,
+              "p95": 0.5999999046325684,
+              "max": 1.0999999046325684,
+              "total": 51.59999895095825
+            },
+            "coastMask": {
+              "count": 114,
+              "mean": 0.1500000284429182,
+              "p50": 0.10000038146972656,
+              "p95": 0.40000009536743164,
+              "max": 0.5,
+              "total": 17.100003242492676
+            },
+            "politicalTint": {
+              "count": 114,
+              "mean": 0.00350876858359889,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.39999961853027344
+            },
+            "drawMapNames": {
+              "count": 114,
+              "mean": 2.495614018356591,
+              "p50": 2.1999998092651367,
+              "p95": 4.199999809265137,
+              "max": 5.599999904632568,
+              "total": 284.49999809265137
+            },
+            "gpuCoastMs": {
+              "count": 110,
+              "mean": 24.206240190909103,
+              "p50": 21.259581,
+              "p95": 49.701051,
+              "max": 67.31323,
+              "total": 2662.6864210000012
+            },
+            "gpuMainMs": {
+              "count": 110,
+              "mean": 20.15688629090909,
+              "p50": 16.21085,
+              "p95": 40.891501,
+              "max": 61.652084,
+              "total": 2217.2574919999997
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 114,
+            "mean": 11.859649122807017,
+            "p50": 11,
+            "p95": 13,
+            "max": 13,
+            "total": 1352
+          },
+          "triangles": {
+            "count": 114,
+            "mean": 1895286.350877193,
+            "p50": 1895300,
+            "p95": 1895404,
+            "max": 1895452,
+            "total": 216062644
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 157
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1080,
+            "LayoutCount": 84,
+            "RecalcStyleCount": 298,
+            "LayoutDuration": 0.04994699999999999,
+            "RecalcStyleDuration": 0.11664299999999994,
+            "ScriptDuration": 0.474583,
+            "TaskDuration": 0.810886,
+            "JSHeapUsedSize": 151432800
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "coast-tiles",
+          "elapsedMs": 7034.5,
+          "rafFps": 53.16653635652854,
+          "renderFps": 20.32838154808444,
+          "rafGapMs": {
+            "count": 374,
+            "mean": 18.808823529411764,
+            "p50": 13.60000000000582,
+            "p95": 55.19999999999709,
+            "max": 83.39999999999418,
+            "total": 7034.5
+          },
+          "renderGapMs": {
+            "count": 142,
+            "mean": 48.951408450704264,
+            "p50": 48.19999999999709,
+            "p95": 76.30000000000291,
+            "max": 83,
+            "total": 6951.100000000006
+          },
+          "frameCpuMs": {
+            "count": 143,
+            "mean": 7.018181824183964,
+            "p50": 7,
+            "p95": 10.399999618530273,
+            "max": 12.5,
+            "total": 1003.6000008583069
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 143,
+              "mean": 0.0713286699948611,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.7000002861022949,
+              "total": 10.199999809265137
+            },
+            "threeRender": {
+              "count": 286,
+              "mean": 0.6139860219888754,
+              "p50": 0.5,
+              "p95": 1.200000286102295,
+              "max": 2.1000003814697266,
+              "total": 175.60000228881836
+            },
+            "coastMask": {
+              "count": 143,
+              "mean": 0.8125874245917046,
+              "p50": 0.7000002861022949,
+              "p95": 1.5,
+              "max": 2.200000286102295,
+              "total": 116.20000171661377
+            },
+            "politicalTint": {
+              "count": 143,
+              "mean": 0.0006993000323955829,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 143,
+              "mean": 3.0727272700596524,
+              "p50": 2.9000000953674316,
+              "p95": 4.700000286102295,
+              "max": 5.699999809265137,
+              "total": 439.3999996185303
+            },
+            "gpuCoastMs": {
+              "count": 140,
+              "mean": 2.252003414285714,
+              "p50": 0.777829,
+              "p95": 9.657044,
+              "max": 27.393056,
+              "total": 315.28047799999996
+            },
+            "gpuMainMs": {
+              "count": 140,
+              "mean": 24.158434021428572,
+              "p50": 22.526741,
+              "p95": 51.114624,
+              "max": 78.914767,
+              "total": 3382.1807630000003
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 143,
+            "mean": 24.342657342657343,
+            "p50": 24,
+            "p95": 26,
+            "max": 26,
+            "total": 3481
+          },
+          "triangles": {
+            "count": 143,
+            "mean": 1017119.1608391608,
+            "p50": 1016804,
+            "p95": 1017828,
+            "max": 1017828,
+            "total": 145448040
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 157
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1080,
+            "LayoutCount": 104,
+            "RecalcStyleCount": 519,
+            "LayoutDuration": 0.07014499999999999,
+            "RecalcStyleDuration": 0.193403,
+            "ScriptDuration": 0.8539509999999999,
+            "TaskDuration": 1.518184999999999,
+            "JSHeapUsedSize": 153614396
+          }
+        }
+      ]
+    },
+    "frame-map-tiles": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 85293,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "6000",
+        "actions": "pan",
+        "variants": "baseline,map-tiles",
+        "pan60": true,
+        "output": ".cache/frame-map-tiles.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 6048.600000000002,
+          "rafFps": 20.335284197996224,
+          "renderFps": 12.730218562973246,
+          "rafGapMs": {
+            "count": 123,
+            "mean": 49.17560975609758,
+            "p50": 48.70000000000073,
+            "p95": 111.29999999999927,
+            "max": 194.59999999999854,
+            "total": 6048.600000000002
+          },
+          "renderGapMs": {
+            "count": 76,
+            "mean": 79.5,
+            "p50": 76.30000000000291,
+            "p95": 132,
+            "max": 194.59999999999854,
+            "total": 6042
+          },
+          "frameCpuMs": {
+            "count": 77,
+            "mean": 2.600000022293685,
+            "p50": 2.1999998092651367,
+            "p95": 4.300000190734863,
+            "max": 6.199999809265137,
+            "total": 200.20000171661377
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 77,
+              "mean": 0.031168820021988508,
+              "p50": 0,
+              "p95": 0.19999980926513672,
+              "max": 0.5999999046325684,
+              "total": 2.3999991416931152
+            },
+            "threeRender": {
+              "count": 154,
+              "mean": 0.3792207488765964,
+              "p50": 0.2999997138977051,
+              "p95": 1.1000003814697266,
+              "max": 1.9000000953674316,
+              "total": 58.39999532699585
+            },
+            "coastMask": {
+              "count": 77,
+              "mean": 0.2506493345483557,
+              "p50": 0.19999980926513672,
+              "p95": 0.5999999046325684,
+              "max": 0.8000001907348633,
+              "total": 19.29999876022339
+            },
+            "politicalTint": {
+              "count": 77,
+              "mean": 0.0012987062528535917,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 77,
+              "mean": 0.3272727681444837,
+              "p50": 0.2999997138977051,
+              "p95": 0.8000001907348633,
+              "max": 1.0999999046325684,
+              "total": 25.200003147125244
+            },
+            "gpuMainMs": {
+              "count": 75,
+              "mean": 34.43797552,
+              "p50": 33.224283,
+              "p95": 65.072905,
+              "max": 72.728292,
+              "total": 2582.848164
+            },
+            "gpuCoastMs": {
+              "count": 75,
+              "mean": 32.40759757333335,
+              "p50": 27.490556,
+              "p95": 59.613094,
+              "max": 85.540991,
+              "total": 2430.569818000001
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 77,
+            "mean": 18.571428571428573,
+            "p50": 17,
+            "p95": 22,
+            "max": 22,
+            "total": 1430
+          },
+          "triangles": {
+            "count": 77,
+            "mean": 2094470.155844156,
+            "p50": 1904534,
+            "p95": 2361610,
+            "max": 2361612,
+            "total": 161274202
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 272
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 874,
+            "LayoutCount": 20,
+            "RecalcStyleCount": 162,
+            "LayoutDuration": 0.006208,
+            "RecalcStyleDuration": 0.013994,
+            "ScriptDuration": 0.22117499999999998,
+            "TaskDuration": 0.317755,
+            "JSHeapUsedSize": 165017248
+          }
+        },
+        {
+          "name": "global-pan",
+          "action": "pan",
+          "variant": "map-tiles",
+          "elapsedMs": 6007,
+          "rafFps": 29.465623439320794,
+          "renderFps": 16.48077243216248,
+          "rafGapMs": {
+            "count": 177,
+            "mean": 33.93785310734463,
+            "p50": 27.69999999999709,
+            "p95": 83.09999999999854,
+            "max": 409.7999999999993,
+            "total": 6007
+          },
+          "renderGapMs": {
+            "count": 98,
+            "mean": 57.11428571428572,
+            "p50": 55.5,
+            "p95": 97.09999999999854,
+            "max": 236.10000000000218,
+            "total": 5597.200000000001
+          },
+          "frameCpuMs": {
+            "count": 99,
+            "mean": 6.989899009165137,
+            "p50": 6.099999904632568,
+            "p95": 12.900000095367432,
+            "max": 27.5,
+            "total": 692.0000019073486
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 99,
+              "mean": 0.025252530069062203,
+              "p50": 0,
+              "p95": 0.10000038146972656,
+              "max": 0.19999980926513672,
+              "total": 2.500000476837158
+            },
+            "threeRender": {
+              "count": 198,
+              "mean": 2.429797974499789,
+              "p50": 2,
+              "p95": 5.599999904632568,
+              "max": 14.599999904632568,
+              "total": 481.09999895095825
+            },
+            "coastMask": {
+              "count": 99,
+              "mean": 1.8969697037128488,
+              "p50": 1.5,
+              "p95": 4.5,
+              "max": 9.200000286102295,
+              "total": 187.80000066757202
+            },
+            "politicalTint": {
+              "count": 99,
+              "mean": 0.0010101000467936199,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 99,
+              "mean": 0.35252528238778164,
+              "p50": 0.3000001907348633,
+              "p95": 0.7000002861022949,
+              "max": 1.6999998092651367,
+              "total": 34.90000295639038
+            },
+            "gpuCoastMs": {
+              "count": 96,
+              "mean": 11.912290968750002,
+              "p50": 6.709139,
+              "p95": 34.262362,
+              "max": 111.377051,
+              "total": 1143.5799330000002
+            },
+            "gpuMainMs": {
+              "count": 96,
+              "mean": 33.877532395833335,
+              "p50": 32.699118,
+              "p95": 52.081707,
+              "max": 98.88427,
+              "total": 3252.24311
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 99,
+            "mean": 539.5858585858585,
+            "p50": 540,
+            "p95": 561,
+            "max": 562,
+            "total": 53419
+          },
+          "triangles": {
+            "count": 99,
+            "mean": 1190240.4545454546,
+            "p50": 1211967,
+            "p95": 1220233,
+            "max": 1223888,
+            "total": 117833805
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 273
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 1,
+            "provinces": 0
+          },
+          "distance": 2178.5907550892034,
+          "mainThread": {
+            "Nodes": 731,
+            "LayoutCount": 31,
+            "RecalcStyleCount": 277,
+            "LayoutDuration": 0.0067220000000000005,
+            "RecalcStyleDuration": 0.023197000000000002,
+            "ScriptDuration": 0.716125,
+            "TaskDuration": 1.328254,
+            "JSHeapUsedSize": 150841740
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 6020.700000000004,
+          "rafFps": 20.92779909312869,
+          "renderFps": 18.934675369973576,
+          "rafGapMs": {
+            "count": 126,
+            "mean": 47.78333333333337,
+            "p50": 41.89999999999418,
+            "p95": 97.5,
+            "max": 145.90000000000146,
+            "total": 6020.700000000004
+          },
+          "renderGapMs": {
+            "count": 113,
+            "mean": 53.218584070796496,
+            "p50": 48.69999999999709,
+            "p95": 97.5,
+            "max": 145.90000000000146,
+            "total": 6013.700000000004
+          },
+          "frameCpuMs": {
+            "count": 114,
+            "mean": 5.385964903915138,
+            "p50": 5,
+            "p95": 9,
+            "max": 13.099999904632568,
+            "total": 613.9999990463257
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 114,
+              "mean": 0.06842105012190969,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 1,
+              "total": 7.799999713897705
+            },
+            "threeRender": {
+              "count": 228,
+              "mean": 0.2008772105501409,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 0.8999996185302734,
+              "total": 45.80000400543213
+            },
+            "coastMask": {
+              "count": 114,
+              "mean": 0.1789473943543016,
+              "p50": 0.19999980926513672,
+              "p95": 0.40000009536743164,
+              "max": 0.7000002861022949,
+              "total": 20.40000295639038
+            },
+            "politicalTint": {
+              "count": 114,
+              "mean": 0.0008771921458997225,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 114,
+              "mean": 2.4675438445911073,
+              "p50": 2.200000286102295,
+              "p95": 3.6999998092651367,
+              "max": 4.700000286102295,
+              "total": 281.29999828338623
+            },
+            "gpuCoastMs": {
+              "count": 108,
+              "mean": 21.31383925,
+              "p50": 17.901261,
+              "p95": 46.353314,
+              "max": 68.129144,
+              "total": 2301.894639
+            },
+            "gpuMainMs": {
+              "count": 108,
+              "mean": 20.81738922222221,
+              "p50": 17.641262,
+              "p95": 50.326547,
+              "max": 68.403557,
+              "total": 2248.278035999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 114,
+            "mean": 11.982456140350877,
+            "p50": 11,
+            "p95": 13,
+            "max": 13,
+            "total": 1366
+          },
+          "triangles": {
+            "count": 114,
+            "mean": 1895303.754385965,
+            "p50": 1895300,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 216064628
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 244
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1254,
+            "LayoutCount": 79,
+            "RecalcStyleCount": 241,
+            "LayoutDuration": 0.062461,
+            "RecalcStyleDuration": 0.122259,
+            "ScriptDuration": 0.46895399999999987,
+            "TaskDuration": 0.867175,
+            "JSHeapUsedSize": 157036336
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "map-tiles",
+          "elapsedMs": 6014.200000000004,
+          "rafFps": 62.18615942269957,
+          "renderFps": 29.762894483056744,
+          "rafGapMs": {
+            "count": 374,
+            "mean": 16.080748663101616,
+            "p50": 7.099999999998545,
+            "p95": 41.80000000000291,
+            "max": 507.3000000000029,
+            "total": 6014.200000000004
+          },
+          "renderGapMs": {
+            "count": 178,
+            "mean": 30.857303370786507,
+            "p50": 27.69999999999709,
+            "p95": 62.5,
+            "max": 83.89999999999418,
+            "total": 5492.5999999999985
+          },
+          "frameCpuMs": {
+            "count": 179,
+            "mean": 8.38715084171828,
+            "p50": 8,
+            "p95": 11.899999618530273,
+            "max": 21.59999990463257,
+            "total": 1501.300000667572
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 179,
+              "mean": 0.0430167507192942,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.8999996185302734,
+              "total": 7.699998378753662
+            },
+            "threeRender": {
+              "count": 358,
+              "mean": 1.3832402349184345,
+              "p50": 1.1999998092651367,
+              "p95": 3.0999999046325684,
+              "max": 4.599999904632568,
+              "total": 495.20000410079956
+            },
+            "coastMask": {
+              "count": 179,
+              "mean": 1.009497221621721,
+              "p50": 0.9000000953674316,
+              "p95": 2,
+              "max": 2.9000000953674316,
+              "total": 180.7000026702881
+            },
+            "politicalTint": {
+              "count": 179,
+              "mean": 0.0005586613489928858,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.10000038146972656
+            },
+            "drawMapNames": {
+              "count": 179,
+              "mean": 2.763128477767859,
+              "p50": 2.5,
+              "p95": 4.200000286102295,
+              "max": 8.400000095367432,
+              "total": 494.5999975204468
+            },
+            "gpuCoastMs": {
+              "count": 177,
+              "mean": 1.5629726723163846,
+              "p50": 0.731746,
+              "p95": 6.086308,
+              "max": 16.321184,
+              "total": 276.64616300000006
+            },
+            "gpuMainMs": {
+              "count": 176,
+              "mean": 13.51602836363636,
+              "p50": 8.487215,
+              "p95": 40.048256,
+              "max": 51.406625,
+              "total": 2378.8209919999995
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 179,
+            "mean": 54.452513966480446,
+            "p50": 55,
+            "p95": 56,
+            "max": 56,
+            "total": 9747
+          },
+          "triangles": {
+            "count": 179,
+            "mean": 254300.15083798883,
+            "p50": 253977,
+            "p95": 255001,
+            "max": 255001,
+            "total": 45519727
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 0
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 6,
+            "provinces": 244
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1254,
+            "LayoutCount": 120,
+            "RecalcStyleCount": 555,
+            "LayoutDuration": 0.084618,
+            "RecalcStyleDuration": 0.24479099999999998,
+            "ScriptDuration": 1.276503,
+            "TaskDuration": 2.525343,
+            "JSHeapUsedSize": 152330340
+          }
+        }
+      ]
+    },
+    "frame-100-players": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 79355,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 100,
+        "units": 1614,
+        "synthetic": true
+      },
+      "options": {
+        "players": "100",
+        "views": "active",
+        "actions": "idle,pan",
+        "duration": "7000",
+        "running": true,
+        "output": ".cache/frame-100-players.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "active-idle",
+          "action": "idle",
+          "variant": "baseline",
+          "elapsedMs": 7000.199999999997,
+          "rafFps": 141.56738378903466,
+          "renderFps": 0,
+          "rafGapMs": {
+            "count": 991,
+            "mean": 7.063773965691218,
+            "p50": 7,
+            "p95": 7.200000000000728,
+            "max": 41.30000000000291,
+            "total": 7000.199999999997
+          },
+          "renderGapMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "frameCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {},
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "triangles": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "units": {
+            "before": 1613,
+            "after": 1613,
+            "visible": 46
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 10,
+            "provinces": 56
+          },
+          "distance": 179.02148438119912,
+          "mainThread": {
+            "Nodes": 990,
+            "LayoutCount": 0,
+            "RecalcStyleCount": 993,
+            "LayoutDuration": 0,
+            "RecalcStyleDuration": 0.099802,
+            "ScriptDuration": 0.195585,
+            "TaskDuration": 0.8113180000000001,
+            "JSHeapUsedSize": 160371464
+          }
+        },
+        {
+          "name": "active-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7028,
+          "rafFps": 23.762094479225954,
+          "renderFps": 15.367103016505407,
+          "rafGapMs": {
+            "count": 167,
+            "mean": 42.08383233532934,
+            "p50": 41.599999999998545,
+            "p95": 90.29999999999927,
+            "max": 146,
+            "total": 7028
+          },
+          "renderGapMs": {
+            "count": 107,
+            "mean": 65.61775700934578,
+            "p50": 62.400000000001455,
+            "p95": 104.29999999999927,
+            "max": 146,
+            "total": 7021.0999999999985
+          },
+          "frameCpuMs": {
+            "count": 108,
+            "mean": 11.033333372186732,
+            "p50": 10.199999809265137,
+            "p95": 17.199999809265137,
+            "max": 24,
+            "total": 1191.600004196167
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 108,
+              "mean": 0.06481484572092693,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.5,
+              "total": 7.000003337860107
+            },
+            "threeRender": {
+              "count": 216,
+              "mean": 0.3726851763548674,
+              "p50": 0.3000001907348633,
+              "p95": 1.1999998092651367,
+              "max": 1.8999996185302734,
+              "total": 80.49999809265137
+            },
+            "coastMask": {
+              "count": 108,
+              "mean": 0.24259257316589355,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 1,
+              "total": 26.199997901916504
+            },
+            "politicalTint": {
+              "count": 108,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 108,
+              "mean": 6.207407434781392,
+              "p50": 5.400000095367432,
+              "p95": 10.400000095367432,
+              "max": 18.300000190734863,
+              "total": 670.4000029563904
+            },
+            "gpuCoastMs": {
+              "count": 105,
+              "mean": 28.251775285714295,
+              "p50": 23.502239,
+              "p95": 54.058283,
+              "max": 71.682129,
+              "total": 2966.436405000001
+            },
+            "gpuMainMs": {
+              "count": 105,
+              "mean": 18.580334647619036,
+              "p50": 14.24494,
+              "p95": 43.920905,
+              "max": 55.986273,
+              "total": 1950.935137999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 108,
+            "mean": 16,
+            "p50": 16,
+            "p95": 16,
+            "max": 16,
+            "total": 1728
+          },
+          "triangles": {
+            "count": 108,
+            "mean": 1873880.4444444445,
+            "p50": 1873830,
+            "p95": 1874326,
+            "max": 1874458,
+            "total": 202379088
+          },
+          "units": {
+            "before": 1613,
+            "after": 1613,
+            "visible": 44
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 10,
+            "provinces": 56
+          },
+          "distance": 179.02148438119912,
+          "mainThread": {
+            "Nodes": 990,
+            "LayoutCount": 108,
+            "RecalcStyleCount": 276,
+            "LayoutDuration": 0.08991700000000001,
+            "RecalcStyleDuration": 0.074883,
+            "ScriptDuration": 1.080929,
+            "TaskDuration": 1.5128,
+            "JSHeapUsedSize": 154707772
+          }
+        },
+        {
+          "name": "running-idle",
+          "action": "idle",
+          "variant": "baseline",
+          "elapsedMs": 7000,
+          "rafFps": 128.57142857142858,
+          "renderFps": 2,
+          "rafGapMs": {
+            "count": 900,
+            "mean": 7.777777777777778,
+            "p50": 7,
+            "p95": 13.900000000001455,
+            "max": 56,
+            "total": 7000
+          },
+          "renderGapMs": {
+            "count": 13,
+            "mean": 289.53076923076935,
+            "p50": 187.59999999999854,
+            "p95": 833.2000000000044,
+            "max": 833.2000000000044,
+            "total": 3763.9000000000015
+          },
+          "frameCpuMs": {
+            "count": 14,
+            "mean": 15.864285707473755,
+            "p50": 15.700000286102295,
+            "p95": 20.5,
+            "max": 20.5,
+            "total": 222.09999990463257
+          },
+          "updateCpuMs": {
+            "count": 34,
+            "mean": 1.567647050408756,
+            "p50": 1.1000003814697266,
+            "p95": 4.800000190734863,
+            "max": 4.900000095367432,
+            "total": 53.299999713897705
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 14,
+              "mean": 0.3000000204358782,
+              "p50": 0.3000001907348633,
+              "p95": 0.7999997138977051,
+              "max": 0.7999997138977051,
+              "total": 4.200000286102295
+            },
+            "coastMask": {
+              "count": 14,
+              "mean": 0.00714285033089774,
+              "p50": 0,
+              "p95": 0.09999990463256836,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "politicalTint": {
+              "count": 14,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 14,
+              "mean": 8.635714292526245,
+              "p50": 8,
+              "p95": 14.300000190734863,
+              "max": 14.300000190734863,
+              "total": 120.90000009536743
+            },
+            "threeRender": {
+              "count": 14,
+              "mean": 0.9785714149475098,
+              "p50": 0.9000000953674316,
+              "p95": 1.8000001907348633,
+              "max": 1.8000001907348633,
+              "total": 13.699999809265137
+            },
+            "gpuMainMs": {
+              "count": 14,
+              "mean": 27.046574999999997,
+              "p50": 29.639797,
+              "p95": 49.626968,
+              "max": 49.626968,
+              "total": 378.65205
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 14,
+            "mean": 13,
+            "p50": 13,
+            "p95": 13,
+            "max": 13,
+            "total": 182
+          },
+          "triangles": {
+            "count": 14,
+            "mean": 948438,
+            "p50": 948438,
+            "p95": 948438,
+            "max": 948438,
+            "total": 13278132
+          },
+          "units": {
+            "before": 1613,
+            "after": 1613,
+            "visible": 46
+          },
+          "ticks": 68,
+          "labels": {
+            "countries": 10,
+            "provinces": 56
+          },
+          "distance": 179.02148438119912,
+          "mainThread": {
+            "Nodes": 1794,
+            "LayoutCount": 614,
+            "RecalcStyleCount": 946,
+            "LayoutDuration": 0.19955199999999998,
+            "RecalcStyleDuration": 0.183079,
+            "ScriptDuration": 0.9801539999999997,
+            "TaskDuration": 2.5174129999999995,
+            "JSHeapUsedSize": 168539432
+          }
+        },
+        {
+          "name": "running-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7034.5999999999985,
+          "rafFps": 17.911466181446,
+          "renderFps": 15.779148778892903,
+          "rafGapMs": {
+            "count": 126,
+            "mean": 55.83015873015872,
+            "p50": 55.5,
+            "p95": 97.29999999999563,
+            "max": 111.40000000000146,
+            "total": 7034.5999999999985
+          },
+          "renderGapMs": {
+            "count": 110,
+            "mean": 63.95090909090908,
+            "p50": 62.200000000004366,
+            "p95": 103.80000000000291,
+            "max": 111.5,
+            "total": 7034.5999999999985
+          },
+          "frameCpuMs": {
+            "count": 111,
+            "mean": 11.997297291283134,
+            "p50": 11.400000095367432,
+            "p95": 17.59999990463257,
+            "max": 19.09999990463257,
+            "total": 1331.699999332428
+          },
+          "updateCpuMs": {
+            "count": 28,
+            "mean": 4.767857228006635,
+            "p50": 4.600000381469727,
+            "p95": 8.600000381469727,
+            "max": 8.900000095367432,
+            "total": 133.5000023841858
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 111,
+              "mean": 0.07387385497222075,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.5,
+              "total": 8.199997901916504
+            },
+            "coastMask": {
+              "count": 111,
+              "mean": 0.24504503473505243,
+              "p50": 0.20000028610229492,
+              "p95": 0.5,
+              "max": 0.6000003814697266,
+              "total": 27.19999885559082
+            },
+            "politicalTint": {
+              "count": 111,
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0,
+              "total": 0
+            },
+            "drawMapNames": {
+              "count": 111,
+              "mean": 6.506306321771295,
+              "p50": 5.700000286102295,
+              "p95": 10.5,
+              "max": 12.199999809265137,
+              "total": 722.2000017166138
+            },
+            "threeRender": {
+              "count": 221,
+              "mean": 0.36968325921313255,
+              "p50": 0.3000001907348633,
+              "p95": 1,
+              "max": 1.6000003814697266,
+              "total": 81.7000002861023
+            },
+            "gpuMainMs": {
+              "count": 106,
+              "mean": 19.155900716981133,
+              "p50": 13.504611,
+              "p95": 41.309497,
+              "max": 62.307248,
+              "total": 2030.5254760000003
+            },
+            "gpuCoastMs": {
+              "count": 106,
+              "mean": 29.051122801886795,
+              "p50": 25.288482,
+              "p95": 50.759545,
+              "max": 68.231727,
+              "total": 3079.419017
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 111,
+            "mean": 15.972972972972974,
+            "p50": 16,
+            "p95": 16,
+            "max": 16,
+            "total": 1773
+          },
+          "triangles": {
+            "count": 111,
+            "mean": 1865588.5225225226,
+            "p50": 1873910,
+            "p95": 1874358,
+            "max": 1874458,
+            "total": 207080326
+          },
+          "units": {
+            "before": 1613,
+            "after": 1612,
+            "visible": 45
+          },
+          "ticks": 56,
+          "labels": {
+            "countries": 10,
+            "provinces": 56
+          },
+          "distance": 179.02148438119912,
+          "mainThread": {
+            "Nodes": 2064,
+            "LayoutCount": 213,
+            "RecalcStyleCount": 266,
+            "LayoutDuration": 0.11603999999999998,
+            "RecalcStyleDuration": 0.09223900000000007,
+            "ScriptDuration": 1.679735,
+            "TaskDuration": 2.204270000000001,
+            "JSHeapUsedSize": 200710224
+          }
+        }
+      ]
+    },
+    "frame-tiles-verified": {
+      "environment": {
+        "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1,
+        "gpuTimer": true,
+        "landTriangles": 457066,
+        "coastSegments": 154270,
+        "borderSegments": 85293,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "gpuFeatures": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "fixture": {
+        "players": 16,
+        "units": 326,
+        "synthetic": true
+      },
+      "options": {
+        "duration": "7000",
+        "views": "near",
+        "actions": "pan",
+        "variants": "baseline,map-tiles",
+        "pan60": true,
+        "verify": true,
+        "output": ".cache/frame-tiles-verified.json"
+      },
+      "errors": [],
+      "results": [
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "baseline",
+          "elapsedMs": 7007.200000000001,
+          "rafFps": 19.265897933554058,
+          "renderFps": 16.982532252540242,
+          "rafGapMs": {
+            "count": 135,
+            "mean": 51.90518518518519,
+            "p50": 48.5,
+            "p95": 104.5,
+            "max": 194.5,
+            "total": 7007.200000000001
+          },
+          "renderGapMs": {
+            "count": 118,
+            "mean": 59.32372881355933,
+            "p50": 49,
+            "p95": 111.09999999999854,
+            "max": 194.5,
+            "total": 7000.200000000001
+          },
+          "frameCpuMs": {
+            "count": 119,
+            "mean": 5.752941171662147,
+            "p50": 5.200000286102295,
+            "p95": 9.199999809265137,
+            "max": 12.899999618530273,
+            "total": 684.5999994277954
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 119,
+              "mean": 0.06386554541708041,
+              "p50": 0,
+              "p95": 0.2999997138977051,
+              "max": 0.40000009536743164,
+              "total": 7.599999904632568
+            },
+            "threeRender": {
+              "count": 238,
+              "mean": 0.26638653899441245,
+              "p50": 0.20000028610229492,
+              "p95": 0.5999999046325684,
+              "max": 1.6999998092651367,
+              "total": 63.399996280670166
+            },
+            "coastMask": {
+              "count": 119,
+              "mean": 0.22268906360914728,
+              "p50": 0.19999980926513672,
+              "p95": 0.5,
+              "max": 1,
+              "total": 26.499998569488525
+            },
+            "politicalTint": {
+              "count": 119,
+              "mean": 0.0008403353330467929,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.09999990463256836,
+              "total": 0.09999990463256836
+            },
+            "drawMapNames": {
+              "count": 119,
+              "mean": 2.580672272113191,
+              "p50": 2.299999713897705,
+              "p95": 3.9000000953674316,
+              "max": 6.300000190734863,
+              "total": 307.1000003814697
+            },
+            "gpuCoastMs": {
+              "count": 113,
+              "mean": 25.181527610619487,
+              "p50": 22.666742,
+              "p95": 50.76438,
+              "max": 56.56519,
+              "total": 2845.512620000002
+            },
+            "gpuMainMs": {
+              "count": 113,
+              "mean": 21.231888380530965,
+              "p50": 17.040512,
+              "p95": 47.42739,
+              "max": 63.017995,
+              "total": 2399.203386999999
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 119,
+            "mean": 11.806722689075631,
+            "p50": 11,
+            "p95": 13,
+            "max": 13,
+            "total": 1405
+          },
+          "triangles": {
+            "count": 119,
+            "mean": 1895281.2100840337,
+            "p50": 1895256,
+            "p95": 1895452,
+            "max": 1895452,
+            "total": 225538464
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 5,
+            "provinces": 246
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1445,
+            "LayoutCount": 90,
+            "RecalcStyleCount": 255,
+            "LayoutDuration": 0.068292,
+            "RecalcStyleDuration": 0.137498,
+            "ScriptDuration": 0.523214,
+            "TaskDuration": 0.8868,
+            "JSHeapUsedSize": 381750680
+          }
+        },
+        {
+          "name": "near-pan",
+          "action": "pan",
+          "variant": "map-tiles",
+          "pixelComparison": {
+            "pixels": 1382400,
+            "changedPixels": 0,
+            "maxDifference": 1,
+            "meanChannelDifference": 2.4112654320987655e-7
+          },
+          "elapsedMs": 7014,
+          "rafFps": 75.27801539777587,
+          "renderFps": 32.93413173652694,
+          "rafGapMs": {
+            "count": 528,
+            "mean": 13.284090909090908,
+            "p50": 7.099999999998545,
+            "p95": 41.70000000000073,
+            "max": 500.2000000000007,
+            "total": 7014
+          },
+          "renderGapMs": {
+            "count": 230,
+            "mean": 28.2586956521739,
+            "p50": 21,
+            "p95": 55.70000000000073,
+            "max": 83.70000000000073,
+            "total": 6499.499999999996
+          },
+          "frameCpuMs": {
+            "count": 231,
+            "mean": 7.807792192929751,
+            "p50": 7.199999809265137,
+            "p95": 13.200000286102295,
+            "max": 16.699999809265137,
+            "total": 1803.5999965667725
+          },
+          "updateCpuMs": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "stages": {
+            "drawLabels": {
+              "count": 231,
+              "mean": 0.04805195176756227,
+              "p50": 0,
+              "p95": 0.3000001907348633,
+              "max": 0.6999998092651367,
+              "total": 11.100000858306885
+            },
+            "threeRender": {
+              "count": 462,
+              "mean": 1.0064935003008162,
+              "p50": 0.8000001907348633,
+              "p95": 2.1999998092651367,
+              "max": 4.900000095367432,
+              "total": 464.99999713897705
+            },
+            "coastMask": {
+              "count": 231,
+              "mean": 0.7532467553109834,
+              "p50": 0.6999998092651367,
+              "p95": 1.5999999046325684,
+              "max": 2.1999998092651367,
+              "total": 174.00000047683716
+            },
+            "politicalTint": {
+              "count": 231,
+              "mean": 0.0017316021444477561,
+              "p50": 0,
+              "p95": 0,
+              "max": 0.10000038146972656,
+              "total": 0.40000009536743164
+            },
+            "drawMapNames": {
+              "count": 231,
+              "mean": 2.858441567524171,
+              "p50": 2.5999999046325684,
+              "p95": 4.700000286102295,
+              "max": 6.300000190734863,
+              "total": 660.3000020980835
+            },
+            "gpuMainMs": {
+              "count": 227,
+              "mean": 13.092315101321583,
+              "p50": 8.905797,
+              "p95": 39.942255,
+              "max": 56.446855,
+              "total": 2971.9555279999995
+            },
+            "gpuCoastMs": {
+              "count": 228,
+              "mean": 1.527177710526316,
+              "p50": 0.826746,
+              "p95": 6.076891,
+              "max": 15.084189,
+              "total": 348.196518
+            }
+          },
+          "longTasks": {
+            "count": 0,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "max": 0,
+            "total": 0
+          },
+          "drawCalls": {
+            "count": 231,
+            "mean": 54.42857142857143,
+            "p50": 55,
+            "p95": 56,
+            "max": 56,
+            "total": 12573
+          },
+          "triangles": {
+            "count": 231,
+            "mean": 254319.4935064935,
+            "p50": 253977,
+            "p95": 255001,
+            "max": 255001,
+            "total": 58747803
+          },
+          "units": {
+            "before": 326,
+            "after": 326,
+            "visible": 1
+          },
+          "ticks": 0,
+          "labels": {
+            "countries": 5,
+            "provinces": 246
+          },
+          "distance": 83.69552432863975,
+          "mainThread": {
+            "Nodes": 1445,
+            "LayoutCount": 155,
+            "RecalcStyleCount": 761,
+            "LayoutDuration": 0.102937,
+            "RecalcStyleDuration": 0.34671,
+            "ScriptDuration": 1.4955950000000002,
+            "TaskDuration": 2.874251,
+            "JSHeapUsedSize": 404005364
+          }
+        }
+      ]
+    }
+  },
+  "simulation": {
+    "runtime": "v24.15.0",
+    "synthetic": true,
+    "results": [
+      {
+        "players": 3,
+        "initialUnits": 66,
+        "finalUnits": 66,
+        "initMs": 7.149700000000848,
+        "steps": 200,
+        "step": {
+          "meanMs": 2.4500434999999925,
+          "p50Ms": 1.9149999999999636,
+          "p95Ms": 5.5622999999995955,
+          "maxMs": 31.242199999999684
+        },
+        "clone": {
+          "meanMs": 5.4634589999999665,
+          "p50Ms": 5.120499999999993,
+          "p95Ms": 8.516899999999623,
+          "maxMs": 10.499800000000505
+        },
+        "targetStepBudgetMs": 50
+      },
+      {
+        "players": 16,
+        "initialUnits": 326,
+        "finalUnits": 326,
+        "initMs": 11.739700000000084,
+        "steps": 200,
+        "step": {
+          "meanMs": 15.691341999999986,
+          "p50Ms": 12.10859999999957,
+          "p95Ms": 25.3166999999994,
+          "maxMs": 427.52109999999993
+        },
+        "clone": {
+          "meanMs": 6.45264199999996,
+          "p50Ms": 5.750699999999597,
+          "p95Ms": 9.984799999998359,
+          "maxMs": 11.189800000000105
+        },
+        "targetStepBudgetMs": 50
+      },
+      {
+        "players": 100,
+        "initialUnits": 1613,
+        "finalUnits": 1609,
+        "initMs": 16.29869999999937,
+        "steps": 200,
+        "step": {
+          "meanMs": 92.19815149999988,
+          "p50Ms": 60.62830000000031,
+          "p95Ms": 374.6934000000001,
+          "maxMs": 777.784599999999
+        },
+        "clone": {
+          "meanMs": 12.203389999999835,
+          "p50Ms": 11.136800000000221,
+          "p95Ms": 20.997899999994843,
+          "maxMs": 25.04660000000149
+        },
+        "targetStepBudgetMs": 50
+      }
+    ]
+  }
+}

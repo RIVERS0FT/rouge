@@ -23,8 +23,8 @@ function Metric({icon, label, tip, className = '', children}: {icon: IconName; l
  * and command rank, each with a live breakdown tooltip, followed by alerts.
  * The player's name deliberately stays on the portrait card, not here.
  */
-export function TopBar({state, actor, owned, language, onTalents, clock, menu}: {
- state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; clock: ReactNode; menu: ReactNode;
+export function TopBar({state, actor, owned, language, onTalents, clock}: {
+ state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; clock: ReactNode;
 }) {
  const player = state.players[actor], text = (key: string) => t(language, key);
  const income = incomePerSecond(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
@@ -90,6 +90,5 @@ export function TopBar({state, actor, owned, language, onTalents, clock, menu}: 
    </Tip>}
   </div>
   {clock}
-  {menu}
  </header>;
 }

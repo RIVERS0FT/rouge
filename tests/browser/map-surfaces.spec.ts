@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 async function loadMap(page:Page){
@@ -28,11 +29,11 @@ for(const mobile of [false,true])test.describe(mobile?'mobile map surfaces':'des
   await expect(canvas).toHaveAttribute('data-country-borders','true');
   await page.screenshot({path:`artifacts/map-surfaces-${mobile?'mobile':'desktop'}-world.png`});
   // Verify an owned (not neutral) area retains the actual faction's base color.
-  await page.getByTestId('map-search').fill('CHN');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('CHN');await page.locator('.map-search-results button').first().click();
   await expect.poll(async()=>await canvas.getAttribute('data-selected-fill-color')===await canvas.getAttribute('data-selected-owner-color')).toBe(true);
   await expect(canvas).not.toHaveAttribute('data-selected-owner-color','b4b0a2');
   // Himalayan land relief retains geographic alignment at strategic zoom.
-  await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
   if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').click();
   await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   const distance=Number(await canvas.getAttribute('data-distance'));for(let n=0;n<Math.ceil(Math.log(650/distance)/Math.log(1.15));n++)await page.keyboard.press('-');
@@ -40,7 +41,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile map surfaces':'des
   expect(await canvas.getAttribute('data-selected-fill-color')).toEqual(await canvas.getAttribute('data-selected-owner-color'));
   await page.screenshot({path:`artifacts/map-surfaces-${mobile?'mobile':'desktop'}-himalaya.png`});
   // An island exposes the same coast and surface in flat and tilted views.
-  await page.getByTestId('map-search').fill('USA-3517');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('USA-3517');await page.locator('.map-search-results button').first().click();
   if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').click();
   await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect(canvas).toHaveAttribute('data-view','near');await expect(canvas).toHaveAttribute('data-ocean-reflection','near-view');
@@ -61,7 +62,7 @@ test('missing relief image leaves a playable map and intact water surface',async
  const canvas=await loadMap(page);
  await expect(canvas).toHaveAttribute('data-relief-state','fallback');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
  await expect(canvas).toHaveAttribute('data-ready','true');await expect(page.locator('.render-error')).toHaveCount(0);
- await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
  await expect(canvas).not.toHaveAttribute('data-selected-region','-1');expect(errors).toEqual([]);
 });
 test('slow artwork does not delay map input or simulation readiness',async({page})=>{
@@ -71,7 +72,7 @@ test('slow artwork does not delay map input or simulation readiness',async({page
  try{
   const canvas=await loadMap(page);
   await expect(canvas).toHaveAttribute('data-relief-state','loading');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
-  await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('NPL-1095');await page.locator('.map-search-results button').first().click();
   await expect(canvas).not.toHaveAttribute('data-selected-region','-1');
   release();await expect(canvas).toHaveAttribute('data-relief-state','ready');await expect(canvas).toHaveAttribute('data-ocean-state','ready');
  }finally{release();}

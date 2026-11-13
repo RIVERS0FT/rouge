@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
@@ -22,12 +23,12 @@ test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and po
   expect(Number(await canvas.getAttribute('data-focus-z'))).toBeCloseTo(-128.90774556626536,6);
   await page.screenshot({path:'artifacts/cropped-miller-world.png'});
   await expect(page.locator('.atlas-credit')).toHaveCount(0);await expect(page.locator('.world canvas')).toHaveAttribute('data-projection','miller-cylindrical');
-  await page.getByTestId('map-search').fill('NOR-901');await expect(page.locator('.map-search-results button')).toHaveCount(0);
-  await page.getByTestId('map-search').fill('GRL-2743');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('NOR-901');await expect(page.locator('.map-search-results button')).toHaveCount(0);
+  await openMapSearch(page);await page.getByTestId('map-search').fill('GRL-2743');await page.locator('.map-search-results button').first().click();
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   expect(Number(await canvas.getAttribute('data-focus-z'))).toBeGreaterThan(-923.4389955662654);
   await page.screenshot({path:'artifacts/cropped-miller-greenland.png'});
-  await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
   await expect(page.locator('.province-panel h2')).toContainText('江苏');
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   await page.screenshot({path:'artifacts/cropped-miller-jiangsu.png'});

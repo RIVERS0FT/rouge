@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildCountryLabels} from '../src/render/countryLabels.ts';
 import {buildBorderEdges} from '../src/render/territoryBorders.ts';
-import {buildCountryPlacements,fitCountryCurve,countryCurveSegment} from '../src/render/countryLabelPaths.ts';
+import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,uprightCountryArc} from '../src/render/countryLabelPaths.ts';
 import {WORLD_BOUNDS,wrapX} from '../src/game/geo.ts';
 const bounds={left:-500,right:500,top:-500,bottom:500};
 const rect=(x,z,w,h)=>[{x,z},{x:x+w,z},{x:x+w,z:z+h},{x,z:z+h}];
@@ -10,6 +10,32 @@ const region=(id,parts)=>({id,code:`test-${id}`,visible:true,parts});
 function contains(ring,p){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a.z>p.z)!==(b.z>p.z)&&p.x<a.x+(b.x-a.x)*(p.z-a.z)/(b.z-a.z))inside=!inside;}return inside;}
 const inside=(map,p)=>map.some(r=>r.parts.some(part=>contains(part[0],p)&&!part.slice(1).some(hole=>contains(hole,p))));
 function placement(map,owners=map.map(()=>0),cache=new Map()){return buildCountryPlacements(map,owners,buildCountryLabels(map,owners),buildBorderEdges(map,bounds),cache,bounds);}
+
+test('country arcs remain upright for both diagonals, vertical text and horizontal reversals',()=>{
+ const cases=[
+  [{x:100,y:100},{x:50,y:40},{x:0,y:0}],
+  [{x:100,y:0},{x:40,y:60},{x:0,y:100}],
+  [{x:0,y:0},{x:50,y:40},{x:100,y:100}],
+  [{x:0,y:0},{x:0,y:50},{x:0,y:100}],
+  [{x:0,y:100},{x:0,y:50},{x:0,y:0}],
+  [{x:0,y:0},{x:-20,y:60},{x:10,y:100}],
+  [{x:0,y:0},{x:30,y:60},{x:10,y:100}],
+  [{x:0,y:0},{x:20,y:50},{x:0,y:100}],
+ ];
+ for(const points of cases){
+  const before=structuredClone(points),arc=uprightCountryArc(...points);
+  assert.ok(arc.length>0);assert.deepEqual(points,before,'cached geometry is never mutated');
+  for(let i=0;i<=100;i++){
+   const t=i/100,dx=(1-t)*(arc.control.x-arc.start.x)+t*(arc.end.x-arc.control.x),dy=(1-t)*(arc.control.y-arc.start.y)+t*(arc.end.y-arc.control.y);
+   const angle=Math.atan2(dy,dx)*180/Math.PI;assert.ok(angle>=-90-1e-9&&angle<=90+1e-9,`upright tangent: ${angle}`);
+  }
+  if(points[1].x>=Math.min(points[0].x,points[2].x)&&points[1].x<=Math.max(points[0].x,points[2].x)){
+   assert.deepEqual(arc.control,points[1]);
+   const order=(a,b)=>a.x-b.x||a.y-b.y;
+   assert.deepEqual([arc.start,arc.end].sort(order),[points[0],points[2]].sort(order),'reorienting preserves the entire original curve');
+  }
+ }
+});
 
 test('curved country corridors bend with the territory and protect whole glyphs, not just their baseline',()=>{
  const upper=Array.from({length:25},(_,i)=>{const x=i*5-60;return {x,z:.008*x*x-11};}),lower=upper.map(p=>({...p,z:p.z+22})).reverse(),map=[region(0,[[[...upper,...lower]]])];

@@ -49,25 +49,29 @@ export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(ki
   if(!active)return;
   const place=(reveal=false):void=>{
    const button=buttons.current[active],anchor=button?.getBoundingClientRect(),tip=tooltip.current,area=grid.current?.getBoundingClientRect();if(!button||!anchor||!tip||!area)return;
-   const width=Math.min(340,window.innerWidth-24);tip.style.width=`${width}px`;
-   // The portal must not cover appearance, close, opponent-count or footer controls.
-   // A sticky mobile close button can move into the grid's vertical range.
+   // Measure the unconstrained panel at its responsive width before placing it.
+   const width=Math.min(380,window.innerWidth-24);tip.style.width=`${width}px`;
    const modal=grid.current?.closest('.setup-modal');
-   const identity=modal?.querySelector('.setup-identity')?.getBoundingClientRect();
    const close=modal?.querySelector('.modal-close')?.getBoundingClientRect();
-   const footer=modal?.querySelector('.setup-footer')?.getBoundingClientRect();
-   const placement=unitTooltipPosition(anchor,tip.scrollHeight+2,{width:window.innerWidth,height:window.innerHeight},{
-    top:Math.max(area.top,identity?identity.bottom+8:0,close?close.bottom+8:0),
-    bottom:Math.min(area.bottom,footer?footer.top-8:window.innerHeight-12)
-   });
+   const body=modal?.querySelector('.modal-body'),bodyRect=body?.getBoundingClientRect();
+   const bounds={top:Math.max(12,close?close.bottom+8:0),bottom:window.innerHeight-12};
+   // Once manual scrolling hides the card, dismiss instead of following it offscreen.
+   if(bodyRect&&(anchor.bottom<=bodyRect.top||anchor.top>=bodyRect.bottom)){setActive(null);return;}
+   const height=tip.getBoundingClientRect().height;
+   const placement=unitTooltipPosition(anchor,{width,height},{width:window.innerWidth,height:window.innerHeight},bounds);
    if(!placement){
-    // In short landscapes a fully visible first row can leave the entire second
-    // row below the viewport. Reveal room for its tooltip once on activation.
-    // Later manual scrolling must not pull the user back to this card.
-    if(reveal){button.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});place();return;}
+    // Narrow phones have no side space. Reveal enough room beside the card once,
+    // without constraining the panel or pulling back after manual scrolling.
+    if(reveal&&body&&height+anchor.height+8<=bounds.bottom-bounds.top){
+     const current=body.scrollTop,max=body.scrollHeight-body.clientHeight;
+     const below=Math.ceil(current+anchor.bottom+8+height-bounds.bottom)+2;
+     const above=Math.floor(current+anchor.top-bounds.top-height-8)-2;
+     const target=[below,above].filter(next=>next>=0&&next<=max).sort((a,b)=>Math.abs(a-current)-Math.abs(b-current))[0];
+     if(target!==undefined){body.scrollTop=target;place();return;}
+    }
     setActive(null);return;
    }
-   setPosition(placement);
+   setPosition({...placement,width});
   };
   const update=()=>place();
   place(true);window.addEventListener('resize',update);window.addEventListener('scroll',update,true);

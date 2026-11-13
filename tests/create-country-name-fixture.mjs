@@ -5,11 +5,11 @@ import {buildCountryLabels} from '../src/render/countryLabels.ts';
 import {nearestWorldX} from '../src/game/geo.ts';
 import {assignCountryNames} from '../src/game/countryNames.ts';
 import {encodeSave,SAVE_PREFIX} from '../src/game/save.ts';
-const state=createGame([{name:'Alice 王',leader:'warden',loadout:['infantry']},{name:'Bob 的国',leader:'warden',loadout:['infantry']},...makeAISetups(3)],17,'country-name-review');
+const roots=['USA','RUS','CHN','BRA','AUS','CHL','VNM'];
+const state=createGame([{name:'Alice 王',leader:'warden',loadout:['infantry']},{name:'Bob 的国',leader:'warden',loadout:['infantry']},...makeAISetups(roots.length-2)],17,'country-name-review');
 state.units=[];for(const p of state.provinces){p.owner=-1;p.production=0;}
 // Readable known countries, two human names, AI names, neutral surroundings and
 // a disconnected overseas possession. No troops move during the visual check.
-const roots=['USA','RUS','CHN','BRA','AUS'];
 for(const p of state.provinces){const prefix=MAP[p.id].code.slice(0,3),owner=roots.indexOf(prefix);if(owner>=0&&MAP[p.id].playable){p.owner=owner;p.kind=state.players[owner].loadout[0];}}
 const extra=MAP.find(p=>p.playable&&p.code.startsWith('FJI'));if(extra){state.provinces[extra.id].owner=0;state.provinces[extra.id].kind=state.players[0].loadout[0];}
 for(const p of state.players)delete p.country;

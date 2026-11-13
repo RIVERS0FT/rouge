@@ -19,7 +19,7 @@ import {FlagEditor} from './Flag.tsx';
 import {Clock} from './hud/Clock.tsx';
 import {CommandRail, type Dock} from './hud/CommandRail.tsx';
 import {factionFocusRegion, factionSummaries, ownedRegions} from './hud/hudModel.ts';
-import {MapSearch} from './hud/MapSearch.tsx';
+import {MapSearch, type MapSearchHandle} from './hud/MapSearch.tsx';
 import {MilitaryPanel} from './hud/MilitaryPanel.tsx';
 import {NationsPanel} from './hud/NationsPanel.tsx';
 import {Outliner} from './hud/Outliner.tsx';
@@ -30,6 +30,7 @@ import {InputDeviceTracker, type PointerIntent} from './inputDevice.ts';
 import {LeaderBust, preloadPortraits} from './LeaderBust.tsx';
 import {Lobby} from './Lobby.tsx';
 import {ModalDialog} from './ModalDialog.tsx';
+import {SessionLifetime} from './SessionLifetime.tsx';
 import {loadSetupPreferences, saveSetupPreferences} from './setupPreferences.ts';
 import {StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
 import {talentSelectionStatus} from './talentSelection.ts';
@@ -83,6 +84,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [room, setRoom] = useState<RoomInfo | null>(null), [ticket, setTicket] = useState<Ticket | null>(storedTicket);
  const [network, setNetwork] = useState<'connected' | 'reconnecting'>('connected'), [busy, setBusy] = useState(false);
  const session = useRef<Session | null>(null), world = useRef<WorldRenderer | null>(null), latest = useRef<GameState | null>(null), autoTick = useRef(0);
+ const mapSearch = useRef<MapSearchHandle>(null);
  const compactRef = useRef(compact), selectedRef = useRef(selected);
  latest.current = game; compactRef.current = compact; selectedRef.current = selected;
  const factionCapacity = useMemo(() => getSpawnCapacity(), []);
@@ -116,12 +118,12 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  // Docks are not modal: the map stays live beside them. Only dialogs block map input.
  useEffect(() => {world.current?.setInputContext(screen === 'game' && !localStarting && !modal && !showDefeat && game?.winner === null ? 'game' : 'blocked');}, [screen, localStarting, modal, showDefeat, game?.winner]);
  useEffect(() => {document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'; document.title = text('title'); try {localStorage.setItem('rouge.language', language);} catch {/* Language still works without storage. */}}, [language]);
- useEffect(() => () => session.current?.dispose(), []);
  useEffect(() => {if(!toast) return; const id = setTimeout(() => setToast(''), 4500); return () => clearTimeout(id);}, [toast]);
  // Entering a compact layout folds docks into closed sheets; widening restores the region dock and outliner.
- const firstLayout = useRef(true);
+ const previousCompact = useRef(compact);
  useEffect(() => {
-  if(firstLayout.current) {firstLayout.current = false; return;}
+  if(previousCompact.current === compact) return;
+  previousCompact.current = compact;
   setDock(compact ? null : selectedRef.current >= 0 ? 'region' : null);
   setOutlinerOpen(!compact);
  }, [compact]);
@@ -149,7 +151,10 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   if(modal === 'playerLeader' || modal === 'playerFlag') {setModal(appearanceOrigin.current); restoreFocus(modal === 'playerLeader' ? 'edit-player-leader' : 'edit-player-flag');}
   else {setModal(null); restoreFocus(initialFocusRef.current); initialFocusRef.current = null;}
  }
+ const initialized = useRef(false);
  useEffect(() => {
+  if(initialized.current) return;
+  initialized.current = true;
   preloadLocalSession(); preloadPortraits();
   if(initialAction === 'saves' || initialAction === 'settingsSaves') refreshSaves();
   if(initialAction === 'resumeLan' && ticket) connect(ticket);
@@ -202,7 +207,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  function issue(command: Command) {if(localStarting) return; if(eliminated) {notifyResult({ok: false, error: 'eliminated'}); return;} session.current?.command(command);}
  function selectProvince(id: number, attack: boolean) {
   if(screen !== 'game' || localStarting) return;
-  if(attack) {if(eliminated || !MAP[selected] || !MAP[id]) return; issue({type: 'march', from: selected, to: id, fraction: 0.75});}
+  if(attack) {if(eliminated || !MAP[selected] || !MAP[id]) return; issue({type: 'march', from: selected, to: id, fraction: 1});}
   else if(id === -1) {setSelected(-1); setDock(current => current === 'region' ? null : current);}
   else if(MAP[id]) {setSelected(id); if(!compactRef.current) setDock('region');}
  }
@@ -282,6 +287,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
 
  return <div className={`app ${screen === 'menu' ? 'is-menu' : screen === 'game' ? 'is-game' : 'is-lobby'}`} data-layout={compact ? 'compact' : 'wide'} data-dock={dock ?? 'none'}
   data-input-device={inputDevice} data-resource-state="ready" data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
+  <SessionLifetime session={session}/>
   <World state={state} selected={screen === 'game' ? selected : -1} language={language} onPick={selectProvince} onMode={() => {}} worldRef={world}/>
   <div className="map-vignette"/>
   {screen !== 'game' && <div className="language-switch">
@@ -295,11 +301,13 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
    onAIDraft={setLobbyAI} onApplyAI={changeRoomAI} onLeave={leave} onStart={beginMatch}/>}
   {screen === 'game' && game && player && <>
    <TopBar state={game} actor={actor} owned={owned} language={language} onTalents={() => setModal('talents')}
-    clock={<Clock tick={game.tick} solo={solo} paused={paused} speed={speed} network={network} language={language} onPause={togglePause} onSpeed={changeSpeed}/>}
-    menu={<button type="button" className="settings-trigger" data-testid="open-settings" onClick={openSettings} aria-label={text('settings')} title={`${text('settings')} · Esc`} aria-haspopup="dialog">
-     <Icon name="gear" size={24}/>
-    </button>}/>
-   <MapSearch state={game} language={language} onPick={jumpToRegion}/>
+    clock={<Clock tick={game.tick} solo={solo} paused={paused} speed={speed} network={network} language={language} onPause={togglePause} onSpeed={changeSpeed}
+     actions={<><button type="button" className="clock-action all-regions-trigger" data-testid="open-all-regions" onClick={() => mapSearch.current?.open()} disabled={localStarting || showDefeat || game.winner !== null}
+      aria-label={text('allRegions')} title={`${text('allRegions')} · F`} aria-keyshortcuts="F"><Icon name="territory" size={21}/></button>
+      <button type="button" className="clock-action settings-trigger" data-testid="open-settings" onClick={openSettings} aria-label={text('settings')} title={`${text('settings')} · Esc`} aria-haspopup="dialog">
+       <Icon name="gear" size={21}/>
+      </button></>}/>}/>
+   <MapSearch ref={mapSearch} state={game} language={language} onPick={jumpToRegion} enabled={!localStarting && !modal && !showDefeat && game.winner === null}/>
    <CommandRail language={language} dock={dock} outlinerOpen={outlinerOpen} hasRegion={Boolean(province)} pendingTalents={player.choices.length ? player.drafts + 1 : 0}
     onDock={toggleDock} onTalents={() => setModal('talents')} onOutliner={toggleOutliner}/>
    <div className={`hud-dock${dock ? ' mobile-panel-open' : ''}`} data-dock={dock ?? 'none'}>
