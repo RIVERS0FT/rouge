@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
@@ -15,7 +16,7 @@ function errorsOn(page:Page){
 test('2D sprites and 3D models switch repeatedly without changing units or selection',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);await load(page);
  const canvas=page.locator('.world canvas');
- await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  const selected=await canvas.getAttribute('data-selected-region');
  for(let pass=0;pass<2;pass++){
@@ -43,7 +44,7 @@ test('2D sprites and 3D models switch repeatedly without changing units or selec
 test('phone pinch switches unit representation and resizing preserves the active batch',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);await page.setViewportSize({width:390,height:844});await load(page);
  const canvas=page.locator('.world canvas');
- await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
  await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  const selected=await canvas.getAttribute('data-selected-region');
  // Exercise the same pointer stream used by touch hardware. Start at a known

@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 test('selection preserves owner fill and uses bounded inner glow in strategic and terrain views',async({page},testInfo)=>{
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('begin-campaign').click();
@@ -31,7 +32,7 @@ test('selection preserves owner fill and uses bounded inner glow in strategic an
  }
  // Explicit complex coast, enclosed holes and smallest close-up island evidence.
  for(const code of ['GRL-2743','HUN-3138','FJI-2619']){
-  await page.getByTestId('map-search').fill(code);await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(code);await page.locator('.map-search-results button').first().click();
   await canvas.focus();await page.keyboard.press('End');
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect(canvas).toHaveAttribute('data-selection-glow-pending','false',{timeout:20000});

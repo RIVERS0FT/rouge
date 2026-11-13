@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import { test, expect, type Page } from '@playwright/test';
 
 async function assertLayout(page: Page) {
@@ -89,7 +90,7 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
     await assertLayout(page);await page.screenshot({path:`artifacts/hud-${leader}-1440.png`});
     // Browsing another country must not change either local-player identity element.
-    await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
+    await openMapSearch(page);await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
     await expect(page.locator('.province-panel h2')).toContainText('江苏');
     await expect(page.getByTestId('country-flag')).toHaveCount(0);await expect(page.getByTestId('faction-identity')).toHaveAttribute('data-actor','0');
     await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader',leader);

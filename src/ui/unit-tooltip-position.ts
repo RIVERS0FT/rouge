@@ -1,15 +1,15 @@
 type Anchor={top:number;bottom:number;left:number;width:number};
 type Bounds={top:number;bottom:number};
 
-/** Keep a scrollable tooltip inside the visible unit area and off its trigger. */
-export function unitTooltipPosition(anchor:Anchor,height:number,viewport:{width:number;height:number},bounds:Bounds,minimumHeight=34){
- const top=Math.max(12,bounds.top),bottom=Math.min(viewport.height-12,bounds.bottom);
- if(anchor.bottom<=top||anchor.top>=bottom)return null;
- const below=Math.max(0,bottom-anchor.bottom-8),above=Math.max(0,anchor.top-top-8);
- const useBelow=below>=height||below>=above,maxHeight=useBelow?below:above;
- // Padding and borders still take space when max-height is very small.
- if(maxHeight<minimumHeight)return null;
- const width=Math.min(340,viewport.width-24);
- return {width,left:Math.max(12,Math.min(anchor.left+(anchor.width-width)/2,viewport.width-width-12)),
-  top:useBelow?anchor.bottom+8:anchor.top-Math.min(height,maxHeight)-8,maxHeight};
+/** Place the whole panel in the viewport, outside its trigger. The grid is not a boundary. */
+export function unitTooltipPosition(anchor:Anchor,size:{width:number;height:number},viewport:{width:number;height:number},bounds:Bounds){
+ const margin=12,gap=8,top=Math.max(margin,bounds.top),bottom=Math.min(viewport.height-margin,bounds.bottom);
+ if(anchor.bottom<=top||anchor.top>=bottom||size.height>bottom-top||size.width>viewport.width-margin*2)return null;
+ const left=Math.max(margin,Math.min(anchor.left+(anchor.width-size.width)/2,viewport.width-size.width-margin));
+ if(anchor.bottom+gap+size.height<=bottom)return {left,top:anchor.bottom+gap};
+ if(anchor.top-gap-size.height>=top)return {left,top:anchor.top-gap-size.height};
+ const sideTop=Math.max(top,Math.min(anchor.top+(anchor.bottom-anchor.top-size.height)/2,bottom-size.height));
+ if(anchor.left+anchor.width+gap+size.width<=viewport.width-margin)return {left:anchor.left+anchor.width+gap,top:sideTop};
+ if(anchor.left-gap-size.width>=margin)return {left:anchor.left-gap-size.width,top:sideTop};
+ return null;
 }

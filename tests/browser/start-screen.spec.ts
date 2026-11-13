@@ -187,7 +187,8 @@ test.describe('touch identity and unit selection',()=>{
    await leader.tap();expect(await page.locator('.leader-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3);await page.getByTestId('choose-leader-steward').tap();await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(leader).toBeFocused();
    expect(await page.locator('.unit-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(4);const card=page.getByTestId('choose-unit-cavalry');await card.tap();
    await expect(card).toHaveAttribute('aria-pressed','true');const tip=await bounds(page.getByRole('tooltip'),width,height),trigger=await card.boundingBox();
-   expect(tip.y+tip.height<=trigger!.y||tip.y>=trigger!.y+trigger!.height).toBe(true);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
+   expect(tip.y+tip.height<=trigger!.y||tip.y>=trigger!.y+trigger!.height||tip.x+tip.width<=trigger!.x||tip.x>=trigger!.x+trigger!.width).toBe(true);await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
+   expect(await page.getByRole('tooltip').evaluate(el=>el.scrollHeight<=el.clientHeight&&el.scrollWidth<=el.clientWidth)).toBe(true);
    await page.screenshot({path:`artifacts/unit-tooltip-${width}x${height}.png`});
    await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toHaveCount(0);
    await card.tap();await expect(page.getByRole('tooltip')).toBeVisible();await card.tap();await expect(page.getByRole('tooltip')).toHaveCount(0);

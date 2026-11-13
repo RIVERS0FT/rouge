@@ -1,15 +1,19 @@
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { sharedMapAssets } from './scripts/shared-map-assets.ts';
 const root=fileURLToPath(new URL('.',import.meta.url));
 export default defineConfig({
   base: './',
-  plugins: [sharedMapAssets(root)],
+  plugins: [react(), sharedMapAssets(root)],
   // Await shared JSON before the worker advertises readiness. The default IIFE
   // worker build cannot preserve top-level await or relative module asset URLs.
   worker: { format: 'es', plugins: () => [sharedMapAssets(root)] },
   // Preserve Host as well as Origin: the LAN API intentionally enforces same-origin requests.
   // Vite's string shorthand changes Host and would reject legitimate browser POSTs.
-  server: { port: 5187, strictPort: true, proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } } },
+  server: { port: 5187, strictPort: true,
+    // Browser traces contain copied HTML; writing them must not reload the game.
+    watch: { ignored: ['**/.cache/**', '**/artifacts/**', '**/test-results/**', '**/playwright-report/**'] },
+    proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } } },
   build: { target: 'es2022', rollupOptions: { output: { manualChunks: { three: ['three'], react: ['react', 'react-dom/client'] } } } },
 });

@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test('Baikonur searches and actions resolve to the single Karaganda region and persist once',async({page})=>{
@@ -10,7 +11,7 @@ test('Baikonur searches and actions resolve to the single Karaganda region and p
  const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
  await expect(canvas).toHaveAttribute('data-region-count',String(fixture.regionCount));
  for(const query of ['拜科努尔','KAB+00?','卡拉干达','KAZ-3203']){
-  await page.getByTestId('map-search').fill(query);await expect(page.locator('.map-search-results button')).toHaveCount(1);await page.locator('.map-search-results button').click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(query);await expect(page.locator('.map-search-results button')).toHaveCount(1);await page.locator('.map-search-results button').click();
   await expect(canvas).toHaveAttribute('data-selected-region',String(fixture.region));
   await expect(page.locator('.province-panel h2')).toHaveText('卡拉干达州');await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
  }
@@ -26,5 +27,5 @@ test('Baikonur searches and actions resolve to the single Karaganda region and p
  expect(saved.state.provinces).toHaveLength(fixture.regionCount);expect(saved.state.provinces.filter(p=>p.owner===0)).toHaveLength(1);expect(saved.old).toBe('original v2 campaign bytes');
  expect(saved.state.grouping.groups.find(g=>g.atoms.includes('KAB+00?')).atoms).toEqual(['KAB+00?']);
  await page.reload();await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Merged Karaganda'}).getByRole('button',{name:'载入',exact:true}).click();
- await page.getByTestId('map-search').fill('拜科努尔');await page.locator('.map-search-results button').click();await expect(canvas).toHaveAttribute('data-selected-region',String(fixture.region));expect(errors).toEqual([]);
+ await openMapSearch(page);await page.getByTestId('map-search').fill('拜科努尔');await page.locator('.map-search-results button').click();await expect(canvas).toHaveAttribute('data-selected-region',String(fixture.region));expect(errors).toEqual([]);
 });

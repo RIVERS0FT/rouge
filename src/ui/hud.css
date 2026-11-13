@@ -58,8 +58,9 @@
 .hud-clock .connection{font-size:11.5px;white-space:nowrap}
 .connection{color:var(--good)}
 .connection.reconnecting{color:var(--warn)}
-.settings-trigger{display:grid;place-items:center;flex:none;width:60px;height:60px;border-radius:50%;color:var(--brass-hi);background:var(--medallion);box-shadow:var(--medallion-ring)}
-.settings-trigger:hover{box-shadow:var(--medallion-ring-hot);color:#fff3d4}
+.clock-actions{display:flex;align-items:center;gap:12px;margin-left:2px;padding-left:14px;border-left:1px solid #c6a46740}
+.clock-action{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:50%;color:var(--brass-hi);background:var(--medallion);box-shadow:var(--medallion-ring)}
+.clock-action:hover{box-shadow:var(--medallion-ring-hot);color:#fff3d4}
 
 /* Command rail: round medallions in a lacquered column. */
 .is-game .hud-rail{position:absolute;z-index:11;left:var(--edge);top:var(--dock-top);width:var(--rail-w);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:34px;background:linear-gradient(180deg,#161d1aee,#0f1412ee);border:1px solid var(--ink-0);box-shadow:var(--frame)}

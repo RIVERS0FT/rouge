@@ -35,7 +35,8 @@
  .is-game .speed-pips{flex-direction:row;gap:2px}
  .is-game .speed-pips button{width:30px;min-width:30px;height:44px;font-size:13px;color:var(--muted);background:#0a0e0d;box-shadow:inset 0 0 0 1px var(--brass-lo)}
  .is-game .speed-pips button[aria-pressed="true"]{color:var(--brass-hi);background:linear-gradient(180deg,#c6a46740,#c6a46714);box-shadow:inset 0 0 0 1px var(--brass),0 0 8px #efd79f40}
- .is-game .settings-trigger{width:48px;height:48px}
+ .is-game .clock-actions{gap:10px;margin-left:2px;padding-left:8px}
+ .is-game .clock-action{width:44px;height:44px}
 
  /* Region finder under the band. */
  .app.is-game[data-layout] .map-search{top:var(--search-top);left:var(--m-left);right:var(--m-right);width:auto;transform:none;z-index:16}

@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-country-name-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
@@ -18,7 +19,8 @@ async function assertInside(page:Page,allowEmpty=false){
   for(const label of labels){
    const text=label.querySelector('text')!,path=label.querySelector('path')!,svg=label.querySelector('svg')!,matrix=svg.getScreenCTM()!,owner=Number(label.dataset.owner),held=MAP.filter((p:any)=>owners[p.id]===owner),rotations=[];
    for(let i=0;i<text.getNumberOfChars();i++){
-    const box=text.getExtentOfChar(i);rotations.push(text.getRotationOfChar(i));
+    const box=text.getExtentOfChar(i),angle=((text.getRotationOfChar(i)+180)%360+360)%360-180;rotations.push(angle);
+    if(angle < -90.01||angle > 90.01)failures.push({name:label.textContent,character:i,angle,reason:'upside-down character'});
     for(const [x,y] of [[box.x,box.y],[box.x+box.width,box.y],[box.x,box.y+box.height],[box.x+box.width,box.y+box.height],[box.x+box.width/2,box.y+box.height/2]]){
      const screen=new DOMPoint(x,y).matrixTransform(matrix),world={x:wrapX(Number(d.focusX)+(screen.x-width/2)*scale),z:Number(d.focusZ)+(screen.y-height/2)*scale};checked++;
      if(blend>0){ray.setFromCamera(new THREE.Vector2(screen.x/width*2-1,1-screen.y/height*2),camera);plane.constant=-.16;for(let k=0;k<5;k++){ray.ray.intersectPlane(plane,hit);plane.constant=-(.16+heightAt(wrapX(hit.x),hit.z)*blend);}world.x=wrapX(hit.x);world.z=hit.z;}
@@ -51,7 +53,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
   await assertInside(page);await page.screenshot({path:`artifacts/country-curves-${mobile?'mobile':'desktop'}-zh.png`});
   await canvas.focus();await page.keyboard.press('+');await page.keyboard.press('+');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});await assertInside(page);
   if(mobile){await page.setViewportSize({width:390,height:844});await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-viewport-width','390',{timeout:20000});await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});await assertInside(page,true);}
-  await page.getByTestId('map-search').fill('CHN-1150');await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill('CHN-1150');await page.locator('.map-search-results button').first().click();
   if(mobile&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').tap();
   await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect.poll(()=>page.locator('.province-label:visible').count()).toBeGreaterThan(0);

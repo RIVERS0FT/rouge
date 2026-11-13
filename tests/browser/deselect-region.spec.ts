@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {project} from '../../src/game/geo.ts';
 
@@ -60,7 +61,7 @@ test('ocean clicks clear selection and only the province panel; land and search 
   await expect(page.locator('#province-panel')).toBeVisible();
  }
  await page.mouse.click(ocean.x,ocean.y);await emptySelection(page);
- await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('#province-panel h2')).toContainText('江苏');
  await expect(canvas).not.toHaveAttribute('data-selected-region','-1');
  expect(errors).toEqual([]);

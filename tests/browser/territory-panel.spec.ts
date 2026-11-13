@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {loadMapOrderFixture,mapOrderFixture,targetPoint,saveOrders,worldView} from './map-orders.ts';
@@ -7,6 +8,9 @@ async function expectPanelLayout(page:Page,owned=true){
  const panel=page.locator('#province-panel');
  await expect(panel).toBeVisible();
  await expect(panel.locator('h2')).toBeInViewport({ratio:1});
+ const country=panel.getByTestId('province-country');await expect(country).toBeVisible();
+ await expect(country.locator('bdi')).toHaveText((await panel.getByTestId('province-owner-name').textContent())!);
+ expect(await country.locator('svg').count()).toBe(await panel.locator('.province-ownership .owner-swatch svg').count());
  await expect.poll(()=>panel.evaluate(element=>element.scrollTop)).toBe(0);
  await expect(panel.locator('.province-summary')).toHaveCount(1);
  const layout=await panel.evaluate(element=>{
@@ -15,7 +19,7 @@ async function expectPanelLayout(page:Page,owned=true){
   const production=element.querySelector('.province-production')?.getBoundingClientRect();
   const ownership=box('.province-ownership'),garrison=box('.province-garrison');
   return {
-   overflows:[element,...element.querySelectorAll('h2,.province-summary,.province-ownership,.province-garrison')].some(node=>node.scrollWidth>node.clientWidth+1),
+   overflows:[element,...element.querySelectorAll('h2,.province-country,.province-summary,.province-ownership,.province-garrison')].some(node=>node.scrollWidth>node.clientWidth+1),
    ordered:heading.bottom<=summary.top&&summary.bottom<=(production?.top??action.top)&&(production?.bottom??summary.bottom)<=action.top,
    columns:ownership.right<=garrison.left&&Math.abs(ownership.top-garrison.top)<1,
    production:Boolean(production)
@@ -44,7 +48,7 @@ for(const language of ['zh','en'] as const)test(`${language}: territory panel sh
  for(const id of ['destination','destination-search','route-preview','destination-capacity','dispatch'])await expect(page.getByTestId(id)).toHaveCount(0);
  await expect(panel.locator('.fraction-picker')).toHaveCount(0);
  for(const [id,name] of [[mapOrderFixture.enemy,mapOrderFixture.country.name[language==='zh'?0:1]],[mapOrderFixture.target,language==='zh'?'中立':'Neutral']] as const){
-  await page.getByTestId('map-search').fill(atlas.provinces[id].id);await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(atlas.provinces[id].id);await page.locator('.map-search-results button').first().click();
   await expect(page.getByTestId('province-owner-name')).toHaveText(name);
   await expectPanelLayout(page,false);
  }
@@ -57,8 +61,8 @@ for(const shift of [false,true])test(`${shift?'Shift-click':'right-click'} still
  await page.mouse.click(point.x,point.y,{button:shift?'left':'right'});
  if(shift)await page.keyboard.up('Shift');
  await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
- await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
- const orders=await saveOrders(page);expect(orders).toHaveLength(9);
+ await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
+ const orders=await saveOrders(page);expect(orders).toHaveLength(12);
  expect(orders.every((u:any)=>u.destination===mapOrderFixture.target&&u.travel?.points.length>=2)).toBe(true);
 });
 
@@ -84,8 +88,8 @@ test.describe('touch orders',()=>{
   await worldView(page);const point=await targetPoint(page);
   await touch('touchStart',[{...point,id:1}]);await page.waitForTimeout(600);await touch('touchEnd',[]);
   await expect(canvas).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
-  await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
-  const orders=await saveOrders(page);expect(orders).toHaveLength(9);
+  await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
+  const orders=await saveOrders(page);expect(orders).toHaveLength(12);
   expect(orders.every((u:any)=>u.destination===mapOrderFixture.target)).toBe(true);await cdp.detach();
  });
 });
@@ -116,7 +120,7 @@ test.describe('territory information on touch screens',()=>{
    await page.screenshot({path:`artifacts/territory-panel-${language}-${viewport.width}.png`});
   }
   const longest=atlas.provinces.filter((p:any,index:number)=>p.playable&&![mapOrderFixture.source,mapOrderFixture.enemy].includes(index)).sort((a:any,b:any)=>b.name[language==='zh'?0:1].length-a.name[language==='zh'?0:1].length)[0];
-  await page.getByTestId('map-search').fill(longest.id);await page.locator('.map-search-results button').first().click();
+  await openMapSearch(page);await page.getByTestId('map-search').fill(longest.id);await page.locator('.map-search-results button').first().click();
   await expect(panel.locator('h2')).toHaveText(longest.name[language==='zh'?0:1]);
   await expectPanelLayout(page,false);
   await page.screenshot({path:`artifacts/territory-panel-long-name-${language}.png`});

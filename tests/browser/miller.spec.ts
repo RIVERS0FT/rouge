@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
@@ -12,11 +13,11 @@ test('real global Miller atlas, geographic search and near terrain',async({page}
  await page.locator('.world canvas').focus();await page.keyboard.press('Home');await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:15000});
  await page.screenshot({path:'artifacts/miller-world.png'});
  await expect(page.locator('.atlas-credit')).toHaveCount(0);await expect(page.locator('.world canvas')).toHaveAttribute('data-projection','miller-cylindrical');
- await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill('江苏');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText('江苏');
  await page.locator('.world canvas').focus();await page.keyboard.press('End');await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true',{timeout:15000});await page.screenshot({path:'artifacts/miller-jiangsu.png'});
  await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
- await page.getByTestId('map-search').fill('California');await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill('California');await page.locator('.map-search-results button').first().click();
  await expect(page.locator('.province-panel h2')).toContainText('California');
  await page.locator('.world canvas').focus();await page.keyboard.press('Home');
  await page.waitForTimeout(1500);await expect(page.locator('.render-error')).toHaveCount(0);expect(errors).toEqual([]);

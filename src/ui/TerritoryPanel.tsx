@@ -41,7 +41,11 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
  return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}
-  kicker={text('province')} title={MAP[selected].name[language === 'zh' ? 0 : 1]} titleId="province-title"
+  kicker={<span className="province-country" data-testid="province-country">
+   {province.owner < 0 ? <span className="faction-dot" style={{background: factionColor(province.owner)}} aria-hidden="true"/>
+    : <FactionSwatch state={state} id={province.owner} language={language} className="province-country-flag"/>}
+   <bdi>{owner}</bdi>
+  </span>} title={MAP[selected].name[language === 'zh' ? 0 : 1]} titleId="province-title"
   leading={<button type="button" className="icon-button" onClick={onFocus} title={text('focus')} aria-label={text('focus')}><Icon name="focus" size={18}/></button>}
   status={<div className="province-meta" data-state={status}><span className="status-dot" aria-hidden="true"/>{text(status)}</div>}
   closeLabel={text('closePanel')} onClose={onClose}

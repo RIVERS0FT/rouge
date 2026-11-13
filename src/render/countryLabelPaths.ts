@@ -11,6 +11,29 @@ interface Grid {left:number;top:number;cell:number;cols:number;rows:number;insid
 type Edge={a:Vec2;b:Vec2};
 const GRID_SIZE=112;
 
+type ScreenPoint={x:number;y:number};
+type ScreenArc={start:ScreenPoint;control:ScreenPoint;end:ScreenPoint};
+
+/** Keep every screen-space tangent within +/-90 degrees. Reversing a quadratic
+ * preserves its shape; if it doubles back horizontally, use its longer monotone
+ * section instead of moving the control point outside the validated land path. */
+export function uprightCountryArc(start:ScreenPoint,control:ScreenPoint,end:ScreenPoint):ScreenArc&{length:number}{
+ const measure=({start:a,control:c,end:b}:ScreenArc)=>{
+  let length=0,previous=a;
+  for(let i=1;i<=64;i++){const t=i/64,s=1-t,p={x:s*s*a.x+2*s*t*c.x+t*t*b.x,y:s*s*a.y+2*s*t*c.y+t*t*b.y};length+=Math.hypot(p.x-previous.x,p.y-previous.y);previous=p;}
+  return length;
+ };
+ let arc={start,control,end};
+ const denominator=start.x-2*control.x+end.x,t=denominator?(start.x-control.x)/denominator:0;
+ if(t>0&&t<1){
+  const lerp=(a:ScreenPoint,b:ScreenPoint)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+  const a=lerp(start,control),b=lerp(control,end),mid=lerp(a,b),first={start,control:a,end:mid},last={start:mid,control:b,end};
+  arc=measure(first)>=measure(last)?first:last;
+ }
+ if(arc.end.x<arc.start.x||(arc.end.x===arc.start.x&&arc.end.y>arc.start.y))arc={start:arc.end,control:arc.control,end:arc.start};
+ return {...arc,length:measure(arc)};
+}
+
 function raster(edges:readonly Edge[],bounds:Rect):Grid{
  const cell=Math.max(bounds.right-bounds.left,bounds.bottom-bounds.top)/GRID_SIZE||1;
  const left=bounds.left-cell*2,top=bounds.top-cell*2,cols=Math.ceil((bounds.right-bounds.left)/cell)+4,rows=Math.ceil((bounds.bottom-bounds.top)/cell)+4;

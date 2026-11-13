@@ -1,4 +1,6 @@
 import {dirname,isAbsolute,resolve} from 'node:path';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {normalizePath,type Plugin} from 'vite';
 
 /** Keep the existing synchronous Node imports, but make the two browser module
@@ -25,6 +27,11 @@ export function sharedMapAssets(root:string):Plugin{
       if(id===worldId)return `export {world as default} from ${JSON.stringify(dataId)};`;
       if(id===terrainId)return `export {terrain as default} from ${JSON.stringify(dataId)};`;
       if(id!==dataId)return null;
+      // Dev URLs normally stay unchanged when data is regenerated. Fingerprint
+      // their bytes so a refresh can reuse persistent cache without stale maps.
+      this.addWatchFile(world);this.addWatchFile(terrain);
+      const fingerprint=(path:string)=>createHash('sha256').update(readFileSync(path)).digest('hex').slice(0,20);
+      const worldRevision=fingerprint(world),terrainRevision=fingerprint(terrain);
       // Rollup/Vite hashes the same source bytes to the same output filename in
       // the app and worker builds, with URLs relative to each emitted module.
       // Start both downloads before awaiting. Separate top-level awaits would
@@ -32,8 +39,9 @@ export function sharedMapAssets(root:string):Plugin{
       return `import worldUrl from ${JSON.stringify(normalizePath(world)+'?url&no-inline')};\n`+
         `import terrainUrl from ${JSON.stringify(normalizePath(terrain)+'?url&no-inline')};\n`+
         `import {loadSharedMapAsset} from ${JSON.stringify(helper)};\n`+
-        `const cache=import.meta.env.DEV?'no-cache':'force-cache';\n`+
-        `export const [world,terrain]=await Promise.all([loadSharedMapAsset(worldUrl,'world map',cache),loadSharedMapAsset(terrainUrl,'terrain navigation',cache)]);\n`;
+        `const worldAsset=import.meta.env.DEV?worldUrl+(worldUrl.includes('?')?'&':'?')+'v=${worldRevision}':worldUrl;\n`+
+        `const terrainAsset=import.meta.env.DEV?terrainUrl+(terrainUrl.includes('?')?'&':'?')+'v=${terrainRevision}':terrainUrl;\n`+
+        `export const [world,terrain]=await Promise.all([loadSharedMapAsset(worldAsset,'world map'),loadSharedMapAsset(terrainAsset,'terrain navigation')]);\n`;
     },
   };
 }

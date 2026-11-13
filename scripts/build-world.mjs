@@ -3,6 +3,11 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 const root=new URL('../',import.meta.url),output=new URL('src/generated/world.json',root);
+async function writeChanged(path,content){
+  const bytes=typeof content==='string'?Buffer.from(content):content;
+  let old;try{old=await readFile(path);}catch{}
+  if(!old?.equals(bytes))await writeFile(path,bytes);
+}
 const compressed=await readFile(new URL('data/natural-earth-admin1-base.json.gz',root));
 if(createHash('sha256').update(compressed).digest('hex')!=='3206750f49f264d247f1590571365d14d72a0d2aa020c7be5f2d10223db835ff')throw new Error('Natural Earth atlas checksum mismatch');
 const source=JSON.parse(gunzipSync(compressed));
@@ -21,12 +26,12 @@ if(!old?.equals(raw))await writeFile(output,raw);
 // both browser and worker builds; never embed the atlas in either JS bundle.
 // The small declaration keeps tsc from inferring every coordinate.
 const moduleText="import atlas from './world.json' with {type:'json'};\nexport default atlas;\n";
-await writeFile(new URL('src/generated/world.js',root),moduleText);
-await writeFile(new URL('src/generated/world.d.ts',root),"import type {AdminAtlas} from '../game/atlasTypes.ts';\ndeclare const atlas:AdminAtlas;\nexport default atlas;\n");
+await writeChanged(new URL('src/generated/world.js',root),moduleText);
+await writeChanged(new URL('src/generated/world.d.ts',root),"import type {AdminAtlas} from '../game/atlasTypes.ts';\ndeclare const atlas:AdminAtlas;\nexport default atlas;\n");
 console.log(`Natural Earth atlas: ${atlas.provinces.length} complete Admin1 atoms; ${atlas.initialGroups.length} approximate initial groups.`);
 
 // Independent physical land/water mesh, generated offline, never on CI.
 const terrain=gunzipSync(await readFile(new URL('data/terrain-navigation.json.gz',root)));
 const terrainInfo=JSON.parse(terrain);
 if(terrainInfo.format!==3||terrainInfo.mapId!==source.mapId||terrainInfo.revision!==createHash('sha256').update(compressed).digest('hex'))throw new Error('Terrain mesh does not match the administrative atlas');
-await writeFile(new URL('src/generated/terrain-navigation.json',root),terrain);
+await writeChanged(new URL('src/generated/terrain-navigation.json',root),terrain);

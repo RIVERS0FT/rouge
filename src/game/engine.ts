@@ -83,11 +83,12 @@ export class Engine{
         const available=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
         const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
         const n=Math.min(requested,destinationRoom(s,actor,c.to));if(n<1)return fail('targetFull');
-        let sent=0;
-        for(const u of available){if(sent>=n)break;const st=stats(p,u.kind),travel=this.navigation.plan(u,MAP[c.to].center,st.speed,st.seaSpeed);if(!travel)continue;
-          u.target=c.to;u.origin=u.province;u.destination=c.to;u.route=[];u.travel=travel;delete u.transport;sent++;
-        }
-        return sent?{ok:true}:fail('unreachable');
+        const unitIds=this.dispatch(available,c.to,n);
+        if(!unitIds.length)return fail('unreachable');
+        // Only the original contingent keeps this order open. Reinforcements
+        // follow it without extending its lifetime indefinitely.
+        if(c.fraction===1)from.march={to:c.to,unitIds};else delete from.march;
+        return{ok:true};
       }
       case 'production':{
         if(!Number.isInteger(c.province)||!KINDS.includes(c.kind)||!p.loadout.includes(c.kind))return fail('invalidCommand');
@@ -219,6 +220,15 @@ export class Engine{
       province.production+=DT*regionProductionRate(province.id)*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;}
     }
+    // Include troops trained during this order, but stop once its original
+    // contingent has arrived / captured the destination, died or been redirected.
+    const activeMarchers=new Map(s.units.filter(u=>u.target!==null).map(u=>[u.id,u]));
+    for(const province of s.provinces){
+      const order=province.march;if(!order)continue;
+      const active=order.unitIds.some(id=>{const u=activeMarchers.get(id);return u&&u.owner===province.owner&&u.origin===province.id&&u.target===order.to;});
+      if(!active){delete province.march;continue;}
+      this.dispatch(s.units.filter(u=>isRegionGarrison(u,province.owner,province.id)),order.to,destinationRoom(s,province.owner,order.to));
+    }
     // All captures have settled: losing then gaining a region in this tick is not defeat.
     if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
     if(s.tick>=80)this.ai();
@@ -231,6 +241,15 @@ export class Engine{
       if(s.domination[p.id]>=30||(owned>0&&survivingOwners.size===1)){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
+  }
+  private dispatch(units:Unit[],to:number,limit:number):number[]{
+    const sent:number[]=[];
+    for(const u of units){
+      if(sent.length>=limit)break;
+      const st=stats(this.state.players[u.owner],u.kind),travel=this.navigation.plan(u,MAP[to].center,st.speed,st.seaSpeed);if(!travel)continue;
+      u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;sent.push(u.id);
+    }
+    return sent;
   }
   private halt(unit:Unit):void {delete unit.travel;delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   /** Repair old saves / newly disembarked units that started inside a house.

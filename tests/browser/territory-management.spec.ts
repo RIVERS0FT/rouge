@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test('locked base game regions merge in-game and split only back to base regions',async({page})=>{
@@ -8,7 +9,7 @@ test('locked base game regions merge in-game and split only back to base regions
  await expect(page.getByTestId('legacy-map-save-notice')).toHaveCount(0);
  await page.locator('.save-card').filter({hasText:'Territory UI fixture'}).getByRole('button',{name:'Load',exact:true}).click();
  await page.getByTestId('toggle-pause').click();
- await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
+ await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
  await page.getByTestId('open-territory-management').click();
  const panel=page.getByTestId('territory-management');await expect(panel).not.toContainText(/Natural Earth|Vic3|Revision|ne-admin1/);
  await expect(page.getByTestId('split-territory-group')).toBeDisabled();

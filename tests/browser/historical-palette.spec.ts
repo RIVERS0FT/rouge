@@ -1,3 +1,4 @@
+import {openMapSearch} from './map-search.ts';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 for(const touch of [false,true])test.describe(touch?'touch palette':'desktop palette',()=>{
@@ -17,7 +18,7 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
   await expect(page.locator('.dispatches')).toContainText('Palette 16');
   for(const sample of fixture.samples){
    if(touch&&await page.getByTestId('toggle-province-panel').getAttribute('aria-expanded')==='true')await page.getByTestId('toggle-province-panel').tap();
-   await page.getByTestId('map-search').fill(sample.code);await page.locator('.map-search-results button').first().click();
+   await openMapSearch(page);await page.getByTestId('map-search').fill(sample.code);await page.locator('.map-search-results button').first().click();
    await expect(canvas).toHaveAttribute('data-selected-fill-color',sample.color);
    await expect(canvas).toHaveAttribute('data-selected-owner-color',sample.color);
    await expect(canvas).toHaveAttribute('data-selection-style','outline-inner-glow');

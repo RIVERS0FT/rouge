@@ -1,7 +1,7 @@
 import {MapSurface} from './mapSurface.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
 import {PoliticalTint} from './politicalTint.ts';
-import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
+import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,uprightCountryArc,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
@@ -475,6 +475,9 @@ export class WorldRenderer {
         const padding=font*1.4+2,left=Math.min(...projected.map(p=>p.x))-padding,right=Math.max(...projected.map(p=>p.x))+padding,top=Math.min(...projected.map(p=>p.y))-padding,bottom=Math.max(...projected.map(p=>p.y))+padding;
         const poolId=component.owner*3+offset+1;
         if(projected.every(p=>p.depth<-1||p.depth>1)||!labelIntersectsViewport({left,right,top,bottom},width,height))continue;
+        const control=new THREE.Vector3(section.control.x+(copy+offset)*WORLD_WIDTH,heightAt(section.control.x,section.control.z)*this.blend+.8,section.control.z).project(this.camera);
+        const arc=uprightCountryArc(projected[0],{x:(control.x+1)*width/2,y:(1-control.y)*height/2},projected[projected.length-1]);
+        const fittedFont=Math.min(font,arc.length*.86/Math.max(1,advanceEm));if(fittedFont<10)continue;
         let label=this.countryLabels.get(poolId);
         if(!label){label=document.createElement('span');label.className='country-label';this.countryLabels.set(poolId,label);this.countryLayer.append(label);}
         if(!label.querySelector('textPath')){
@@ -483,13 +486,12 @@ export class WorldRenderer {
         }
         const svg=label.firstElementChild as SVGSVGElement,path=svg.querySelector('path')!,text=svg.querySelector('text')!,textPath=svg.querySelector('textPath')!;
         const w=right-left,h=bottom-top;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('width',String(w));svg.setAttribute('height',String(h));
-        const control=new THREE.Vector3(section.control.x+(copy+offset)*WORLD_WIDTH,heightAt(section.control.x,section.control.z)*this.blend+.8,section.control.z).project(this.camera),start=projected[0],end=projected[projected.length-1];
-        path.setAttribute('d',`M${(start.x-left).toFixed(3)},${(start.y-top).toFixed(3)} Q${((control.x+1)*width/2-left).toFixed(3)},${((1-control.y)*height/2-top).toFixed(3)} ${(end.x-left).toFixed(3)},${(end.y-top).toFixed(3)}`);
+        path.setAttribute('d',`M${(arc.start.x-left).toFixed(3)},${(arc.start.y-top).toFixed(3)} Q${(arc.control.x-left).toFixed(3)},${(arc.control.y-top).toFixed(3)} ${(arc.end.x-left).toFixed(3)},${(arc.end.y-top).toFixed(3)}`);
         if(textPath.textContent!==name)textPath.textContent=name;
-        text.setAttribute('font-family',COUNTRY_LABEL_FONT);text.setAttribute('font-size',String(font));text.setAttribute('letter-spacing',`${spacing}em`);
-        label.style.transform=`translate(${left+w/2}px,${top+h/2}px) translate(-50%,-50%)`;label.style.width=`${w}px`;label.style.height=`${h}px`;label.style.fontSize=`${font}px`;label.style.fontFamily=COUNTRY_LABEL_FONT;
+        text.setAttribute('font-family',COUNTRY_LABEL_FONT);text.setAttribute('font-size',String(fittedFont));text.setAttribute('letter-spacing',`${spacing}em`);
+        label.style.transform=`translate(${left+w/2}px,${top+h/2}px) translate(-50%,-50%)`;label.style.width=`${w}px`;label.style.height=`${h}px`;label.style.fontSize=`${fittedFont}px`;label.style.fontFamily=COUNTRY_LABEL_FONT;
         label.dataset.owner=String(component.owner);label.dataset.copy=String(copy+offset);label.dataset.primary=String(offset===0);label.dataset.anchorX=String(curve.anchor.x);label.dataset.anchorZ=String(curve.anchor.z);label.dataset.anchorKind='interior-curve';
-        label.dataset.clearance=String(curve.clearance);label.dataset.fontWorld=String(fontWorld);label.hidden=false;countryCount++;
+        label.dataset.clearance=String(curve.clearance);label.dataset.fontWorld=String(fittedFont/localScale);label.hidden=false;countryCount++;
       }
     }
     for(const [poolId,label] of this.countryLabels)if(!activeOwners.has(Math.floor(poolId/3))){label.remove();this.countryLabels.delete(poolId);}
