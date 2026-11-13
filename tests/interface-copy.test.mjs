@@ -21,9 +21,14 @@ test('generated names and compact HUD labels follow the selected language',()=>{
 });
 
 test('player-facing components contain no decorative technical or tutorial copy',()=>{
- const app=fs.readFileSync(new URL('../src/ui/App.tsx',import.meta.url),'utf8');
- assert.doesNotMatch(app,/STRATEGY LAB|CAMPAIGN ARCHIVES|ARMY DEVELOPMENT|THE FRONTIER|input-hint|atlas-credit/);
- for(const key of ['prototype','theatreSub','platformPending','offlineHint','chooseHint','unitTooltipHint','terrainPreviewHint','sendHint','selectFriendly','settingsKeyboard','aiSoloHint','aiCreateHint','aiRoomHint','identityHint','preferencesHint','lanHint','lanOnly','oldMapSaveNotice'])assert.ok(!app.includes(`text('${key}')`),key);
+ // The interface is split across many components; check every one of them.
+ const root=new URL('../src/ui/',import.meta.url),files=fs.readdirSync(root,{recursive:true}).filter(name=>/\.tsx$/.test(name));
+ assert.ok(files.length>10);
+ for(const file of files){
+  const source=fs.readFileSync(new URL(file.replaceAll('\\','/'),root),'utf8');
+  assert.doesNotMatch(source,/STRATEGY LAB|CAMPAIGN ARCHIVES|ARMY DEVELOPMENT|THE FRONTIER|input-hint|atlas-credit|Victoria|Vic3/,file);
+  for(const key of ['prototype','theatreSub','platformPending','offlineHint','chooseHint','unitTooltipHint','terrainPreviewHint','sendHint','selectFriendly','settingsKeyboard','aiSoloHint','aiCreateHint','aiRoomHint','identityHint','preferencesHint','lanHint','lanOnly','oldMapSaveNotice','menuBrief','subtitle'])assert.ok(!source.includes(`text('${key}')`),`${file}: ${key}`);
+ }
  const territory=fs.readFileSync(new URL('../src/ui/TerritoryManagement.tsx',import.meta.url),'utf8');
  assert.doesNotMatch(territory,/territoryMapDisclaimer|territoryConservation|territoryRevision|territorySplitHint|territoryMergeHint|<small>\{id\}/);
  // Revision and atom codes still exist in authoritative commands/test hooks.

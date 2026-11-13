@@ -1,0 +1,160 @@
+/* Compact layouts (phones, small or short screens): the command rail becomes
+   the bottom navigation, docked windows and the outliner become sheets, and
+   the commander card folds into a pill above the navigation.
+   Keep the query in sync with COMPACT_QUERY in App.tsx. */
+.app[data-input-device="touch"] button:not(.dispatch-region){min-width:44px;min-height:44px;touch-action:manipulation}
+
+@media (max-width:800px),(max-width:1000px) and (max-height:500px),(pointer:coarse) and (max-height:560px){
+ .app,.app.is-game{min-height:0;height:100dvh;max-height:100dvh;overflow:hidden;
+  --m-left:max(8px,env(safe-area-inset-left));--m-right:max(8px,env(safe-area-inset-right));--m-top:max(8px,env(safe-area-inset-top));--m-bottom:max(8px,env(safe-area-inset-bottom));
+  --band-h:56px;--nav-h:58px;--pill-h:46px;
+  --search-top:calc(var(--m-top) + var(--band-h) + 8px);
+  --sheet-top:calc(var(--search-top) + 52px);
+  --sheet-bottom:calc(var(--m-bottom) + var(--nav-h) + var(--pill-h) + 16px)}
+ .app button:not(.dispatch-region){min-height:44px;min-width:44px;touch-action:manipulation}
+ .app input,.app select{min-height:44px;font-size:16px}
+ .app small,.app .small{font-size:12px;line-height:1.5}
+
+ /* Top band: banner, scrolling ledger, compact clock and menu. */
+ .is-game .hud-top{top:var(--m-top);left:var(--m-left);right:var(--m-right);gap:6px;height:var(--band-h);align-items:center}
+ .is-game .faction-emblem-frame{width:54px;height:38px;padding:3px}
+ .is-game .faction-emblem-frame::before,.is-game .faction-emblem-frame::after{display:none}
+ .is-game .hud-ledger{flex:1 1 auto;height:var(--band-h);overflow-x:auto;overflow-y:hidden;overscroll-behavior:contain;scrollbar-width:none;padding:0 2px}
+ .is-game .hud-ledger::-webkit-scrollbar{display:none}
+ .is-game .resource{flex:none;padding:0 8px;gap:0}
+ .is-game .resource-icon,.is-game .resource-delta{display:none}
+ .is-game .resource-label{font-size:10.5px}
+ .is-game .resource strong{font-size:16px}
+ .is-game .resource strong small{font-size:11px}
+ .is-game .hud-alerts{display:none}
+ .is-game .hud-clock{height:var(--band-h);padding:0 4px 0 10px;gap:4px;margin-left:0}
+ .is-game .clock-face{min-width:0}
+ .is-game .clock-label{display:none}
+ .is-game .clock-face time{font-size:16px}
+ .is-game .clock-pause{width:44px;height:44px}
+ .is-game .speed-pips{flex-direction:row;gap:2px}
+ .is-game .speed-pips button{width:30px;min-width:30px;height:44px;font-size:13px;color:var(--muted);background:#0a0e0d;box-shadow:inset 0 0 0 1px var(--brass-lo)}
+ .is-game .speed-pips button[aria-pressed="true"]{color:var(--brass-hi);background:linear-gradient(180deg,#c6a46740,#c6a46714);box-shadow:inset 0 0 0 1px var(--brass),0 0 8px #efd79f40}
+ .is-game .settings-trigger{width:48px;height:48px}
+
+ /* Region finder under the band. */
+ .app.is-game[data-layout] .map-search{top:var(--search-top);left:var(--m-left);right:var(--m-right);width:auto;transform:none;z-index:16}
+ .is-game .map-search input{min-height:44px;font-size:16px}
+ .is-game .map-search-results{max-height:40dvh}
+ .is-game .map-search-results button{padding:8px 12px}
+
+ /* Rail → bottom navigation. */
+ .is-game .hud-rail{top:auto;left:var(--m-left);right:var(--m-right);bottom:var(--m-bottom);width:auto;height:var(--nav-h);z-index:20;flex-direction:row;align-items:stretch;justify-content:space-between;gap:2px;padding:3px;border-radius:6px}
+ .is-game .rail-slot{display:flex;flex:1 1 0;min-width:0}
+ .is-game .rail-button{flex:1;width:auto;height:100%;justify-content:center;gap:2px;padding:2px;border-radius:4px}
+ .is-game .rail-medallion{width:28px;height:28px;box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass-lo),inset 0 1px 0 #ffffff1c}
+ .is-game .rail-medallion .icon{width:17px;height:17px}
+ .is-game .rail-label{display:block;font-size:11.5px}
+ .is-game .rail-button[aria-expanded="true"]{background:linear-gradient(180deg,#c6a46733,#c6a46714);box-shadow:inset 0 0 0 1px #c6a46766}
+ .is-game .rail-button[aria-expanded="true"] .rail-medallion{box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass),0 0 10px #efd79f55}
+ .is-game .rail-badge{top:-6px;right:-8px;min-width:17px;height:17px;font-size:10px}
+
+ /* Sheets. */
+ .is-game .hud-dock{left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15}
+ .is-game .hud-dock:not(.mobile-panel-open){display:none}
+ .is-game .strategic-panel{display:none;left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15;gap:8px;overflow:auto;overscroll-behavior:contain;border-radius:var(--radius)}
+ .is-game .strategic-panel.mobile-panel-open{display:flex}
+ .is-game .strategic-panel .outliner{flex:none;overflow:visible}
+ .is-game .strategic-panel .outliner-band{position:static}
+ .is-game .strategic-panel .dispatches{flex:none;margin-top:0;max-height:none;overflow:visible}
+ .is-game .dispatches .dispatch-entry{font-size:14px;column-gap:10px}
+ .is-game .dispatches .dispatch-time{font-size:12px;line-height:22.4px}
+ .is-game .dispatches .dispatch-icon{height:22.4px}
+ .is-game .dispatches .dispatch-empty{font-size:14px}
+ .dispatches #dispatch-heading{font-size:13px}
+ .dock-band{padding:10px 60px 12px}
+ .dock-band h2{font-size:21px}
+ .dock-band-leading{top:8px;left:8px}
+ .dock-close{top:8px;right:8px;width:44px;height:44px}
+ .icon-button{width:44px;height:44px}
+ .dock-body{padding:14px}
+ #province-panel .province-summary dt,#province-panel .province-meta,#province-panel .production-line>span{font-size:12px}
+ #province-panel .province-production select{min-height:44px;font-size:16px}
+ #province-panel .territory-manage-trigger{min-height:44px;font-size:14px}
+
+ /* Commander pill above the navigation. */
+ .is-game .commander-portrait{left:var(--m-left);right:auto;bottom:calc(var(--m-bottom) + var(--nav-h) + 8px);width:min(250px,calc(100% - var(--m-left) - var(--m-right)));height:var(--pill-h);border-radius:calc(var(--pill-h) / 2);box-shadow:inset 0 0 0 2px var(--brass-mid),inset 0 0 0 3px #000b,0 6px 16px #000b}
+ .is-game .commander-portrait::before,.is-game .commander-portrait::after,.is-game .commander-alert{display:none}
+ .is-game .commander-art{inset:3px auto 3px 3px;width:40px;overflow:hidden;border-radius:50%;background:#111614}
+ .is-game .commander-art .leader-bust{object-fit:cover;object-position:50% 8%}
+ .is-game .commander-rank{top:6px;left:auto;right:6px;width:34px;height:34px}
+ .is-game .commander-rank::after{font-size:15px}
+ .is-game .commander-portrait-copy{left:50px;right:46px;top:0;bottom:0;display:flex;align-items:center;padding:0 4px;background:none;box-shadow:none;text-align:left}
+ .is-game .commander-player{font-size:15px}
+ .is-game .commander-talents{min-width:44px;min-height:44px}
+
+ .is-game .pause-banner,.elimination-status{top:var(--sheet-top);padding:5px 14px;font-size:12px;max-width:80%}
+ .is-game .toast{bottom:calc(var(--sheet-bottom) + 6px);font-size:14px;max-width:calc(100% - 24px)}
+
+ /* Modal windows fill the safe area. */
+ .modal-backdrop{padding:var(--m-top) var(--m-right) var(--m-bottom) var(--m-left)}
+ .modal,.settings-modal,.setup-modal,.talent-modal,.identity-modal,.saves-modal,.territory-modal{width:100%;max-height:calc(100dvh - var(--m-top) - var(--m-bottom))}
+ .window-band{padding:12px 58px 12px}
+ .window-band h2{font-size:21px}
+ .modal-close{top:6px;right:6px;width:44px;height:44px}
+ .modal-body{padding:16px 16px 18px;scroll-padding:20px 0}
+ .modal-body .section-ribbon{margin:16px -16px 10px}
+ .modal-body p,.modal .muted,.settings-status{font-size:13px;line-height:1.6}
+ .setup-modal .unit-grid{gap:6px}
+ .unit-choice .unit-card{height:clamp(96px,26vw,124px);padding:24px 4px 4px}
+ .unit-icon{height:72px}
+ .unit-tooltip .unit-attributes{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .unit-attribute>span{font-size:11.5px}
+ .unit-attribute>strong{font-size:13px}
+ .setup-identity{gap:8px}
+ .setup-footer{flex-direction:column;align-items:stretch;gap:14px;padding-top:14px}
+ .setup-footer label{max-width:none;width:100%;font-size:14px}
+ .setup-footer .primary{width:100%}
+ .lan-actions,.join-row{flex-wrap:wrap;gap:8px}
+ .join-row input{flex:1;width:120px}
+ .primary,.secondary,.quiet{font-size:14px;padding:9px 14px}
+ .talent-hero{gap:12px;padding:10px}
+ .talent-portrait{width:64px;height:64px}
+ .talent-lede{font-size:15px}
+ .talent-grid{grid-template-columns:1fr;gap:10px}
+ .talent-card{min-height:0;padding:16px}
+ .talent-symbol{width:58px;height:58px;font-size:30px;margin:4px 0 10px}
+ .talent-card p,.talent-select{font-size:14px}
+ .settings-language{flex-wrap:wrap;gap:10px}
+ .new-save{flex-wrap:wrap}
+ .new-save input{width:100%;flex-basis:100%}
+ .save-list{max-height:none;overflow:visible}
+ .save-card{flex-wrap:wrap;padding:12px}
+ .save-description{flex-basis:calc(100% - 56px)}
+ .save-actions{flex-wrap:wrap;width:100%;justify-content:flex-end}
+ .result-stats dd{font-size:16px}
+ .lobby.window{max-height:calc(100dvh - var(--m-top) - var(--m-bottom))}
+ .lobby-body{padding:14px 16px 8px}
+ .lobby-footer{padding:10px 16px 12px}
+ .room-code{font-size:30px}
+
+ /* Start screen keeps its left-aligned column. */
+ .is-menu .main-menu{overflow:auto;pointer-events:auto}
+ .is-menu .menu-content{max-height:calc(100dvh - var(--menu-top) - 64px);padding:18px 18px 14px}
+ .language-switch{top:var(--m-top);right:var(--m-right)}
+ .language-switch button{min-height:44px}
+}
+
+/* Phones in portrait: the speed pips and level metric yield to the essentials. */
+@media (max-width:480px){
+ .is-game .speed-pips,.is-game .resource.level-resource{display:none}
+ .is-game .rail-label{font-size:11px}
+}
+
+/* Short landscape screens: search on the left half, sheets on the right half. */
+@media (orientation:landscape) and (max-width:1000px) and (max-height:500px),(pointer:coarse) and (orientation:landscape) and (max-height:560px){
+ .app,.app.is-game{--sheet-top:var(--search-top);--sheet-bottom:calc(var(--m-bottom) + var(--nav-h) + 8px)}
+ .app.is-game[data-layout] .map-search{right:calc(50% + 6px)}
+ .is-game .hud-dock,.is-game .strategic-panel{left:calc(50% + 6px);max-width:none}
+ .is-game .pause-banner,.elimination-status{left:25%;top:calc(var(--search-top) + 52px)}
+ /* Short sheets: a slimmer title band leaves room for the content. */
+ .is-game .dock-band{padding:6px 58px 9px}
+ .is-game .dock-kicker{display:none}
+ .is-game .dock-band h2{font-size:18px}
+ .is-game #province-panel .province-meta{margin-top:3px}
+}

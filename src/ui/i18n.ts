@@ -128,6 +128,28 @@ export const STRINGS:Record<string,[string,string]>={
  'error.workerFailed':['战役启动失败，请重试','Unable to start the campaign. Please try again.'],
  'error.webgl':['地图加载失败，请重试或更换浏览器。','Unable to load the map. Please retry or use another browser.'],
  'error.generic':['操作失败，请检查连接或输入','Operation failed; check the connection or input'],
+
+ // Grand-strategy HUD: rail, outliner, docked panels and live tooltips.
+ railRegion:['地块','Region'],railMilitary:['军务','Military'],railNations:['列国','Nations'],railTalents:['天赋','Talents'],railOutliner:['战况','Situation'],
+ commandRail:['指挥栏','Command rail'],closePanel:['关闭面板','Close panel'],stateLedger:['国情','State ledger'],
+ perSecond:['/秒','/s'],incomePerSecond:['每秒收入','Income per second'],incomeSource:['{count} 块领土的产出','Output of {count} regions'],
+ captureReward:['每次占领奖励','Reward per capture'],cheapestUpgrade:['最低升级花费','Cheapest upgrade'],allUpgradesMax:['全部升级已满','All upgrades complete'],
+ armyGarrison:['驻守','Garrisoned'],armyMarching:['行军或交战','Marching or fighting'],armyEmbarked:['海上运输','At sea'],
+ territoryOwned:['控制领土','Regions held'],territoryGoal:['征服目标','Conquest goal'],territoryShare:['全图占比','Share of the world'],
+ levelProgress:['升级进度','Next level'],talentsChosen:['已选天赋','Talents chosen'],talentAvailable:['有新天赋可选择','A new talent can be chosen'],
+ dominationAlert:['统治倒计时','Domination countdown'],dominationHint:['保持领土目标直至倒计时结束即可获胜。','Hold the territory goal until the countdown ends to win.'],
+ campaignTime:['战役时间','Campaign time'],gameSpeed:['游戏速度','Game speed'],speedOption:['{speed} 倍速','Speed {speed}×'],
+ lanMatch:['联机对局','Multiplayer match'],
+ outliner:['战况','Situation'],nations:['列国','Nations'],nationsTitle:['列国排名','Nation rankings'],myRegions:['我的地块','My regions'],
+ moreItems:['另有 {count} 项','{count} more'],allNations:['查看全部列国','All nations'],
+ youTag:['本国','You'],aiTag:['电脑','AI'],humanTag:['玩家','Player'],eliminatedTag:['已淘汰','Eliminated'],
+ rankColumn:['名次','Rank'],nationColumn:['国家','Nation'],territoryColumn:['领土','Regions'],armyColumn:['兵团','Battalions'],levelColumn:['等级','Level'],
+ productionFull:['驻地满员 · 暂停生产','Full garrison · production paused'],productionIdle:['生产中','Producing'],
+ regionIncome:['地块收入','Region income'],productionRate:['生产速率','Production rate'],
+ regionOf:['{owner}的地块','A region of {owner}'],neutralRegion:['中立地块','Neutral region'],
+ militaryTitle:['军务','Military'],treasuryLabel:['国库军费','Treasury'],upgradeEffect:['升级效果','Effect'],
+ noRegionSelected:['未选择地块','No region selected'],
+ talentEntry:['领袖天赋','Leader talents'],
 };
 export function t(language:Language,key:string):string{return STRINGS[key]?.[language==='zh'?0:1]??STRINGS['error.generic'][language==='zh'?0:1];}
 export function timeLabel(ticks:number):string{const total=Math.floor(ticks/20);return`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}

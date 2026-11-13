@@ -23,8 +23,9 @@ for(const [width,height] of [[844,390],[915,412],[667,375],[740,430]])test(`mobi
   await page.screenshot({path:`artifacts/mobile-landscape-${width}x${height}.png`});
   await page.getByTestId('open-settings').click();await expect(page.getByRole('dialog')).toBeVisible();
   let dialog=await page.getByRole('dialog').boundingBox();expect(dialog!.y).toBeGreaterThanOrEqual(0);expect(dialog!.y+dialog!.height).toBeLessThanOrEqual(height);
-  await page.keyboard.press('Escape');await page.getByTestId('open-upgrades').click();await expect(page.getByRole('dialog')).toBeVisible();
-  dialog=await page.getByRole('dialog').boundingBox();expect(dialog!.y+dialog!.height).toBeLessThanOrEqual(height);
-  await page.keyboard.press('Escape');
+  // Unit upgrades open as a docked sheet beside the live map, not as a modal dialog.
+  await page.keyboard.press('Escape');await page.getByTestId('open-upgrades').click();await expect(page.locator('#military-panel')).toBeVisible();
+  const sheet=await page.locator('#military-panel').boundingBox();expect(sheet!.y).toBeGreaterThanOrEqual(0);expect(sheet!.y+sheet!.height).toBeLessThanOrEqual(height);
+  await page.keyboard.press('Escape');await expect(page.locator('#military-panel')).toHaveCount(0);
  expect(errors).toEqual([]);
 });

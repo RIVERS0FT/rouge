@@ -1,5 +1,6 @@
 import {MapSurface} from './mapSurface.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
+import {PoliticalTint} from './politicalTint.ts';
 import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
@@ -36,6 +37,7 @@ export class WorldRenderer {
   private atlas=new THREE.Group();
   private mapSurface:MapSurface;
   private coastShadow:CoastShadow;
+  private politicalTint:PoliticalTint;
   private repeats:THREE.Group[]=[];
   private land:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>;
   private admin:THREE.LineSegments;
@@ -45,6 +47,8 @@ export class WorldRenderer {
   private selectionGlowWorker:Worker|null=null;
   private ranges:Range[]=[];
   private colors:THREE.Float32BufferAttribute;
+  /** Captor colour + quantized progress per land vertex; never the owner colour attribute. */
+  private captureTint:THREE.BufferAttribute;private captureKeys=new Map<number,number>();private captureDirty=new Set<number>();private captureColor=new THREE.Color();
   private labels:Label[]=[];
   private countryComponents:CountryLabel[]=[];
   private countryGeometry=regionMoments(MAP);
@@ -133,9 +137,15 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.landMinZ=String(minLandZ);this.renderer.domElement.dataset.landMaxZ=String(maxLandZ);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
     this.colors=new THREE.Float32BufferAttribute(colors,3);this.colors.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('color',this.colors);
+    this.captureTint=new THREE.BufferAttribute(new Uint8Array(positions.length/3*4),4,true);this.captureTint.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('captureTint',this.captureTint);
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
-    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;},this.blendUniform);this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
+    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;},this.blendUniform);
+    // Owned countries deepen toward their borders and coasts (GPU-only; vertex colours stay exact).
+    const tintWidth=this.renderer.domElement.dataset.surfaceResolution==='compact'?2048:Math.min(4096,this.renderer.capabilities.maxTextureSize);
+    this.politicalTint=new PoliticalTint(BOUNDS,{width:tintWidth,height:Math.round(tintWidth*(BOUNDS.bottom-BOUNDS.top)/(BOUNDS.right-BOUNDS.left))});
+    this.politicalTint.attach(material);this.politicalTint.stripePeriod.value=11*this.renderer.getPixelRatio();this.renderer.domElement.dataset.politicalTint='painted-edges';
+    this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
     this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
     const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
     this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
@@ -224,7 +234,12 @@ export class WorldRenderer {
     this.state=state;
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
-    for(const p of state.provinces)if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);ownershipChanged=true;}
+    for(const p of state.provinces){
+      if(this.ownerIds[p.id]!==p.owner){this.ownerIds[p.id]=p.owner;this.dirty.add(p.id);ownershipChanged=true;}
+      // Quantized (captor, progress) key: hatching updates only when it visibly changes.
+      const capture=p.captor>=0&&p.capture>0?p.captor*64+Math.max(1,Math.min(63,Math.round(p.capture/8*63))):0;
+      if((this.captureKeys.get(p.id)??0)!==capture){if(capture)this.captureKeys.set(p.id,capture);else this.captureKeys.delete(p.id);this.captureDirty.add(p.id);this.invalidated=true;}
+    }
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
     if(ownershipChanged||state.campaign!==this.countryCampaign){
       this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
@@ -235,8 +250,10 @@ export class WorldRenderer {
     if(countryStamp!==this.countryStamp){this.countryStamp=countryStamp;this.lastLabels=0;this.invalidated=true;}
     if(stamp!==this.groupingStamp||ownershipChanged){
       this.groupingStamp=stamp;
-      const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[];
-      for(const edge of this.boundaryEdges){const kind=classifyBorder(edge,this.ownerIds,groups);if(kind==='country')countries.push(edge);else if(kind==='internal')internal.push(edge);}
+      const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[],painted:BorderEdge[]=[];
+      for(const edge of this.boundaryEdges){const kind=classifyBorder(edge,this.ownerIds,groups);if(kind==='country')countries.push(edge);else if(kind==='internal')internal.push(edge);
+        if((kind==='country'||kind==='coast')&&edge.atoms.some(id=>(this.ownerIds[id]??-1)>=0))painted.push(edge);}
+      this.politicalTint.setEdges(painted);this.renderer.domElement.dataset.politicalTintSegments=String(painted.length);
       const border=borderPositions(internal,.24),geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(border,3));this.admin.geometry.dispose();this.admin.geometry=geometry;
       for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
       this.replaceWideGeometry(this.countries,borderPositions(countries,.28));
@@ -509,6 +526,10 @@ export class WorldRenderer {
     (this.admin.material as THREE.LineBasicMaterial).opacity=internalBorderOpacity(this.distance);
     this.renderer.domElement.dataset.internalBorderOpacity=String(internalBorderOpacity(this.distance));
     if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    if(this.captureDirty.size){this.captureTint.clearUpdateRanges();for(const id of this.captureDirty){const r=this.ranges[id],key=this.captureKeys.get(id)??0;if(!r)continue;
+      if(key)this.captureColor.set(factionColor(Math.floor(key/64)));const level=key?(key%64)/63:0;
+      for(let v=r.start;v<r.start+r.count;v++)this.captureTint.setXYZW(v,key?this.captureColor.r:0,key?this.captureColor.g:0,key?this.captureColor.b:0,level);
+      if(r.count)this.captureTint.addUpdateRange(r.start*4,r.count*4);}this.captureTint.needsUpdate=true;this.captureDirty.clear();}
     const selectedRange=this.ranges[this.selected];
     if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
     this.ensureUnitCapacity(this.state?.units.length??0);
@@ -546,7 +567,7 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
+    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.politicalTint.render(this.renderer);this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
     this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
@@ -555,6 +576,6 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
+  dispose(){this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);c.removeEventListener('contextmenu',this.contextMenu);
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
 }

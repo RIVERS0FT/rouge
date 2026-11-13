@@ -13,7 +13,7 @@ test('menu → setup → real WebGL game → upgrade → multi-slot save → rel
  await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
  await page.getByTestId('open-upgrades').click();
  await page.getByTestId('upgrade-infantry-attack').click();await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
- await page.getByRole('button',{name:'Close',exact:true}).click();await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
+ await page.getByRole('button',{name:'Close panel',exact:true}).click();await expect(page.locator('#military-panel')).toHaveCount(0);await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('Save name').fill('First slot');await page.getByTestId('create-save').click();
  await page.getByPlaceholder('Save name').fill('Second slot');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card')).toHaveCount(2);await page.getByRole('button',{name:'Close',exact:true}).first().click();

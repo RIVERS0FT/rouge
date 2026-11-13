@@ -1,6 +1,7 @@
 import { type Flag, type FlagShape } from '../game/flags.ts';
 import type { Language } from './i18n.ts';
-import {useId} from 'react';
+import {useId,type CSSProperties} from 'react';
+import {clothStrips,CLOTH_PERIOD,CLOTH_SEAM,CLOTH_STRIP_WIDTH,CLOTH_WAVELENGTH,CREASE_STOPS} from './flagCloth.ts';
 export const FLAG_NAMES={cn:['中国','China'],fr:['法国','France'],de:['德国','Germany'],it:['意大利','Italy'],jp:['日本','Japan'],gb:['英国','United Kingdom'],us:['美国','United States'],ch:['瑞士','Switzerland']} as const;
 export const PATTERN_NAMES={solid:['纯色','Solid'],horizontal:['横三色','Horizontal stripes'],vertical:['竖三色','Vertical stripes'],cross:['十字','Cross']} as const;
 export function flagName(flag:Flag,language:Language){return flag.type==='preset'?FLAG_NAMES[flag.id][language==='zh'?0:1]:language==='zh'?'自定义旗帜':'Custom flag';}
@@ -28,26 +29,44 @@ export function FlagImage({flag,language,cloth=true}:{flag:Flag;language:Languag
  }
  const content=<>{art}{flag.type==='custom'&&flag.shapes?.map((shape,i)=><FlagShapeArt key={i} shape={shape}/>)}</>;
  if(!cloth)return <svg className="player-flag" viewBox="0 0 90 60" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>{content}</svg>;
- return <svg className="player-flag is-cloth" viewBox="-3 -6 98 72" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>
+ return <svg className="player-flag is-cloth" viewBox="-4 -7 99 74" role="img" aria-label={flagName(flag,language)}><title>{flagName(flag,language)}</title>
   <defs>
+   {/* The flat artwork is drawn once and reused by every cloth strip. */}
+   <g id={`${id}-art`}>
+    <g clipPath={`url(#${id}-clip)`}>{content}</g>
+    <rect width="90" height="60" fill={`url(#${id}-fold)`}/>
+    <rect x=".3" y=".3" width="89.4" height="59.4" fill="none" stroke="#fff" strokeOpacity=".14" strokeWidth=".6"/>
+   </g>
    <clipPath id={`${id}-clip`}><rect width="90" height="60"/></clipPath>
-   <linearGradient id={`${id}-folds`} x1="0" y1="0" x2="90" y2="0" gradientUnits="userSpaceOnUse">
-    <stop offset="0" stopColor="#000" stopOpacity=".35"/><stop offset=".12" stopColor="#fff" stopOpacity=".26"/>
-    <stop offset=".32" stopColor="#000" stopOpacity=".42"/><stop offset=".54" stopColor="#fff" stopOpacity=".32"/>
-    <stop offset=".77" stopColor="#000" stopOpacity=".34"/><stop offset="1" stopColor="#fff" stopOpacity=".2"/>
+   <linearGradient id={`${id}-fold`} x1="0" y1="0" x2="0" y2="60" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stopColor="#fff" stopOpacity=".16"/><stop offset=".22" stopColor="#fff" stopOpacity="0"/>
+    <stop offset=".78" stopColor="#000" stopOpacity="0"/><stop offset="1" stopColor="#000" stopOpacity=".24"/>
    </linearGradient>
-   <filter id={`${id}-wave`} x="-4" y="-6" width="98" height="72" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency=".018 0" numOctaves="1" seed="8" result="wave"/>
-    <feColorMatrix in="wave" type="matrix" values="2.4 0 0 0 -.7  0 1 0 0 0  0 0 1 0 0  0 0 0 0 .5" result="vertical-wave"/>
-    <feDisplacementMap in="SourceGraphic" in2="vertical-wave" scale="12" xChannelSelector="A" yChannelSelector="R"/>
+   {CLOTH_STRIPS.map(strip=><clipPath key={strip.index} id={`${id}-strip-${strip.index}`}><rect x={strip.x-CLOTH_SEAM} y="-12" width={CLOTH_STRIP_WIDTH+CLOTH_SEAM*2} height="84"/></clipPath>)}
+   {/* Shading uses exact, non-overlapping columns so seams are never shaded twice. */}
+   {CLOTH_STRIPS.map(strip=><clipPath key={strip.index} id={`${id}-column-${strip.index}`}><rect x={strip.x} y="-12" width={CLOTH_STRIP_WIDTH} height="84"/></clipPath>)}
+   {/* One continuous crease pattern, one wavelength per repeat: dark on the slopes facing away from the light, a glint on the crests. */}
+   <linearGradient id={`${id}-creases`} x1="0" y1="0" x2={CLOTH_WAVELENGTH} y2="0" gradientUnits="userSpaceOnUse" spreadMethod="repeat">
+    {CREASE_STOPS.map(([offset,color,opacity])=><stop key={offset} offset={offset} stopColor={color} stopOpacity={opacity}/>)}
+   </linearGradient>
+   {/* A hair of blur closes strip seams and softens the stepped edge. */}
+   <filter id={`${id}-weave`} x="-5" y="-8" width="100" height="76" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation=".16"/>
    </filter>
   </defs>
-  <g filter={`url(#${id}-wave)`}><g clipPath={`url(#${id}-clip)`}>{content}
-   <rect className="flag-sheen" x="-6" width="102" height="60" fill={`url(#${id}-folds)`}/>
-   <path d="M.5 0V60" stroke="#f4e2b4" strokeOpacity=".6" strokeWidth=".6"/>
-   <rect x=".5" y=".5" width="89" height="59" fill="none" stroke="#fff" strokeOpacity=".12"/>
-  </g></g>
+  <g className="flag-cloth" filter={`url(#${id}-weave)`}>
+   {CLOTH_STRIPS.map(strip=><g key={strip.index} clipPath={`url(#${id}-strip-${strip.index})`}>
+    <g className="flag-strip" style={strip.style}>
+     <use href={`#${id}-art`}/>
+     <g clipPath={`url(#${id}-column-${strip.index})`}><rect className="flag-creases" x={-CLOTH_WAVELENGTH} y="0" width={90+CLOTH_WAVELENGTH*2} height="60" fill={`url(#${id}-creases)`}/></g>
+    </g>
+   </g>)}
+  </g>
+  <path className="flag-hoist" d="M.4 -.6V60.6"/>
  </svg>;
 }
+
+// Strip geometry and the wave model live in flagCloth.ts (unit-tested).
+const CLOTH_STRIPS=clothStrips().map(strip=>({...strip,style:{'--wave':`${strip.amplitude.toFixed(3)}px`,'--rest':`${strip.rest.toFixed(3)}px`,'--period':`${CLOTH_PERIOD}s`,'--travel':`${CLOTH_WAVELENGTH}px`,animationDelay:`${strip.delay.toFixed(3)}s`} as CSSProperties}));
 
 export {FlagEditor} from './FlagEditor.tsx';
