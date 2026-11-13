@@ -64,6 +64,6 @@ test('old v5 saves recover original birthplaces, not the territory held when loa
 test('browser country fixture is a valid playable save before any UI is launched',()=>{
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-country-name-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  const state=decodeSave(fixture.value).state;assert.ok(validateState(state));
- assert.equal(state.players.filter(p=>!p.ai).length,2);assert.equal(state.players.filter(p=>p.ai).length,3);
+ assert.equal(state.players.filter(p=>!p.ai).length,2);assert.equal(state.players.filter(p=>p.ai).length,fixture.origins.length-2);
  for(const p of state.provinces)if(p.owner>=0)assert.ok(state.players[p.owner].loadout.includes(p.kind));
 });
