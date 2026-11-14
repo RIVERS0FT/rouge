@@ -92,11 +92,10 @@ export function buildCountryLabels(map:readonly ProvinceDef[],owners:readonly nu
 }
 
 export const COUNTRY_LABEL_FONT='Georgia,"Times New Roman","Noto Serif CJK SC","Songti SC","SimSun",serif';
-/** Restrained engraved-atlas typography: large realms read first; long names
- * stay compact without truncation, viewport-driven hiding, or anchor movement. */
-export function countryTypography(name:string,area:number,scale:number):{font:number;spacing:number}{
- const length=Array.from(name).length,cjk=/[\u3400-\u9fff]/u.test(name),compact=Math.min(1,Math.sqrt((cjk?7:18)/Math.max(1,length)));
- return {font:Math.round(Math.max(13,Math.min(40,14+Math.sqrt(area)*scale/12)*compact)),spacing:cjk?(length>8?.1:.2):(length>24?.12:.2)};
+/** Tighten tracking for long names; their size is set by the world-space curve. */
+export function countryLetterSpacing(name:string):number{
+ const length=Array.from(name).length,cjk=/[\u3400-\u9fff]/u.test(name);
+ return cjk?(length>8?.1:.14):(length>24?.12:.14);
 }
 
 /** Screen-space bucket index keeps dense army/HUD collision work bounded. */

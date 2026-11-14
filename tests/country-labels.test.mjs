@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildCountryLabels,regionMoments,countryTypography,overlaps,LabelCollisionIndex,labelIntersectsViewport,provinceNamesVisible} from '../src/render/countryLabels.ts';
+import {buildCountryLabels,regionMoments,countryLetterSpacing,overlaps,LabelCollisionIndex,labelIntersectsViewport,provinceNamesVisible} from '../src/render/countryLabels.ts';
 import {MAP} from '../src/game/map.ts';
 import {WORLD_WIDTH,project,nearestWorldX,wrapX} from '../src/game/geo.ts';
 const rectangle=(left,top,right,bottom)=>[{x:left,z:top},{x:right,z:top},{x:right,z:bottom},{x:left,z:bottom}];
@@ -76,12 +76,9 @@ test('real atlas moments remain finite and bounded for every current faction',()
  assert.ok(Math.abs(labels.reduce((sum,l)=>sum+l.area,0)-independentArea)<1e-6);
 });
 
-test('country typography has readable bounds and keeps long names compact without hiding them',()=>{
- const short=countryTypography('大明',10000,2),long=countryTypography('阿尔汉格尔斯克共和国',10000,2);
- assert.ok(short.font>long.font);assert.ok(short.spacing>long.spacing);
- for(const area of [0,1,1000,1e10])for(const scale of [.001,.1,1,100])for(const name of ['A','France','中华人民共和国','Very long country name that remains complete']){
-  const style=countryTypography(name,area,scale);assert.ok(style.font>=13&&style.font<=40);assert.ok(style.spacing>0);
- }
+test('country typography keeps compact tracking and engraved atlas styling',()=>{
+ assert.ok(countryLetterSpacing('大明')>countryLetterSpacing('阿尔汉格尔斯克共和国'));
+ assert.ok(countryLetterSpacing('France')>countryLetterSpacing('Very long country name that remains complete'));
  const css=fs.readFileSync(new URL('../src/ui/style.css',import.meta.url),'utf8');
  assert.match(css,/\.country-label\{font-weight:400;color:#38372f/);assert.match(css,/paint-order:stroke fill/);
 });

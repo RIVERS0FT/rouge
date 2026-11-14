@@ -159,3 +159,9 @@ export function fitCountryCurve(placement:CountryPlacement,advanceEm:number):{cu
  for(const curve of placement.curves){const fontWorld=Math.min(curve.clearance/1.25,curve.length*.86/Math.max(1,advanceEm));if(!best||fontWorld>best.fontWorld)best={curve,fontWorld};}
  return best;
 }
+
+/** Keep glyphs within the fitted land corridor as the map scale changes. */
+export function projectCountryFont(fontWorld:number,pixelsPerWorldUnit:number){
+ const world=fontWorld*.95,screen=world*pixelsPerWorldUnit;
+ return Number.isFinite(screen)&&screen>=10?{world,screen}:null;
+}
