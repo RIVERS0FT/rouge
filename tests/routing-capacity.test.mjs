@@ -24,7 +24,8 @@ test('remote terrain order saves actual waypoints, crosses boundaries without te
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);
  assert.ok(findRegionRoute(from,target).length>=3);const before=e.state.units.map(u=>({x:u.x,z:u.z}));
  assert.equal(e.command(0,{type:'march',from,to:target,fraction:1}).ok,true);assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
- for(const u of e.state.units){assert.equal(u.destination,target);assert.deepEqual(u.route,[]);assert.ok(validateTravel(u.travel,u,MAP[target].center));}
+ assert.equal(e.state.units.filter(u=>u.destination===target).length,1);
+ for(const u of e.state.units.filter(u=>u.destination===target)){assert.deepEqual(u.route,[]);assert.ok(validateTravel(u.travel,u,MAP[target].center));}
  const restored=decodeSave(encodeSave(e.state,'Moving')).state;assert.deepEqual(restored,e.state);const other=new Engine(restored);
  for(let i=0;i<150;i++){e.step(20);other.step(20);invariant(e.state);}assert.deepEqual(e.state,other.state);
  assert.equal(e.state.provinces[target].owner,0);assert.ok(e.state.units.some(u=>u.owner===0&&u.province===target&&!u.travel));assert.ok(validateState(e.state));
@@ -52,8 +53,8 @@ test('480 stationed battalions exceed removed global limits and survive producti
 });
 test('destination reservations cap dispatch and prevent oversubscription and competing production',()=>{
  const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;add(e.state,from,0,regionCapacity(from));add(e.state,target,0,regionCapacity(target)-2);ready(e);
- assert.equal(destinationRoom(e.state,0,target),2);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(regionReservations(e.state,0,target),2);assert.equal(destinationRoom(e.state,0,target),0);
- assert.deepEqual(e.command(0,{type:'march',from,to:target,fraction:1}),{ok:false,error:'targetFull'});e.state.provinces[target].production=13.99;e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);
+ assert.equal(destinationRoom(e.state,0,target),2);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(regionReservations(e.state,0,target),1);assert.equal(destinationRoom(e.state,0,target),1);
+ e.state.provinces[target].production=13.99;e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);
  e.step(3000);assert.equal(regionTroops(e.state,0,target),regionCapacity(target));invariant(e.state);assert.ok(validateState(e.state));
 });
 test('dispatch never creates a free home production slot before troops physically leave',()=>{

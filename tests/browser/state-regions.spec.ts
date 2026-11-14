@@ -28,7 +28,7 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  const plan=mapOrderFixture;
  await expect(page.getByTestId('region-capacity')).toContainText(/\/\s*[1-9]\d*/);
  await page.mouse.click(point.x,point.y,{button:'right'});
- await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
+ await expect(page.getByTestId('region-capacity')).toContainText('11 / 12');
  await page.screenshot({path:'artifacts/remote-order.png'});
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();

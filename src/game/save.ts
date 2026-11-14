@@ -5,6 +5,7 @@ import { validFlag } from './flags.ts';
 import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
 import {validateTravel} from './terrain-navigation.ts';
 import {regionCapacity,validGroupingState} from './territoryEconomy.ts';
+import {isRegionGarrison} from './capacity.ts';
 import {isConstructionKind,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
 import type { GameState } from './types.ts';
@@ -36,14 +37,24 @@ export function validateState(value:unknown):value is GameState{
     if(!b||!MAP[p.id].playable||p.owner<0||!isConstructionKind(b.kind)||(b.level!==1&&b.level!==2))return false;
   }
   if(!validGroupingState(s))return false;
-  for(const p of s.provinces)if(p.march!==undefined){
+  for(const p of s.provinces){
+    if(p.lastMarchTick!==undefined&&(!MAP[p.id].playable||!integer(p.lastMarchTick,0,s.tick)))return false;
+    if(p.march===undefined)continue;
     const order=p.march;
-    if(!order||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable||!Array.isArray(order.unitIds)||order.unitIds.length<1||order.unitIds.length>regionCapacity(p.id)||new Set(order.unitIds).size!==order.unitIds.length||!order.unitIds.every(id=>integer(id,1,s.nextId-1)))return false;
+    if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable)return false;
+    if('pendingIds' in order&&(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)))return false;
+    const orderIds='pendingIds' in order?order.pendingIds:order.unitIds;
+    if(!Array.isArray(orderIds)||orderIds.length<1||('pendingIds' in order&&orderIds.length>s.units.length)||new Set(orderIds).size!==orderIds.length||!orderIds.every(id=>integer(id,1,s.nextId-1)))return false;
+    if('unitIds' in order&&order.unitIds.length>regionCapacity(p.id))return false;
   }
+  const pending=new Map<number,number>();
+  for(const p of s.provinces){const order=p.march;if(order&&'pendingIds' in order)for(const id of order.pendingIds){if(pending.has(id))return false;pending.set(id,p.id);}}
   const ids=new Set<number>(),population=new Map<string,number>();
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
+    const source=pending.get(u.id);if(source!==undefined){if(!isRegionGarrison(u,s.provinces[source].owner,source))return false;pending.delete(u.id);}
+    if(u.assault!==undefined&&(u.owner<0||u.assault!==(u.target??u.province)))return false;
     if(!Array.isArray(u.route)||u.route.length!==0)return false;
     if(u.target===null){if(u.travel||u.transport||u.destination!==null||u.origin!==u.province)return false;}
     else {
@@ -56,9 +67,9 @@ export function validateState(value:unknown):value is GameState{
     }
     if(u.transport?.embarked){ids.add(u.id);continue;}
     const key=`${u.owner}:${u.province}`,count=(population.get(key)??0)+1;
-    if(!u.travel){if(count>regionCapacity(u.province))return false;population.set(key,count);}ids.add(u.id);
+    if(!u.travel&&u.assault===undefined){if(count>regionCapacity(u.province))return false;population.set(key,count);}ids.add(u.id);
   }
-  return s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
+  return !pending.size&&s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
 }
 // Only old four-kind saves may gain zeroed upgrade entries. Validate strictly afterwards.
 function migrateLegacyRoster(value:unknown):void {

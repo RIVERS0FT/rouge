@@ -10,7 +10,7 @@ export type StateFrame = {type:'state';state:GameState} | {
   /** When present, state.units lists all non-neutral units; patch neutral units by ID. */
   neutral?:NeutralChanges;
 };
-const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture&&a.march===b.march&&a.construction?.kind===b.construction?.kind&&a.construction?.level===b.construction?.level;
+const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture&&a.march===b.march&&a.lastMarchTick===b.lastMarchTick&&a.construction?.kind===b.construction?.kind&&a.construction?.level===b.construction?.level;
 // Neutral guards are not assigned travel or transport orders. Fall back to a
 // regular frame if one ever has a nonstandard order; no state is silently lost.
 const regularNeutral=(u:Unit)=>u.target===null&&u.destination===null&&!u.travel&&!u.transport&&u.route.length===0;
