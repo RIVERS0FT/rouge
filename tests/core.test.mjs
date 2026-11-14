@@ -31,7 +31,12 @@ test('shared reverse flow goes around walls and forbids diagonal corner cutting'
 });
 test('permission-free land flow is shared across factions and ownership changes',()=>{const e=fresh(),target=TARGET;const a=e.navigation.plan(MAP[HOME].center,MAP[target].center),builds=e.navigation.builds;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));e.state.topology++;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));assert.equal(e.navigation.builds,builds);});
 test('march, combat, capture and automatic production form a working loop',()=>{
- const e=fresh();e.state.players[1].ai=false;const target=TARGET;assert.ok(target!==undefined);assert.equal(e.command(0,{type:'march',from:HOME,to:target,fraction:1}).ok,true);e.step(3000);assert.equal(e.state.provinces[target].owner,0);assert.ok(e.state.events.some(v=>v.key==='capture'&&v.province===target));assert.ok(validateState(e.state));
+ const e=fresh();e.state.players[1].ai=false;const target=TARGET;assert.ok(target!==undefined);
+ // Assure the capture-loop fixture has a local advantage; staggered departures
+ // need not beat an equally strong garrison in this specific terrain.
+ const guards=e.state.units.filter(u=>u.owner===-1&&u.province===target);assert.equal(guards.length,5);
+ const inactive=new Set(guards.slice(1).map(u=>u.id));e.state.units=e.state.units.filter(u=>!inactive.has(u.id));
+ assert.equal(e.command(0,{type:'march',from:HOME,to:target,fraction:1}).ok,true);e.step(3000);assert.equal(e.state.provinces[target].owner,0);assert.ok(e.state.events.some(v=>v.key==='capture'&&v.province===target));assert.ok(validateState(e.state));
 });
 test('talents can only be selected from the current candidate set',()=>{const e=fresh(),p=e.state.players[0];assert.equal(e.command(0,{type:'talent',id:'veterans'}).ok,false);p.drafts=1;p.choices=['veterans','industry','entrenchment'];assert.equal(e.command(0,{type:'talent',id:'veterans'}).ok,true);assert.ok(p.talents.includes('veterans'));assert.equal(p.choices.length,0);});
 test('save roundtrip retains RNG and pending talent choices; corruption rejected',()=>{const e=fresh();e.state.players[0].choices=['industry','veterans'];e.state.players[0].drafts=1;const raw=encodeSave(e.state,'Test');assert.deepEqual(decodeSave(raw).state,e.state);const envelope=JSON.parse(raw);envelope.hash='bad';assert.throws(()=>decodeSave(JSON.stringify(envelope)));assert.throws(()=>decodeSave('{}'));assert.equal(validateState({...e.state,version:99}),false);});

@@ -25,3 +25,12 @@ export function regionReservations(state:GameState,owner:number,region:number):n
 export function destinationRoom(state:GameState,owner:number,region:number):number {
   return Math.max(0,regionCapacity(region)-regionTroops(state,owner,region)-regionReservations(state,owner,region));
 }
+
+/** Waiting troops still belong to the source's displayed garrison. A friendly
+ * order nevertheless claims space for them until it is replaced or completes. */
+export function queuedMarchReservations(state:GameState,owner:number,region:number,except?:number):number {
+  return state.provinces.reduce((n,p)=>{
+    const order=p.march;
+    return n+(p.id!==except&&p.owner===owner&&order&&'pendingIds' in order&&order.owner===owner&&order.reserved&&order.to===region?order.pendingIds.length:0);
+  },0);
+}

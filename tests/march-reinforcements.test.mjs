@@ -1,85 +1,131 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {Engine} from '../src/game/engine.ts';
+import {Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import {DT,UNITS} from '../src/game/content.ts';
 import {MAP} from '../src/game/map.ts';
-import {isRegionGarrison,regionGarrison,destinationRoom,regionReservations} from '../src/game/capacity.ts';
-import {regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
+import {isRegionGarrison,regionGarrison,destinationRoom,regionReservations,queuedMarchReservations} from '../src/game/capacity.ts';
+import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 
 function trainNext(e,from){e.state.provinces[from].production=UNITS.infantry.train-DT*regionProductionRate(from)/2;}
-function arrive(u,to){delete u.travel;delete u.transport;Object.assign(u,{...MAP[to].center,province:to,origin:to,target:null,destination:null,route:[]});}
+function order(e,from,to,fraction=1){return e.command(0,{type:'march',from,to,fraction});}
+function add(e,to,template,fields={}){const u={...structuredClone(template),id:e.state.nextId++,...MAP[to].center,province:to,origin:to,...fields};e.state.units.push(u);return u;}
 
-test('a full order sends every available troop and records only the original contingent',()=>{
+test('dispatch starts exactly one now, and releases each subsequent battalion after .25 simulation seconds',()=>{
  const {e,from,to}=garrisonFixture({count:5}),ids=e.state.units.map(u=>u.id),positions=e.state.units.map(u=>({x:u.x,z:u.z}));
- assert.deepEqual(e.command(0,{type:'march',from,to,fraction:1}),{ok:true});
- assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionReservations(e.state,0,to),5);
+ assert.equal(MARCH_INTERVAL_TICKS*DT,.25);
+ assert.deepEqual(order(e,from,to),{ok:true});
+ assert.equal(regionGarrison(e.state,0,from),4);assert.equal(regionReservations(e.state,0,to),1);
+ assert.equal(queuedMarchReservations(e.state,0,to),4);
  assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),positions);
- assert.deepEqual(e.state.provinces[from].march,{to,unitIds:ids});assert.ok(validateState(e.state));
+ assert.deepEqual(e.state.provinces[from].march.pendingIds,ids.slice(1));
+ e.step(MARCH_INTERVAL_TICKS-1);assert.equal(regionGarrison(e.state,0,from),4);
+ e.step();assert.equal(regionGarrison(e.state,0,from),3);
+ e.step(3*MARCH_INTERVAL_TICKS);assert.equal(regionGarrison(e.state,0,from),0);
+ assert.equal(e.state.provinces[from].march,undefined);
+ assert.equal(e.state.units.filter(u=>u.target===to).length,5);assert.ok(validateState(e.state));
 });
 
-test('new production joins the same destination immediately without extending the original contingent',()=>{
- const {e,from,to}=garrisonFixture({count:2});e.command(0,{type:'march',from,to,fraction:1});
- const order=structuredClone(e.state.provinces[from].march),next=e.state.nextId;
- trainNext(e,from);e.step();
+test('newly trained battalions join an active queue, but production immediately after its last departure stays home',()=>{
+ const {e,from,to}=garrisonFixture({count:2});order(e,from,to);
+ const next=e.state.nextId;trainNext(e,from);e.step();
  const reinforcement=e.state.units.find(u=>u.id===next);assert.ok(reinforcement);
- assert.equal(reinforcement.origin,from);assert.equal(reinforcement.target,to);assert.ok(reinforcement.travel);
- assert.equal(regionGarrison(e.state,0,from),0);assert.deepEqual(e.state.provinces[from].march,order);assert.ok(validateState(e.state));
+ assert.ok(isRegionGarrison(reinforcement,0,from));
+ assert.equal(e.state.provinces[from].march.pendingIds.at(-1),next);
+ e.step(MARCH_INTERVAL_TICKS-1);assert.equal(reinforcement.target,null);
+ e.step(MARCH_INTERVAL_TICKS);
+ assert.equal(reinforcement.target,to);assert.equal(e.state.provinces[from].march,undefined);
+ const later=e.state.nextId;trainNext(e,from);e.step();
+ assert.ok(isRegionGarrison(e.state.units.find(u=>u.id===later),0,from));assert.ok(validateState(e.state));
 });
 
-test('the original contingent ending stops follow-up even while a reinforcement is still moving',()=>{
- const {e,from,to}=garrisonFixture({count:1});e.command(0,{type:'march',from,to,fraction:1});
- const original=e.state.units[0];trainNext(e,from);e.step();const reinforcement=e.state.units.at(-1);
- arrive(original,to);trainNext(e,from);const next=e.state.nextId;e.step();
- assert.equal(e.state.provinces[from].march,undefined);assert.equal(reinforcement.target,to);
- assert.ok(isRegionGarrison(e.state.units.find(u=>u.id===next),0,from));assert.ok(validateState(e.state));
+test('a single immediate departure closes the order while its original battalion travels',()=>{
+ const {e,from,to}=garrisonFixture({count:1});assert.ok(order(e,from,to).ok);
+ assert.equal(e.state.provinces[from].march,undefined);
+ trainNext(e,from);e.step(MARCH_INTERVAL_TICKS*2);
+ assert.equal(regionGarrison(e.state,0,from),1);assert.equal(e.state.units[0].target,to);
 });
 
-test('a hostile arrival continues reinforcing until its capture order ends',()=>{
- const {e,from,to}=garrisonFixture({count:1,targetOwner:1});e.command(0,{type:'march',from,to,fraction:1});
- const original=e.state.units[0];delete original.travel;Object.assign(original,{...MAP[to].center,province:to});
- trainNext(e,from);e.step();assert.equal(e.state.provinces[to].owner,1);
- assert.ok(e.state.provinces[from].march);assert.equal(e.state.units.at(-1).target,to);
+test('replacing the order from the same source does not restart the departure cooldown',()=>{
+ const {e,from,to}=garrisonFixture({count:3});assert.ok(order(e,from,to).ok);
+ for(let i=0;i<4;i++)assert.ok(order(e,from,to).ok);
+ assert.equal(regionGarrison(e.state,0,from),2);
+ e.step(MARCH_INTERVAL_TICKS-1);assert.equal(regionGarrison(e.state,0,from),2);
+ assert.ok(order(e,from,to).ok);
+ e.step();assert.equal(regionGarrison(e.state,0,from),1);
 });
 
-test('losing all original troops ends the order and leaves later production at home',()=>{
- const {e,from,to}=garrisonFixture({count:1});e.command(0,{type:'march',from,to,fraction:1});
- e.state.units=[];trainNext(e,from);e.step();
- assert.equal(e.state.provinces[from].march,undefined);assert.equal(regionGarrison(e.state,0,from),1);
+for(const targetOwner of [-1,1])test(`target owner ${targetOwner}: attack bypasses even fully booked capacity and previously launched troops can arrive after capture`,()=>{
+ const {e,from,to}=garrisonFixture({count:3,targetOwner}),template=structuredClone(e.state.units[0]),cap=regionCapacity(to);
+ for(let i=0;i<cap;i++)add(e,to,template);
+ assert.equal(destinationRoom(e.state,0,to),0);assert.ok(order(e,from,to).ok);
+ e.step(2*MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),0);
+ const attack=e.state.units.filter(u=>u.assault===to);assert.equal(attack.length,3);
+ // Change allegiance after orders actually depart. Force the final segment
+ // to test arrival past the full garrison independently of combat and path length.
+ e.state.provinces[to].owner=0;e.state.grouping=reconcileGrouping(e.state);
+ const originalLocations=new Map(attack.map(u=>[u.id,structuredClone(u)]));
+ for(let i=0;i<20&&attack.some(u=>u.target!==null);i++){
+   for(const u of attack){if(!u.travel)continue;u.travel.index=u.travel.points.length-1;Object.assign(u,MAP[to].center,{province:to});}
+   e.step();
+ }
+ // This fixture puts many units in the same footprint: arrival can still be
+ // delayed by physical steering, but capacity must not block over-cap arrival.
+ assert.ok(regionGarrison(e.state,0,to)>cap);
+ for(const u of attack)if(u.travel)Object.assign(u,originalLocations.get(u.id));
+ assert.equal(destinationRoom(e.state,0,to),0);assert.ok(validateState(e.state));
+ assert.deepEqual(decodeSave(encodeSave(e.state,'Overflow')).state,e.state);
 });
 
-test('reinforcements never oversubscribe destination reservations and retry when room opens',()=>{
- const {e,from,to}=garrisonFixture({count:1}),template=structuredClone(e.state.units[0]);
- for(let i=0;i<11;i++)e.state.units.push({...structuredClone(template),id:e.state.nextId++,...MAP[to].center,province:to,origin:to});
- e.command(0,{type:'march',from,to,fraction:1});assert.equal(destinationRoom(e.state,0,to),0);
- trainNext(e,from);e.step();const waiting=e.state.units.at(-1);assert.ok(isRegionGarrison(waiting,0,from));
- e.state.units=e.state.units.filter(u=>u.id!==template.id+1);e.step();
- assert.equal(waiting.target,to);assert.equal(destinationRoom(e.state,0,to),0);assert.ok(validateState(e.state));
+test('friendly storage and queued reserves block other sources; partial orders leave unselected units at home',()=>{
+ const {e,from,to}=garrisonFixture({count:3}),template=structuredClone(e.state.units[0]),cap=regionCapacity(to);
+ for(let i=0;i<cap-2;i++)add(e,to,template);
+ const other=MAP.find(p=>p.playable&&p.id!==from&&p.id!==to&&e.state.provinces[p.id].owner<0).id;
+ e.state.provinces[other].owner=0;e.state.grouping=reconcileGrouping(e.state);add(e,other,template);
+ assert.ok(order(e,from,to,.67).ok);assert.equal(queuedMarchReservations(e.state,0,to),1);
+ assert.deepEqual(order(e,other,to),{ok:false,error:'targetFull'});
+ e.step(MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),1);assert.equal(e.state.provinces[from].march,undefined);
+ assert.deepEqual(order(e,from,to),{ok:false,error:'targetFull'});
 });
 
-test('losing the source clears its order before the new owner can inherit it',()=>{
- const {e,from,to}=garrisonFixture({count:1});e.command(0,{type:'march',from,to,fraction:1});
- e.state.provinces[from].owner=1;e.state.grouping=reconcileGrouping(e.state);e.step();
- assert.equal(e.state.provinces[from].march,undefined);assert.ok(validateState(e.state));
+test('still queued attackers stop at home when their destination becomes friendly and full',()=>{
+ const {e,from,to}=garrisonFixture({count:3,targetOwner:-1}),template=structuredClone(e.state.units[0]);
+ assert.ok(order(e,from,to).ok);e.state.provinces[to].owner=0;e.state.grouping=reconcileGrouping(e.state);
+ for(let i=0;i<regionCapacity(to);i++)add(e,to,template);
+ e.step(MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),2);assert.equal(e.state.provinces[from].march,undefined);
+ assert.equal(e.state.units[0].target,to);
 });
 
-test('saves and ordered LAN deltas preserve order creation, following and completion',()=>{
- const {e,from,to}=garrisonFixture({count:1});const first=encodeFrame(e.state,undefined,0),wire=x=>JSON.parse(JSON.stringify(x));
- const client=applyFrame(null,wire(first.frame));e.command(0,{type:'march',from,to,fraction:1});
+test('losing the source clears its queue rather than dispatching the new owner',()=>{
+ const {e,from,to}=garrisonFixture({count:2});order(e,from,to);
+ e.state.provinces[from].owner=1;e.state.grouping=reconcileGrouping(e.state);
+ const replacement=add(e,from,e.state.units[1],{owner:1});
+ e.step(MARCH_INTERVAL_TICKS);assert.equal(e.state.provinces[from].march,undefined);
+ assert.equal(replacement.target,null);assert.ok(validateState(e.state));
+});
+
+test('saves and ordered LAN deltas preserve queue creation, cooldown and completion',()=>{
+ const {e,from,to}=garrisonFixture({count:2});const first=encodeFrame(e.state,undefined,0),wire=x=>JSON.parse(JSON.stringify(x));
+ const client=applyFrame(null,wire(first.frame));order(e,from,to);
  const update=encodeFrame(e.state,first.base,0),second=applyFrame(client,wire(update.frame));
  assert.deepEqual(second,e.state);assert.equal(client.provinces[from].march,undefined);
- const restored=new Engine(decodeSave(encodeSave(e.state,'Following production')).state);
- trainNext(e,from);trainNext(restored,from);e.step();restored.step();assert.deepEqual(restored.state,e.state);
- for(const id of e.state.provinces[from].march.unitIds)arrive(e.state.units.find(u=>u.id===id),to);
- e.step();const finish=encodeFrame(e.state,update.base,0),third=applyFrame(second,wire(finish.frame));
- assert.deepEqual(third,e.state);assert.equal(third.provinces[from].march,undefined);assert.ok(second.provinces[from].march);
+ const restored=new Engine(decodeSave(encodeSave(e.state,'Queued')).state);
+ e.step(MARCH_INTERVAL_TICKS);restored.step(MARCH_INTERVAL_TICKS);assert.deepEqual(restored.state,e.state);
+ const finish=encodeFrame(e.state,update.base,0),third=applyFrame(second,wire(finish.frame));
+ assert.deepEqual(third,e.state);assert.equal(third.provinces[from].march,undefined);
+ assert.equal(third.provinces[from].lastMarchTick,MARCH_INTERVAL_TICKS);
 });
 
-test('legacy saves without reinforcement orders remain valid and malformed orders are rejected',()=>{
- const {e,from,to}=garrisonFixture({count:1});assert.ok(validateState(e.state));assert.deepEqual(decodeSave(encodeSave(e.state,'Legacy')).state,e.state);
- for(const march of [null,{}, {to:from,unitIds:[1]},{to:MAP.length,unitIds:[1]},{to,unitIds:[]},{to,unitIds:[1,1]},{to,unitIds:[e.state.nextId]}]){
+test('legacy follow records load without creating a new dispatch and malformed queues are rejected',()=>{
+ const {e,from,to}=garrisonFixture({count:1}),id=e.state.units[0].id;
+ e.state.provinces[from].march={to,unitIds:[id]};
+ assert.ok(validateState(e.state));assert.equal(new Engine(decodeSave(encodeSave(e.state,'Legacy')).state).state.provinces[from].march,undefined);
+ for(const march of [null,{}, {to:from,unitIds:[id]},{to:MAP.length,unitIds:[id]},{to,unitIds:[]},{to,unitIds:[id,id]},{to,owner:1,pendingIds:[id]},{to,owner:0,pendingIds:[e.state.nextId-1] ,reserved:false}]){
   const s=structuredClone(e.state);s.provinces[from].march=march;assert.equal(validateState(s),false);
  }
 });

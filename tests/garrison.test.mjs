@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import assert from 'node:assert/strict';
 import {MAP} from '../src/game/map.ts';
 import {regionCapacity} from '../src/game/territoryEconomy.ts';
@@ -10,30 +11,25 @@ import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 // Keep these single-unit arrival fixtures free of unrelated reinforcements.
 function stepWithoutProduction(e){for(const p of e.state.provinces)p.production=0;e.step();}
 
-test('dispatch immediately removes the selected fraction from garrison, not the global army or physical capacity',()=>{
+test('only released troops leave the counted garrison and waiting troops still occupy home capacity',()=>{
  const {e,from,to}=garrisonFixture(),before=e.state.units.map(u=>({x:u.x,z:u.z}));
  assert.equal(regionGarrison(e.state,0,from),12);
  assert.ok(e.command(0,{type:'march',from,to,fraction:.5}).ok);
  assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
- assert.ok(e.state.units.every(u=>u.province===from));
- assert.equal(regionGarrison(e.state,0,from),6);assert.equal(regionTroops(e.state,0,from),12);
- assert.equal(e.state.units.filter(u=>isRegionGarrison(u,0,from)).length,6);
- assert.equal(e.state.units.length,12);assert.equal(regionReservations(e.state,0,to),6);assert.equal(destinationRoom(e.state,0,from),0);
- // A second order sees only the remaining six, never re-dispatches the first six.
- assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
- assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionReservations(e.state,0,to),12);
- const after=structuredClone(e.state);
- assert.deepEqual(e.command(0,{type:'march',from,to,fraction:1}),{ok:false,error:'noTroops'});assert.deepEqual(e.state,after);
+ assert.equal(regionGarrison(e.state,0,from),11);assert.equal(regionTroops(e.state,0,from),12);
+ assert.equal(regionReservations(e.state,0,to),1);assert.equal(destinationRoom(e.state,0,from),0);
+ e.step(5*MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),6);assert.equal(regionReservations(e.state,0,to),6);
  assert.ok(validateState(e.state));
  for(const restored of [decodeSave(encodeSave(e.state,'Dispatched')).state,applyFrame(null,encodeFrame(e.state,undefined,0).frame)]){
-  assert.equal(regionGarrison(restored,0,from),0);assert.equal(regionReservations(restored,0,to),12);assert.equal(restored.units.length,12);
+  assert.equal(regionGarrison(restored,0,from),6);assert.equal(regionReservations(restored,0,to),6);assert.equal(restored.units.length,12);
  }
 });
 
-test('physical production capacity remains full while the displayed garrison has already left on orders',()=>{
+test('physical production capacity remains full while the first troop has received orders',()=>{
  const {e,from,to}=garrisonFixture();e.state.provinces[from].production=13.99;
  assert.ok(e.command(0,{type:'march',from,to,fraction:.5}).ok);e.step();
- assert.equal(regionGarrison(e.state,0,from),6);assert.equal(regionTroops(e.state,0,from),12);
+ assert.equal(regionGarrison(e.state,0,from),11);assert.equal(regionTroops(e.state,0,from),12);
  assert.equal(e.state.provinces[from].production,13.99);assert.equal(e.state.units.length,12);
 });
 

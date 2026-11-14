@@ -119,7 +119,7 @@ try{
  },mapOrderFixture.centers.target);
  await page.mouse.click(targetPoint.x,targetPoint.y,{button:'right'});
  await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
- await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
+ await expect(page.getByTestId('region-capacity')).toContainText('11 / 12');
  await expect.poll(async()=>Number(await unitsCanvas.getAttribute('data-rendered-sprites'))).toBeGreaterThan(0);
  await expect(unitsCanvas).toHaveAttribute('data-total-units',unitCount);
  await page.screenshot({path:'artifacts/pages-units-2d.png'});
@@ -146,7 +146,7 @@ try{
   assert.equal(routes.map,atlas.mapId);
   assert.equal(routes.grouping.mapId,atlas.mapId);
   assert.equal(routes.grouping.groups.flatMap(g=>g.atoms).length,atlas.provinces.length);
-  assert.equal(routes.units.length,12);
+  assert.equal(routes.units.length,1);
   assert.ok(routes.units.every(u=>u.destination===mapOrderFixture.target&&u.route.length===0&&u.travel?.points.length>=2));
   fs.writeFileSync('artifacts/remote-route-verification.json',JSON.stringify(routes,null,2));
   checks.push('new-map saved grouping, non-adjacent orders and continuous terrain waypoints');
