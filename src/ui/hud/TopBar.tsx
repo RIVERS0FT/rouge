@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
 import {STATS, upgradeCost} from '../../game/content.ts';
 import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
@@ -69,7 +70,7 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
     <TipTitle aside={`${player.level} / 8`}>{text('level')}</TipTitle>
     <TipRow label={text('levelProgress')} value={progress.complete ? text('max') : `${Math.floor(progress.value)} / ${progress.maximum} ${text('experience')}`}/>
     <TipRow label={text('talentsChosen')} value={player.talents.length}/>
-    <TipRow label={text('reroll')} value={player.rerolls}/>
+    {canRerollTalent(player) && <TipRow label={text('reroll')} value={text('talentRerollGold').replace('{cost}', String(talentRerollCost(player)))}/>}
     {player.choices.length > 0 && <TipNote>{text('talentAvailable')}</TipNote>}
    </>}>
     <strong>{player.level}<small> / 8</small></strong>

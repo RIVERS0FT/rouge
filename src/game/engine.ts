@@ -1,3 +1,4 @@
+import {availableTalentIds,canRerollTalent,talentRerollCost,talentRerollsUsed} from './talentReroll.ts';
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
@@ -11,14 +12,14 @@ import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGroupi
 
 import {CONSTRUCTION,STARTING_CONSTRUCTION_FUNDS,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,constructionIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
 import { destinationRoom, isRegionGarrison, queuedMarchReservations } from './capacity.ts';
-import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
+import { DT, MAP_ID, KINDS, STATS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,neutralGarrisonModel:'preplaced',campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
-  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
+  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerollsUsed:0}));
   // Start every seat on exactly one locked gameplay province, with five units.
   const spawnRegions=chooseSpawnRegions(seed,setups.length);
   assignCountryNames(s.players,spawnRegions.map(id=>MAP[id]));
@@ -63,11 +64,16 @@ function spawn(s:GameState,province:number,kind:Kind,initialNearby?:readonly Uni
   if(!Number.isFinite(best))return false;s.nextId++;
   s.units.push({id,owner:p.owner,kind,x,z,hp:stats(s.players[p.owner],kind).hp,province,target:null,origin:province,destination:null,route:[],cooldown:0});return true;
 }
-function draft(s:GameState,p:Player):void{
+function draft(s:GameState,p:Player,previous:readonly string[]=[]):void{
   if(p.choices.length||p.drafts<=0)return;
-  const available=TALENTS.filter(t=>!p.talents.includes(t.id)&&talentApplies(t,p.loadout)).map(t=>t.id);
+  const available=availableTalentIds(p);
   for(let i=available.length-1;i>0;i--){const j=Math.floor(random(s)*(i+1));[available[i],available[j]]=[available[j],available[i]];}
-  p.choices=available.slice(0,3);if(!p.choices.length)p.drafts=0;
+  p.choices=available.slice(0,3);
+  // A paid reroll must change at least one offered talent, not just its slot.
+  if(previous.length===p.choices.length&&p.choices.every(id=>previous.includes(id))){
+    const replacement=available.find(id=>!previous.includes(id));if(replacement)p.choices[p.choices.length-1]=replacement;
+  }
+  if(!p.choices.length)p.drafts=0;
 }
 function experience(s:GameState,id:number,amount:number):void{
   const p=s.players[id];if(!p)return;p.xp+=amount;
@@ -135,7 +141,16 @@ export class Engine{
         if(typeof c.id!=='string'||!p.choices.includes(c.id))return fail('invalidChoice');p.talents.push(c.id);p.choices=[];p.drafts--;draft(s,p);return{ok:true};
       }
       case 'reroll':{
-        if(!p.choices.length||p.rerolls<1)return fail('noRerolls');p.rerolls--;p.choices=[];draft(s,p);return{ok:true};
+        if(!canRerollTalent(p))return fail('noTalentReroll');
+        const cost=talentRerollCost(p);
+        if(c.expectedCost!==undefined){
+          if(!Number.isSafeInteger(c.expectedCost)||c.expectedCost<1)return fail('invalidCommand');
+          if(c.expectedCost!==cost)return fail('talentRerollPriceChanged');
+        }
+        if(p.gold<cost)return fail('noGold');
+        const previous=p.choices;
+        p.gold-=cost;p.rerollsUsed=talentRerollsUsed(p)+1;delete p.rerolls;
+        p.choices=[];draft(s,p,previous);return{ok:true};
       }
       default:return fail('invalidCommand');
     }

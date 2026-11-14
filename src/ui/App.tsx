@@ -74,6 +74,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [spectating, setSpectating] = useState(false);
  const [localStarting, setLocalStarting] = useState(false);
  const [pendingTalent, setPendingTalent] = useState<string | null>(null);
+ const seenTalentRound = useRef<string | null>(null);
  const [game, setGame] = useState<GameState | null>(null), [actor, setActor] = useState(0), [selected, setSelected] = useState(0);
  const [preferences] = useState(() => loadSetupPreferences());
  const [soloAICount, setSoloAICount] = useState('2'), [roomAICount, setRoomAICount] = useState('0'), [lobbyAI, setLobbyAI] = useState('0');
@@ -345,8 +346,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     onAppearance={openAppearance} onLoadout={kind => setLoadout([kind])} onAICount={value => modal === 'setupSolo' ? setSoloAICount(value) : setRoomAICount(value)}
     onName={setName} onCode={setCode} onStart={startSolo} onCreateRoom={() => roomAction(false)} onJoinRoom={() => roomAction(true)}/>}
    {modal === 'territories' && game && <TerritoryManagement state={game} grouping={game.grouping} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={issue}/>}
-   {modal === 'talents' && player && <TalentsDialog player={player} eliminated={eliminated} pending={pendingTalent !== null} language={language}
-    onChoose={id => {setPendingTalent(id); issue({type: 'talent', id});}} onReroll={() => issue({type: 'reroll'})}/>}
+   {modal === 'talents' && player && game && <TalentsDialog player={player} campaign={game.campaign} seenRound={seenTalentRound} eliminated={eliminated} pending={pendingTalent !== null} language={language}
+    onChoose={id => {setPendingTalent(id); issue({type: 'talent', id});}} onReroll={expectedCost => issue({type: 'reroll', expectedCost})}/>}
   </ModalDialog>}
   {localStarting && <ModalDialog label={text('starting')} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting" className="starting-modal">
    <p role="status" data-testid="local-starting"><Icon name="hourglass" size={18}/>{text('starting')}</p>
