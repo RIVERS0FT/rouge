@@ -24,7 +24,7 @@ test('no ocean-bottom asset or animation is attached to the renderer',()=>{
  const ocean=readFileSync(new URL('../src/render/oceanSurface.ts',import.meta.url),'utf8');
  assert.doesNotMatch(surface,/natural-earth-ocean|oceanUrls/);
  assert.doesNotMatch(ocean,/requestAnimationFrame|setInterval|setTimeout|heightAt|provinceAt|navigation/);
- assert.match(surface,/oceanAnimation='static'/);
+ assert.match(surface,/oceanAnimation:'static'/);
 });
 test('longitude ripple phases meet at the date line',()=>{
  for(const v of [0,.25,.51,1]){

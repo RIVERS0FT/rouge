@@ -6,6 +6,11 @@ export const UNIT_INTERPOLATION_DELAY=100;
 const STALE_GAP=500;
 type Sample=Vec2&{time:number};
 interface Track {samples:Sample[];owner:number;kind:Unit['kind'];embarked:boolean}
+function trackSpeed({samples}:Track,time:number):number{
+  let speed=0;for(let i=1;i<samples.length;i++){const a=samples[i-1],b=samples[i];
+    if(b.time>time&&b.time>a.time)speed=Math.max(speed,Math.hypot(b.x-a.x,b.z-a.z)/(b.time-a.time));
+  }return speed;
+}
 export type MotionSegment=(from:Vec2,to:Vec2,unit:Unit)=>boolean;
 export class UnitMotion {
   private tracks=new Map<number,Track>();
@@ -52,10 +57,11 @@ export class UnitMotion {
    * keep the map awake; the caller draws one final frame when active becomes false. */
   activity(now:number,visibleIds?:ReadonlySet<number>):{active:boolean;speed:number} {
     const time=now-UNIT_INTERPOLATION_DELAY;let speed=0;
-    for(const [id,{samples}] of this.tracks){if(visibleIds&&!visibleIds.has(id))continue;for(let i=1;i<samples.length;i++){
-      const a=samples[i-1],b=samples[i];
-      if(b.time>time&&b.time>a.time)speed=Math.max(speed,Math.hypot(b.x-a.x,b.z-a.z)/(b.time-a.time));
-    }}
+    // A stationary viewport usually contains a small subset of the campaign.
+    // Values iteration also avoids allocating a [key,value] pair per army on
+    // every camera frame when the whole motion set is needed.
+    if(visibleIds){for(const id of visibleIds){const track=this.tracks.get(id);if(track)speed=Math.max(speed,trackSpeed(track,time));}}
+    else for(const track of this.tracks.values())speed=Math.max(speed,trackSpeed(track,time));
     return{active:speed>0,speed};
   }
 }

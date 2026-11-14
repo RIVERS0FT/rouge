@@ -91,7 +91,7 @@ export function buildCountryLabels(map:readonly ProvinceDef[],owners:readonly nu
  return labels.sort((a,b)=>b.area-a.area||a.owner-b.owner);
 }
 
-export const COUNTRY_LABEL_FONT='Georgia,"Times New Roman","Noto Serif CJK SC","Songti SC","SimSun",serif';
+export const COUNTRY_LABEL_FONT='"ROUGE Country Serif","Noto Serif SC","Songti SC","STSong","SimSun",serif';
 /** Tighten tracking for long names; their size is set by the world-space curve. */
 export function countryLetterSpacing(name:string):number{
  const length=Array.from(name).length,cjk=/[\u3400-\u9fff]/u.test(name);

@@ -38,14 +38,14 @@ for(const kind of KINDS)test(kind+': starting army, production, upgrades, captur
  assert.ok(validateState(state));
  assert.deepEqual(decodeSave(encodeSave(state,'Single')).state,state);
 });
-test('existing multi-unit v5 saves remain loadable without broadening new campaign rules',()=>{
+test('current saves and commands reject legacy multi-unit loadouts',()=>{
  const state=createGame([setup('infantry'),setup('infantry')],1);
+ const e=new Engine(state),province=e.state.provinces.find(v=>v.owner===0).id;
+ assert.equal(e.command(0,{type:'production',province,kind:'cavalry'}).ok,false);
+ assert.equal(e.command(0,{type:'upgrade',kind:'cavalry',stat:'attack'}).ok,false);
  state.players[0].loadout=['infantry','cavalry','artillery'];
- assert.ok(validateState(state));
- const restored=decodeSave(encodeSave(state,'Legacy')).state;
- const e=new Engine(restored);
- assert.equal(e.command(0,{type:'production',province:e.state.provinces.find(v=>v.owner===0).id,kind:'cavalry'}).ok,true);
- assert.equal(e.command(0,{type:'upgrade',kind:'cavalry',stat:'attack'}).ok,true);
+ assert.equal(validateState(state),false);
+ assert.throws(()=>encodeSave(state,'Legacy'),/invalidSave/);
  state.players[0].loadout=['cavalry','artillery'];
  assert.equal(validateState(state),false);
 });

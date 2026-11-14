@@ -22,16 +22,16 @@
 #province-panel .province-meta[data-state="contested"]{color:#ffd2c2;box-shadow:inset 0 0 0 1px #e8846c8c}
 #province-panel .province-meta[data-state="contested"] .status-dot{background:var(--bad)}
 #province-panel .province-meta[data-state="recovering"] .status-dot{background:var(--warn)}
-#province-panel .province-summary{display:grid;align-items:start;grid-template-columns:minmax(0,1fr) auto;gap:14px;margin:0;padding:12px 14px;background:#0b0f0e;box-shadow:var(--well);border-radius:2px}
+#province-panel .province-summary{margin:0;padding:10px 14px;background:#0b0f0e;box-shadow:var(--well);border-radius:2px}
 #province-panel .province-summary>div{min-width:0}
 #province-panel .province-summary dt{font-size:11.5px;line-height:1.4;letter-spacing:.06em;color:var(--muted)}
-#province-panel .province-summary dd{margin:7px 0 0}
-#province-panel .province-ownership dd{display:flex;align-items:flex-start;gap:8px;font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.45;color:var(--parchment);overflow-wrap:anywhere}
-#province-panel .province-ownership .faction-dot{width:10px;height:10px;margin-top:6px}
-#province-panel .province-garrison{padding-left:14px;border-left:1px solid #c6a46733;text-align:right}
+#province-panel .province-summary dd{margin:0}
+#province-panel .province-garrison{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:14px;text-align:right}
+#province-panel .province-garrison dt{display:flex;align-items:center;gap:7px;text-align:left;white-space:nowrap}
+#province-panel .province-garrison dt .icon{flex:none;color:var(--brass)}
 #province-panel .province-garrison dd{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1.05;color:var(--parchment);font-variant-numeric:tabular-nums;white-space:nowrap}
 #province-panel .province-garrison dd>span{font-size:14px;font-weight:500;color:var(--muted)}
-#province-panel .garrison-pips{justify-content:flex-end;max-width:130px;margin-top:8px;margin-left:auto;gap:2px}
+#province-panel .garrison-pips{grid-column:1 / -1;justify-content:flex-end;max-width:130px;margin-top:5px;margin-left:auto;gap:2px}
 #province-panel .province-capture{margin-top:4px;color:#ffd2c2}
 #province-panel .province-capture .section-ribbon{background:linear-gradient(90deg,transparent,#7a2a22e6 16%,#7a2a22e6 84%,transparent)}
 #province-panel .province-production{margin-top:2px}
@@ -102,8 +102,7 @@
 /* Miniature flags display the complete flag without a map-colour overlay. */
 .faction-swatch{display:block;flex:none;overflow:hidden;background:#0b0f0e}
 .faction-swatch>.player-flag{width:100%;height:100%}
-#province-panel .province-country-flag,#province-panel .province-ownership .owner-swatch{width:25px;height:17px;border-radius:1px;box-shadow:0 0 0 1px #000b,0 0 0 2px var(--brass-lo)}
-#province-panel .province-ownership .owner-swatch{margin-top:4px}
+#province-panel .province-country-flag{width:25px;height:17px;border-radius:1px;box-shadow:0 0 0 1px #000b,0 0 0 2px var(--brass-lo)}
 .nation-copy{display:flex;flex-direction:column;min-width:0}
 .nation-copy bdi{font-size:13px;font-weight:600;color:var(--parchment);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nation-copy small{font-size:11px;line-height:1.4;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

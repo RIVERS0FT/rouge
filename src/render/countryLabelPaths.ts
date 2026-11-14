@@ -160,8 +160,8 @@ export function fitCountryCurve(placement:CountryPlacement,advanceEm:number):{cu
  return best;
 }
 
-/** Keep glyphs within the fitted land corridor as the map scale changes. */
+/** Keep glyphs within the fitted land corridor without a minimum screen size. */
 export function projectCountryFont(fontWorld:number,pixelsPerWorldUnit:number){
  const world=fontWorld*.95,screen=world*pixelsPerWorldUnit;
- return Number.isFinite(screen)&&screen>=10?{world,screen}:null;
+ return Number.isFinite(screen)&&screen>0?{world,screen}:null;
 }

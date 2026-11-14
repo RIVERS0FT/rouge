@@ -41,7 +41,9 @@ test('remote guards stay dormant and do not replenish; wake before bombardment a
  const standoff=UNITS.artillery.range-.15;
  const atRange=[[standoff,0],[-standoff,0],[0,standoff],[0,-standoff]].map(([x,z])=>({x:current.x+x,z:current.z+z})).find(v=>pointInProvince(p.id,v.x,v.z)&&terrainAt(v,true)>=0&&buildingSegment(v,v,UNIT_RADIUS.artillery));
  assert.ok(atRange);
- const attacker=s.units.find(u=>u.owner===0);Object.assign(attacker,{...atRange,province:p.id,origin:p.id});
+ // The starting gun may have fired during the two earlier ticks. Teleport a
+ // ready gun so this fixture isolates the newly approached guards' first shot.
+ const attacker=s.units.find(u=>u.owner===0);Object.assign(attacker,{...atRange,province:p.id,origin:p.id,cooldown:0});
  const hp=s.units.filter(u=>u.owner===-1&&u.province===p.id).map(u=>u.hp).reduce((a,b)=>a+b);
  e.step();
  const defenders=s.units.filter(u=>u.owner===-1&&u.province===p.id);

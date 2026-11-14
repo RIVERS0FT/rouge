@@ -50,7 +50,7 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
   kicker={<span className="province-country" data-testid="province-country">
    {province.owner < 0 ? <span className="faction-dot" style={{background: factionColor(province.owner)}} aria-hidden="true"/>
     : <FactionSwatch state={state} id={province.owner} language={language} className="province-country-flag"/>}
-   <bdi>{owner}</bdi>
+   <bdi data-testid="province-owner-name">{owner}</bdi>
   </span>} title={MAP[selected].name[language === 'zh' ? 0 : 1]} titleId="province-title"
   leading={<button type="button" className="icon-button" onClick={onFocus} title={text('focus')} aria-label={text('focus')}><Icon name="focus" size={18}/></button>}
   status={<div className="province-meta" data-state={status}><span className="status-dot" aria-hidden="true"/>{text(status)}</div>}
@@ -60,14 +60,9 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
     <span><Icon name="archive" size={16}/>{text('territories')}</span><span aria-hidden="true">›</span>
    </button>
   </footer>}>
-  <dl className="province-summary province-owner">
-   <div className="province-ownership">
-    <dt>{text('owner')}</dt>
-    <dd>{province.owner < 0 ? <span className="faction-dot" style={{background: factionColor(province.owner)}} aria-hidden="true"/>
-     : <FactionSwatch state={state} id={province.owner} language={language} className="owner-swatch"/>}<span data-testid="province-owner-name">{owner}</span></dd>
-   </div>
+  <dl className="province-summary">
    <div className="province-garrison">
-    <dt>{text('garrison')}</dt>
+    <dt><Icon name="shield" size={16}/>{text('garrison')}</dt>
     <dd data-testid="region-capacity" title={text('garrisonCapacityHint')}>{garrison}<span> / {capacity}</span></dd>
     {capacity <= 24 && <Pips value={garrison} total={capacity} className="garrison-pips"/>}
    </div>

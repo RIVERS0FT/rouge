@@ -7,12 +7,16 @@ test('real 2D/3D batches render intermediate snapshot positions, settle, and sle
  await page.route('**/movement-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"><div id="world" style="width:1440px;height:960px"></div></body>'}));
  await page.goto('/movement-harness');
  const result=await page.evaluate(async(raw)=>{
+  // This HTML harness bypasses Vite's index.html transform. Flag rendering
+  // imports TSX too, so install the same development preamble as the app.
+  const {default:refresh}=await import('/@react-refresh');refresh.injectIntoGlobalHook(window);
+  (window as any).$RefreshReg$=()=>{};(window as any).$RefreshSig$=()=>((type:any)=>type);
   const {WorldRenderer}=await import('/src/render/WorldRenderer.ts');
   const {MAP,provinceByCode}=await import('/src/game/map.ts');
   const {UnitMotion}=await import('/src/render/unitMotion.ts');
   const {unitMotionSegment}=await import('/src/render/unitMotionSegment.ts');
   const state=JSON.parse(JSON.parse(raw).body),id=provinceByCode('DEU-3487'),center=MAP[id].center;
-  const unit={...state.units[0],x:center.x-3.2,z:center.z,province:id,origin:id};state.units=[unit];state.tick=0;
+  const unit={...state.units[0],x:center.x-3.2,z:center.z,province:id,origin:id,target:MAP[id].neighbors[0],destination:MAP[id].neighbors[0]};state.units=[unit];state.tick=0;
   const world:any=new WorldRenderer(document.querySelector('#world')!,()=>{},()=>{});
   // Drive the real renderer deterministically, independently of runner GPU
   // speed. Unit tests separately exercise irregular wall-clock samples.
@@ -32,9 +36,12 @@ test('real 2D/3D batches render intermediate snapshot positions, settle, and sle
       positions.push({time,x:mesh.instanceMatrix.array[12],count:mesh.count});previousRevision=canvas.dataset.renderRevision;
      }
     }
-    const settled=canvas.dataset.renderRevision;now=400;frame(400);const idle=canvas.dataset.renderRevision;
-    world.setInputContext('blocked');frame(440);const covered=canvas.dataset.renderRevision;
-    now=500;world.update({...state,campaign:`motion-${distance}`,tick:4,units:[{...unit,x:unit.x+.8}]},-1,'en');frame(550);frame(620);
+    // Motion can finish while an independently budgeted background is still
+    // building. It must sleep after that work finishes, without losing motion.
+    now=235;let builds=0;while(world.flatMapCache.pending&&distance>=320){now+=17;frame(now);if(++builds>300)throw Error('background did not settle');}
+    const settled=canvas.dataset.renderRevision;now+=165;frame(now);const idle=canvas.dataset.renderRevision;
+    world.setInputContext('blocked');now+=40;frame(now);const covered=canvas.dataset.renderRevision;
+    now+=100;world.update({...state,campaign:`motion-${distance}`,tick:4,units:[{...unit,x:unit.x+.8}]},-1,'en');frame(now+50);frame(now+120);
     passes.push({mode:canvas.dataset.unitRenderMode,start:unit.x,positions,settled,idle,covered,afterCovered:canvas.dataset.renderRevision});
    }
   }finally{Object.defineProperty(performance,'now',{configurable:true,value:realNow});world.dispose();}

@@ -44,16 +44,17 @@ on disposal. No new image download, animation clock or simulation change is adde
 
 ## Land source and permission
 
-Land shading uses [Natural Earth 1:50m Shaded Relief 3.2.0](https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/),
-[official archive](https://naturalearth.s3.amazonaws.com/50m_raster/SR_50M.zip).
-It is derived from downsampled SRTM Plus, with flat water, and is public domain under
+Land shading uses [Natural Earth II 1:10m with Shaded Relief](https://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/),
+[official high-resolution archive](https://naturalearth.s3.amazonaws.com/10m_raster/NE2_HR_LC_SR.zip).
+The download page advertises 3.2.0; the archive's bundled VERSION.txt says 2.0.0.
+Both values and the exact downloaded hashes are retained in the audit. The source is public domain under
 [Natural Earth terms](https://www.naturalearthdata.com/about/terms-of-use/).
 Made with Natural Earth; original contributors include Tom Patterson and Nathaniel
 Vaughn Kelso. `data/map-surfaces-audit.json` records archive/TIFF SHA-256 hashes,
 world-file registration, crop, output dimensions, byte counts and hashes.
 
-The 10800 × 5400 equirectangular source covers ±180° longitude and ±90° latitude.
-Its TFW describes pixel centers at −179.9833333333°, +89.9833333333° with 1/30°
+The 21600 × 10800 RGB equirectangular source covers ±180° longitude and ±90° latitude.
+Its TFW describes pixel centers at −179.9916666667°, +89.9916666667° with 1/60°
 spacing. The generator validates that transform, area-filters longitude, then
 inverse-Miller samples output pixel centers using the game's `WORLD_BOUNDS` and
 `CROP_ID`. North is V=1. Date-line copies share textures; longitude repeats and
@@ -63,18 +64,25 @@ retaining political hue and the separate coastline/border/label draw order.
 
 ## Loading and mobile cost
 
-Desktop land relief is 4096 × 1808 (597,008 bytes); compact relief is 2048 × 904
-(159,428 bytes). Water adds no image or texture. This removes the former ocean
-image download (526,468 / 127,890 bytes) and about 9.4 / 2.4 MiB of mipmapped GPU
-texture storage. Land texture storage is approximately 37.7 / 9.4 MiB, plus temporary
-browser decode memory. Coarse-pointer devices, short screens below 700 CSS px, GPUs
-below a 4096 texture limit, or reported memory ≤4 GB choose compact once. Rotation
-does not download another size.
+The full pyramid has 650 WebP files totaling 10,519,512 bytes. Only one coarse
+atlas loads at startup: desktop 2048 × 904, compact 1024 × 452. Projected texel
+density selects 2048, 4096, 8192 or 16384 world-width levels, with hysteresis.
+Each tile has 512 content pixels and a two-pixel gutter on all sides. Longitude
+gutters wrap; latitude gutters clamp. Partial bottom rows retain true crop coordinates.
 
-The single content-hashed WebP is decoded asynchronously with low fetch priority
-after the initial map frame. Input and simulation never await it. Failure leaves
-flat land colors with the procedural sea intact. No retry loop or canvas pixel
-processing is added. Textures and pending image work are released on disposal.
+The shader uses a page table and a single-channel texture array. At most 48
+desktop / 24 compact tiles reside on the GPU (12.2 / 6.1 MiB), plus the coarse
+atlas and page table. Visible fine tiles take priority; resident parent tiles and
+the permanent coarse atlas fill gaps. Tiles outside the working set are evicted.
+No full 16384 texture is allocated. Rotation retains the compact choice and base.
+
+Four worker requests run concurrently. OffscreenCanvas decodes pixels off the UI
+thread; the renderer uploads changed array layers only. Stale requests are
+cancelled; batches update the map together. A bounded Cache Storage cache and
+content-versioned URLs reuse downloaded tiles across refreshes. Storage failures
+fall back to HTTP; missing tiles retain coarse shading without blocking input.
+Failure of the coarse image retains playable flat political colours and water.
+Disposal aborts fetches and releases the worker, bitmaps and GPU storage.
 
 ## Reproduce land assets
 
@@ -83,7 +91,7 @@ Python imaging libraries. To regenerate, install NumPy and Pillow, download the
 relief archive above, then run:
 
 ```sh
-python scripts/prepare-map-surfaces.py --relief /path/to/SR_50M.zip
+python scripts/prepare-map-surfaces.py --source /path/to/NE2_HR_LC_SR.zip
 node --experimental-strip-types --test tests/map-surfaces.test.mjs tests/ocean-surface.test.mjs
 ```
 

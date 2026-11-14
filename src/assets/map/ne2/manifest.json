@@ -1,0 +1,37 @@
+{
+  "source": {
+    "name": "Natural Earth II 1:10m with Shaded Relief",
+    "version": "3.2.0",
+    "page": "https://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/",
+    "url": "https://naturalearth.s3.amazonaws.com/10m_raster/NE2_HR_LC_SR.zip"
+  },
+  "tileSize": 512,
+  "gutter": 2,
+  "levels": [
+    {
+      "width": 2048,
+      "height": 904,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "width": 4096,
+      "height": 1808,
+      "columns": 8,
+      "rows": 4
+    },
+    {
+      "width": 8192,
+      "height": 3616,
+      "columns": 16,
+      "rows": 8
+    },
+    {
+      "width": 16384,
+      "height": 7232,
+      "columns": 32,
+      "rows": 15
+    }
+  ],
+  "revision": "7e306bca62178d9cf78f"
+}

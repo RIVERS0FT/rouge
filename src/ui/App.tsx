@@ -41,6 +41,9 @@ import {World} from './World.tsx';
 
 type Modal = 'setupSolo' | 'setupLan' | 'playerLeader' | 'playerFlag' | 'saves' | 'talents' | 'settings' | 'territories';
 const TICKET_KEY = 'rouge.ticket.ne-admin1-groups.v1';
+// Fast Refresh replaces this set; resume a new worker from the current snapshot
+// so changes to simulation dependencies also reach an already running match.
+const developmentSessions = new WeakSet<Session>();
 /** Compact layouts narrow the desktop HUD and open side panels on demand. Keep in sync with compact.css. */
 export const COMPACT_QUERY = '(max-width: 800px), (max-width: 1000px) and (max-height: 500px), (pointer: coarse) and (max-height: 560px)';
 
@@ -163,7 +166,15 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   if(!initialAction) {restoreFocus(initialFocusRef.current); initialFocusRef.current = null;}
  }, []);
  // The settings menu pauses only the local simulation, without changing the user's pause intent.
- useEffect(() => {if(screen === 'game' && session.current?.mode === 'solo') session.current.pause?.(paused || modal === 'settings');}, [paused, modal, screen]);
+ useEffect(() => {
+  if(screen !== 'game' || session.current?.mode !== 'solo') return;
+  if(import.meta.env.DEV && !developmentSessions.has(session.current) && latest.current) {
+   session.current.dispose();
+   session.current = localSession(latest.current, setGame, notifyResult);
+   developmentSessions.add(session.current); session.current.speed?.(speed);
+  }
+  session.current.pause?.(paused || modal === 'settings');
+ }, [paused, modal, screen]);
  function saveCurrent(id: string, displayName: string, quiet = false): boolean {
   if(!latest.current || session.current?.mode !== 'solo') return false;
   try {writeSave(localStorage, id, latest.current, displayName); if(!quiet) setToast(text('saveSuccess')); refreshSaves(); return true;}
@@ -180,6 +191,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   let initialized = false;
   try {
    session.current = localSession(value, next => {initialized = true; setGame(next); setLocalStarting(false);}, result => {if(!result.ok && !initialized) cancelLocalStart(); notifyResult(result);});
+   developmentSessions.add(session.current);
   } catch(error) {cancelLocalStart(); report(error);}
  }
  useEffect(() => {saveSetupPreferences({leader, flag});}, [leader, flag]);
