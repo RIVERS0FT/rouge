@@ -1,0 +1,457 @@
+{
+  "environment": {
+    "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": {
+      "width": 1510,
+      "height": 1090
+    },
+    "devicePixelRatio": 1.25,
+    "renderPixelRatio": 1.25,
+    "gpuTimer": false,
+    "mapUnits": 0,
+    "motionTracks": 0,
+    "cacheTilePixels": 512,
+    "landTriangles": 457066,
+    "coastSegments": 154270,
+    "borderSegments": 37923,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "workerRuntime": [
+      null,
+      null,
+      null,
+      {
+        "reference": false,
+        "pausedStart": true,
+        "tick": 7708
+      },
+      null
+    ]
+  },
+  "gpuFeatures": {
+    "2d_canvas": "enabled",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "enabled",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "enabled_on",
+    "rasterization": "enabled",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "disabled_off",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "enabled",
+    "video_encode": "enabled",
+    "webgl": "enabled",
+    "webgpu": "enabled",
+    "webnn": "disabled_off"
+  },
+  "fixture": {
+    "players": 101,
+    "units": 5236,
+    "synthetic": false
+  },
+  "options": {
+    "snapshot": ".cache/live-perf-84de1d45-bbd2-40ae-9bd5-04d96529d0df-state.json",
+    "focus": "259",
+    "pausedStart": true,
+    "mapOnly": true,
+    "views": "near60",
+    "actions": "pan,zoom",
+    "duration": "12000",
+    "width": "1510",
+    "height": "1090",
+    "dpr": "1.25",
+    "noGpu": true,
+    "output": ".cache/ai-pure-map-3d.json",
+    "screenshot": "artifacts/ai-pure-map-3d.png"
+  },
+  "errors": [],
+  "results": [
+    {
+      "name": "near60-pan",
+      "action": "pan",
+      "variant": "baseline",
+      "elapsedMs": 12014.200000000004,
+      "rafFps": 34.625692930032784,
+      "renderFps": 34.625692930032784,
+      "rafGapMs": {
+        "count": 416,
+        "mean": 28.880288461538473,
+        "p50": 27.700000000004366,
+        "p95": 55.5,
+        "max": 76.80000000000291,
+        "total": 12014.200000000004
+      },
+      "renderGapMs": {
+        "count": 415,
+        "mean": 28.93253012048193,
+        "p50": 27.700000000004366,
+        "p95": 55.5,
+        "max": 76.80000000000291,
+        "total": 12007
+      },
+      "frameCpuMs": {
+        "count": 416,
+        "mean": 4.027403844090609,
+        "p50": 3.5,
+        "p95": 7.599999904632568,
+        "max": 11.900000095367432,
+        "total": 1675.3999991416931
+      },
+      "updateCpuMs": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "stages": {
+        "drawLabels": {
+          "count": 416,
+          "mean": 0.061298066606888406,
+          "p50": 0,
+          "p95": 0.39999961853027344,
+          "max": 1.200000286102295,
+          "total": 25.499995708465576
+        },
+        "politicalTint": {
+          "count": 416,
+          "mean": 0.0016826907029518713,
+          "p50": 0,
+          "p95": 0,
+          "max": 0.09999990463256836,
+          "total": 0.6999993324279785
+        },
+        "drawMapNames": {
+          "count": 416,
+          "mean": 1.08605768932746,
+          "p50": 1,
+          "p95": 2,
+          "max": 3.299999713897705,
+          "total": 451.7999987602234
+        },
+        "threeRender": {
+          "count": 832,
+          "mean": 1.2149038440906084,
+          "p50": 1.0999999046325684,
+          "p95": 3.4000000953674316,
+          "max": 6.800000190734863,
+          "total": 1010.7999982833862
+        },
+        "coastMask": {
+          "count": 416,
+          "mean": 0.6218750064189618,
+          "p50": 0.5,
+          "p95": 1.4000000953674316,
+          "max": 2.8000001907348633,
+          "total": 258.7000026702881
+        }
+      },
+      "longTasks": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "drawCalls": {
+        "count": 416,
+        "mean": 26.346153846153847,
+        "p50": 26,
+        "p95": 27,
+        "max": 27,
+        "total": 10960
+      },
+      "triangles": {
+        "count": 416,
+        "mean": 24610.846153846152,
+        "p50": 24597,
+        "p95": 24647,
+        "max": 24647,
+        "total": 10238112
+      },
+      "units": {
+        "before": 5236,
+        "after": 5236,
+        "visible": 0
+      },
+      "ticks": 0,
+      "labels": {
+        "countries": 34,
+        "provinces": 60
+      },
+      "distance": 60,
+      "spikes": [
+        {
+          "time": 57425.9,
+          "gap": 76.80000000000291,
+          "cpu": 3.5,
+          "previousCpu": 6.299999713897705
+        },
+        {
+          "time": 55509.1,
+          "gap": 76.59999999999854,
+          "cpu": 3.6999998092651367,
+          "previousCpu": 5.300000190734863
+        },
+        {
+          "time": 55717.1,
+          "gap": 69.5,
+          "cpu": 4.400000095367432,
+          "previousCpu": 4.400000095367432
+        },
+        {
+          "time": 57286.6,
+          "gap": 69.5,
+          "cpu": 4.400000095367432,
+          "previousCpu": 10.5
+        },
+        {
+          "time": 57654.8,
+          "gap": 69.30000000000291,
+          "cpu": 2.5999999046325684,
+          "previousCpu": 5.799999713897705
+        },
+        {
+          "time": 57564.2,
+          "gap": 69.19999999999709,
+          "cpu": 8.099999904632568,
+          "previousCpu": 5.300000190734863
+        },
+        {
+          "time": 51974.6,
+          "gap": 62.900000000001455,
+          "cpu": 6.700000286102295,
+          "previousCpu": 10.099999904632568
+        },
+        {
+          "time": 60821.2,
+          "gap": 62.5,
+          "cpu": 3.5999999046325684,
+          "previousCpu": 7.599999904632568
+        },
+        {
+          "time": 53821.1,
+          "gap": 62.400000000001455,
+          "cpu": 3.0999999046325684,
+          "previousCpu": 6.800000190734863
+        },
+        {
+          "time": 51890.8,
+          "gap": 62.30000000000291,
+          "cpu": 4,
+          "previousCpu": 8.700000286102295
+        }
+      ],
+      "gpuSpikes": [],
+      "unitModes": [
+        "3d"
+      ],
+      "blend": 1,
+      "mainThread": {
+        "Nodes": 2464,
+        "LayoutCount": 45,
+        "RecalcStyleCount": 418,
+        "LayoutDuration": 0.009415,
+        "RecalcStyleDuration": 0.09659099999999998,
+        "ScriptDuration": 1.8238750000000001,
+        "TaskDuration": 2.410376,
+        "JSHeapUsedSize": 168245560
+      }
+    },
+    {
+      "name": "near60-zoom",
+      "action": "zoom",
+      "variant": "baseline",
+      "elapsedMs": 12027.5,
+      "rafFps": 34.421118270629805,
+      "renderFps": 34.421118270629805,
+      "rafGapMs": {
+        "count": 414,
+        "mean": 29.051932367149757,
+        "p50": 27.69999999999709,
+        "p95": 55.5,
+        "max": 97.10000000000582,
+        "total": 12027.5
+      },
+      "renderGapMs": {
+        "count": 413,
+        "mean": 29.106537530266344,
+        "p50": 27.69999999999709,
+        "p95": 55.5,
+        "max": 97.10000000000582,
+        "total": 12021
+      },
+      "frameCpuMs": {
+        "count": 414,
+        "mean": 3.6166666556095732,
+        "p50": 3.299999713897705,
+        "p95": 6.399999618530273,
+        "max": 8.699999809265137,
+        "total": 1497.2999954223633
+      },
+      "updateCpuMs": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "stages": {
+        "drawLabels": {
+          "count": 414,
+          "mean": 0.05821256361145904,
+          "p50": 0,
+          "p95": 0.40000009536743164,
+          "max": 0.8000001907348633,
+          "total": 24.100001335144043
+        },
+        "politicalTint": {
+          "count": 414,
+          "mean": 0.00048309247850795875,
+          "p50": 0,
+          "p95": 0,
+          "max": 0.10000038146972656,
+          "total": 0.20000028610229492
+        },
+        "drawMapNames": {
+          "count": 414,
+          "mean": 0.9258454064816093,
+          "p50": 0.8999996185302734,
+          "p95": 1.5999999046325684,
+          "max": 2.8000001907348633,
+          "total": 383.29999828338623
+        },
+        "threeRender": {
+          "count": 828,
+          "mean": 1.1143719810218626,
+          "p50": 1.0999999046325684,
+          "p95": 2.9000000953674316,
+          "max": 5.900000095367432,
+          "total": 922.7000002861023
+        },
+        "coastMask": {
+          "count": 414,
+          "mean": 0.5712560294330984,
+          "p50": 0.5,
+          "p95": 1.0999999046325684,
+          "max": 2,
+          "total": 236.49999618530273
+        }
+      },
+      "longTasks": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "drawCalls": {
+        "count": 414,
+        "mean": 25.26086956521739,
+        "p50": 26,
+        "p95": 26,
+        "max": 26,
+        "total": 10458
+      },
+      "triangles": {
+        "count": 414,
+        "mean": 23675.08695652174,
+        "p50": 24597,
+        "p95": 24597,
+        "max": 24597,
+        "total": 9801486
+      },
+      "units": {
+        "before": 5236,
+        "after": 5236,
+        "visible": 0
+      },
+      "ticks": 0,
+      "labels": {
+        "countries": 34,
+        "provinces": 60
+      },
+      "distance": 44.68691445826555,
+      "spikes": [
+        {
+          "time": 67752,
+          "gap": 97.10000000000582,
+          "cpu": 2.5,
+          "previousCpu": 4.900000095367432
+        },
+        {
+          "time": 64148.2,
+          "gap": 76.69999999999709,
+          "cpu": 3.1999998092651367,
+          "previousCpu": 2.3000001907348633
+        },
+        {
+          "time": 71536.7,
+          "gap": 76.39999999999418,
+          "cpu": 2.3000001907348633,
+          "previousCpu": 2.3000001907348633
+        },
+        {
+          "time": 71675.7,
+          "gap": 69.80000000000291,
+          "cpu": 3.4000000953674316,
+          "previousCpu": 2.9000000953674316
+        },
+        {
+          "time": 72780,
+          "gap": 69.80000000000291,
+          "cpu": 3.9000000953674316,
+          "previousCpu": 8.099999904632568
+        },
+        {
+          "time": 64717.3,
+          "gap": 69.70000000000437,
+          "cpu": 2.8000001907348633,
+          "previousCpu": 5.5
+        },
+        {
+          "time": 67640.8,
+          "gap": 69.40000000000873,
+          "cpu": 3.299999713897705,
+          "previousCpu": 5.900000095367432
+        },
+        {
+          "time": 63383.7,
+          "gap": 69.29999999999563,
+          "cpu": 2.6999998092651367,
+          "previousCpu": 6.400000095367432
+        },
+        {
+          "time": 63703.7,
+          "gap": 62.89999999999418,
+          "cpu": 3.5,
+          "previousCpu": 4.899999618530273
+        },
+        {
+          "time": 68293.8,
+          "gap": 62.80000000000291,
+          "cpu": 8.600000381469727,
+          "previousCpu": 6.099999904632568
+        }
+      ],
+      "gpuSpikes": [],
+      "unitModes": [
+        "3d"
+      ],
+      "blend": 1,
+      "mainThread": {
+        "Nodes": 3294,
+        "LayoutCount": 39,
+        "RecalcStyleCount": 416,
+        "LayoutDuration": 0.00571,
+        "RecalcStyleDuration": 0.081901,
+        "ScriptDuration": 1.6393370000000003,
+        "TaskDuration": 2.165807,
+        "JSHeapUsedSize": 168427936
+      }
+    }
+  ]
+}

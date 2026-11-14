@@ -3,20 +3,23 @@ import {MAP_ID, STATE_VERSION} from '../game/content.ts';
 import type {GameState, Province, Unit} from '../game/types.ts';
 
 /** Full state on connection; reliable ordered deltas thereafter. Static GIS never travels here. */
-export interface SnapshotBase { campaign:string; tick:number; groupingRevision:number; provinces:Province[]; neutral?:Map<number,Unit> }
+export interface SnapshotBase { campaign:string; tick:number; groupingRevision:number; provinces:Province[]; neutral?:Map<number,Unit>; paths?:Map<number,NonNullable<Unit['travel']>['points']> }
 type NeutralChanges={updated:Unit[];removed:number[]};
 export type StateFrame = {type:'state';state:GameState} | {
   type:'delta';campaign:string;baseTick:number;state:Omit<GameState,'provinces'|'grouping'>&{grouping?:GameState['grouping']};provinces:Province[];
   /** When present, state.units lists all non-neutral units; patch neutral units by ID. */
   neutral?:NeutralChanges;
+  /** Local worker only: these units retain their previous immutable route points. */
+  reusedPaths?:number[];
 };
 const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture&&a.march===b.march&&a.lastMarchTick===b.lastMarchTick&&a.construction?.kind===b.construction?.kind&&a.construction?.level===b.construction?.level;
 // Neutral guards are not assigned travel or transport orders. Fall back to a
 // regular frame if one ever has a nonstandard order; no state is silently lost.
-const regularNeutral=(u:Unit)=>u.target===null&&u.destination===null&&!u.travel&&!u.transport&&u.route.length===0;
+const regularNeutral=(u:Unit)=>u.target===null&&u.destination===null&&!u.travel&&!u.transport&&u.assault===undefined&&u.route.length===0;
 const sameNeutral=(a:Unit,b:Unit)=>a.kind===b.kind&&a.x===b.x&&a.z===b.z&&a.hp===b.hp&&a.cooldown===b.cooldown&&a.province===b.province&&a.origin===b.origin;
-export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:number):{frame:StateFrame;base:SnapshotBase} {
-  const players=state.players.map(p=>({...p,choices:p.id===actor?[...p.choices]:[]}));
+export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:number,authoritativeLocal=false):{frame:StateFrame;base:SnapshotBase} {
+  // Local authoritative saves need every AI's choices; LAN retains seat privacy.
+  const players=state.players.map(p=>({...p,choices:authoritativeLocal||p.id===actor?[...p.choices]:[]}));
   const delta=!!base&&base.campaign===state.campaign&&base.provinces.length===state.provinces.length;
   const previous=delta?base.neutral:undefined;
   const useSparse=state.units.every((u,i)=>u.id>(state.units[i-1]?.id??0)&&(u.owner>=0||regularNeutral(u)));
@@ -30,13 +33,21 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
     }
     if(previous)for(const id of previous.keys())if(!current.has(id))removed.push(id);
   }
+  // Engine replaces a route on dispatch and only advances its index afterward.
+  // Identity therefore proves unchanged points without scanning long AI routes.
+  const paths=authoritativeLocal?new Map(state.units.filter(u=>u.travel).map(u=>[u.id,u.travel!.points])):undefined;
   let frame:StateFrame;
   if(!delta)frame={type:'state',state:{...state,players}};
   else {
-    const {provinces,grouping,...rest}=state,sparse=!!previous&&!!current;
-    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,players,...(sparse?{units:fieldUnits}:{}),...(grouping.revision!==base.groupingRevision?{grouping}:{})},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i])),...(sparse?{neutral:{updated,removed}}:{})};
+    const {provinces,grouping,...rest}=state,sparse=!!previous&&!!current,reusedPaths:number[]=[];
+    let units=sparse?fieldUnits:state.units;
+    if(authoritativeLocal)units=units.map(u=>{
+      if(!u.travel||base.paths?.get(u.id)!==u.travel.points)return u;
+      reusedPaths.push(u.id);return {...u,travel:{...u.travel,points:[]}};
+    });
+    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,players,units,...(grouping.revision!==base.groupingRevision?{grouping}:{})},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i])),...(sparse?{neutral:{updated,removed}}:{}),...(reusedPaths.length?{reusedPaths}:{})};
   }
-  return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current}};
+  return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current,paths}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
   if(frame.state.map!==MAP_ID||frame.state.version!==STATE_VERSION||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw new Error('incompatibleMap');
@@ -45,6 +56,16 @@ export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
   const provinces=current.provinces.slice();
   for(const p of frame.provinces){if(!Number.isInteger(p.id)||p.id<0||p.id>=provinces.length)throw new Error('invalidSnapshot');provinces[p.id]=p;}
   const next={...frame.state,grouping:frame.state.grouping??current.grouping,provinces};
+  if(frame.reusedPaths){
+    const ids=new Set(frame.reusedPaths),previous=new Map(current.units.filter(u=>u.travel).map(u=>[u.id,u.travel!]));
+    if(ids.size!==frame.reusedPaths.length)throw new Error('invalidSnapshot');
+    next.units=next.units.map(u=>{
+      if(!ids.has(u.id))return u;ids.delete(u.id);const old=previous.get(u.id);
+      if(!old||!u.travel||u.travel.points.length||old.revision!==u.travel.revision)throw new Error('invalidSnapshot');
+      return {...u,travel:{...u.travel,points:old.points}};
+    });
+    if(ids.size)throw new Error('invalidSnapshot');
+  }
   if(frame.neutral){
     if(next.units.some(u=>u.owner<0))throw new Error('invalidSnapshot');
     const units=new Map<number,Unit>();

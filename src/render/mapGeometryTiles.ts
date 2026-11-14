@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import {LineSegments2} from 'three/examples/jsm/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 
-/** Index complete primitives into conservative bounds. Attributes stay shared
- * with the authoritative geometry, so ownership/capture edits remain exact. */
+/** Keep complete primitives in conservative bounds. Land attributes stay shared
+ * so ownership/capture edits remain exact. Native line tiles own compact pairs:
+ * the global Uint32 indexed-line path can emit cross-map streaks in a live
+ * browser even when the uploaded endpoints and indices are correct. */
 export function mapGeometryTiles(source:THREE.Mesh|THREE.LineSegments,primitiveSize:2|3,side=128):THREE.Group{
  const geometry=source.geometry,position=geometry.getAttribute('position'),tiles=new Map<string,{indices:number[];bounds:THREE.Box3}>(),point=new THREE.Vector3();
  for(let i=0;i<position.count;i+=primitiveSize){
@@ -15,8 +17,10 @@ export function mapGeometryTiles(source:THREE.Mesh|THREE.LineSegments,primitiveS
  }
  const group=new THREE.Group();group.name=source.name||'land-tiles';
  for(const {indices,bounds} of tiles.values()){
-  const part=new THREE.BufferGeometry();for(const [name,attribute] of Object.entries(geometry.attributes))part.setAttribute(name,attribute);
-  part.setIndex(new THREE.BufferAttribute(new Uint32Array(indices),1));bounds.expandByScalar(1);part.boundingBox=bounds;part.boundingSphere=bounds.getBoundingSphere(new THREE.Sphere());
+  let part=new THREE.BufferGeometry();for(const [name,attribute] of Object.entries(geometry.attributes))part.setAttribute(name,attribute);
+  part.setIndex(new THREE.BufferAttribute(new Uint32Array(indices),1));
+  if(primitiveSize===2)part=part.toNonIndexed();
+  bounds.expandByScalar(1);part.boundingBox=bounds;part.boundingSphere=bounds.getBoundingSphere(new THREE.Sphere());
   const object=source.clone(false) as THREE.Mesh|THREE.LineSegments;object.geometry=part;object.frustumCulled=true;object.name=primitiveSize===3?'land-tile':'coastline-tile';group.add(object);
  }
  return group;

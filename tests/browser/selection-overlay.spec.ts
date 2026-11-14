@@ -55,28 +55,31 @@ test('selection draws on the next frame without rebuilding the background or lea
    await until(()=>!world.flatMapCache.pending&&world.mapSurface.pending.length===0&&world.renderer.domElement.dataset.reliefState==='ready'&&world.countryText.pending===0&&world.renderer.domElement.dataset.countryLayoutState==='ready'&&world.renderer.domElement.dataset.borderLayoutState==='ready');
    const baseline=capture(),texture=world.flatMapCache.surface.material.map,revision=world.mapRevision;
    const start=frame;capturing=true;world.mapInput.dispatch({type:'select',region:target.id,attack:false});tick();
-   const immediate=firstBorder-start;
+   const immediate=firstBorder-start,selectionHasNoGlow=world.selectionGlow.geometry.getAttribute('position').count===0;
+   world.renderer.domElement.dispatchEvent(new PointerEvent('pointermove',{clientX:480,clientY:320,pointerType:'mouse',bubbles:true}));
    await until(()=>firstGlow>0&&world.renderer.domElement.dataset.selectionGlowPending==='false');
    const selected=capture(),reused=world.flatMapCache.surface.material.map===texture&&world.mapRevision===revision&&!world.flatMapCache.pending;
    let changed=0;for(let i=0;i<baseline.length;i+=4)if(Math.abs(baseline[i]-selected[i])+Math.abs(baseline[i+1]-selected[i+1])+Math.abs(baseline[i+2]-selected[i+2])>6)changed++;
    // An unrelated background refresh must also exclude every live overlay.
    world.flatMapCache.invalidate();world.invalidated=true;await until(()=>!world.flatMapCache.pending);
-   // Cancel an in-flight glow by selecting another region, then clear selection.
-   world.mapInput.dispatch({type:'select',region:neighbor,attack:false});world.mapInput.dispatch({type:'select',region:target.id,attack:false});
+   // Cancel an in-flight hover computation, then revisit the cached region.
+   world.setHover(neighbor);world.setHover(target.id);
    await until(()=>world.renderer.domElement.dataset.selectionGlowPending==='false');
    const latest=Number(world.renderer.domElement.dataset.selectedRegion);
-   world.mapInput.dispatch({type:'deselect'});const cleared=capture();
+   world.mapInput.dispatch({type:'deselect'});const hoverIndependent=world.selectionGlow.geometry.getAttribute('position').count>0;
+   world.renderer.domElement.dispatchEvent(new PointerEvent('pointerleave',{pointerType:'mouse'}));const cleared=capture();
    let ghostPixels=0;const bounds={left:Infinity,right:0,top:Infinity,bottom:0};for(let i=0;i<baseline.length;i+=4)if(Math.abs(baseline[i]-cleared[i])+Math.abs(baseline[i+1]-cleared[i+1])+Math.abs(baseline[i+2]-cleared[i+2])>6){ghostPixels++;const x=i/4%world.renderer.domElement.width,y=Math.floor(i/4/world.renderer.domElement.width);bounds.left=Math.min(bounds.left,x);bounds.right=Math.max(bounds.right,x);bounds.top=Math.min(bounds.top,y);bounds.bottom=Math.max(bounds.bottom,y);}
    const debug:any={};if(ghostPixels){for(const [key,data]of Object.entries({baseline,selected,cleared})){const canvas=document.createElement('canvas');canvas.width=world.renderer.domElement.width;canvas.height=world.renderer.domElement.height;canvas.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(data as Uint8Array),canvas.width,canvas.height),0,0);debug[key]=canvas.toDataURL();}}
-   world.focus.x=target.center.x+WORLD_WIDTH;world.mapInput.dispatch({type:'select',region:target.id,attack:false});world.invalidated=true;
+   world.focus.x=target.center.x+WORLD_WIDTH;world.mapInput.dispatch({type:'select',region:target.id,attack:false});world.setHover(target.id);world.invalidated=true;
    await until(()=>wrapped&&world.renderer.domElement.dataset.selectionGlowPending==='false'&&!world.flatMapCache.pending);
-   return {immediate,glowDelay:firstGlow-glowReady,reused,baked,changed,ghostPixels,bounds,latest,target:target.id,wrapped,width:world.selection.material.linewidth,debug};
+   return {immediate,glowDelay:firstGlow-glowReady,reused,baked,changed,ghostPixels,bounds,latest,target:target.id,wrapped,width:world.selection.material.linewidth,selectionHasNoGlow,hoverIndependent,debug};
   }finally{world.dispose();}
  });
  const {debug,...summary}=result;
  await testInfo.attach('selection-overlay-results',{body:JSON.stringify(summary,null,2),contentType:'application/json'});
  for(const [key,data]of Object.entries(debug))await testInfo.attach(key,{body:Buffer.from((data as string).split(',')[1],'base64'),contentType:'image/png'});
  expect(result.immediate).toBe(1);expect(result.glowDelay).toBe(0);expect(result.reused).toBe(true);
+ expect(result.selectionHasNoGlow).toBe(true);expect(result.hoverIndependent).toBe(true);
  expect(result.baked).toBe(0);expect(result.changed).toBeGreaterThan(10);expect(result.ghostPixels).toBe(0);
  expect(result.latest).toBe(result.target);expect(result.wrapped).toBe(true);expect(result.width).toBe(3);expect(errors).toEqual([]);
 });

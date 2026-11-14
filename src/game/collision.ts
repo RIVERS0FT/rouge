@@ -9,7 +9,6 @@ export const COLLISION_CONSTRAINTS=12;
 export const COLLISION_CELL=1.24; // Maximum diameter: a 3 × 3 neighborhood is enough.
 export interface CircleBody extends Vec2 {id:number;radius:number;mobility?:number}
 export interface CollisionReport {candidates:number;contacts:number;maxPenetration:number;limited:number;constraints:number;constraintLimited:number}
-const key=(x:number,z:number)=>`${x}:${z}`;
 const directions=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQRT1_2],[-1,0],[-Math.SQRT1_2,-Math.SQRT1_2],[0,-1],[Math.SQRT1_2,-Math.SQRT1_2]];
 
 /** Fixed-budget position projection. Neither RNG nor array order influences contacts.
@@ -30,13 +29,15 @@ export function separateCircles<T extends CircleBody>(input:readonly T[],canMove
     return 0;
   }
   for(let pass=0;pass<COLLISION_PASSES;pass++){
-    const buckets=new Map<string,T[]>();
-    for(const b of bodies){const k=key(Math.floor(b.x/COLLISION_CELL),Math.floor(b.z/COLLISION_CELL)),list=buckets.get(k)??[];list.push(b);buckets.set(k,list);}
+    // Numeric coordinates avoid allocating a string for every neighboring-cell
+    // probe. Nested maps retain exact coordinates and the original body order.
+    const buckets=new Map<number,Map<number,T[]>>();
+    for(const b of bodies){const x=Math.floor(b.x/COLLISION_CELL),z=Math.floor(b.z/COLLISION_CELL);let column=buckets.get(x);if(!column){column=new Map();buckets.set(x,column);}const list=column.get(z)??[];list.push(b);column.set(z,list);}
     for(const a of bodies){
       const bx=Math.floor(a.x/COLLISION_CELL),bz=Math.floor(a.z/COLLISION_CELL);let visited=0;
       const rotation=(a.id+tick+pass)%9;
       for(let n=0;n<9;n++){
-        const cell=(n+rotation)%9,list=buckets.get(key(bx+cell%3-1,bz+Math.floor(cell/3)-1));if(!list)continue;
+        const cell=(n+rotation)%9,list=buckets.get(bx+cell%3-1)?.get(bz+Math.floor(cell/3)-1);if(!list)continue;
         const start=(Math.imul(a.id,31)+tick+pass)>>>0;
         for(let k=0;k<list.length;k++){
           if(visited++>=COLLISION_CANDIDATES){report.limited++;break;}

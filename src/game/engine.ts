@@ -400,23 +400,31 @@ export class Engine{
     // navigation work. Actor 1 retains its original first action at tick 80.
     const scheduled=s.players.filter(p=>p.ai&&(p.id+79)%80===(s.tick-80)%80);
     if(!scheduled.length)return;
-    const territories=new Map<number,number[]>(),garrisons=new Map<number,Unit[]>();
-    for(const v of s.provinces)if(MAP[v.id].playable&&v.owner>=0){const ids=territories.get(v.owner)??[];ids.push(v.id);territories.set(v.owner,ids);}
-    for(const u of s.units){const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
+    const actors=new Set(scheduled.map(p=>p.id)),territories=new Map<number,number[]>(),garrisons=new Map<number,Unit[]>(),occupants=new Uint32Array(MAP.length);
+    // Only actors due this tick need ready-garrison lists. Target strength still
+    // counts every physical unit, matching the existing decision policy.
+    for(const v of s.provinces)if(MAP[v.id].playable&&actors.has(v.owner)){const ids=territories.get(v.owner)??[];ids.push(v.id);territories.set(v.owner,ids);}
+    for(const u of s.units){occupants[u.province]++;if(!actors.has(u.owner)||s.provinces[u.province]?.owner!==u.owner||!isRegionGarrison(u,u.owner,u.province))continue;const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
     for(const p of scheduled.filter(p=>territories.has(p.id))){
       if(p.choices.length)this.command(p.id,countryActions.talent(p.choices[0]));
       if(p.funds>160)this.command(p.id,countryActions.upgrade(p.loadout[Math.floor(random(s)*p.loadout.length)],STATS[Math.floor(random(s)*3)]));
       for(const id of territories.get(p.id)??[]){
         const province=s.provinces[id];if(province.march)continue;
-        const units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
+        const units=garrisons.get(id)??[];
         // Small administrative atoms must be able to move a full garrison.
         if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;
-        const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>(garrisons.get(a)?.length??0)-(garrisons.get(b)?.length??0));
+        const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>occupants[a]-occupants[b]);
         let destination:number|undefined=targets[0]??neighbors.filter(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==p.id))[0];
         if(destination===undefined){
-          const candidates=MAP.filter(m=>m.playable&&s.provinces[m.id].owner!==p.id)
-            .sort((a,b)=>Math.hypot(a.center.x-MAP[province.id].center.x,a.center.z-MAP[province.id].center.z)-Math.hypot(b.center.x-MAP[province.id].center.x,b.center.z-MAP[province.id].center.z)||a.id-b.id).slice(0,4);
-          destination=candidates.find(m=>this.navigation.plan(MAP[province.id].center,m.center))?.id;
+          // Keep the same nearest four and tie order without sorting the atlas
+          // or recomputing each distance for every sort comparison.
+          const candidates:{id:number;distance:number}[]=[],center=MAP[province.id].center;
+          for(const m of MAP)if(m.playable&&s.provinces[m.id].owner!==p.id){
+            const distance=Math.hypot(m.center.x-center.x,m.center.z-center.z);let index=0;
+            while(index<candidates.length&&(candidates[index].distance<distance||(candidates[index].distance===distance&&candidates[index].id<m.id)))index++;
+            if(index<4){candidates.splice(index,0,{id:m.id,distance});if(candidates.length>4)candidates.pop();}
+          }
+          destination=candidates.find(m=>this.navigation.plan(center,MAP[m.id].center))?.id;
         }
         if(destination!==undefined)this.command(p.id,countryActions.march(province.id,destination));
       }

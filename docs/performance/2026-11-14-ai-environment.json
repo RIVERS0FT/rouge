@@ -1,0 +1,10 @@
+{
+  "emptyPageRafFps": 55.872434322827765,
+  "worstFrameEquivalentFps": 32.36245954692547,
+  "viewport": {
+    "width": 1510,
+    "height": 1090
+  },
+  "dpr": 1.25,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+}

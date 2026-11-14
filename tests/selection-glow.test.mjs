@@ -74,10 +74,12 @@ test('renderer selection retains island coast edges for outline and glow input',
   const renderer=Object.create(WorldRenderer.prototype);let outline,glowEdges;
   globalThis.Worker=class {postMessage(message){glowEdges=message.edges;}terminate(){}};
   const ranges=[];ranges[selected.id]={start:0,count:3};
-   Object.assign(renderer,{selected:selected.id,boundaryEdges:allEdges,selection:{},selectionGlowWorker:null,selectionGlow:{geometry:new THREE.BufferGeometry()},selectionRepeats:[],renderer:{domElement:{dataset:{}}},ranges,land:{geometry:{getAttribute:()=>({array:new Float32Array(9)})}},replaceWideGeometry:(_line,points)=>{outline=points;}});
+   Object.assign(renderer,{selected:selected.id,hover:-1,emptyGlow:new THREE.BufferGeometry(),hoverGlows:new Map(),boundaryEdges:allEdges,selection:{},selectionGlowWorker:null,selectionGlow:{geometry:new THREE.BufferGeometry()},selectionRepeats:[],renderer:{domElement:{dataset:{}}},ranges,land:{geometry:{getAttribute:()=>({array:new Float32Array(9)})}},replaceWideGeometry:(_line,points)=>{outline=points;}});
+   renderer.emptyGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));
   renderer.drawSelection();
   assert.equal(outline.length,expected.length*6,'Actual renderer includes the whole island coastline');
   assert.ok(outline.every(Number.isFinite));
+  assert.equal(glowEdges,undefined,'Selection alone does not generate hover glow');renderer.setHover(selected.id);
   assert.equal(glowEdges.length,expected.length*4,'Glow worker receives island coast edges');
   renderer.selectionGlow.geometry.dispose();
   }finally{await server.close();}
