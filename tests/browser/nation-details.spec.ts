@@ -14,7 +14,7 @@ for(const mode of ['desktop','phone'] as const)test(`nation details and map loca
 
  const panel=page.locator('#nations-panel');
  const own=panel.locator('[data-nation-id="0"]'), rival=panel.locator('[data-nation-id="1"]');
- await expect(panel.getByRole('heading',{name:'Nation rankings'})).toBeVisible();
+ await expect(panel.getByRole('heading',{name:'Country rankings'})).toBeVisible();
  await own.click();
  const details=panel.getByTestId('nation-detail'), back=panel.getByTestId('nation-back');
  await expect(details).toHaveAttribute('data-nation','0');

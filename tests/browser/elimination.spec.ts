@@ -4,9 +4,10 @@ test('zero-territory player sees defeat before a global winner and can spectate 
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-eliminated-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
- await page.locator('.save-card').filter({hasText:'Eliminated faction fixture'}).getByRole('button',{name:'载入',exact:true}).click();
+ await page.locator('.save-card').filter({hasText:'Eliminated country fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-eliminated','true');
  await expect(page.getByTestId('elimination-result')).toContainText('你已被淘汰');
+ await expect(page.getByTestId('elimination-result')).toContainText('其余国家继续战斗');
  await expect(page.getByTestId('eliminated-return-menu')).toBeVisible();
  await expect(page.getByTestId('army-total')).toHaveText('0');
  await page.getByTestId('spectate-match').click();

@@ -33,6 +33,7 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
  await page.getByTestId('single-player').click();
  await expect(page.getByTestId('commander-name')).toHaveValue(zh?'指挥官':'Commander');
  await expect(page.getByTestId('setup-ai-count')).toBeEnabled();
+ await expect(page.locator('#setup-ai-range')).toContainText(zh?'大量国家':'More countries');
  await expect(page.getByRole('dialog')).not.toContainText(zh?/[A-Za-z]/:/\p{Script=Han}/u);
  await page.getByTestId('choose-unit-infantry').focus();
  await expect(page.getByRole('tooltip').locator('.unit-attribute')).toHaveCount(9);
@@ -80,6 +81,7 @@ for(const language of ['zh','en'] as const)test(`${language}: LAN lobby has conc
  await page.getByTestId('setup-ai-count').fill('1');
  await page.getByRole('button',{name:zh?'创建房间':'Create room',exact:true}).click();
  await expect(page.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
+ await expect(page.locator('#lobby-ai-range')).toContainText(zh?'大量国家':'More countries');
  await expect(page.locator('.seats')).toContainText(zh?'电脑玩家 1':'Computer player 1');
  await noTechnicalCopy(page);
  await page.getByRole('button',{name:zh?'离开房间':'Leave room',exact:true}).click();

@@ -42,7 +42,7 @@ for(const language of ['zh','en'] as const)test(`${language}: territory panel sh
  await expect(panel).toContainText(language==='zh'?'自动生产':'Auto-production');
  await expectPanelLayout(page);
  await page.screenshot({path:`artifacts/territory-panel-owned-${language}.png`});
- await expect(page.locator('.hud-top')).not.toContainText(/本方势力|阵营 1|指挥官|铁壁统帅|Your faction|Faction 1|Panel Commander|Warden/);
+ await expect(page.locator('.hud-top')).not.toContainText(/本方势力|阵营 1|国家 1|指挥官|铁壁统帅|Your faction|Faction 1|Country 1|Panel Commander|Warden/);
  await expect(page.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
  await expect(page.locator('.hud-top .faction-copy,.hud-top .commander-badge')).toHaveCount(0);
  for(const id of ['destination','destination-search','route-preview','destination-capacity','dispatch'])await expect(page.getByTestId(id)).toHaveCount(0);
