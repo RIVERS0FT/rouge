@@ -1,9 +1,9 @@
 import {expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 export const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
-export async function loadMapOrderFixture(page:Page){
+export async function loadMapOrderFixture(page:Page,url='/'){
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),mapOrderFixture);
- await page.goto('/');await page.getByTestId('open-saves').click();
+ await page.goto(url);await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Map order fixture'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
