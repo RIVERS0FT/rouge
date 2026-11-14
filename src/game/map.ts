@@ -28,7 +28,7 @@ export const SOURCE_TO_REGION:Readonly<Record<string,number>>=Object.freeze(Obje
 for(const region of MAP){const neighbors=new Set<number>();for(const code of region.sourceAtoms!)for(const source of sourceByCode.get(code)!.neighbors){const id=SOURCE_TO_REGION[SOURCE_MAP[source].code];if(id!==region.id)neighbors.add(id);}region.neighbors=[...neighbors].sort((a,b)=>a-b);}
 export const VISIBLE_COUNT=MAP.filter(p=>p.visible).length;
 export const PLAYABLE_COUNT=MAP.filter(p=>p.playable).length;
-export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v3',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
+export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v4',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
 const SIZE=25,index=new Map<string,{id:number;part:Vec2[][];bounds:ReturnType<typeof boundsOf>}[]>();
 for(const p of MAP)if(p.visible)for(const part of p.parts){
  const bounds=intersectBounds(boundsOf(part[0]),BOUNDS);if(!bounds)continue;

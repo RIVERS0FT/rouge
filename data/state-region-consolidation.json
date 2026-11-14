@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "reference": "Victoria 3 1.13.7 State Regions (existing approximate numerical overlap audit)",
+  "basePartitionSha256": "5d0acb412cafe8707e1e057c49f005d1d71c202358c34f0e26bcaf09ddc99f51",
+  "overlapAuditSha256": "4473d3733fd68fe5219cdd30875c48d5fffe0bf5aa757b570226e3f6247cc844",
+  "merges": [
+    {
+      "primary": "group:GIN-5627",
+      "fragment": "group:GIN-5630",
+      "stateId": 217,
+      "stateCode": "STATE_GUINEA",
+      "primaryIoUBefore": 0.764454,
+      "consolidatedIoUAfter": 0.764451,
+      "fragmentAreaKm2": 24.8,
+      "fragmentTargetShare": 0.408806,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.946661
+    },
+    {
+      "primary": "group:LVA-1063",
+      "fragment": "group:LVA-5756",
+      "stateId": 151,
+      "stateCode": "STATE_RIGA",
+      "primaryIoUBefore": 0.899812,
+      "consolidatedIoUAfter": 0.898447,
+      "fragmentAreaKm2": 221.985,
+      "fragmentTargetShare": 0.341926,
+      "fragmentRunnerUpShare": 0.114215,
+      "primaryTargetShare": 0.940887
+    },
+    {
+      "primary": "group:NIC-4800",
+      "fragment": "group:NIC-24",
+      "stateId": 339,
+      "stateCode": "STATE_NICARAGUA",
+      "primaryIoUBefore": 0.818102,
+      "consolidatedIoUAfter": 0.799583,
+      "fragmentAreaKm2": 7728.878,
+      "fragmentTargetShare": 0.26938,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.88862
+    },
+    {
+      "primary": "group:PHL-2521",
+      "fragment": "group:PHL-2520",
+      "stateId": 550,
+      "stateCode": "STATE_MINDANAO",
+      "primaryIoUBefore": 0.63194,
+      "consolidatedIoUAfter": 0.628036,
+      "fragmentAreaKm2": 6681.516,
+      "fragmentTargetShare": 0.340433,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.895631
+    },
+    {
+      "primary": "group:TWN-1156",
+      "fragment": "group:TWN-1169",
+      "stateId": 508,
+      "stateCode": "STATE_FORMOSA",
+      "primaryIoUBefore": 0.658801,
+      "consolidatedIoUAfter": 0.657155,
+      "fragmentAreaKm2": 1189.757,
+      "fragmentTargetShare": 0.361039,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.810202
+    },
+    {
+      "primary": "group:UGA-3064",
+      "fragment": "group:UGA-3076",
+      "stateId": 233,
+      "stateCode": "STATE_UGANDA",
+      "primaryIoUBefore": 0.843168,
+      "consolidatedIoUAfter": 0.842156,
+      "fragmentAreaKm2": 3138.934,
+      "fragmentTargetShare": 0.418358,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.915303
+    },
+    {
+      "primary": "group:UGA-3064",
+      "fragment": "group:UGA-3105",
+      "stateId": 233,
+      "stateCode": "STATE_UGANDA",
+      "primaryIoUBefore": 0.843168,
+      "consolidatedIoUAfter": 0.836371,
+      "fragmentAreaKm2": 5779.598,
+      "fragmentTargetShare": 0.3336,
+      "fragmentRunnerUpShare": 0.001434,
+      "primaryTargetShare": 0.915303
+    },
+    {
+      "primary": "group:VEN-25",
+      "fragment": "group:VEN-42",
+      "stateId": 352,
+      "stateCode": "STATE_MIRANDA",
+      "primaryIoUBefore": 0.899491,
+      "consolidatedIoUAfter": 0.899275,
+      "fragmentAreaKm2": 1135.905,
+      "fragmentTargetShare": 0.444552,
+      "fragmentRunnerUpShare": 0.0,
+      "primaryTargetShare": 0.958265
+    }
+  ]
+}

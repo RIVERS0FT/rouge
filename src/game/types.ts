@@ -17,7 +17,7 @@ export interface Province { id:number; owner:number; production:number; kind:Kin
 export interface Unit { travel?:TravelPlan; assault?:number; id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; origin:number; destination:number|null; route:number[]; transport?:{from:number;to:number;index:number;embarked:boolean}; cooldown:number }
 export interface Player { id:number; name:string; country?:CountryIdentity; flag?:Flag; leader:Leader; loadout:Kind[]; ai:boolean; gold:number; constructionFunds:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerollsUsed:number }
 export interface GameEvent { tick:number; key:'capture'|'level'|'victory'; player:number; province?:number }
-export interface GameState { version:5; map:'earth-natural-earth-admin1-511-regions-v3'; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[] }
+export interface GameState { version:5; map:'earth-natural-earth-admin1-511-regions-v4'; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[] }
 export interface PlayerSetup { name:string; flag?:Flag; leader:Leader; loadout:Kind[]; ai?:boolean }
 export type Command =
   | {type:'mergeGroups';groups:string[];expectedRevision:number}

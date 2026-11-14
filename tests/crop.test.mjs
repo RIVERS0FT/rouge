@@ -46,7 +46,7 @@ test('triangle-first clipping never bridges disconnected lobes or paints a hole'
  for(const poly of clipped)assert.ok(poly.every(p=>p.x<=3)||poly.every(p=>p.x>=7));
 });
 test('land-only state atlas excludes sea regions and cannot select beyond polar crop',()=>{
- assert.equal(MAP.length,1162);assert.equal(PLAYABLE_COUNT,1158);
+ assert.equal(MAP.length,1154);assert.equal(PLAYABLE_COUNT,1150);
  assert.equal(MAP.filter(p=>!p.visible).length,4);assert.ok(MAP.filter(p=>!p.visible).every(p=>!p.playable));
  for(const lat of [74.1,80,89,-59,-80]){const p=project(10,lat);assert.equal(provinceAt(p.x,p.z),-1);}
  for(const code of ['STATE_NORTH_SEA','STATE_CORAL_SEA','NOR-901'])assert.equal(searchProvinces(code).length,0);

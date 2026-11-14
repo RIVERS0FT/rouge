@@ -1,5 +1,7 @@
 # Locked gameplay regions, map v3
 
+> 地图 v3 历史记录。当前 v4 增量、存档和联机规则见 [STATE_REGION_CONSOLIDATION.md](STATE_REGION_CONSOLIDATION.md)。
+
 ## Actual operational map
 
 `sourceMap.ts` retains all 4,596 complete Natural Earth Admin1 features, stable source IDs, polygon rings, holes, islands, and real shared-edge topology. `data/gameplay-region-partition.json.gz` records the reproducible, reference-guided preprocessing partition without editing that source archive. Source geometry remains public-domain Natural Earth; the reference is a placement/partition hint, not replacement pixel geometry.

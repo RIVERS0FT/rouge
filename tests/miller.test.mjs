@@ -58,7 +58,7 @@ test('holes are not land and date-line islands never span the world',()=>{
  for(const p of MAP.filter(p=>p.playable))for(const part of p.parts)for(const ring of part)for(let i=1;i<ring.length;i++)assert.ok(Math.abs(ring[i].x-ring[i-1].x)<=1800.001,p.code);
 });
 test('Miller saves keep high IDs and reject both legacy coordinate systems',()=>{
- const s=createGame(setup,10);assert.equal(s.provinces.length,1162);assert.ok(validateState(s));assert.deepEqual(decodeSave(encodeSave(s,'Earth')).state,s);
+ const s=createGame(setup,10);assert.equal(s.provinces.length,1154);assert.ok(validateState(s));assert.deepEqual(decodeSave(encodeSave(s,'Earth')).state,s);
  assert.equal(validateState({...s,map:'frontier-32-v1',version:1}),false);
  assert.equal(validateState({...s,map:'earth-admin1-mercator-v1',version:2}),false);
  assert.equal(validateState({...s,map:'earth-admin1-mercator-v1'}),false);

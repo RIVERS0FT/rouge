@@ -15,7 +15,7 @@ test('Baikonur searches and actions resolve to the single Karaganda region and p
   await expect(canvas).toHaveAttribute('data-selected-region',String(fixture.region));
   await expect(page.locator('.province-panel h2')).toHaveText('卡拉干达州');await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
  }
- await expect(page.locator('.resource').filter({hasText:'领土'})).toContainText('1 / 1158');
+ await expect(page.locator('.resource').filter({hasText:'领土'})).toContainText('1 / 1150');
  await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  await page.screenshot({path:'artifacts/baikonur-karaganda-region.png'});
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();await page.getByPlaceholder('存档名称').fill('Merged Karaganda');await page.getByTestId('create-save').click();

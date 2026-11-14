@@ -10,7 +10,7 @@ const site=process.env.SITE_URL?.replace(/\/?$/,'/');
 assert.ok(site?.startsWith('https://'),'HTTPS Pages URL required');
 const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
 const atlas=JSON.parse(fs.readFileSync('game/src/generated/gameplay-map.json','utf8'));
-const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v3';
+const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v4';
 assert.ok(regions,'Expected preprocessed gameplay-region map');
 const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{cwd:'game',encoding:'utf8',maxBuffer:16*1024*1024}));
 
@@ -140,7 +140,7 @@ try{
  await expect(page.locator('.save-card').filter({hasText:'Pages map order'})).toBeVisible();
  if(regions){
   const routes=await page.evaluate(()=>{
-   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v3.')&&!k.endsWith('.backup'));
+   const records=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v4.')&&!k.endsWith('.backup'));
    const record=records.find(k=>localStorage.getItem(k).includes('Pages map order'));
    if(!record)throw new Error('Verification save missing');
    const s=JSON.parse(JSON.parse(localStorage.getItem(record)).body);
