@@ -7,5 +7,6 @@ const from=state.provinces.find(p=>p.owner===0&&MAP[p.id].neighbors.some(n=>MAP[
 if(!from)throw Error('No fixture region with an eligible adjacent atom');
 const to=MAP[from.id].neighbors.find(n=>MAP[n].playable&&state.provinces[n].owner!==1);
 state.provinces[to].owner=0;state.provinces[to].kind='infantry';state.units=[];
+state.players[0].funds=64;
 state.grouping=createTerritoryGrouping(TERRITORY_TOPOLOGY);
 console.log(JSON.stringify({key:SAVE_PREFIX+'territory-ui',value:encodeSave(state,'Territory UI fixture'),selectedCode:MAP[from.id].code}));

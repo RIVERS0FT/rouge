@@ -59,7 +59,7 @@ test('Baikonur and Karaganda have one queue, garrison, capture, ownership count 
 
 test('pre-merge v4 saves and LAN snapshots reject explicitly and old storage remains untouched',()=>{
  const s=game(),old={...s,map:'earth-natural-earth-admin1-511-regions-v4'},body=JSON.stringify(old),raw=JSON.stringify({version:1,name:'Before merge',savedAt:new Date().toISOString(),hash:checksum(body),body});
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v5');assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v5.');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v5');assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v6.');
  assert.throws(()=>decodeSave(raw),/incompatibleMap/);assert.throws(()=>applyFrame(null,{type:'state',state:old}),/incompatibleMap/);
  const oldKey='rouge.save.natural-earth-admin1.regions.v4.same',records=new Map([[oldKey,raw]]),storage={get length(){return records.size},key:i=>[...records.keys()][i]??null,getItem:k=>records.get(k)??null,setItem:(k,v)=>records.set(k,v),removeItem:k=>records.delete(k)};
  writeSave(storage,'same',s,'After merge');assert.equal(listSaves(storage).length,1);deleteSave(storage,'same');assert.equal(records.get(oldKey),raw);

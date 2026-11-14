@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react';
-import {CONSTRUCTION, CONSTRUCTION_KINDS, constructionFunds, constructionIncomeRate} from '../game/construction.ts';
+import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, fundsIncomeRate} from '../game/construction.ts';
 import {MAP} from '../game/map.ts';
 import {regionProductionRate} from '../game/territoryEconomy.ts';
 import type {Command, ConstructionKind, GameState} from '../game/types.ts';
@@ -36,13 +36,13 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
  const text = (key: string) => t(language, key);
  const own = province.owner === actor, editable = own && MAP[target].playable && !eliminated && state.winner === null;
  const ready = editable && province.capture <= 0;
- const funds = own ? constructionFunds(state, actor) : 0;
+ const funds = own ? availableFunds(state, actor) : 0;
  const building = province.construction;
  const counts: Record<ConstructionKind, number> = {market: 0, barracks: 0, fortress: 0};
  let income = 0;
  for(const member of members) {
   const region = state.provinces[member], item = region.construction;
-  if(region.owner === actor) income += constructionIncomeRate(region, regionProductionRate(member));
+  if(region.owner === actor) income += fundsIncomeRate(region, regionProductionRate(member));
   if(item) counts[item.kind]++;
  }
  if(!own && !building && members.length <= 1) return null;
@@ -59,7 +59,7 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
   </button>
  );
  return <section className="province-construction" data-testid="province-construction" aria-label={text('constructionTitle')}>
-  <SectionRibbon aside={own ? <span className="construction-funds" data-testid="construction-funds">{text('constructionFunds')} <strong>{funds}</strong></span> : undefined}>
+  <SectionRibbon aside={own ? <span className="construction-funds" data-testid="construction-funds">{text('funds')} <strong>{funds}</strong></span> : undefined}>
    {text('constructionTitle')}
   </SectionRibbon>
   {own && <div className="construction-income" data-testid="construction-income">{text('constructionIncome').replace('{amount}', String(Number(income.toFixed(2))))}</div>}

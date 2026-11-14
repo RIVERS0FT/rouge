@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 import {openMapSearch} from './map-search.ts';
 
-test('construction spends build funds and targets only the chosen base region in a merged territory',async({page})=>{
+test('construction spends shared funds and targets only the chosen base region in a merged territory',async({page})=>{
  test.setTimeout(180000);
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-territory-ui-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);

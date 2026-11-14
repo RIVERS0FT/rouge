@@ -21,7 +21,7 @@ test('seeded starts are dispersed, non-overlapping, equally resourced and land-c
    assert.deepEqual(s.provinces.filter(p=>p.owner===actor).map(p=>p.id),[id]);
    assert.equal(regionCapacity(id),12);assert.equal(regionProductionRate(id),1);
    const units=s.units.filter(u=>u.owner===actor);
-   assert.equal(units.length,5);assert.equal(s.players[actor].gold,120);
+   assert.equal(units.length,5);assert.equal(s.players[actor].funds,184);
    assert.ok(units.every(u=>u.province===id&&pointInProvince(id,u.x,u.z)));
    assert.ok(MAP[id].neighbors.some(n=>[[id,n],[n,id]].every(([from,to])=>{
     const start=MAP[from].center,end=MAP[to].center,flow=nav.plan(start,end);

@@ -34,7 +34,7 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Remote order'})).toBeVisible();
  const routes=await page.evaluate(()=>{
-  const saves=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v5.')&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
+  const saves=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v6.')&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
   const state=JSON.parse(saves.find(s=>s.name==='Remote order').body);
   return state.units.filter((u:any)=>u.owner===0&&u.destination!==null).map((u:any)=>({origin:u.origin,destination:u.destination,route:u.route,travel:u.travel,province:u.province}));
  });

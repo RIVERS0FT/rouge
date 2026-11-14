@@ -21,13 +21,13 @@ for(const mode of ['desktop','phone'] as const)test(`nation details and map loca
  await expect(panel.locator('.nation-detail-flag svg')).toBeVisible();
  await expect(details.getByText('Leader level',{exact:true})).toBeVisible();
  await expect(details.getByTestId('nation-building-market')).toHaveText('0');
- await expect(details.getByTestId('nation-construction-funds')).toHaveText(/^\d+$/);
+ await expect(details.getByTestId('nation-funds')).toHaveText(/^\d+$/);
  await expect(back).toBeFocused();
  await back.click();await expect(own).toBeFocused();
 
  await rival.click();
  await expect(details).toHaveAttribute('data-nation','1');
- await expect(details.getByTestId('nation-construction-funds')).toHaveCount(0);
+ await expect(details.getByTestId('nation-funds')).toHaveCount(0);
  const locate=details.getByTestId('nation-locate');
  await expect(locate).toBeEnabled();
  const canvas=page.locator('.world canvas');

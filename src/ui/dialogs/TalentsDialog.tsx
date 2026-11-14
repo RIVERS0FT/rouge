@@ -15,7 +15,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
  language: Language; onChoose: (id: string) => void; onReroll: (cost: number) => void;
 }) {
  const text = (key: string) => t(language, key), progress = leaderProgress(player), rerollCost = talentRerollCost(player);
- // Progress and gold change on normal ticks; only an authoritative round changes this key.
+ // Progress and funds change on normal ticks; only an authoritative round changes this key.
  const round = JSON.stringify([campaign, player.id, player.talents.length, player.rerollsUsed, player.choices]);
  return <>
   <div className="talent-hero">
@@ -33,7 +33,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
   {player.choices.length ? <>
    <TalentDraftCards key={round} round={round} seenRound={seenRound} choices={player.choices} disabled={eliminated || pending} language={language} onChoose={onChoose}/>
    <div className="talent-actions">
-    <button type="button" className="secondary" data-testid="reroll-talents" disabled={eliminated || pending || player.gold < rerollCost || !canRerollTalent(player)} onClick={() => onReroll(rerollCost)}>{text('reroll')} · {text('talentRerollGold').replace('{cost}', String(rerollCost))}</button>
+    <button type="button" className="secondary" data-testid="reroll-talents" disabled={eliminated || pending || player.funds < rerollCost || !canRerollTalent(player)} onClick={() => onReroll(rerollCost)}>{text('reroll')} · {text('talentRerollFunds').replace('{cost}', String(rerollCost))}</button>
    </div>
   </> : <div className="empty-state">{text('level')} {player.level}/8 · {Math.floor(player.xp)}/{60 + player.level * 45} {text('experience')}</div>}
   {player.talents.length > 0 && <div className="chosen-talents">{player.talents.map(id => <span key={id} title={text(`${id}.desc`)}>✧ {text(id)}</span>)}</div>}

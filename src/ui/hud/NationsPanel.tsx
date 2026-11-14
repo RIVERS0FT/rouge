@@ -59,7 +59,7 @@ export function NationsPanel({state, actor, factions, language, onFocusNation, o
    <SectionRibbon>{text('nationBuildings')}</SectionRibbon>
    <dl className="nation-metrics nation-rows">
     {CONSTRUCTION_KINDS.map(kind => <div key={kind}><dt>{text(`construction.${kind}`)}</dt><dd data-testid={`nation-building-${kind}`}>{number(details.buildings[kind])}</dd></div>)}
-    {details.funds !== null && <div><dt>{text('constructionFunds')}</dt><dd data-testid="nation-construction-funds">{number(details.funds)}</dd></div>}
+    {details.funds !== null && <div><dt>{text('funds')}</dt><dd data-testid="nation-funds">{number(details.funds)}</dd></div>}
    </dl>
   </div> : <>
    <div className="nation-head" aria-hidden="true">

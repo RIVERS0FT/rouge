@@ -1,5 +1,5 @@
 import {validGroupingState} from '../game/territoryEconomy.ts';
-import {MAP_ID} from '../game/content.ts';
+import {MAP_ID, STATE_VERSION} from '../game/content.ts';
 import type {GameState, Province, Unit} from '../game/types.ts';
 
 /** Full state on connection; reliable ordered deltas thereafter. Static GIS never travels here. */
@@ -39,7 +39,7 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
-  if(frame.state.map!==MAP_ID||frame.state.version!==5||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw new Error('incompatibleMap');
+  if(frame.state.map!==MAP_ID||frame.state.version!==STATE_VERSION||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw new Error('incompatibleMap');
   if(frame.type==='state'){if(!validGroupingState(frame.state))throw new Error('invalidSnapshot');return frame.state;}
   if(!current||current.campaign!==frame.campaign||current.tick!==frame.baseTick||frame.state.map!==current.map)throw new Error('snapshotGap');
   const provinces=current.provinces.slice();

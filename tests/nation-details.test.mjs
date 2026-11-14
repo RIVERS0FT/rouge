@@ -13,7 +13,7 @@ test('nation details separate troop states, count each playable facility once, a
   {owner:1,province:c.id,target:null},
  ];
  const state={provinces:[province(a,0,'market',2),province(b,0,'barracks',1),province(c,1,'fortress',1),
-  province(nonPlayable,0,'fortress',1)],players:[{constructionFunds:70.8},{constructionFunds:39}],units};
+  province(nonPlayable,0,'fortress',1)],players:[{funds:70.8},{funds:39}],units};
  const expected={army:{total:3,garrison:1,marching:1,embarked:1},buildings:{market:1,barracks:1,fortress:0},funds:70};
  assert.deepEqual(nationDetails(state,0,0),expected);
  // A temporary group covering both base provinces is not an additional building.
