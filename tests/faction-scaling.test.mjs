@@ -25,9 +25,12 @@ test('muted historical faction inks extend deterministically beyond the curated 
 test('commander identities support all valid actor indices',()=>{
  for(const actor of [4,255,256,10000]){
   assert.equal(commanderIdentity(actor).actor,actor);
-  assert.equal(commanderIdentity(actor).names[1],`Faction ${actor+1}`);
+  assert.deepEqual(commanderIdentity(actor).names,[`国家 ${actor+1}`,`Country ${actor+1}`]);
  }
- for(const actor of [-1,NaN,Infinity,1.5])assert.equal(commanderIdentity(actor).actor,null);
+ for(const actor of [-1,NaN,Infinity,1.5]){
+  assert.equal(commanderIdentity(actor).actor,null);
+  assert.deepEqual(commanderIdentity(actor).names,['未知国家','Unknown country']);
+ }
 });
 test('high actor indices survive simulation, elimination and full/delta replication',()=>{
  const setup=[{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'warden',loadout:['infantry']}];

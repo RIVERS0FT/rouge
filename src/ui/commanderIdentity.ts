@@ -1,10 +1,10 @@
 import type { Player } from '../game/types.ts';
 
-/** A seat is a player faction, not a modern or historical country. */
+/** A seat is an in-game country, not necessarily a modern or historical country. */
 export function commanderIdentity(actor:number) {
   const valid=Number.isSafeInteger(actor)&&actor>=0;
   return {actor:valid?actor:null,home:null,
-    names:valid?[`阵营 ${actor+1}`,`Faction ${actor+1}`]:['未知阵营','Unknown faction']};
+    names:valid?[`国家 ${actor+1}`,`Country ${actor+1}`]:['未知国家','Unknown country']};
 }
 
 export function leaderProgress(player: Pick<Player, 'level' | 'xp'>) {

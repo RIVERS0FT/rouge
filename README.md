@@ -113,7 +113,7 @@ npm run test:e2e
 
 The three starting leaders now select a portrait only: Warden home defense, Vanguard movement, and Quartermaster recovery bonuses are removed. Level progression, earned talents and unit upgrades are unchanged. Existing saves retain their leader portraits but resume with the new rules.
 
-The game-creation flag editor offers 128 real national flags (UN member states, grouped by continent and drawn as original SVG at 3:2) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Every computer faction also flies a real flag: the flag of the country its first region belongs to, or — when a player or an earlier faction already flies that flag, or the country has no catalog flag — the nearest flag nobody flies yet; flags repeat only once all 128 are in use. AI flags are derived from the shared game state, so they need no new save or network fields, every client shows the same banners, and old saves get them too. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
+The game-creation flag editor offers 128 real national flags (UN member states, grouped by continent and drawn as original SVG at 3:2) and a custom three-color editor with solid, horizontal, vertical and cross patterns. Flags are cosmetic and do not select a country, start location, army or map color. They appear in the local HUD and LAN lobby and travel with saved/networked player state. Every AI country also flies a real flag: the flag of the country its first region belongs to, or — when a player or an earlier AI country already flies that flag, or the country has no catalog flag — the nearest flag nobody flies yet; flags repeat only once all 128 are in use. AI flags are derived from the shared game state, so they need no new save or network fields, every client shows the same banners, and old saves get them too. Custom flags accept only enumerated patterns and three six-digit hex colors, never uploads, URLs or executable markup. LAN rules identity changes to prevent mixed gameplay versions.
 
 ### 手机操作
 
@@ -123,11 +123,11 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 ### 开局、AI与外观配置
 
-新战役按种子确定性分配出生地：每位真人或 AI 只获得一块不重叠且有双向陆路出口的领地，该地块有 5 支开局单位；后续出生点尽量远离已分配阵营。每个可游玩的中立地块也预置 5 支中立步兵，不自行补充；不可游玩的地块不放守军。旗帜与领袖不影响出生、资源或能力。已有存档不会补发守军或重新分布。
+新战役按种子确定性分配出生地：每位真人或 AI 只获得一块不重叠且有双向陆路出口的领地，该地块有 5 支开局单位；后续出生点尽量远离已分配国家。每个可游玩的中立地块也预置 5 支中立步兵，不自行补充；不可游玩的地块不放守军。旗帜与领袖不影响出生、资源或能力。已有存档不会补发守军或重新分布。
 
-单人和多人使用数字输入框配置 AI，框内显示当前可输入范围，不再限制4个阵营或4名真人。上限只取决于当前地图能分配的完整出生资源：当前地图按预处理后的实际地块重新计算互不重叠的双区域出生位，单人AI上限为该容量减1，多人AI范围随已加入的真人席位数减少。联机至少2名当前在线真人才能开始，AI及断线席位不计入这一门槛，也不需要等满房间。AI仍预留出生资源，其他玩家加入不会挤走AI；服务端在修改发生时再次校验并发加入、配置和开始。
+单人和多人使用数字输入框配置 AI，框内显示当前可输入范围，不再限制4个国家或4名真人。上限只取决于当前地图能分配的完整出生资源：当前地图按预处理后的实际地块重新计算互不重叠的双区域出生位，单人AI上限为该容量减1，多人AI范围随已加入的真人席位数减少。联机至少2名当前在线真人才能开始，AI及断线席位不计入这一门槛，也不需要等满房间。AI仍预留出生资源，其他玩家加入不会挤走AI；服务端在修改发生时再次校验并发加入、配置和开始。
 
-出生资源上限不代表设备或网络负载保证。大量阵营会增加模拟、路径规划、画面和网络开销，手机与普通局域网建议先从较少人数开始。AI按阵营错峰思考，调兵与玩家一样派出全部可用驻军，按同一间隔逐个出发，并遵守相同的目标容量规则；离线存档与联机状态支持高编号阵营，配色按编号生成。地图数据更新后运行 `npm run prepare:map && node --experimental-strip-types scripts/build-spawn-sites.mjs` 重新生成 `data/spawn-sites.json`；算法从合法双向陆路邻接图提取可独立开局的地块，不使用手写席位上限。详见 [开局容量与性能验证](docs/OPEN_GAME_SETUP.md)。
+出生资源上限不代表设备或网络负载保证。大量国家会增加模拟、路径规划、画面和网络开销，手机与普通局域网建议先从较少人数开始。AI按国家错峰思考，调兵与玩家一样派出全部可用驻军，按同一间隔逐个出发，并遵守相同的目标容量规则；离线存档与联机状态支持高编号国家，配色按编号生成。地图数据更新后运行 `npm run prepare:map && node --experimental-strip-types scripts/build-spawn-sites.mjs` 重新生成 `data/spawn-sites.json`；算法从合法双向陆路邻接图提取可独立开局的地块，不使用手写席位上限。详见 [开局容量与性能验证](docs/OPEN_GAME_SETUP.md)。
 
 国旗与玩家领袖形象在单人和多人创建游戏时设置，使用同一原创肖像，并与单位、AI、姓名及必要联机设置集中展示。修改外观后返回原创建窗口，不丢失未完成的其他选项。已有国旗和领袖偏好会自动填入，无需每次重新选择；开始菜单不再展示外观编辑入口。领袖与旗帜偏好保存在当前浏览器，只有这两项，不保存姓名或联网凭证；加载旧战役不覆盖其人物/旗帜。自定义旗帜可拖绘圆、矩形、三角、星形，支持选择删除、撤销与清空。最多24个形状，坐标/尺寸/颜色均严格校验，旧预设和条纹旗帜仍兼容。
 
@@ -139,7 +139,7 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 战斗界面的地图来源文字与操作提示叠层已隐藏，地图/来源资料仍保留于说明文档和发布文件；实际输入设备识别及所有地图操作保持不变。
 
-阵营在本帧所有占领统一结算后若领土为0，立即淘汰：残余军队（含海上运输）和未完成占领清除，后续命令被拒绝。失地和新占领同时发生不会误判。玩家看到失败后可观战或返回菜单；多人只淘汰该阵营，其他真人与AI继续，最终胜利规则不变。读取当前格式存档时也会清理零领土残军，原存档文件本身不被自动重写。
+国家在本帧所有占领统一结算后若领土为0，立即淘汰：残余军队（含海上运输）和未完成占领清除，后续命令被拒绝。失地和新占领同时发生不会误判。玩家看到失败后可观战或返回菜单；多人只淘汰该国家，其他真人与AI继续，最终胜利规则不变。读取当前格式存档时也会清理零领土残军，原存档文件本身不被自动重写。
 
 选中领土保持原归属填充色，使用金色描边与有限宽度的内边缘柔光标记；柔光与真实陆地三角网求交，不越过海岸或填满孔洞，并沿用2D/3D地形和日期线副本。
 
@@ -153,7 +153,7 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 开始菜单、战役设置、外观、领土管理和战场仅保留操作控件、必要状态及战斗数值。技术选型、地图来源、内部编码/修订号和操作教学不在游戏界面显示；来源与部署信息仍在本说明、docs 和发布文件中。中文与英文分别显示对应标题、系统生成的电脑玩家名称、等级、经验和时间单位，玩家输入的名称与存档名保持原样。兵种属性继续通过悬停、聚焦或轻点查看。手机与桌面沿用相同菜单布局。
 
-国家疆界按实时玩家归属显示，真人与 AI 使用同一规则：不同阵营之间为醒目的深色粗线，同阵营内部不同管理地块之间为低透明度细线，已合并管理组的内部原子边界继续隐藏。每个中立管理地块独立视为一个国家，中立之间也画国家疆界。占领、合并与拆分后即时更新，不改变实际领土、兵力或地理数据；海岸保留独立轮廓，日期线裁切不额外画接缝。国家与选中描边采用屏幕像素宽度，保持手机、缩放和地形视角下的辨识度。
+国家疆界按实时玩家归属显示，真人与 AI 使用同一规则：不同国家之间为醒目的深色粗线，同国家内部不同管理地块之间为低透明度细线，已合并管理组的内部原子边界继续隐藏。每个中立管理地块独立视为一个国家，中立之间也画国家疆界。占领、合并与拆分后即时更新，不改变实际领土、兵力或地理数据；海岸保留独立轮廓，日期线裁切不额外画接缝。国家与选中描边采用屏幕像素宽度，保持手机、缩放和地形视角下的辨识度。
 
 ### 首屏与共享资源
 
@@ -171,7 +171,7 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 真人玩家的姓名就是国家名称，多人分别保留各自输入的名称。AI 国家在出生地分配完成后，以主出生游戏地块的双语地理名称为根，组合16种国家形式；相同地名先使用不同形式，仍不足时追加序号，命名不限制 AI 数量。不是随机抽取世界其他地方的国家，也不会因为后来征服或失去出生地而改名。名称与出生地一起保存并随多人状态同步，切换中英文只切换 AI 名称的对应语言，不翻译真人姓名。旧版当前地图存档的 AI 名称按原种子重建出生地补齐，未命名源地理数据使用双语“新境”备用名。
 
-国家名称固定在当前最大连通领地的内部地块中心，同一阵营显示一次；占领、丢失、分裂等实际归属变化后重新计算锚点。相机平移、缩放和面板状态不改变锚点，国家文字固定上移24像素与锚点地名分开。日期线两侧按重复地球显示相邻副本，避免换边跳变。国家名与地块名每次地图绘制同步投影；地块名保留原有相机距离小于500时显示的缩放规则。在应显示的缩放范围内，两类文字只有完整边界离开屏幕后才隐藏，局部出屏保留，不考虑面板、其他标签或单位遮挡，不限制名称数量。国家名现有缩放规则不变。两类标签按需复用节点，文字宽度缓存，不接收鼠标或触摸事件。中立势力没有国家名称，仍保留地块地名与中立疆界。
+国家名称固定在当前最大连通领地的内部地块中心，同一国家显示一次；占领、丢失、分裂等实际归属变化后重新计算锚点。相机平移、缩放和面板状态不改变锚点，国家文字固定上移24像素与锚点地名分开。日期线两侧按重复地球显示相邻副本，避免换边跳变。国家名与地块名每次地图绘制同步投影；地块名保留原有相机距离小于500时显示的缩放规则。在应显示的缩放范围内，两类文字只有完整边界离开屏幕后才隐藏，局部出屏保留，不考虑面板、其他标签或单位遮挡，不限制名称数量。国家名现有缩放规则不变。两类标签按需复用节点，文字宽度缓存，不接收鼠标或触摸事件。中立势力没有国家名称，仍保留地块地名与中立疆界。
 
 ### 地形与海洋美术
 
@@ -181,13 +181,13 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 ### 随地图视图切换的部队显示
 
-沿用原有缩放视图：远景 2D 战略地图显示阵营着色的 2D 兵种精灵，近景 3D 地形地图显示实体模型。滚轮、触摸捏合或 ± 自动切换；Home 回到战略全图，End 聚焦已选地块。八种陆军各有图形标记，已登船单位统一显示运输船标记；全图缩放时临近单位图标可能重叠，放大即可分辨。
+沿用原有缩放视图：远景 2D 战略地图显示按国家着色的 2D 兵种精灵，近景 3D 地形地图显示实体模型。滚轮、触摸捏合或 ± 自动切换；Home 回到战略全图，End 聚焦已选地块。八种陆军各有图形标记，已登船单位统一显示运输船标记；全图缩放时临近单位图标可能重叠，放大即可分辨。
 
 每个可见单位只绘制一次，两种表现共用同一单位 ID、位置、插值、数量和移动/战斗/占领状态，切换不改变存档或游戏规则。2D 图标按屏幕像素限定大小，使用一个批量实例绘制及共享纹理；3D 继续使用批量模型。离开视口的单位不绘制，缓冲区按需增长而不限制模拟人数。图标不接管地块的选择、触摸或下令操作。
 
 部队在两种视图中共用100毫秒快照缓冲，按画面帧插值移动，不再反复追赶新快照。可辨识的移动最高60帧/秒，全图细微移动自适应降低重绘；静止和被弹窗遮住的地图休眠。暂停或网络延迟时停在最后确认的位置，不预测移动；建筑、海岸和登船边界不作穿越插值。实际帧率取决于设备。详见[平滑移动与验证](docs/UNIT_MOVEMENT.md)。
 
-2D部队采用更清晰的浅色边框、深色轮廓、轻微立体底板与加粗兵种标记。共享高分辨率图集逐级缩小并隔离各兵种边缘，透明边缘保留连续覆盖率，减少缩放和移动中的锯齿、闪烁与串图；阵营着色、单位数量和单次批量绘制保持不变。
+2D部队采用更清晰的浅色边框、深色轮廓、轻微立体底板与加粗兵种标记。共享高分辨率图集逐级缩小并隔离各兵种边缘，透明边缘保留连续覆盖率，减少缩放和移动中的锯齿、闪烁与串图；按国家着色、单位数量和单次批量绘制保持不变。
 
 ### 国家地图名称
 
@@ -195,7 +195,7 @@ The game-creation flag editor offers 128 real national flags (UN member states, 
 
 国名字样参考维多利亚 3 官方实机截图的细衬线墨字和疏朗字距，使用系统字体与 SVG textPath，逐字沿曲线转向。路径按国土归属缓存，征服或失地后仅重新计算受影响国家；平移、缩放、语言和 HUD 操作只更新投影或文字排版。跨日期线的国土统一展开，避免国名在两端之间跳动。省名保留原有近景显示范围。
 
-国旗是一面真正飘动的布：画布逐像素列绘制连续行波，没有分条接缝；波浪从旗杆向旗尾传播，旗杆端几乎不动、旗尾摆幅最大。光线来自左上方，褶皱明暗随波平移，旗面左上亮、右下暗，投影落向右下。整体阵风只做竖向错切，不做透视转动，旗尾与旗杆始终等高；应用于阵营栏、外观预览和联机大厅。弹窗遮挡战场时旗帜暂停，系统设置减少动态效果时显示冻结的静态波形布面。自定义旗帜绘图画布保持平面坐标，预设与自绘内容仍按原格式存档和联机同步。视觉参考：[Victoria 3 官方截图](https://store.steampowered.com/app/529340/Victoria_3/)。
+国旗是一面真正飘动的布：画布逐像素列绘制连续行波，没有分条接缝；波浪从旗杆向旗尾传播，旗杆端几乎不动、旗尾摆幅最大。光线来自左上方，褶皱明暗随波平移，旗面左上亮、右下暗，投影落向右下。整体阵风只做竖向错切，不做透视转动，旗尾与旗杆始终等高；应用于国旗栏、外观预览和联机大厅。弹窗遮挡战场时旗帜暂停，系统设置减少动态效果时显示冻结的静态波形布面。自定义旗帜绘图画布保持平面坐标，预设与自绘内容仍按原格式存档和联机同步。视觉参考：[Victoria 3 官方截图](https://store.steampowered.com/app/529340/Victoria_3/)。
 
 左下角领袖画像显示玩家名称，左上角显示当前等级；手机在头像姓名条右侧显示等级，长姓名省略显示但保留完整标题。点击或键盘激活整张画像仍打开天赋，待选天赋用边框与无障碍标签提示。经验和天赋详情仍在原有面板，单人存档与多人身份规则不变。
 
