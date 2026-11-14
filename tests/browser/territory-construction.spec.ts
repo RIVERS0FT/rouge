@@ -25,7 +25,7 @@ test('construction spends build funds and targets only the chosen base region in
  const target=page.getByTestId('construction-target');
  await expect(target.locator('option')).toHaveCount(2);
  const first=await target.inputValue();
- const second=await target.locator('option').evaluateAll(options=>options.map(option=>(option as HTMLOptionElement).value).find(value=>value!==first)!);
+ const second=await target.locator('option').evaluateAll((options,current)=>options.map(option=>(option as HTMLOptionElement).value).find(value=>value!==current)!,first);
  await target.selectOption(second);
  const barracks=construction.getByTestId('construct-barracks');
  const cost=Number((await barracks.textContent())!.split('·')[1].trim());
