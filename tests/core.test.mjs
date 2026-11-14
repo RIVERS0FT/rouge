@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { MAP, provinceAt, STARTS, pointInProvince } from '../src/game/map.ts';
 import { buildFlow,findRegionRoute } from '../src/game/navigation.ts';
-import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX } from '../src/game/save.ts';
+import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX, checksum } from '../src/game/save.ts';
 import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
 import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
@@ -52,4 +52,14 @@ test('Miller slots do not read, delete or overwrite legacy Mercator slots',()=>{
  writeSave(storage,'same',state,'Miller');assert.equal(listSaves(storage).length,1);
  assert.equal(storage.getItem(legacyKey),'old-game-must-remain');deleteSave(storage,'same');
  assert.equal(storage.getItem(legacyKey),'old-game-must-remain');assert.equal(listSaves(storage).length,0);
+});
+
+test('unreadable older same-slot records are neither migrated nor overwritten',()=>{
+ const storage=new MemoryStorage(),current=fresh().state,record=JSON.parse(encodeSave(current,'Older era'));
+ const prior=JSON.parse(record.body);delete prior.neutralGarrisonModel;
+ const body=JSON.stringify(prior),old=JSON.stringify({...record,body,hash:checksum(body)}),slot=SAVE_PREFIX+'taken';
+ storage.setItem(slot,old);
+ assert.throws(()=>readSave(storage,'taken'),/invalidSave/);assert.throws(()=>writeSave(storage,'taken',current,'New'),/invalidSave/);
+ assert.equal(storage.getItem(slot),old);assert.equal(storage.getItem(slot+'.backup'),null);
+ writeSave(storage,'new',current,'Current');assert.deepEqual(readSave(storage,'new').state,current);
 });

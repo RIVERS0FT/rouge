@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {KINDS,LEGACY_KINDS,UNITS,TALENTS,stats,talentApplies,validateSetup} from '../src/game/content.ts';
+import {KINDS,UNITS,TALENTS,stats,talentApplies,validateSetup} from '../src/game/content.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {encodeSave,decodeSave,checksum,validateState} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {MAP,provinceByCode,SOURCE_MAP,STARTS} from '../src/game/map.ts';
-const NEW=KINDS.filter(k=>!LEGACY_KINDS.includes(k));
+const NEW=['skirmisher','grenadier','heavyCavalry','horseArtillery'];
 const setup=k=>({name:k,leader:'steward',loadout:[k]});
 const fresh=k=>new Engine(createGame([setup(k),setup('infantry')],42));
 for(const kind of NEW)test(kind+': single-choice campaign, production, upgrades, save and replication',()=>{
@@ -37,14 +37,13 @@ test('family-specific talent offers and bonuses work for both original and new m
   }
  }
 });
-test('old four-kind saves gain only new zero upgrade entries, while malformed or active-new-kind saves are rejected',()=>{
- const s=fresh('infantry').state;for(const p of s.players)for(const k of NEW)delete p.upgrades[k];
+test('old four-kind saves and old multi-kind loadouts are rejected without migration',()=>{
+ const s=fresh('infantry').state;
  const wrap=state=>{const body=JSON.stringify(state);return JSON.stringify({version:1,name:'old',savedAt:new Date().toISOString(),hash:checksum(body),body});};
- assert.equal(validateState(s),false);
- const migrated=decodeSave(wrap(s)).state;assert.ok(validateState(migrated));
- for(const p of migrated.players)for(const k of NEW)assert.deepEqual(p.upgrades[k],{attack:0,health:0,speed:0});
- const bad=structuredClone(s);bad.players[0].upgrades.infantry.attack=99;assert.throws(()=>decodeSave(wrap(bad)));
- const active=fresh('grenadier').state;delete active.players[0].upgrades.grenadier;assert.throws(()=>decodeSave(wrap(active)));
+ const old=structuredClone(s);for(const p of old.players)for(const k of NEW)delete p.upgrades[k];
+ assert.equal(validateState(old),false);assert.throws(()=>decodeSave(wrap(old)),/invalidSave/);
+ const multi=structuredClone(s);multi.players[0].loadout.push('artillery');
+ assert.equal(validateState(multi),false);assert.throws(()=>decodeSave(wrap(multi)),/invalidSave/);
 });
 test('every new kind can capture without engineer bonuses and AI can upgrade its own kind',()=>{
  for(const k of NEW){

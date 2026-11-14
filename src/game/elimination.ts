@@ -1,7 +1,7 @@
 import { MAP } from './map.ts';
 import type { GameState } from './types.ts';
 
-// Derived from territory rather than a new save field, including legacy v5 games.
+// Derived from territory rather than independent saved flags.
 export function isEliminated(state:GameState,actor:number):boolean {
   return !!state.players[actor]&&!state.provinces.some(p=>MAP[p.id].playable&&p.owner===actor);
 }

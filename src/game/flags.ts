@@ -1,6 +1,6 @@
 import {FLAG_PRESET_IDS,type FlagPresetId} from './flagCatalog.ts';
 /** Cosmetic only: never determines ownership, spawn position or combat rules.
- * Presets are real national flags (see flagCatalog.ts); the first eight keep their old ids. */
+ * Presets are real national flags (see flagCatalog.ts). */
 export const FLAG_PRESETS:readonly FlagPresetId[]=FLAG_PRESET_IDS;
 export type {FlagPresetId};
 export const FLAG_PATTERNS=['solid','horizontal','vertical','cross'] as const;

@@ -19,12 +19,12 @@ test('simultaneous exchange of last regions does not prematurely eliminate eithe
  s.units=[occupy(s,0,b),occupy(s,1,a)];const e=new Engine(s);e.step();assert.equal(e.state.provinces[a.id].owner,1);assert.equal(e.state.provinces[b.id].owner,0);
  assert.equal(isEliminated(e.state,0),false);assert.equal(isEliminated(e.state,1),false);assert.ok(e.state.units.some(u=>u.owner===0));assert.ok(e.state.units.some(u=>u.owner===1));assert.equal(e.state.winner,null);
 });
-test('legacy v5 saves with zero-territory remnants normalize on decode and Engine construction',()=>{
+test('save decoding does not rewrite remnants; Engine still applies elimination invariants',()=>{
  const s=setup();for(const p of s.provinces)if(p.owner===0)p.owner=-1;
  assert.ok(s.units.some(u=>u.owner===0));assert.equal(validateState(s),true);
- const migrated=decodeSave(encodeSave(s,'legacy')).state;assert.equal(validateState(migrated),true);assert.equal(migrated.units.some(u=>u.owner===0),false);assert.equal(isEliminated(migrated,0),true);
+ const decoded=decodeSave(encodeSave(s,'Current')).state;assert.deepEqual(decoded,s);assert.equal(isEliminated(decoded,0),true);
  assert.equal(new Engine(s).state.units.some(u=>u.owner===0),false);assert.equal(s.units.some(u=>u.owner===0),true);
- assert.deepEqual(new Engine(migrated).state,migrated);
+ assert.deepEqual(new Engine(decoded).state,new Engine(s).state);
 });
 test('last surviving faction wins under existing victory rule after defeated armies clear',()=>{
  const s=setup();for(const p of s.provinces)if(p.owner===2)p.owner=1;oneRegionEach(s);const home=s.provinces.find(p=>p.owner===0),other=s.provinces.find(p=>p.owner===1);

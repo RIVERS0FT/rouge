@@ -21,7 +21,7 @@ test('flags survive saves, full and delta LAN frames without sharing setup refer
  assert.deepEqual(updated.players[0].flag,custom);
  next.players[0].flag={...custom,colors:['bad']};assert.equal(validateState(next),false);
 });
-test('old saves without flags stay readable; all leader identities have identical stats and recovery',()=>{
+test('current campaigns may omit a custom flag; all leader identities have identical stats and recovery',()=>{
  const state=createGame([setup,{...setup,name:'Other'}]);assert.equal(state.players[0].flag,undefined);assert.ok(decodeSave(encodeSave(state,'Old')));
  const baseline=stats(state.players[0],'infantry');
  for(const leader of LEADERS){const copy=structuredClone(state);copy.players[0].leader=leader;assert.deepEqual(stats(copy.players[0],'infantry'),baseline);const p=copy.provinces.find(p=>p.owner===0);p.recovery=10;const engine=new Engine(copy);engine.step(1);assert.equal(engine.state.provinces[p.id].recovery,9.95);}

@@ -118,10 +118,11 @@ test('merge and split can never grant a duplicate construction slot or funds',()
  assert.equal(e.command(0,order(home,'fortress')).ok,false);
 });
 
-test('v5 legacy saves receive a single starting budget; new saves retain progression and reject corrupt facilities',()=>{
+test('current saves require construction funds, retain progression, and reject corrupt facilities',()=>{
  const legacy=structuredClone(initial);
  for(const p of legacy.players)delete p.constructionFunds;
- const e=new Engine(decodeSave(encodeSave(legacy,'old')).state);
+ assert.equal(validateState(legacy),false);assert.throws(()=>encodeSave(legacy,'old'),/invalidSave/);
+ const e=new Engine(decodeSave(encodeSave(initial,'current')).state);
  assert.equal(constructionFunds(e.state,0),STARTING_CONSTRUCTION_FUNDS);
  assert.equal(e.command(0,order(home,'market')).ok,true);
  const roundtrip=decodeSave(encodeSave(e.state,'new')).state;

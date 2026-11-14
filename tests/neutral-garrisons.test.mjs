@@ -55,10 +55,10 @@ test('remote guards stay dormant and do not replenish; wake before bombardment a
  assert.equal(p.owner,0);
 });
 
-test('existing saves do not gain guards, and saving a new campaign preserves casualties',()=>{
+test('unmarked old neutral saves are unsupported and current saves preserve casualties',()=>{
  const legacy=structuredClone(initial);delete legacy.neutralGarrisonModel;
  legacy.units=legacy.units.filter(u=>u.owner>=0);
- assert.deepEqual(decodeSave(encodeSave(legacy,'old')).state,legacy);
+ assert.equal(validateState(legacy),false);assert.throws(()=>encodeSave(legacy,'old'),/invalidSave/);
  const game=structuredClone(initial);game.units=game.units.filter((u,i)=>i!==0);
  assert.deepEqual(decodeSave(encodeSave(game,'new')).state,game);
 });

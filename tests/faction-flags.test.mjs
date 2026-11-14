@@ -66,7 +66,7 @@ test('every faction of a full campaign gets a valid flag, unique until the catal
  assert.equal(factionFlag(state.players, -1), undefined);
 });
 
-test('flags repeat only past the catalog size, and legacy factions without a spawn record still get one', () => {
+test('flags repeat only past the catalog size, and players without an explicit banner use the catalog fallback', () => {
  const crowd = Array.from({length: FLAG_PRESET_IDS.length + 12}, (_, id) => ai(id, ARIZONA));
  const flags = assignFactionFlags(crowd);
  assert.ok(flags.every(flag => validFlag(flag)));

@@ -31,6 +31,6 @@ export function destinationRoom(state:GameState,owner:number,region:number):numb
 export function queuedMarchReservations(state:GameState,owner:number,region:number,except?:number):number {
   return state.provinces.reduce((n,p)=>{
     const order=p.march;
-    return n+(p.id!==except&&p.owner===owner&&order&&'pendingIds' in order&&order.owner===owner&&order.reserved&&order.to===region?order.pendingIds.length:0);
+    return n+(p.id!==except&&p.owner===owner&&order&&order.owner===owner&&order.reserved&&order.to===region?order.pendingIds.length:0);
   },0);
 }
