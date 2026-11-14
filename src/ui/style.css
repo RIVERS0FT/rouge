@@ -1,6 +1,6 @@
 /* ROUGE design system: lacquered slate panels, claret title bands, brass
    keylines and parchment type, in the spirit of a nineteenth-century
-   general-staff atlas. Everything is CSS; no image or font downloads. */
+   general-staff atlas. Country names use a bundled OFL serif font. */
 :root{
  --sans:Inter,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,"Times New Roman",serif;
@@ -112,13 +112,13 @@ small,.small{font-size:12px;line-height:1.6}
 
 /* Fine ink and a narrow parchment keyline replace the blurry white glow.
    System serif fallbacks keep the treatment original, offline and CJK-readable. */
-.country-label{font-weight:400;color:#38372f;letter-spacing:.2em;-webkit-text-stroke:.45px #eee6d3;paint-order:stroke fill;text-shadow:0 1px 1px #f4ead033;font-kerning:normal}
+.country-label{font-weight:700;letter-spacing:.2em;paint-order:stroke fill;text-shadow:none;font-kerning:normal;will-change:transform}
 
 .country-label>svg{display:block;overflow:visible;pointer-events:none}
 
-.country-label text{fill:currentColor;stroke:#eee6d3;stroke-width:.45px;paint-order:stroke fill;font-weight:400;dominant-baseline:central}
+.country-label text{paint-order:stroke fill;stroke-linejoin:round;font-weight:700;dominant-baseline:central}
 
-.province-label{position:absolute;left:0;top:0;box-sizing:border-box;height:26px;display:flex;align-items:center;gap:6px;padding:2px 5px;background:linear-gradient(180deg,#222822,#121914);border:1px solid #b18a4e;border-radius:4px;box-shadow:0 0 0 1px #101611,0 2px 4px #07100dbf,inset 0 0 0 1px #cdad7130;color:#f0e6ca;white-space:nowrap;pointer-events:none}
+.province-label{position:absolute;left:0;top:0;box-sizing:border-box;height:26px;display:flex;align-items:center;gap:6px;padding:2px 5px;background:linear-gradient(180deg,#222822,#121914);border:1px solid #b18a4e;border-radius:4px;box-shadow:0 0 0 1px #101611,0 2px 4px #07100dbf,inset 0 0 0 1px #cdad7130;color:#f0e6ca;white-space:nowrap;pointer-events:none;will-change:transform}
 .province-label[hidden],.province-plaque-flag img[hidden]{display:none}
 .province-label[data-selected="true"]{border-color:#f5cb79;box-shadow:0 0 0 1px #211c13,0 0 8px #f3c87355,inset 0 0 0 1px #f0cc6c33}
 .province-plaque-flag{width:21px;height:14px;flex:none;background:#85898d;box-shadow:0 0 0 1px #0a100a70}

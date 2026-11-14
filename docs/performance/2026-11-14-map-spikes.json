@@ -1,0 +1,751 @@
+{
+  "environment": {
+    "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": {
+      "width": 1510,
+      "height": 1090
+    },
+    "devicePixelRatio": 1.25,
+    "renderPixelRatio": 1.25,
+    "gpuTimer": true,
+    "landTriangles": 457066,
+    "coastSegments": 154270,
+    "borderSegments": 37923,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  },
+  "gpuFeatures": {
+    "2d_canvas": "enabled",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "enabled",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "enabled_on",
+    "rasterization": "enabled",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "disabled_off",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "enabled",
+    "video_encode": "enabled",
+    "webgl": "enabled",
+    "webgpu": "enabled",
+    "webnn": "disabled_off"
+  },
+  "fixture": {
+    "players": 101,
+    "units": 5236,
+    "synthetic": false
+  },
+  "options": {
+    "snapshot": "local captured campaign (not bundled)",
+    "output": ".cache/map-only-spikes.json",
+    "views": "flat450",
+    "actions": "pan,zoom",
+    "duration": "12000",
+    "mapOnly": true,
+    "width": "1510",
+    "height": "1090",
+    "dpr": "1.25"
+  },
+  "errors": [],
+  "results": [
+    {
+      "name": "flat450-pan",
+      "action": "pan",
+      "variant": "baseline",
+      "elapsedMs": 12013.800000000003,
+      "rafFps": 121.85986115966635,
+      "renderFps": 121.85986115966635,
+      "rafGapMs": {
+        "count": 1464,
+        "mean": 8.206147540983608,
+        "p50": 7,
+        "p95": 14,
+        "max": 76.80000000000291,
+        "total": 12013.800000000003
+      },
+      "renderGapMs": {
+        "count": 1463,
+        "mean": 8.207177033492824,
+        "p50": 7,
+        "p95": 14,
+        "max": 76.80000000000291,
+        "total": 12007.100000000002
+      },
+      "frameCpuMs": {
+        "count": 1464,
+        "mean": 4.676366116505503,
+        "p50": 4.699999809265137,
+        "p95": 7,
+        "max": 11.600000381469727,
+        "total": 6846.199994564056
+      },
+      "updateCpuMs": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "stages": {
+        "drawLabels": {
+          "count": 1464,
+          "mean": 0.01851092759377318,
+          "p50": 0,
+          "p95": 0.09999990463256836,
+          "max": 0.7000002861022949,
+          "total": 27.099997997283936
+        },
+        "politicalTint": {
+          "count": 1464,
+          "mean": 0.002527321296962884,
+          "p50": 0,
+          "p95": 0,
+          "max": 0.10000038146972656,
+          "total": 3.699998378753662
+        },
+        "drawMapNames": {
+          "count": 1464,
+          "mean": 3.017554646958419,
+          "p50": 2.9000000953674316,
+          "p95": 4.800000190734863,
+          "max": 8.099999904632568,
+          "total": 4417.700003147125
+        },
+        "threeRender": {
+          "count": 1500,
+          "mean": 0.45453333695729575,
+          "p50": 0.40000009536743164,
+          "p95": 0.9000000953674316,
+          "max": 6.300000190734863,
+          "total": 681.8000054359436
+        },
+        "coastMask": {
+          "count": 18,
+          "mean": 1.372222211625841,
+          "p50": 0.9000000953674316,
+          "p95": 2.8000001907348633,
+          "max": 2.8000001907348633,
+          "total": 24.699999809265137
+        },
+        "gpuCoastMs": {
+          "count": 18,
+          "mean": 1.7320711111111111,
+          "p50": 1.180828,
+          "p95": 6.427474,
+          "max": 6.427474,
+          "total": 31.17728
+        },
+        "gpuMainMs": {
+          "count": 1463,
+          "mean": 2.9975437922077925,
+          "p50": 2.888821,
+          "p95": 3.499986,
+          "max": 12.810365,
+          "total": 4385.406568
+        },
+        "gpuBackgroundMs": {
+          "count": 18,
+          "mean": 72.27506194444445,
+          "p50": 73.275455,
+          "p95": 85.390824,
+          "max": 85.390824,
+          "total": 1300.951115
+        }
+      },
+      "longTasks": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "drawCalls": {
+        "count": 1464,
+        "mean": 3.8975409836065573,
+        "p50": 3,
+        "p95": 4,
+        "max": 43,
+        "total": 5706
+      },
+      "triangles": {
+        "count": 1464,
+        "mean": 14077.774590163934,
+        "p50": 6,
+        "p95": 8,
+        "max": 1199564,
+        "total": 20609862
+      },
+      "units": {
+        "before": 5236,
+        "after": 5236,
+        "visible": 0
+      },
+      "ticks": 0,
+      "labels": {
+        "countries": 12,
+        "provinces": 53
+      },
+      "distance": 450,
+      "spikes": [
+        {
+          "time": 34281.9,
+          "gap": 76.80000000000291,
+          "cpu": 4.599999904632568,
+          "previousCpu": 2.200000286102295
+        },
+        {
+          "time": 32246.8,
+          "gap": 76.59999999999854,
+          "cpu": 5.399999618530273,
+          "previousCpu": 2.1999998092651367
+        },
+        {
+          "time": 26969.2,
+          "gap": 69.5,
+          "cpu": 6.400000095367432,
+          "previousCpu": 2.799999713897705
+        },
+        {
+          "time": 33920.7,
+          "gap": 69.5,
+          "cpu": 5.5,
+          "previousCpu": 2.299999713897705
+        },
+        {
+          "time": 27587.1,
+          "gap": 69.19999999999709,
+          "cpu": 5.900000095367432,
+          "previousCpu": 3.3000001907348633
+        },
+        {
+          "time": 31976.3,
+          "gap": 63,
+          "cpu": 4.200000286102295,
+          "previousCpu": 2.4000000953674316
+        },
+        {
+          "time": 33656.7,
+          "gap": 62.599999999998545,
+          "cpu": 5.400000095367432,
+          "previousCpu": 2.5999999046325684
+        },
+        {
+          "time": 32587,
+          "gap": 62.400000000001455,
+          "cpu": 6.099999904632568,
+          "previousCpu": 2.1999998092651367
+        },
+        {
+          "time": 31656.3,
+          "gap": 62.29999999999927,
+          "cpu": 4.299999713897705,
+          "previousCpu": 2.200000286102295
+        },
+        {
+          "time": 34149.8,
+          "gap": 55.700000000004366,
+          "cpu": 5.399999618530273,
+          "previousCpu": 2.4000000953674316
+        }
+      ],
+      "gpuSpikes": [
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 27491,
+          "duration": 85.390824,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 31568.900000095367,
+          "duration": 79.072432,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 24236.5,
+          "duration": 76.186278,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 32497.400000095367,
+          "duration": 75.570197,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 32142.199999809265,
+          "duration": 74.915449,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 35662.2999997139,
+          "duration": 74.413284,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 33569.59999990463,
+          "duration": 74.405452,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 33823.7999997139,
+          "duration": 73.28129,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 27910.099999904633,
+          "duration": 73.275455,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 29105.599999904633,
+          "duration": 73.16304,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 34177.199999809265,
+          "duration": 71.859712,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 31886.699999809265,
+          "duration": 69.573388,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 28490.5,
+          "duration": 69.509221,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 27166.299999713898,
+          "duration": 68.494059,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 26504,
+          "duration": 68.044144,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 26876.199999809265,
+          "duration": 67.671062,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        }
+      ],
+      "mainThread": {
+        "Nodes": 2106,
+        "LayoutCount": 99,
+        "RecalcStyleCount": 2932,
+        "LayoutDuration": 0.025895,
+        "RecalcStyleDuration": 0.723395,
+        "ScriptDuration": 6.3415479999999995,
+        "TaskDuration": 9.128281,
+        "JSHeapUsedSize": 369592856
+      }
+    },
+    {
+      "name": "flat450-zoom",
+      "action": "zoom",
+      "variant": "baseline",
+      "elapsedMs": 12000.200000000004,
+      "rafFps": 126.33122781286974,
+      "renderFps": 126.24789586840215,
+      "rafGapMs": {
+        "count": 1516,
+        "mean": 7.915699208443274,
+        "p50": 7,
+        "p95": 13.900000000001455,
+        "max": 69.79999999999563,
+        "total": 12000.200000000004
+      },
+      "renderGapMs": {
+        "count": 1514,
+        "mean": 7.9215323645970965,
+        "p50": 7,
+        "p95": 13.900000000001455,
+        "max": 69.79999999999563,
+        "total": 11993.200000000004
+      },
+      "frameCpuMs": {
+        "count": 1515,
+        "mean": 4.545808578717827,
+        "p50": 4.300000190734863,
+        "p95": 7.599999904632568,
+        "max": 11.400000095367432,
+        "total": 6886.899996757507
+      },
+      "updateCpuMs": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "stages": {
+        "drawLabels": {
+          "count": 1515,
+          "mean": 0.0200000004406416,
+          "p50": 0,
+          "p95": 0.09999990463256836,
+          "max": 1.3000001907348633,
+          "total": 30.30000066757202
+        },
+        "politicalTint": {
+          "count": 1515,
+          "mean": 0.00151815131159112,
+          "p50": 0,
+          "p95": 0,
+          "max": 0.10000038146972656,
+          "total": 2.299999237060547
+        },
+        "drawMapNames": {
+          "count": 1515,
+          "mean": 2.9609240893876985,
+          "p50": 2.700000286102295,
+          "p95": 5.399999618530273,
+          "max": 9.899999618530273,
+          "total": 4485.799995422363
+        },
+        "threeRender": {
+          "count": 1535,
+          "mean": 0.43387622429415923,
+          "p50": 0.40000009536743164,
+          "p95": 0.9000000953674316,
+          "max": 2.299999713897705,
+          "total": 666.0000042915344
+        },
+        "coastMask": {
+          "count": 10,
+          "mean": 1.0100000381469727,
+          "p50": 1,
+          "p95": 1.6999998092651367,
+          "max": 1.6999998092651367,
+          "total": 10.100000381469727
+        },
+        "gpuCoastMs": {
+          "count": 10,
+          "mean": 1.1077450999999998,
+          "p50": 1.061995,
+          "p95": 1.362411,
+          "max": 1.362411,
+          "total": 11.077450999999998
+        },
+        "gpuMainMs": {
+          "count": 1514,
+          "mean": 2.9630672100396342,
+          "p50": 2.817738,
+          "p95": 3.496734,
+          "max": 9.880043,
+          "total": 4486.083756000006
+        },
+        "gpuBackgroundMs": {
+          "count": 10,
+          "mean": 70.5554504,
+          "p50": 70.885466,
+          "p95": 80.447678,
+          "max": 80.447678,
+          "total": 705.554504
+        }
+      },
+      "longTasks": {
+        "count": 0,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "max": 0,
+        "total": 0
+      },
+      "drawCalls": {
+        "count": 1515,
+        "mean": 2.654125412541254,
+        "p50": 2,
+        "p95": 3,
+        "max": 38,
+        "total": 4021
+      },
+      "triangles": {
+        "count": 1515,
+        "mean": 6357.453465346534,
+        "p50": 4,
+        "p95": 6,
+        "max": 1192216,
+        "total": 9631542
+      },
+      "units": {
+        "before": 5236,
+        "after": 5236,
+        "visible": 0
+      },
+      "ticks": 0,
+      "labels": {
+        "countries": 12,
+        "provinces": 56
+      },
+      "distance": 335.0483809491728,
+      "spikes": [
+        {
+          "time": 47872.1,
+          "gap": 69.79999999999563,
+          "cpu": 4.099999904632568,
+          "previousCpu": 2
+        },
+        {
+          "time": 37205,
+          "gap": 69.09999999999854,
+          "cpu": 4.299999713897705,
+          "previousCpu": 3
+        },
+        {
+          "time": 37747.1,
+          "gap": 62.599999999998545,
+          "cpu": 11.400000095367432,
+          "previousCpu": 2.9000000953674316
+        },
+        {
+          "time": 40878.6,
+          "gap": 55.400000000001455,
+          "cpu": 5.199999809265137,
+          "previousCpu": 2.4000000953674316
+        },
+        {
+          "time": 38462.2,
+          "gap": 55.39999999999418,
+          "cpu": 8.100000381469727,
+          "previousCpu": 3.3000001907348633
+        },
+        {
+          "time": 47149.4,
+          "gap": 48.5,
+          "cpu": 4.199999809265137,
+          "previousCpu": 2.1999998092651367
+        },
+        {
+          "time": 37059.6,
+          "gap": 41.900000000001455,
+          "cpu": 6.5,
+          "previousCpu": 2.6999998092651367
+        },
+        {
+          "time": 44031.7,
+          "gap": 41.89999999999418,
+          "cpu": 5.900000095367432,
+          "previousCpu": 2.6999998092651367
+        },
+        {
+          "time": 41566.4,
+          "gap": 41.80000000000291,
+          "cpu": 4.599999904632568,
+          "previousCpu": 2
+        },
+        {
+          "time": 43989.8,
+          "gap": 41.60000000000582,
+          "cpu": 2.6999998092651367,
+          "previousCpu": 2.0999999046325684
+        }
+      ],
+      "gpuSpikes": [
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 37657.90000009537,
+          "duration": 80.447678,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 47770.90000009537,
+          "duration": 76.639026,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 40797.199999809265,
+          "duration": 73.353539,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 47069.7999997139,
+          "duration": 72.704625,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 37111.2999997139,
+          "duration": 70.885466,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 38380.90000009537,
+          "duration": 70.218968,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 36980.5,
+          "duration": 68.773558,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 43923.7999997139,
+          "duration": 67.979728,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 41495.7999997139,
+          "duration": 64.672491,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuBackgroundMs",
+          "issuedAt": 44625.90000009537,
+          "duration": 59.879425,
+          "target": {
+            "width": 4530,
+            "height": 3270
+          }
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 39553,
+          "duration": 9.880043,
+          "target": null
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 43793.59999990463,
+          "duration": 9.009546,
+          "target": null
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 43669.7999997139,
+          "duration": 8.946129,
+          "target": null
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 41659.09999990463,
+          "duration": 8.616215,
+          "target": null
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 43800.699999809265,
+          "duration": 8.304299,
+          "target": null
+        },
+        {
+          "label": "gpuMainMs",
+          "issuedAt": 39658.40000009537,
+          "duration": 8.162883,
+          "target": null
+        }
+      ],
+      "mainThread": {
+        "Nodes": 2127,
+        "LayoutCount": 90,
+        "RecalcStyleCount": 3034,
+        "LayoutDuration": 0.024658,
+        "RecalcStyleDuration": 0.7282020000000001,
+        "ScriptDuration": 6.394735,
+        "TaskDuration": 9.209651999999998,
+        "JSHeapUsedSize": 362225480
+      }
+    }
+  ]
+}

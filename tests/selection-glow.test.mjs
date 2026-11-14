@@ -58,25 +58,31 @@ test('renderer selection retains island coast edges for outline and glow input',
  const selected=MAP.find(p=>p.visible&&p.neighbors.length===0),allEdges=buildBorderEdges(MAP,BOUNDS);
  const expected=allEdges.filter(e=>e.atoms.includes(selected.id));
  assert.ok(expected.length>0);assert.ok(expected.every(e=>e.atoms.length===1));
- // The renderer constructor uses parameter properties, requiring transform mode
- // rather than the strip-only mode used by pure game modules in this suite.
+ // Vite resolves the renderer's TSX, font URLs and asset glob imports. Disable
+ // the browser-only shared-map download plugin so this check reads local JSON.
  execFileSync(process.execPath,['--experimental-transform-types','--input-type=module','-e',`
   import assert from 'node:assert/strict';
   import * as THREE from 'three';
-  import {WorldRenderer} from './src/render/WorldRenderer.ts';
+  import {createServer} from 'vite';
   import {MAP,BOUNDS} from './src/game/map.ts';
   import {buildBorderEdges} from './src/render/territoryBorders.ts';
+ const server=await createServer({configFile:false,server:{middlewareMode:true},logLevel:'error'});
+  try{
+  const {WorldRenderer}=await server.ssrLoadModule('/src/render/WorldRenderer.ts');
   const selected=MAP.find(p=>p.visible&&p.neighbors.length===0),allEdges=buildBorderEdges(MAP,BOUNDS);
   const expected=allEdges.filter(e=>e.atoms.includes(selected.id));
   const renderer=Object.create(WorldRenderer.prototype);let outline,glowEdges;
   globalThis.Worker=class {postMessage(message){glowEdges=message.edges;}terminate(){}};
   const ranges=[];ranges[selected.id]={start:0,count:3};
-  Object.assign(renderer,{selected:selected.id,boundaryEdges:allEdges,selection:{},selectionGlowWorker:null,selectionGlow:{geometry:new THREE.BufferGeometry()},repeats:[],renderer:{domElement:{dataset:{}}},ranges,land:{geometry:{getAttribute:()=>({array:new Float32Array(9)})}},replaceWideGeometry:(_line,points)=>{outline=points;}});
+   Object.assign(renderer,{selected:selected.id,hover:-1,emptyGlow:new THREE.BufferGeometry(),hoverGlows:new Map(),boundaryEdges:allEdges,selection:{},selectionGlowWorker:null,selectionGlow:{geometry:new THREE.BufferGeometry()},selectionRepeats:[],renderer:{domElement:{dataset:{}}},ranges,land:{geometry:{getAttribute:()=>({array:new Float32Array(9)})}},replaceWideGeometry:(_line,points)=>{outline=points;}});
+   renderer.emptyGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));
   renderer.drawSelection();
   assert.equal(outline.length,expected.length*6,'Actual renderer includes the whole island coastline');
   assert.ok(outline.every(Number.isFinite));
+  assert.equal(glowEdges,undefined,'Selection alone does not generate hover glow');renderer.setHover(selected.id);
   assert.equal(glowEdges.length,expected.length*4,'Glow worker receives island coast edges');
   renderer.selectionGlow.geometry.dispose();
+  }finally{await server.close();}
  `],{cwd:new URL('..',import.meta.url),stdio:'pipe'});
  const mesh=innerGlowMesh(tessellate(selected.parts),expected.map(e=>[e.a,e.b]),2);
  assert.ok(mesh.points.length>0,'Island coastline produces glow');

@@ -70,6 +70,7 @@ export class PoliticalTint {
  private dirty=true;
  /** Device-pixel period of the occupation hatching; set from the drawing-buffer ratio. */
  readonly stripePeriod={value:10};
+ readonly stripeOffset={value:0};
  segments=0;
  constructor(bounds:Rect,texels:{width:number;height:number}){
   this.target=new THREE.WebGLRenderTarget(texels.width,texels.height,{depthBuffer:false,format:THREE.RedFormat,type:THREE.UnsignedByteType,
@@ -87,9 +88,16 @@ export class PoliticalTint {
  }
  /** Replace the painted edges after ownership or coast membership changes. */
  setEdges(edges:readonly BorderEdge[]){
-  const geometry=politicalRibbonGeometry(edges);this.ribbon.geometry.dispose();this.ribbon.geometry=geometry;
+  this.setGeometry(politicalRibbonGeometry(edges),edges.length);
+ }
+ setRibbon(attributes:Record<string,Float32Array>,segments:number){
+  const geometry=politicalRibbonGeometry([]);for(const [name,array] of Object.entries(attributes))geometry.setAttribute(name,new THREE.InstancedBufferAttribute(array,2));geometry.instanceCount=segments;
+  this.setGeometry(geometry,segments);
+ }
+ private setGeometry(geometry:THREE.InstancedBufferGeometry,segments:number){
+  this.ribbon.geometry.dispose();this.ribbon.geometry=geometry;
   for(const copy of this.copies)copy.geometry=geometry;
-  this.segments=edges.length;this.dirty=true;
+  this.segments=segments;this.dirty=true;
  }
  /** Bake the wash if edges changed. Returns true when a pass was drawn. */
  render(renderer:THREE.WebGLRenderer):boolean{
@@ -105,11 +113,11 @@ export class PoliticalTint {
   const previous=material.onBeforeCompile,previousKey=material.customProgramCacheKey();
   material.onBeforeCompile=(shader,renderer)=>{
    previous.call(material,shader,renderer);
-   Object.assign(shader.uniforms,this.uniforms,{uStripePeriod:this.stripePeriod});
+   Object.assign(shader.uniforms,this.uniforms,{uStripePeriod:this.stripePeriod,uStripeOffset:this.stripeOffset});
    // Regions under capture carry the captor's colour and progress in a separate attribute.
    shader.vertexShader='attribute vec4 captureTint; varying vec4 vCaptureTint;\n'+shader.vertexShader;
    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvCaptureTint = captureTint;');
-   shader.fragmentShader=`uniform sampler2D uPoliticalTint; uniform float uPoliticalTintStrength; uniform float uRelief; uniform float uStripePeriod; varying vec4 vCaptureTint;
+   shader.fragmentShader=`uniform sampler2D uPoliticalTint; uniform float uPoliticalTintStrength; uniform float uRelief; uniform float uStripePeriod; uniform float uStripeOffset; varying vec4 vCaptureTint;
     `+shader.fragmentShader;
    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
     float politicalEdge = texture2D(uPoliticalTint, vSurfaceUv).r * (1.0 - 0.55 * uRelief);
@@ -117,7 +125,7 @@ export class PoliticalTint {
     diffuseColor.rgb = mix(vec3(politicalLuma), diffuseColor.rgb, 1.0 + 0.5 * politicalEdge) * (1.0 - uPoliticalTintStrength * politicalEdge);
     // Occupation hatching: diagonal stripes in the captor's colour widen as capture advances.
     if (vCaptureTint.a > 0.0) {
-     float band = fract((gl_FragCoord.x + gl_FragCoord.y) / uStripePeriod);
+     float band = fract((gl_FragCoord.x + gl_FragCoord.y + uStripeOffset) / uStripePeriod);
      float cover = 0.28 + 0.34 * vCaptureTint.a, edge = 1.2 / uStripePeriod;
      float stripe = smoothstep(1.0 - cover - edge, 1.0 - cover + edge, band);
      diffuseColor.rgb = mix(diffuseColor.rgb, vCaptureTint.rgb * 0.92, stripe * 0.9);

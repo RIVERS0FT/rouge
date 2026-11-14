@@ -18,6 +18,16 @@ test('invalid coordinates and sea-only endpoints cannot fabricate land orders',(
 test('flow fields are physical only: administrative borders/owners are absent from API',()=>{
  const nav=new TerrainNavigator(),a=point('GBR-3409'),b=point('FRA-5275'),p=nav.plan(a,b),builds=nav.builds;assert.ok(builds>=1);assert.deepEqual(nav.plan(a,b),p);assert.equal(nav.builds,builds);nav.clear();assert.deepEqual(nav.plan(a,b),p);
 });
+test('a cached destination extends its search for a farther army without changing existing routes',()=>{
+ const near=point('GBR-3409'),goal=point('FRA-5275');
+ const far=MAP.filter(p=>p.playable&&p.code.startsWith('GBR')).sort((a,b)=>a.center.z-b.center.z)[0].center;
+ const nav=new TerrainNavigator(),first=nav.plan(near,goal),builds=nav.builds;
+ assert.ok(first&&validateTravel(first,near,goal));
+ const farther=nav.plan(far,goal);assert.ok(farther&&validateTravel(farther,far,goal));
+ assert.equal(nav.builds,builds,'reuse and extend the same physical flow field');
+ assert.deepEqual(farther,new TerrainNavigator().plan(far,goal),'incremental and fresh searches select the same route');
+ assert.deepEqual(nav.plan(near,goal),first,'extending the frontier keeps the first army route stable');
+});
 test('Hubei to Hunan crosses the administrative boundary directly on continuous land',()=>{
  const a=point('CHN-1807'),b=point('CHN-1808'),path=new TerrainNavigator().plan(a,b);
  assert.ok(path);assert.equal(path.points.length,2);assert.equal(path.points[1].sea,false);assert.ok(validateTravel(path,a,b));

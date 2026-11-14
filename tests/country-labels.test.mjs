@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {buildCountryLabels,regionMoments,countryLetterSpacing,overlaps,LabelCollisionIndex,labelIntersectsViewport,provinceNamesVisible} from '../src/render/countryLabels.ts';
 import {MAP} from '../src/game/map.ts';
 import {WORLD_WIDTH,project,nearestWorldX,wrapX} from '../src/game/geo.ts';
+import {COUNTRY_FONT_WEIGHT,COUNTRY_OUTLINE,COUNTRY_OUTLINE_OPACITY,countryInk,countryOutlineWidth} from '../src/render/countryTypography.ts';
 const rectangle=(left,top,right,bottom)=>[{x:left,z:top},{x:right,z:top},{x:right,z:bottom},{x:left,z:bottom}];
 const cell=(id,x,z=0,width=10,height=10)=>({id,center:{x:999,z:999},neighbors:[],visible:true,parts:[[rectangle(x-width/2,z-height/2,x+width/2,z+height/2)]]});
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-8,`${actual} != ${expected}`);
@@ -76,11 +77,14 @@ test('real atlas moments remain finite and bounded for every current faction',()
  assert.ok(Math.abs(labels.reduce((sum,l)=>sum+l.area,0)-independentArea)<1e-6);
 });
 
-test('country typography keeps compact tracking and engraved atlas styling',()=>{
+test('country typography keeps compact tracking and Shanhe serif styling',()=>{
  assert.ok(countryLetterSpacing('大明')>countryLetterSpacing('阿尔汉格尔斯克共和国'));
  assert.ok(countryLetterSpacing('France')>countryLetterSpacing('Very long country name that remains complete'));
  const css=fs.readFileSync(new URL('../src/ui/style.css',import.meta.url),'utf8');
- assert.match(css,/\.country-label\{font-weight:400;color:#38372f/);assert.match(css,/paint-order:stroke fill/);
+ assert.match(css,/\.country-label\{font-weight:700/);assert.match(css,/paint-order:stroke fill/);
+ assert.equal(COUNTRY_FONT_WEIGHT,700);assert.equal(COUNTRY_OUTLINE,'#faf4e4');assert.equal(COUNTRY_OUTLINE_OPACITY,.4);
+ assert.equal(countryOutlineWidth(1),1.4);assert.equal(countryOutlineWidth(30),2.4);assert.equal(countryOutlineWidth(200),4.2);
+ assert.match(countryInk(0),/^#[0-9a-f]{6}$/);
 });
 
 test('country lettering follows the land axis without moving the centroid or depending on administrative splits',()=>{
@@ -105,7 +109,7 @@ test('only the complete text bounds leaving the screen hides a map name',()=>{
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8'),names=renderer.slice(renderer.indexOf('private drawMapNames('),renderer.indexOf('private frame='));
  assert.doesNotMatch(names,/querySelectorAll|blockers|occupied|COUNTRY_LABEL_LIMIT|distance>=180|area\)\*scale<18/);
  assert.match(names,/this\.drawProvincePlaques\(width,height\)/);assert.match(names,/for\(const component of this.countryComponents\)/);
- assert.match(renderer,/this\.drawLabels\(time\);[\s\S]*?this\.drawMapNames\(\);this\.renderer\.render/);
+ assert.match(renderer,/this\.drawLabels\(time\);[\s\S]*?this\.drawMapNames\(\);[\s\S]*?this\.drawWorld\(\)/);
  assert.doesNotMatch(renderer.slice(renderer.indexOf('private drawLabels('),renderer.indexOf('private drawMapNames(')),/this\.drawMapNames/);
 });
 

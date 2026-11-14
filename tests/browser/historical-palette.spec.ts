@@ -21,11 +21,11 @@ for(const touch of [false,true])test.describe(touch?'touch palette':'desktop pal
    await openMapSearch(page);await page.getByTestId('map-search').fill(sample.code);await page.locator('.map-search-results button').first().click();
    await expect(canvas).toHaveAttribute('data-selected-fill-color',sample.color);
    await expect(canvas).toHaveAttribute('data-selected-owner-color',sample.color);
-   await expect(canvas).toHaveAttribute('data-selection-style','outline-inner-glow');
-   await expect.poll(async()=>Number(await canvas.getAttribute('data-selection-glow-vertices'))).toBeGreaterThan(0);
+   await expect(canvas).toHaveAttribute('data-selection-style','outline-hover-glow');
+   await expect.poll(async()=>Number(await canvas.getAttribute('data-selection-glow-vertices')??0)).toBe(0);
    if(touch)await page.getByTestId('toggle-province-panel').tap();
-   await expect(page.locator('.province-owner')).toContainText(sample.name);
-   // Selection is an outline plus bounded inner glow, never a replacement fill.
+   await expect(page.getByTestId('province-owner-name')).toContainText(sample.name);
+   // Selection uses an outline; the independent mouse hover never replaces fill.
    await canvas.focus();await page.keyboard.press('End');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
    await expect(canvas).toHaveAttribute('data-selected-fill-color',sample.color);
    if(sample.owner===0||sample.owner===15)await page.screenshot({path:`artifacts/historical-palette-${touch?'touch':'desktop'}-owner-${sample.owner}.png`});

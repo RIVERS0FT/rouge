@@ -12,7 +12,7 @@ export const TERRAIN_REVISION=data.revision;
 const centerData=new Float64Array(triangleCount*2);
 const center=(id:number)=>({x:centerData[id*2],z:centerData[id*2+1]});
 // Packed CSR spatial index avoids millions of JS array/object references on phones.
-const size=40,minX=Math.floor(data.bounds[0]/size),minZ=Math.floor(data.bounds[1]/size),cols=Math.floor(data.bounds[2]/size)-minX+1,rows=Math.floor(data.bounds[3]/size)-minZ+1;
+const size=8,minX=Math.floor(data.bounds[0]/size),minZ=Math.floor(data.bounds[1]/size),cols=Math.floor(data.bounds[2]/size)-minX+1,rows=Math.floor(data.bounds[3]/size)-minZ+1;
 const offsets=new Uint32Array(cols*rows+1),ranges=new Int16Array(triangleCount*4);
 for(let i=0;i<triangleCount;i++){const t=triangle(i),xs=t.map(p=>p[0]),zs=t.map(p=>p[1]);centerData[i*2]=(xs[0]+xs[1]+xs[2])/3;centerData[i*2+1]=(zs[0]+zs[1]+zs[2])/3;
  const a=Math.floor(Math.min(...xs)/size)-minX,b=Math.floor(Math.max(...xs)/size)-minX,c=Math.floor(Math.min(...zs)/size)-minZ,d=Math.floor(Math.max(...zs)/size)-minZ;ranges.set([a,b,c,d],i*4);
@@ -110,23 +110,43 @@ class Heap {
  push(n:number,d:number){const v:[number,number]=[n,d];let i=this.a.length;this.a.push(v);while(i){const p=(i-1)>>1;if(!this.less(v,this.a[p]))break;this.a[i]=this.a[p];i=p;}this.a[i]=v;}
  pop(){const root=this.a[0],last=this.a.pop()!;if(this.a.length){let i=0;while(i*2+1<this.a.length){let c=i*2+1;if(c+1<this.a.length&&this.less(this.a[c+1],this.a[c]))c++;if(!this.less(this.a[c],last))break;this.a[i]=this.a[c];i=c;}this.a[i]=last;}return root;}
 }
-interface Field {distance:Float64Array;next:Int32Array}
+interface Field {distance:Float64Array;next:Int32Array;settled:Uint8Array;queue:Heap}
 const length=(a:Vec2,b:Vec2)=>Math.hypot(a.x-b.x,a.z-b.z);
+// Physical land connectivity is static. Different islands need a sea route;
+// proving that by exhausting a continent's Dijkstra search on every order is
+// unnecessary. Administrative ownership never changes these components.
+const landComponents=new Int32Array(triangleCount).fill(-1);
+{
+ const queue=new Int32Array(triangleCount);let component=0;
+ for(let seed=0;seed<triangleCount;seed++)if(surfaces[seed]===1&&landComponents[seed]<0){
+  let head=0,tail=1;queue[0]=seed;landComponents[seed]=component;
+  while(head<tail){const id=queue[head++];for(let k=0;k<3;k++){const n=neighborData[id*3+k];if(n>=0&&surfaces[n]===1&&landComponents[n]<0){landComponents[n]=component;queue[tail++]=n;}}}
+  component++;
+ }
+}
 export class TerrainNavigator {
  private fields=new Map<string,Field>();builds=0;
- private field(goal:number,allowSea:boolean,landSpeed:number,seaSpeed:number):Field {
-  const key=`${goal}:${allowSea}:${landSpeed}:${seaSpeed}`,cached=this.fields.get(key);if(cached)return cached;
-  const distance=new Float64Array(triangleCount).fill(Infinity),next=new Int32Array(triangleCount).fill(-1),q=new Heap();distance[goal]=0;next[goal]=goal;q.push(goal,0);
+ private field(goal:number,start:number,allowSea:boolean,landSpeed:number,seaSpeed:number):Field {
+  const key=`${goal}:${allowSea}:${landSpeed}:${seaSpeed}`;let f=this.fields.get(key);
+  if(!f){
+   const distance=new Float64Array(triangleCount).fill(Infinity),next=new Int32Array(triangleCount).fill(-1),queue=new Heap();distance[goal]=0;next[goal]=goal;queue.push(goal,0);
+   f={distance,next,queue,settled:new Uint8Array(triangleCount)};
+   if(this.fields.size>=4)this.fields.delete(this.fields.keys().next().value!);this.fields.set(key,f);this.builds++;
+  }else {this.fields.delete(key);this.fields.set(key,f);}
+  // Retain the frontier for the next soldier using this destination. Only the
+  // requested start must be settled, rather than all 308,000 terrain triangles.
+  if(f.settled[start])return f;
+  const {distance,next,queue:q,settled}=f;
   while(q.a.length){const [id,d]=q.pop()!;if(d>distance[id]+1e-9)continue;for(const n of neighborData.subarray(id*3,id*3+3)){if(n<0)continue;const edge=portal(id,n);if(!allowSea&&surfaces[n]!==1)continue;const mid={x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2};const nd=d+length(center(id),mid)/(surfaces[id]===2?seaSpeed:landSpeed)+length(center(n),mid)/(surfaces[n]===2?seaSpeed:landSpeed);
    if(nd<distance[n]-1e-9){distance[n]=nd;next[n]=id;q.push(n,nd);}else if(Math.abs(nd-distance[n])<=1e-9&&id<next[n])next[n]=id;
-  }}
-  const f={distance,next};if(this.fields.size>=4)this.fields.delete(this.fields.keys().next().value!);this.fields.set(key,f);this.builds++;return f;
+  }settled[id]=1;if(id===start)break;}
+  return f;
  }
  plan(from:Vec2,to:Vec2,landSpeed=1,seaSpeed=1):TravelPlan|null {
   if(!Number.isFinite(landSpeed)||landSpeed<=0||!Number.isFinite(seaSpeed)||seaSpeed<=0)return null;
   const start=terrainAt(from,true),goal=terrainAt(to,true);if(start<0||goal<0)return null;
   if(terrainSegment(from,to,false))return{revision:TERRAIN_REVISION,index:1,points:[{...from,sea:false},{...to,sea:false}]};
-  let f=this.field(goal,false,landSpeed,seaSpeed);if(!Number.isFinite(f.distance[start]))f=this.field(goal,true,landSpeed,seaSpeed);if(!Number.isFinite(f.distance[start]))return null;
+  const allowSea=landComponents[start]!==landComponents[goal],f=this.field(goal,start,allowSea,landSpeed,seaSpeed);if(!f.settled[start])return null;
   const raw:TravelPoint[]=[{...from,sea:false},{...center(start),sea:false}];let id=start,count=0;
   while(id!==goal){const n=f.next[id];if(n<0||count++>triangleCount)return null;const edge=portal(id,n);raw.push({x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2,sea:surfaces[id]===2},{...center(n),sea:surfaces[n]===2});id=n;}
   raw.push({...to,sea:false});

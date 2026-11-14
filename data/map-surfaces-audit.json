@@ -1,7 +1,7 @@
 {
   "license": "public-domain",
   "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
-  "use": "visual shading only; no simulation data",
+  "use": "visual luminance shading only; no simulation data",
   "bounds": {
     "left": -1800,
     "right": 1800,
@@ -12,43 +12,6556 @@
   "projection": "miller-cylindrical",
   "sources": {
     "relief": {
-      "name": "Natural Earth 1:50m Shaded Relief",
+      "name": "Natural Earth II 1:10m with Shaded Relief",
       "version": "3.2.0",
-      "page": "https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/",
-      "url": "https://naturalearth.s3.amazonaws.com/50m_raster/SR_50M.zip",
-      "archiveSha256": "ff810f5f2747463fd8ffa612b23e5f5e5d593a345218976872b6749610976ab7",
-      "tifSha256": "aff6ec6905554ed489087edf46e61cbf68c810fe99f2a1d2cddda7e986a540a2",
+      "page": "https://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/",
+      "url": "https://naturalearth.s3.amazonaws.com/10m_raster/NE2_HR_LC_SR.zip",
+      "archiveSha256": "f2d35ced308b09b55677471a78a48c431be9c06d77eedfa80e81c2942348bf88",
+      "archiveVersion": "2.0.0",
+      "tifSha256": "10086dc26eefa4311212064cad4db6853d171b570c9b84d5786955cfe61aea01",
       "worldFile": [
-        0.03333333333333,
+        0.01666666666667,
         0.0,
         0.0,
-        -0.03333333333333,
-        -179.98333333333332,
-        89.98333333333333
+        -0.01666666666667,
+        -179.99166666666667,
+        89.99166666666667
       ],
       "size": [
-        10800,
-        5400
+        21600,
+        10800
       ]
     }
   },
-  "outputs": {
-    "natural-earth-relief-4096.webp": {
-      "width": 4096,
-      "height": 1808,
-      "bytes": 597008,
-      "sha256": "f2d2fe9c3b47d0db9abcabdf3b84dad970a44fce648924875966a384dd8141b9"
-    },
-    "natural-earth-relief-2048.webp": {
+  "tileSize": 512,
+  "gutter": 2,
+  "levels": [
+    {
       "width": 2048,
       "height": 904,
-      "bytes": 159428,
-      "sha256": "030be2c4b5b949400ae04cebbeba892fb8ed8927f17f30b5f4fc8b9fafe174a4"
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "width": 4096,
+      "height": 1808,
+      "columns": 8,
+      "rows": 4
+    },
+    {
+      "width": 8192,
+      "height": 3616,
+      "columns": 16,
+      "rows": 8
+    },
+    {
+      "width": 16384,
+      "height": 7232,
+      "columns": 32,
+      "rows": 15
+    }
+  ],
+  "assetDirectory": "ne2",
+  "outputs": {
+    "ne2-relief-1024.webp": {
+      "width": 1024,
+      "height": 452,
+      "bytes": 42442,
+      "sha256": "94691ee67816bea3ff3c458980b18874ca5ec0b1a60bd063bf74b4330e924d21",
+      "kind": "fallback",
+      "levelWidth": 1024
+    },
+    "ne2-relief-2048.webp": {
+      "width": 2048,
+      "height": 904,
+      "bytes": 149334,
+      "sha256": "4fbf97466dba813abfefe37b057bb3c1e4de58e412b8e391f006b2ac854c973a",
+      "kind": "fallback",
+      "levelWidth": 2048
+    },
+    "ne2-2048-0-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 23316,
+      "sha256": "b67abbb1c7841d734f37aad2898ac86eeab362c252d3ffd3e3d71777adfff529",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 0,
+      "y": 0
+    },
+    "ne2-2048-1-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21636,
+      "sha256": "c5ef759aee138c34fb6e075b0f3098c7a73ebb046a49ea81c36c829beba5ba1f",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 1,
+      "y": 0
+    },
+    "ne2-2048-2-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38636,
+      "sha256": "f68ed6d7f61901e60cb45c364ac46ad42f346bb3968789f806260862b5d628db",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 2,
+      "y": 0
+    },
+    "ne2-2048-3-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 37864,
+      "sha256": "18289315721cd31c6d496a43a272dbdc9dd49e985598a81989174a5cf7cf981a",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 3,
+      "y": 0
+    },
+    "ne2-2048-0-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3036,
+      "sha256": "8eb3873b1d7f2a4af52f158f2830a02323ea9e444e3b809858fe76d1a6366c76",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 0,
+      "y": 1
+    },
+    "ne2-2048-1-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 10080,
+      "sha256": "203323432428088fb174909b8a71d5b162457ea709b06f16457be7d279c17c4e",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 1,
+      "y": 1
+    },
+    "ne2-2048-2-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6620,
+      "sha256": "07c0f006db5f86414df9c8d78f089253447a5af3a3ac13dd0ee45863123a12ff",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 2,
+      "y": 1
+    },
+    "ne2-2048-3-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13284,
+      "sha256": "f582d274e0b6f562b35f8735176f807a582d050056c793472d03715895eefac4",
+      "kind": "tile",
+      "levelWidth": 2048,
+      "x": 3,
+      "y": 1
+    },
+    "ne2-4096-0-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 26654,
+      "sha256": "cd2d70378d80e4b390464021316055ee92710c96fffd1b5c75dc5e9246a1e98b",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 0,
+      "y": 0
+    },
+    "ne2-4096-1-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 46306,
+      "sha256": "a16e65ec287ad7e73868871624eea61775138361cbe979b10a3c799e1a1c55e0",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 1,
+      "y": 0
+    },
+    "ne2-4096-2-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32634,
+      "sha256": "786ed7591f4a27e16865f373d14f1990ee69a391ae0147a02dac9d9ee7f1e255",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 2,
+      "y": 0
+    },
+    "ne2-4096-3-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 14532,
+      "sha256": "8aeab6e3dbb5d59ef93d5615192d4da050d63f297ad2389ebeada9db4b6148c4",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 3,
+      "y": 0
+    },
+    "ne2-4096-4-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32802,
+      "sha256": "a148110c7bf8c5ff6519b4f5553ee668821415f8b263ab37690a057a9ec6ff8a",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 4,
+      "y": 0
+    },
+    "ne2-4096-5-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 35872,
+      "sha256": "9cd97a6c94b043688a0bc463e766a66b54a4d7d7269103c3373502a37567ea90",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 5,
+      "y": 0
+    },
+    "ne2-4096-6-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 64452,
+      "sha256": "49ddf82606e8eea1ddad856123557e81089ecee98408c5a073870cda85c6d7f7",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 6,
+      "y": 0
+    },
+    "ne2-4096-7-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38128,
+      "sha256": "737dbd64030b59fdfefaef378d2ffc70a2b7b6ec9cc5d41f8f549f9fdf548112",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 7,
+      "y": 0
+    },
+    "ne2-4096-0-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1504,
+      "sha256": "a1afa9e38dac8c2563468ee2ed2bdf2fb6c5fececef751ae808430e7b2d64abb",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 0,
+      "y": 1
+    },
+    "ne2-4096-1-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24632,
+      "sha256": "d628c2e3bd591c0bb71f61681e28dfbd1da9c08620aa7a844674bcfd6f6e04f5",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 1,
+      "y": 1
+    },
+    "ne2-4096-2-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17780,
+      "sha256": "fd3730e15c2017e1b687ce6ea08b5cf9cda77cb9102135bbfc942efd960deb8d",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 2,
+      "y": 1
+    },
+    "ne2-4096-3-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13070,
+      "sha256": "737abe01ec787084a99b49023d7b77e7ff2680350ce8aa4f09911ba91f549401",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 3,
+      "y": 1
+    },
+    "ne2-4096-4-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47690,
+      "sha256": "bc6faadd79f2489250893a09b8639850a30a792e9f72f7685d964364ee4a3223",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 4,
+      "y": 1
+    },
+    "ne2-4096-5-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42962,
+      "sha256": "5cfe814ed8dbd382faa82eeb87b998e74ff3f94f351239edd8d175c0a3361e6f",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 5,
+      "y": 1
+    },
+    "ne2-4096-6-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 49342,
+      "sha256": "7b0a8a799353707d40740ae7725c7e498687079f8186499df235cb2a0b06f9a7",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 6,
+      "y": 1
+    },
+    "ne2-4096-7-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5712,
+      "sha256": "aebdf53a6ad87bc97dd94cd07d5722a7b6d4cebf4d32df42b77c4a9ab8e5e6a0",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 7,
+      "y": 1
+    },
+    "ne2-4096-0-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4772,
+      "sha256": "85aa8e1a3f712eb5683bb2f1c8c061b6f3b9e6ac26fd686e1230c1353e09fe4f",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 0,
+      "y": 2
+    },
+    "ne2-4096-1-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1012,
+      "sha256": "4cfb3e1a9d720fc0514e5f3468e4ad65189c1c9c5cd139afd2a26c5f71466cf4",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 1,
+      "y": 2
+    },
+    "ne2-4096-2-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28568,
+      "sha256": "c3ad08e25f9a32368771fac5576d3029b9ed451a5d81cb91a17164566c53b922",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 2,
+      "y": 2
+    },
+    "ne2-4096-3-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4942,
+      "sha256": "db2396542ad985cfe220ee346853f9574c856d4ad40edf7d666fd53e2442b567",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 3,
+      "y": 2
+    },
+    "ne2-4096-4-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22816,
+      "sha256": "70b32cd20fbcf6264c3afc3995ac6713e9d391f48e9297c250b11d031ecd4767",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 4,
+      "y": 2
+    },
+    "ne2-4096-5-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3280,
+      "sha256": "5339c0054c8b0654cb76f3cd9006d5c3e1d13f267a237d043fe1d83555ff803c",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 5,
+      "y": 2
+    },
+    "ne2-4096-6-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20248,
+      "sha256": "b62cf934387ee2d8d9c98bc626cce7aba07a2916b381f1af140b468b56a63a54",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 6,
+      "y": 2
+    },
+    "ne2-4096-7-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19574,
+      "sha256": "61bb458c563fb98f45f4be1817dbb44ec30b329ebfeb0fcea95d308e4dde33c1",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 7,
+      "y": 2
+    },
+    "ne2-4096-0-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 650,
+      "sha256": "12b3d1ed89f65a744f4a05bf789a9fb27d4254e8a86722bdd9602338a63022ef",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 0,
+      "y": 3
+    },
+    "ne2-4096-1-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 1,
+      "y": 3
+    },
+    "ne2-4096-2-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7964,
+      "sha256": "f426a9176cf09559f15ff7c790bb88867b299c9d6c5f162291de57048c5dd1cd",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 2,
+      "y": 3
+    },
+    "ne2-4096-3-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 940,
+      "sha256": "80f8ca06f2d48b38ee6b7d8bf3179cfff54d14993921f2c750748e6525079072",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 3,
+      "y": 3
+    },
+    "ne2-4096-4-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 632,
+      "sha256": "9c6a013d5ee09bc0c5af6b2d7a463fc4b1e37200a19a2b559d37c331c2a5c76c",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 4,
+      "y": 3
+    },
+    "ne2-4096-5-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 846,
+      "sha256": "6af2ee480fdb38fee936892d362c6428335f8eda29e3314c0ccf0727341c87ed",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 5,
+      "y": 3
+    },
+    "ne2-4096-6-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 6,
+      "y": 3
+    },
+    "ne2-4096-7-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3180,
+      "sha256": "d954199cedc8922eca9cbadb4c6ec96225255dce0e12072d2b315ad5cbaa11ad",
+      "kind": "tile",
+      "levelWidth": 4096,
+      "x": 7,
+      "y": 3
+    },
+    "ne2-8192-0-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21860,
+      "sha256": "7aaf2f1bc9c43467df0ae9e1411586c65e054c7a54f9f94536b734842b069d1b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 0
+    },
+    "ne2-8192-1-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 57486,
+      "sha256": "aae98a1030669d0903f3e93d91b7d6249a67bc786e3056d4a93c035d0317544b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 0
+    },
+    "ne2-8192-2-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 46030,
+      "sha256": "6c1fb3becd030c138f563a4a5cf11c33f38059d9fd3b8c95d7e19ee6850e7ece",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 0
+    },
+    "ne2-8192-3-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24550,
+      "sha256": "11cb9671a8b9cd91b740566c5c2a1efdf9ec7b6631baca22c7e92721f3ad8b79",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 0
+    },
+    "ne2-8192-4-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32152,
+      "sha256": "d323b01c2cce544ee2ef59a5bc8c10e2b5c34e8eb68b5212cda6b87c935853a5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 0
+    },
+    "ne2-8192-5-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22836,
+      "sha256": "c59fd02e05a9caaba601a7fa1b7379f9cb61cdd5b6da130c133aa79fd3107c8e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 0
+    },
+    "ne2-8192-6-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22876,
+      "sha256": "fb60ad2ecc84e88c372a10a980693909a25c357b061800d1e139dddd0fb7efe8",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 0
+    },
+    "ne2-8192-7-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7460,
+      "sha256": "1459bdc2616330746dcaa2a6071c46bc5cafc0ba435cb9cf9090f3e88cbab7a1",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 0
+    },
+    "ne2-8192-8-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27546,
+      "sha256": "29217b194f7322867532671ab19922a7317a1672c5dace02ed3624ec8473f62b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 0
+    },
+    "ne2-8192-9-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 29210,
+      "sha256": "ab96aacbe867abb4cd2373bd3ae974fb0681cf452d2de6afb3f311eb8b2f5b0b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 0
+    },
+    "ne2-8192-10-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32238,
+      "sha256": "ae9bf936f964c3f141eeedc6b3af44eac6f080fb71112756ad7f11f1002d357f",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 0
+    },
+    "ne2-8192-11-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30630,
+      "sha256": "73cb680530b12a77577aa4964b425a9817ca1b99d18c3411b9e72e504039e30c",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 0
+    },
+    "ne2-8192-12-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 61328,
+      "sha256": "1d9a4ae805f5afcb1771c97c350b49c4ea066bb71b4e2608901b03fd5fbe7792",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 0
+    },
+    "ne2-8192-13-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 49184,
+      "sha256": "2ff2e4e5994aa963b1afe1e5db645f70119a2ebbd523655312d9b001c85523ce",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 0
+    },
+    "ne2-8192-14-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 57734,
+      "sha256": "ec8ffae2748eda0ed18b61d7085a1dcfa22f9ea305a27c010ff4a7275adcb116",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 0
+    },
+    "ne2-8192-15-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 46818,
+      "sha256": "6a5ed10554f86e8aa51a6e0066f2b93874f8bfcffcbc4855c55d40a6a5f39116",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 0
+    },
+    "ne2-8192-0-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 8728,
+      "sha256": "6b94263823389810a111a2d96175feb0e8740140c9cc4b5f2f276860c7990fdb",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 1
+    },
+    "ne2-8192-1-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15428,
+      "sha256": "32aeddaefc9d03751c897a699165eea3579daac1d6d4a04b2a2356b8ea84696d",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 1
+    },
+    "ne2-8192-2-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 76844,
+      "sha256": "d7e4dbe2182bf26da173b6bf441adda19ebe57df4ce53b9181e2de831f140c94",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 1
+    },
+    "ne2-8192-3-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36140,
+      "sha256": "e6b7f4b2ece1ea9501a40dbbefa547f2362223ab65855bb877f0b571145aa1c4",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 1
+    },
+    "ne2-8192-4-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38512,
+      "sha256": "ba5f4e1db6c5cb2c2dffe04c02e1dacbb0c953dcd357cbbf3d9c2b9748fde987",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 1
+    },
+    "ne2-8192-5-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24076,
+      "sha256": "b727eaada9ef26e813a47010bbba7b4df0353a85f7fb4422a9b46ef947fd54df",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 1
+    },
+    "ne2-8192-6-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1378,
+      "sha256": "bc5342f482c6998498d2b5582474cb6cb6b428dcd580c4b26b212eb90f64bc05",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 1
+    },
+    "ne2-8192-7-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 12934,
+      "sha256": "d56701dbb11bddfbcc2a8ddac7b1b9f9d89222d98cb80385272063b0d6f727a4",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 1
+    },
+    "ne2-8192-8-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 45176,
+      "sha256": "74ddd0c0be2cc26726517cebb808beff5208e38706bdaa7a06e24cbb75239bf5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 1
+    },
+    "ne2-8192-9-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34480,
+      "sha256": "5e327ecbce53bc65fed40e6a83a7562348235a6297ed2f41dc395ea9f1ac0ee3",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 1
+    },
+    "ne2-8192-10-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 35246,
+      "sha256": "7a463fe2cbf5e4c6408f2a78eb21a4f683037b8389d593af67aa409c0dd0ebdf",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 1
+    },
+    "ne2-8192-11-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42852,
+      "sha256": "ee7ef98c4e50e2ba463489e3f95897c875b09f950b7ccf88d118ec88f59ea2ac",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 1
+    },
+    "ne2-8192-12-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 83614,
+      "sha256": "8ebb9921203f09a9a362ad970865319f954b938a9280be7a055fa5a57542b7fb",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 1
+    },
+    "ne2-8192-13-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 77286,
+      "sha256": "1633939ff99a48c15ff575cdb17c97be9200fed95315e5bf4c46eb89852c5c55",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 1
+    },
+    "ne2-8192-14-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34508,
+      "sha256": "2aca25e7f8027b94592605d3c50fbe7006cd8ddb360c0330a1127e31458c5ff8",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 1
+    },
+    "ne2-8192-15-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 12388,
+      "sha256": "1a94d61db30e58fd13272e6590efe6d9be419bb90d0ec67a83974e3575aad630",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 1
+    },
+    "ne2-8192-0-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 920,
+      "sha256": "24530a6d0e9a81a557c08aa00f8a93a32249087b7481cd1d4b9b1e3280b03909",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 2
+    },
+    "ne2-8192-1-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 2
+    },
+    "ne2-8192-2-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28090,
+      "sha256": "8194ebc7eb05b75e65e3420003248a6509d6af915160e5c6ed271889d352c919",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 2
+    },
+    "ne2-8192-3-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 51248,
+      "sha256": "0d042cbac50e94e60e8978a870a14b8cc65d974b43039f82c172d5169a27bb47",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 2
+    },
+    "ne2-8192-4-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20262,
+      "sha256": "dfc2d661fcd6b6c6bd04bc9a7e1bca5c182fd89386a3c1553eefd103a9cc4725",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 2
+    },
+    "ne2-8192-5-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 918,
+      "sha256": "bb7ba58a6ea287c4b682617e68c8ad1cfb31d2e946865fe2f1c7e83cf756a7b2",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 2
+    },
+    "ne2-8192-6-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1084,
+      "sha256": "83b48281c4e22a22a7a3b496692ff43520d7ee1a2942b6b33c942023214850c1",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 2
+    },
+    "ne2-8192-7-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27008,
+      "sha256": "f31e13cd6942e7ec5e3f3ea12ea574e1cef2a9efd7149a302efa929cb109e96f",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 2
+    },
+    "ne2-8192-8-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 40340,
+      "sha256": "4adf79d5734530b469a42389299068a04c0872ac548abee1c177c64de1bcbdac",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 2
+    },
+    "ne2-8192-9-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 52642,
+      "sha256": "55e9cb9154ddf06757f3defb864c597e0bd829c208237ca9cc0d144d2bbf8aa5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 2
+    },
+    "ne2-8192-10-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 60214,
+      "sha256": "3f035474bdb0c392658c5e870c75a55a12167e529adce85ea6331c3eec2a733d",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 2
+    },
+    "ne2-8192-11-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 78018,
+      "sha256": "fbc6b86be5e93ff4fb2f6cf1b769ba62c9d6199021b0ad10d5699763f58520a0",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 2
+    },
+    "ne2-8192-12-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 91126,
+      "sha256": "e387a899ae1136c4d3091c14f7ff78238afe3d7ee859289a8b4c117a7f6c9558",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 2
+    },
+    "ne2-8192-13-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 40668,
+      "sha256": "1776807934483a8648ab3b99fab39e193a786759a197a7352862cbde08551e9e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 2
+    },
+    "ne2-8192-14-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 8974,
+      "sha256": "6f403d237553ed9d12cfc6a08f97f990a8d0ad4f511b19e6e7b042ca931365e1",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 2
+    },
+    "ne2-8192-15-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 2
+    },
+    "ne2-8192-0-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1272,
+      "sha256": "f297780251962e13c28f365542447e1be2c24bad39c3678a7a3bcb82df640a79",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 3
+    },
+    "ne2-8192-1-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1192,
+      "sha256": "a64f1f865bc422faf6db285ed29ef933a3f3e8d22fd44b7c539d6edf578ff5b4",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 3
+    },
+    "ne2-8192-2-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 606,
+      "sha256": "a8ed97f2ac91c2252a1bd41a99adeb228bae1977c04d8679ea0bc2a84cd79daf",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 3
+    },
+    "ne2-8192-3-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17558,
+      "sha256": "98feee41c73d79a96b40bdfeab70ebe4ea5f9ea386c0c77ae0439727ac0702dd",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 3
+    },
+    "ne2-8192-4-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28022,
+      "sha256": "ebb322fabf20143dc29f065de72811c6fd67a5a8680f68bcbdf2481e0a03a632",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 3
+    },
+    "ne2-8192-5-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 14468,
+      "sha256": "81762969444070c12becd725044b38c2083cd22a43d7a03a1aa28d55983f6c07",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 3
+    },
+    "ne2-8192-6-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1090,
+      "sha256": "acefbc499cbe114aaa98f555b11b71874838ff76730e430f0c7e40d1fe60764b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 3
+    },
+    "ne2-8192-7-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 18518,
+      "sha256": "e02ac50b511b6604c32850835b8aa2e47658fc4521440bf5e051b2c8419155fe",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 3
+    },
+    "ne2-8192-8-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34440,
+      "sha256": "d9317844c71722e3be923ccf6877b5704c194092023aaa9e1860e8c94f40670e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 3
+    },
+    "ne2-8192-9-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 51138,
+      "sha256": "98da35c883150d19b856fb04d578daa2a93753efec03b9a3bf6877b6204cc6da",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 3
+    },
+    "ne2-8192-10-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13102,
+      "sha256": "2c56f010302cbc564190df88d8822e19d3871c09f07e7d69289d779865d6fcfd",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 3
+    },
+    "ne2-8192-11-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17274,
+      "sha256": "cd52212b92b7d90dd99286e429cb2fb82cdf7b963d4ce58d1cb7fac31c5f73a5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 3
+    },
+    "ne2-8192-12-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 41204,
+      "sha256": "095ca072ae309614b5bc45ebeaee745fdf75b63b062d67007c75213a5730442c",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 3
+    },
+    "ne2-8192-13-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19088,
+      "sha256": "7f08680311afe9b4a052808c0a5a373c3411453e1237022ad866f4f40e74ee08",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 3
+    },
+    "ne2-8192-14-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2776,
+      "sha256": "fb2b13a3c8fb5978171b8df5eaf840674be91abe59cfde2dacc9c897deb8ce8a",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 3
+    },
+    "ne2-8192-15-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3228,
+      "sha256": "2572370ad3aacf0ea3dfa30cd75b4c6a3cc88f07ccdcac03f5b9a639c990528a",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 3
+    },
+    "ne2-8192-0-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3242,
+      "sha256": "1462c33776bf9877a69c0408a27c8ed6649f5641c65772a49bd6b4601643833a",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 4
+    },
+    "ne2-8192-1-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3682,
+      "sha256": "2a35ee59658a12c8a9de3827c2aa20ddbabbf8a20cc7d171e8b90347c7eb410e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 4
+    },
+    "ne2-8192-2-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 4
+    },
+    "ne2-8192-3-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1070,
+      "sha256": "1cbdf92d7c9af9f5c488979579f66fa16a110b6914a079bff922d42186b2e227",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 4
+    },
+    "ne2-8192-4-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30046,
+      "sha256": "13562b7e6347b807968f2b88ab498139b5a71fad8a13429a8cc9723a81119da6",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 4
+    },
+    "ne2-8192-5-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 39198,
+      "sha256": "8c569400d9ef0a0ba576c257f121e4501e5245ed459009ebbbc7da03abb4db5d",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 4
+    },
+    "ne2-8192-6-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16002,
+      "sha256": "b39ec55c8de505ef9a0dccf275bc6143dda034ec5b3f566967fa9d9b7366792b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 4
+    },
+    "ne2-8192-7-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 648,
+      "sha256": "3977175f2e9df570211f4cc5884b79ca274b078b16937a6e66afbcabc3f87e2b",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 4
+    },
+    "ne2-8192-8-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22190,
+      "sha256": "c667d97aa752c9d323e49c7b0626ff08b3b735346ce36ac54ebaa9c743536063",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 4
+    },
+    "ne2-8192-9-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 44494,
+      "sha256": "cb6d44b2873131e5dcce559cb1b19640bad8d3a744edd80d318aee0b74869987",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 4
+    },
+    "ne2-8192-10-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5994,
+      "sha256": "31fb8751bc5b2d699f91063f36bd5613dd57b4dafc005886bd4bc8fc9e784a5e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 4
+    },
+    "ne2-8192-11-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1018,
+      "sha256": "5c3acf856130b92dfa08dd2c08b53403664aae76b6b6fb496ce1fdf21da3255c",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 4
+    },
+    "ne2-8192-12-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11050,
+      "sha256": "a91cf52c4071e0251715599288aa5ec3a1e991553b87f02aea3b60324ca9b768",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 4
+    },
+    "ne2-8192-13-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 33300,
+      "sha256": "94cfd6dcdd635205b02de9fc05766f8ce4cab53b9eb383951fb653c1a190b119",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 4
+    },
+    "ne2-8192-14-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 23906,
+      "sha256": "4f4c5e20e13e25eae1a7eafff08e8759cbc9d3fd63b1c7ed2e4532e49aab3f00",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 4
+    },
+    "ne2-8192-15-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7906,
+      "sha256": "33f443c76dafa17e4db1ca375d2de0735ca868f80c98f1a6d34bd2b62e482c79",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 4
+    },
+    "ne2-8192-0-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1230,
+      "sha256": "7299c67bfe9005dd3efb76579b430e68076a6183bf21b8f2261c969e4fc0a40a",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 5
+    },
+    "ne2-8192-1-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1452,
+      "sha256": "36f7622b00cb38e50d26eeed4bcae8bfd0d29f2fd190eb5ca55f114666ce2726",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 5
+    },
+    "ne2-8192-2-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 796,
+      "sha256": "8eb15eb8989ba74ccbfaa8f9b0817a6dc5bdd337dda87848ca022e88c40da18d",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 5
+    },
+    "ne2-8192-3-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 618,
+      "sha256": "2d5fd235968dd8906f0076e80cdf9379433cf1787ed6ebd0196c7ab0bcf2e272",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 5
+    },
+    "ne2-8192-4-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19724,
+      "sha256": "065bf0ff8804fd764ab06e59ae46f1fa40117d35dd984e4c8a5d8f7f279d44b5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 5
+    },
+    "ne2-8192-5-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34966,
+      "sha256": "5c45ac561fa7543158840a3a56b2e54d640bd7a3b5d7b673dc34da5c4af154f7",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 5
+    },
+    "ne2-8192-6-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3130,
+      "sha256": "cd6697d3e79843042bbc9bf84a955a61763815dd5fc09921a55693d4c25904c8",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 5
+    },
+    "ne2-8192-7-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 692,
+      "sha256": "c73b9141e09442d5895e71335fbf9b3e95a9a323f46edf8b7d8d497c93f4f5ae",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 5
+    },
+    "ne2-8192-8-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 10906,
+      "sha256": "c4b0699d1f7e8c3fe0aa79d4ba32a292d2204641463e8e364dc5b80299b04d34",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 5
+    },
+    "ne2-8192-9-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 18034,
+      "sha256": "32a1083ad51c0fc7d26011c6f35ef838564b97e0b346ccf42652a10c1fd7e64f",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 5
+    },
+    "ne2-8192-10-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3648,
+      "sha256": "1dd620e1976a46e5f58c3f3ff7e4bbca113b871a5f0ebf79a1c778f6eae0d986",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 5
+    },
+    "ne2-8192-11-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 610,
+      "sha256": "86426b8a860453c455d478654ac4f9d1213586d127ba432c8ad78788fc836183",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 5
+    },
+    "ne2-8192-12-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 5
+    },
+    "ne2-8192-13-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20630,
+      "sha256": "1c67f6e0a1de206ef8ef89946a9e894bb13c95136bbf3b8d862014cc605fa9ef",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 5
+    },
+    "ne2-8192-14-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27598,
+      "sha256": "367c21706d36331ce3ba89efaa12559aba434bc9c674326599b5979b6ff6397f",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 5
+    },
+    "ne2-8192-15-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5002,
+      "sha256": "f8e92134421331e86fc50876395df005570e00fbb905bd55edfdcfa3f4917d64",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 5
+    },
+    "ne2-8192-0-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 726,
+      "sha256": "db62e39ff0a63e839cd758d712e17effe0608884ad8f6e6f4529d6ea9c21bcb9",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 6
+    },
+    "ne2-8192-1-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 6
+    },
+    "ne2-8192-2-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 6
+    },
+    "ne2-8192-3-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 6
+    },
+    "ne2-8192-4-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24204,
+      "sha256": "daa22fed98178a68561db7dae8ff635d63ae219736bc7a82923a831a2312808e",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 6
+    },
+    "ne2-8192-5-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5404,
+      "sha256": "ef11cafe9ba37ac313116b18dfdb6e711ec72209c9d4cb9eb17f7b0d87cb85f5",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 6
+    },
+    "ne2-8192-6-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1258,
+      "sha256": "6e15d01bb8336314f24a0c4f1b418ff5b5511150115f748bd57fd96f5dd925e4",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 6
+    },
+    "ne2-8192-7-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 600,
+      "sha256": "46f936217552c2d796fb4e02ac051f948473d7afe81936c4ff9e3401899a2f62",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 6
+    },
+    "ne2-8192-8-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 606,
+      "sha256": "f8d9434e4157a4533a94c055f8ccbf8ee9f9f1b9bcf9bfbebd0b50bc0442acfc",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 6
+    },
+    "ne2-8192-9-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 648,
+      "sha256": "7654b4a7d797aba97085fef06124eddcc91179ee1cb3339a092cc5979ea574cc",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 6
+    },
+    "ne2-8192-10-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 702,
+      "sha256": "6f81bbd853771a465cb8b7d39c631d2b651dfe526137b34b62a01560ce4a7734",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 6
+    },
+    "ne2-8192-11-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1160,
+      "sha256": "8ae4024bf668a38a1f531e8e8e86c5e850927c6cb0d9e35c923f2d86668eeab0",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 6
+    },
+    "ne2-8192-12-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 6
+    },
+    "ne2-8192-13-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 6
+    },
+    "ne2-8192-14-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2722,
+      "sha256": "823c0f6046b404f36dde4ab114e8a9e7b5ba630204b7b8fb18a30f406e6640d0",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 6
+    },
+    "ne2-8192-15-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7386,
+      "sha256": "25bf7ffc9fce072a4279b1e34494dffd7f84fe9494099062ec4001d9634dfae6",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 6
+    },
+    "ne2-8192-0-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 0,
+      "y": 7
+    },
+    "ne2-8192-1-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 1,
+      "y": 7
+    },
+    "ne2-8192-2-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 2,
+      "y": 7
+    },
+    "ne2-8192-3-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 3,
+      "y": 7
+    },
+    "ne2-8192-4-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 4,
+      "y": 7
+    },
+    "ne2-8192-5-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 5,
+      "y": 7
+    },
+    "ne2-8192-6-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 712,
+      "sha256": "bdd4b87728a8e22f2a756bc9c83bb81b24ae9d535fbc2685ff84a61ffd7bdf35",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 6,
+      "y": 7
+    },
+    "ne2-8192-7-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 7,
+      "y": 7
+    },
+    "ne2-8192-8-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 8,
+      "y": 7
+    },
+    "ne2-8192-9-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 9,
+      "y": 7
+    },
+    "ne2-8192-10-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 10,
+      "y": 7
+    },
+    "ne2-8192-11-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 11,
+      "y": 7
+    },
+    "ne2-8192-12-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 12,
+      "y": 7
+    },
+    "ne2-8192-13-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 13,
+      "y": 7
+    },
+    "ne2-8192-14-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 14,
+      "y": 7
+    },
+    "ne2-8192-15-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 8192,
+      "x": 15,
+      "y": 7
+    },
+    "ne2-16384-0-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3394,
+      "sha256": "98a6f3d45f8dedd84472f54c0d1ccbe139374cb4ccc6f6adec0c94d6a9265811",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 0
+    },
+    "ne2-16384-1-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9234,
+      "sha256": "5c01d8434962988eaf6b2a51dd0d922e379b6e12ed2dc358914169dab66fdb6f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 0
+    },
+    "ne2-16384-2-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16600,
+      "sha256": "8e0746fe806128039229c13f06e230f13666ad06236fdabfe9308851df4a8406",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 0
+    },
+    "ne2-16384-3-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15938,
+      "sha256": "df1bac348cda7343e1e7ebb995eab08024dc4875b78878e6b3d47754842ca981",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 0
+    },
+    "ne2-16384-4-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11074,
+      "sha256": "cd9eaece40041b73b8432d90f8a333d886e291276b39301e66bf3e1c326f2ca9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 0
+    },
+    "ne2-16384-5-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17384,
+      "sha256": "0ccd2c67653d1279673d4c3e060dc7aa54abd1a57e5026b8406a818998945a8e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 0
+    },
+    "ne2-16384-6-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11698,
+      "sha256": "b931aea92f9b6b3658a0489f2b47fef4bd18228f36845ade77ce333f89ca5942",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 0
+    },
+    "ne2-16384-7-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13922,
+      "sha256": "e35bab36d2ad65ed286c17a6bd0f097d8f8dd05eb5f974c15f870d93d8363898",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 0
+    },
+    "ne2-16384-8-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22380,
+      "sha256": "e904735452795eaf1809dd304124423b889592122a17fee5005200ae7b4c6b12",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 0
+    },
+    "ne2-16384-9-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27402,
+      "sha256": "7ac7cb5efbd4d54401d7487ac6557251b016d632dd6935112216a55f3ff712ac",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 0
+    },
+    "ne2-16384-10-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2722,
+      "sha256": "07a8364daae21eb262fa535a8e5e99e5919fb1894758629463da972e211810d0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 0
+    },
+    "ne2-16384-11-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17134,
+      "sha256": "1faf023fd704b9bd4634f5038aa56dedd7e25601ab8ff88be3055faefc986a31",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 0
+    },
+    "ne2-16384-12-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3424,
+      "sha256": "92ce456f8f043586440ba4882fcbb52449092021fdc6bfb7a8c49a9da365d26f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 0
+    },
+    "ne2-16384-13-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 31290,
+      "sha256": "8ee0dd1eedb94c3bf478a3c19d5745356ae977c188d388d45e585199b5ec666b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 0
+    },
+    "ne2-16384-14-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2660,
+      "sha256": "3d2c57bbd777fc0d02f72453c3dbe12e35d2403b2157d9701e130a9a54232e20",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 0
+    },
+    "ne2-16384-15-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 868,
+      "sha256": "34bb06ddf2047e4a5e1179339d6818a44c84a4e2b89219dd052ef9e5f2be62e6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 0
+    },
+    "ne2-16384-16-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 0
+    },
+    "ne2-16384-17-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16590,
+      "sha256": "50766ef0e739cfa86e76671da99da99d66a8a79e13db2acfa4d442b5198d5ba9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 0
+    },
+    "ne2-16384-18-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19520,
+      "sha256": "d1aafc6f93f526dd68427216f24aae03e2cd8be5581468e082178da602cd6056",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 0
+    },
+    "ne2-16384-19-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4470,
+      "sha256": "b3b67a671ea2c62d631b958095ace4d72d1204793d02421597ec37d0a960663b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 0
+    },
+    "ne2-16384-20-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11498,
+      "sha256": "347e81d5521acd233d18fa1449793c12daac0e778cde953225fa5033e63c4617",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 0
+    },
+    "ne2-16384-21-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9470,
+      "sha256": "c69a8626aaa573254deebe07b0d6b16999377479860dc4b5b295e6b4a765ddf8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 0
+    },
+    "ne2-16384-22-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13316,
+      "sha256": "51d5cf6b75d99d98f237cddc69b11ae42400262f0c4073a3f0fc789a6c6976e3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 0
+    },
+    "ne2-16384-23-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20602,
+      "sha256": "80547b0f756b242030b5665ead4e64c7da88fba091b5f9415d138f155e9f7adc",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 0
+    },
+    "ne2-16384-24-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38386,
+      "sha256": "4e8cc65ffc3ab2f14046b0b1bbcc0d474961607fba1552873467c3ac35c5d64e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 0
+    },
+    "ne2-16384-25-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27952,
+      "sha256": "de6aa73fa90dc94fe87cecfb0691e04077a698010b77a399d6f1c7ec2e727c9d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 0
+    },
+    "ne2-16384-26-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24302,
+      "sha256": "c12bfeedf0eb2b3930ff629a14234198f4dc2c897a15dc37c2f04f69a8aef420",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 0
+    },
+    "ne2-16384-27-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28626,
+      "sha256": "e293b639eb097f05e073a7e6c8d3625bcb462bd4e75ecc6fee17fdc24b210e4e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 0
+    },
+    "ne2-16384-28-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20576,
+      "sha256": "2c4865291f49b4cc346d2e593e2b99409f9eb19bc987a19b421415cac26208be",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 0
+    },
+    "ne2-16384-29-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13376,
+      "sha256": "17bb138db6dbfce85dcbf06de4583247d9ad9f4198907d56338b4eff72bca0ae",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 0
+    },
+    "ne2-16384-30-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13306,
+      "sha256": "99b32206fac9a70ae12f77795bb9762dffccba79e642d204f02c22f0e9a6a02c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 0
+    },
+    "ne2-16384-31-0.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 14952,
+      "sha256": "7556bbbf070f087ed0d764fd5770fe0e6be82a7e3294ba1db186de98d6e2a9aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 0
+    },
+    "ne2-16384-0-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16166,
+      "sha256": "baafb28abbd15f1b0d2bac62cdf4c46d679a35993ebf4607b7b8422034fc006d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 1
+    },
+    "ne2-16384-1-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30446,
+      "sha256": "2f265261daeeb76e39681d6e314bd71f78df388e38b8eec62ffde8e17e8e5c01",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 1
+    },
+    "ne2-16384-2-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 68446,
+      "sha256": "8c7a8a485b6da0024e3db2757d6f38f936d6b63d70b69f8fc77826fdca4f5daa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 1
+    },
+    "ne2-16384-3-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 69680,
+      "sha256": "50da15d8d09d272ada11dfb7f3bbad398bf6fdce847a1cb800db9b0badc85dd8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 1
+    },
+    "ne2-16384-4-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 64486,
+      "sha256": "98f1bb39648933705bc0570eaf7ff85f1068352e9f6868dec8512828575afb6f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 1
+    },
+    "ne2-16384-5-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28374,
+      "sha256": "f27ea92fc873051e235f65b620725bc279fcc6c81270838685f90b9b12625f21",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 1
+    },
+    "ne2-16384-6-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22690,
+      "sha256": "899c132e3e0c4e175e9935c3ac546d55a27b1bff7e1e49d2e215c12e4ff07cfa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 1
+    },
+    "ne2-16384-7-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16510,
+      "sha256": "ddb9f8714564be05b03f2791fe4e18458f5cfd6ee19e90d9aa656cb0c9b39c27",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 1
+    },
+    "ne2-16384-8-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9566,
+      "sha256": "40657c2306c3ef4521aec3ce03e79db01cd9a0e542e5b23d03fec8a736ba2530",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 1
+    },
+    "ne2-16384-9-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17398,
+      "sha256": "6c0b33a456dcceee1bde431a7bdb0f3364a5da536991a9dead4b0c1bf4953418",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 1
+    },
+    "ne2-16384-10-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19254,
+      "sha256": "4d45594198cacccb45498fd4386365cc3e2a17f98148c31120e08b5442500f56",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 1
+    },
+    "ne2-16384-11-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15940,
+      "sha256": "78cc0223eea5f291489d217f6954c3b974eaac7f81abfc8597b6e14ba3b684fd",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 1
+    },
+    "ne2-16384-12-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16428,
+      "sha256": "14bec19f0b8e32cdd60185823dd7bf507885507ac36437ba448737d15c9d3eb6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 1
+    },
+    "ne2-16384-13-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3534,
+      "sha256": "ff6f2b65df564a9c92ae04ca3af29148fc83a139ff3f9f9305ceee2c67f89a29",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 1
+    },
+    "ne2-16384-14-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13498,
+      "sha256": "9acdef69c701d5a18af8fafb5b8848cd75013b735cd1bb61a895dbe065e6b50f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 1
+    },
+    "ne2-16384-15-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1170,
+      "sha256": "d22f9a9b13f5d07eb764536a596b13ca278bafd780ec5398132251e2afbf0550",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 1
+    },
+    "ne2-16384-16-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 18626,
+      "sha256": "e689181ca8eaf419816a618265ab56fe32ac5061efe7033b9609a4eb69399194",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 1
+    },
+    "ne2-16384-17-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 45306,
+      "sha256": "5020704d8ac7db444355eba2d336c1d51067766619a8b92d38bcc847115570e8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 1
+    },
+    "ne2-16384-18-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28814,
+      "sha256": "a1ab4381ea6fc696c3cf826cf9a4bce36965f19f2037a4d21df95e9d938cf705",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 1
+    },
+    "ne2-16384-19-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30684,
+      "sha256": "227584674f65ab5faee8201feb7bd071347dd6ccb97638922fc7b22e5542ae1f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 1
+    },
+    "ne2-16384-20-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 29772,
+      "sha256": "d366d399b65df5a4ce82f5671192550e74f31b9792e589e9bc73783e02fc9c71",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 1
+    },
+    "ne2-16384-21-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36158,
+      "sha256": "fbed1dedbe54a2905812350552c7037d3bafa97fdfa03f1b405cf957e80aca7e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 1
+    },
+    "ne2-16384-22-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22008,
+      "sha256": "6301e67aa4e2e1671eb763eb13e092a760b9a6f265c1182a8701cc39dfabc019",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 1
+    },
+    "ne2-16384-23-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30210,
+      "sha256": "644962b79abdf310ef9e1641228892ebf0f007006d7b7d0c2fd0ebcba0ac3563",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 1
+    },
+    "ne2-16384-24-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 57308,
+      "sha256": "a60c6315c27600384419cba4f36be9939de8ea5bd6930f822b3ae178698fb9be",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 1
+    },
+    "ne2-16384-25-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 41456,
+      "sha256": "03a6435761396aaaac1ca0acc6c2c0e27aa8265d78daecd8fa1472376b869313",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 1
+    },
+    "ne2-16384-26-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32674,
+      "sha256": "a16186ed3e894977f0febb9c5e036ee03d4a627f200e27958d56cfe1e9e5da22",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 1
+    },
+    "ne2-16384-27-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 50052,
+      "sha256": "fe93093676b9a26c354720f9ba695d0fd54f2872f7f909cfeb0e14dc59218976",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 1
+    },
+    "ne2-16384-28-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 75290,
+      "sha256": "510a26c7e1c287377c0b427e319ddca548f11e79d47b773a875dfbedd0634807",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 1
+    },
+    "ne2-16384-29-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 60408,
+      "sha256": "f10f9c7f4c8b7581a565058b446181751b83288184021aea672881651d6a60ed",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 1
+    },
+    "ne2-16384-30-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 60190,
+      "sha256": "7ebc801bf018b2c0a4ea910b7314d5543a456e5a4252b7ed81faa3b86b26c657",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 1
+    },
+    "ne2-16384-31-1.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 46352,
+      "sha256": "68de690496cfec8deeaa1363aa42d239d0481cdea13d7ffb3b0df45a765055aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 1
+    },
+    "ne2-16384-0-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1290,
+      "sha256": "94f4b4debb9514fa657e813fbfb7d740746f0d4d3ecec1184703bd85cc186f2c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 2
+    },
+    "ne2-16384-1-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 18462,
+      "sha256": "4f55ffcb10928083faf5b458fd829fab98511613adcfdd9b5deaf5175e63d9ea",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 2
+    },
+    "ne2-16384-2-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 23136,
+      "sha256": "cdaa183f491fac61764a5f883d690194d2aeabcb879e286f58242ca0771ab373",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 2
+    },
+    "ne2-16384-3-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19948,
+      "sha256": "78c425f420a5b42cee290e7e3036d7d671a422e98f5d5c54053518a182911bc2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 2
+    },
+    "ne2-16384-4-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 85492,
+      "sha256": "e9c483dfbbf2bfff76c74bc7ff1515700694b97ccb67e51463c2d03c87f90609",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 2
+    },
+    "ne2-16384-5-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 45576,
+      "sha256": "8a056c862963eb1b858894e07da0161f29f6d04fa0df5d1f7008721913810a8f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 2
+    },
+    "ne2-16384-6-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 26934,
+      "sha256": "9dc7193a1c62c5b0d74f5c327f42bbb6fcd07b56a87cb9f392593c84c87c0798",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 2
+    },
+    "ne2-16384-7-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22480,
+      "sha256": "eaeacd8f0d27b2edefcc132aac37209b4978af89425012d208df14563f2003e0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 2
+    },
+    "ne2-16384-8-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 10656,
+      "sha256": "b60c9e289998d34557e3287361d8d36e8de34116170fa3528573bd1c5858ac1f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 2
+    },
+    "ne2-16384-9-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 31832,
+      "sha256": "3677fc610e361e0e5f815800c7cc01766642e564a4377300b141c5bfd684d3af",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 2
+    },
+    "ne2-16384-10-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 29266,
+      "sha256": "ce1a92c8c690cd46b0fbd4fbc5e611834d8cd10bb0b40e25d0b6cbdeb061c9a3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 2
+    },
+    "ne2-16384-11-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1766,
+      "sha256": "10dc263909f890be09117b1bab4e11db062cf67d0ca89fa7d7ef6729b5c57d4d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 2
+    },
+    "ne2-16384-12-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2460,
+      "sha256": "753a01456f10b26b6d118ba080767b1981fe0ab5b682a6f533b86519c25d33b1",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 2
+    },
+    "ne2-16384-13-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 2
+    },
+    "ne2-16384-14-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 2
+    },
+    "ne2-16384-15-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21658,
+      "sha256": "6bcea5787d87ea0411134b0d4df7b0e664c1546340f5db120bc9eb7a2daacdb4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 2
+    },
+    "ne2-16384-16-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17642,
+      "sha256": "fd873ef3e59f4c4ab9119894a8464451afd87e580043a00fdb9a6f7488a364d0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 2
+    },
+    "ne2-16384-17-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22270,
+      "sha256": "d0b1c3f7e6690216586d70d3203f18f0cb8fe79e284145b9c064f7e4b157692a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 2
+    },
+    "ne2-16384-18-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20968,
+      "sha256": "e4d280d505fca54f65c756ced6bf916fbb34800df408a289225186249b00a2df",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 2
+    },
+    "ne2-16384-19-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20260,
+      "sha256": "f7914236abbcc571c5ccdead95f2a81a5e5d295d4be7c3cd317041b621e5c8c6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 2
+    },
+    "ne2-16384-20-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27614,
+      "sha256": "98e8da4b5aff1987e281034ece5d7e66a8f1848a8e2e6784b48e5cd6b27d13bc",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 2
+    },
+    "ne2-16384-21-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 29732,
+      "sha256": "ae8db30d9e17f97b9f94d2b6d65fb5eec2364e29831797eba2a1c9865624ad1e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 2
+    },
+    "ne2-16384-22-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17824,
+      "sha256": "b340272f5b8438a25ec53f53cef44a994c85436b6618998cd48ff4cd9cbff760",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 2
+    },
+    "ne2-16384-23-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27706,
+      "sha256": "b46abd10a4d886f7e64e3c48f8564882cc59ae68893b4387f969707e339cfa74",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 2
+    },
+    "ne2-16384-24-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 55290,
+      "sha256": "fd99f88a16d3d931eabc374138b5702c8f8f8ff9f335db88295677643d65877b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 2
+    },
+    "ne2-16384-25-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 57230,
+      "sha256": "8f5a1c53e6baab8b81fe67df7b2bfb54daca98c30859473f30bb904f8633c4c4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 2
+    },
+    "ne2-16384-26-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 74816,
+      "sha256": "3eee3a4890e086f67b451d38d7cab611db10b863e63e89d7de52ef734a44ea3a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 2
+    },
+    "ne2-16384-27-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 66256,
+      "sha256": "7f5b6b6ad51018297e36450a5f06141fca8720fc56353fe4472330c10790c758",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 2
+    },
+    "ne2-16384-28-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38120,
+      "sha256": "30fbbf1916e36b4759f32e4d58cc2f773ff1141603d62f49bb943b102d40de90",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 2
+    },
+    "ne2-16384-29-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19630,
+      "sha256": "1ffecdf50f6f476dcf61e38ae49f82e2000bb3bc79338d0022cf37d7b7f416b6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 2
+    },
+    "ne2-16384-30-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28324,
+      "sha256": "769c6aa5ef1dd30b6f4063308d3144ddbda4094f1edb6e611b40c07c701f09a4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 2
+    },
+    "ne2-16384-31-2.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2538,
+      "sha256": "0b1873c8707a34606649ed797c23fef461c92a29fec5a7b9f86a5cda3a88c190",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 2
+    },
+    "ne2-16384-0-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3324,
+      "sha256": "14674f93f7549092febe658b8aec494cc4bfc91bcaac8e762c4c951f57a6f940",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 3
+    },
+    "ne2-16384-1-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 648,
+      "sha256": "f0703db1d2f623cf4e97afe9acf04b98931c934c3a1f755ce635a808575dd1b4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 3
+    },
+    "ne2-16384-2-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 3
+    },
+    "ne2-16384-3-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 3
+    },
+    "ne2-16384-4-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22604,
+      "sha256": "0feda42feaeeab6b7c3a9e947d3cafcad9b0ccb87877948476c2219a2f0adb39",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 3
+    },
+    "ne2-16384-5-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 93272,
+      "sha256": "0b0a904ee7e55d217f984efb2e4e6f43828850c8fd79a50a078e47a58c874ae2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 3
+    },
+    "ne2-16384-6-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34300,
+      "sha256": "f4da0cf06291354ff77f2b4917f91256cba4da4a5a477520f2b97fb2e8f8e984",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 3
+    },
+    "ne2-16384-7-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21060,
+      "sha256": "e2d1470b0f6db1c7886d5d64044828f8806accdfdb78cfef8f5801ad36358e45",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 3
+    },
+    "ne2-16384-8-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27594,
+      "sha256": "a070a67551dbcda2228a414a07a418732145041670b048b0b9db6988ddef3c8a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 3
+    },
+    "ne2-16384-9-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47166,
+      "sha256": "f91357c19f50d0133d17117279add11cc7c9cff02295eb108b097bebc540d8d3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 3
+    },
+    "ne2-16384-10-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 35438,
+      "sha256": "9d7fd6648fa26cc2fd4504bd8f1910f6becfc75008cc2c446b5a0e625ae7eac0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 3
+    },
+    "ne2-16384-11-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6398,
+      "sha256": "a2df2d173072306814cf515a63e4b3800bff6d5173473127fa6684a6f34c1805",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 3
+    },
+    "ne2-16384-12-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 3
+    },
+    "ne2-16384-13-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 3
+    },
+    "ne2-16384-14-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 3
+    },
+    "ne2-16384-15-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 13082,
+      "sha256": "f21c474e555edbf3beb12ef6ade255aba69410a78e50274d9b632563d7842e3d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 3
+    },
+    "ne2-16384-16-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 51578,
+      "sha256": "7d5fcad6520c9a7f05503296ad055beb23e95fbfbe0839a9a6b89656f6755378",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 3
+    },
+    "ne2-16384-17-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47428,
+      "sha256": "bbd57f8d9670fb0bc92b1e976e6ab3024c2f59d6df662b0882731ace116a9535",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 3
+    },
+    "ne2-16384-18-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34192,
+      "sha256": "d07370e4273a87ecbc0e45796b969f1e15cafbdb0ac46e3526c49e14c93a03fc",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 3
+    },
+    "ne2-16384-19-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 31258,
+      "sha256": "094cdbe6615a5e573d21203e63602234eccb211db55c8ec61e80bcc107e8dabf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 3
+    },
+    "ne2-16384-20-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22668,
+      "sha256": "a01c8063b8ad5c40a4985116ceba97daf0076f05710a27098b7c27da90bd18aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 3
+    },
+    "ne2-16384-21-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22752,
+      "sha256": "911879afe1bbc0c40c24fed9cc59d27d300f546141ac4c21dfe9bc89ce4a62c2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 3
+    },
+    "ne2-16384-22-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22922,
+      "sha256": "34fd890780abfc9f89d09bdc601ed3beb01c2c92a54f61b21a4d1eea71e911a0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 3
+    },
+    "ne2-16384-23-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 58244,
+      "sha256": "dae61d2e28a17f4b8e50909c17def41ba365769194c2463c20ac636a6de6b656",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 3
+    },
+    "ne2-16384-24-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 75286,
+      "sha256": "5ee3a4889c1b35f6489f680e23d839abf651fdbe2e35997ccea1f285e4375b7f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 3
+    },
+    "ne2-16384-25-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 63902,
+      "sha256": "96c21b5b4776b89ea8681f1e08a71bea4356a1da1866f5aa8b1b8f53b7557b3b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 3
+    },
+    "ne2-16384-26-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47970,
+      "sha256": "786af555fdd0825f111d37d5e2af02465affb1b0953f163d3d130f8cde4d34aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 3
+    },
+    "ne2-16384-27-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47582,
+      "sha256": "864875b11dbb1a7036e12821433723ca031aace9388bf4d96055326dc9163399",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 3
+    },
+    "ne2-16384-28-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36254,
+      "sha256": "c8aab29cf52d77333721ce988aa4261905e0c0539aae19093c17dc72122ed481",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 3
+    },
+    "ne2-16384-29-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6114,
+      "sha256": "14dbf08625a908e6963a8c5b2bb425c86cdb1f5d8b28cc3637a1d7919225c8ba",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 3
+    },
+    "ne2-16384-30-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2292,
+      "sha256": "62e6834ddf846db9db42c0e897ea99eb52df44c3e8d423c09c5624f9b275ef45",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 3
+    },
+    "ne2-16384-31-3.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1952,
+      "sha256": "8da986d10f7e1037c34e87bc931e6352016d4ae8ade9610c22715f8d36bebc71",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 3
+    },
+    "ne2-16384-0-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 4
+    },
+    "ne2-16384-1-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 4
+    },
+    "ne2-16384-2-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 4
+    },
+    "ne2-16384-3-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 4
+    },
+    "ne2-16384-4-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3754,
+      "sha256": "83cf7c61274f707d64ef7f2d203cb205d559a9a2f62000a85e21b2f66cb9c171",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 4
+    },
+    "ne2-16384-5-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 71828,
+      "sha256": "488e3e338308c1e24c65363167eb391f7fc3e7caf8354429e02f63e54cffe919",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 4
+    },
+    "ne2-16384-6-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 60684,
+      "sha256": "140e21e757186d46b2a16ecbd9efdd98ec6050a4c2da679f0fdb13f8ca12dbb4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 4
+    },
+    "ne2-16384-7-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25198,
+      "sha256": "f1b73b1cac6c86828042974d348eaabc3eed5ccb6a23db1d0aa3bffd8d28b022",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 4
+    },
+    "ne2-16384-8-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 31084,
+      "sha256": "01b36baf4194a427febb0c3c71120dd3ce05e83a83a4bd68ef4a3352f3c83780",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 4
+    },
+    "ne2-16384-9-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20774,
+      "sha256": "0cd34ae6ef1dbc666f0d7b81cce9f247146fbb82269aecd46018f0955089d6f9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 4
+    },
+    "ne2-16384-10-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1144,
+      "sha256": "ef17e8c58a8f8671aaa633e6a37c31c85d5bfceb62457642a512cd100c9e24fb",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 4
+    },
+    "ne2-16384-11-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 4
+    },
+    "ne2-16384-12-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 4
+    },
+    "ne2-16384-13-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1512,
+      "sha256": "05732c39f6d7a0fcc367d63cdbd2d0c88bc688f139e902d90147e5eae1554faf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 4
+    },
+    "ne2-16384-14-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 4
+    },
+    "ne2-16384-15-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42344,
+      "sha256": "509221bb7af69a4378354bac876ce5500b33a195c9fe3e6adcff6e7995b6d8b3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 4
+    },
+    "ne2-16384-16-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34554,
+      "sha256": "c75a98ddc5aa63151ec39257c824583ebcd4663b48969694348c9653c60e6381",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 4
+    },
+    "ne2-16384-17-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36410,
+      "sha256": "33f8baa66f8da06cb4831671a8fb0848b2feb5c8d55bfb544191a1ea8b5f7045",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 4
+    },
+    "ne2-16384-18-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 47156,
+      "sha256": "cfa7085d905891d2d44401430504f7eb957cc61fe6c2fe25956e04bfbd1e2955",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 4
+    },
+    "ne2-16384-19-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 61008,
+      "sha256": "40ebba9e224ba6ec31ecf57432ffdeaeb23255e4a7307e058bfad61b00f37f55",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 4
+    },
+    "ne2-16384-20-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 46206,
+      "sha256": "d663e5b1ad06c922c7c27c28a639d7fe666b3bb21db4ced2e79273ebff7065df",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 4
+    },
+    "ne2-16384-21-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30964,
+      "sha256": "7789fcdb6671d22848432d417383ff5f492f5d970ae530c2b3bddaab0bac709a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 4
+    },
+    "ne2-16384-22-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 87790,
+      "sha256": "22732b1aaac1865c3aa45ea9bfcd1d78ce05b99913423e9d327c784effa155f9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 4
+    },
+    "ne2-16384-23-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 54232,
+      "sha256": "1222e415baf515a43f8411660ca45566a2bd99dbb7692ac2d9a7f392774f3c83",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 4
+    },
+    "ne2-16384-24-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 55398,
+      "sha256": "a344dfcc4b4207645bd07b7270c7cd1b08cec3df5e8b807a400e9356480f7c52",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 4
+    },
+    "ne2-16384-25-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 48636,
+      "sha256": "5b9a001e22088eb8f067d0e1ca5a83881b4d1a1b6d67374a51485c55fd229cec",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 4
+    },
+    "ne2-16384-26-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 35060,
+      "sha256": "0fb6385c5e1186212de1e735bca567d13936f71be55b997261011c0739903fbf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 4
+    },
+    "ne2-16384-27-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 37602,
+      "sha256": "ed9dec7d9a8d7281472b418d9103b57e36b5631711558f8c9f45cdd9ff4189f8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 4
+    },
+    "ne2-16384-28-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21862,
+      "sha256": "5fe65d43fd10beb687a6cfcd6e079a5f156cc3c06951cfa94de1577eaee99713",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 4
+    },
+    "ne2-16384-29-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 852,
+      "sha256": "cbc0f1cc39eaa5b1271dabe9f1a20fece57882c3387a7ac87dd7e765c7a2c017",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 4
+    },
+    "ne2-16384-30-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 4
+    },
+    "ne2-16384-31-4.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 4
+    },
+    "ne2-16384-0-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 970,
+      "sha256": "59360e9cce59cb9341257d4525d0d6bcce8c7c9259fa89e914e738f99dbe79aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 5
+    },
+    "ne2-16384-1-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 604,
+      "sha256": "408d1989a5c5ba66b9d75c01a81be5f67d1e4ba69629226c166ccd2748c8559a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 5
+    },
+    "ne2-16384-2-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 5
+    },
+    "ne2-16384-3-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 5
+    },
+    "ne2-16384-4-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 5
+    },
+    "ne2-16384-5-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17256,
+      "sha256": "24a5148d6ecc56c2213a92820a5eca97e8423554a0bd320889f281aa1d0b3d13",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 5
+    },
+    "ne2-16384-6-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 57764,
+      "sha256": "7b3ed5208c445f8955c2d098b0378ae413a7fabe1db83b4dd2499cb23cd34bd0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 5
+    },
+    "ne2-16384-7-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20610,
+      "sha256": "9904fa8fb582ea6229ecd66c485d4d249fd68f17be22d65733e41fef98e2885b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 5
+    },
+    "ne2-16384-8-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11468,
+      "sha256": "3b4230c2ee9233b4afd3a2d3a266249ed07c771c23e2fc80545dc3e17dbdbd2a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 5
+    },
+    "ne2-16384-9-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2136,
+      "sha256": "405bde993fa175cb69010b217e7e5fa7fdeeb4db0da7b151af8c7c546e2c237c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 5
+    },
+    "ne2-16384-10-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 650,
+      "sha256": "bec11fc18db292e523502e1a899f70601d4cb151f32cde3d733a7b219a0ae063",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 5
+    },
+    "ne2-16384-11-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 5
+    },
+    "ne2-16384-12-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 5
+    },
+    "ne2-16384-13-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 5
+    },
+    "ne2-16384-14-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5758,
+      "sha256": "e544c971dc4ef18764769c31ee1d0fef3465e774ca3f7fee18d1d61812bf5172",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 5
+    },
+    "ne2-16384-15-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36590,
+      "sha256": "ba51f30cfb8ad7dfff17d22ba8932dac705c0061decdda833436050667a96d56",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 5
+    },
+    "ne2-16384-16-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 30114,
+      "sha256": "72194e162ae62ecb1e53f5e10e412a6d6d3b4d445830a44e54645fccfe6af807",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 5
+    },
+    "ne2-16384-17-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16854,
+      "sha256": "3173784c44d0634374aec026d750a8138919b916e1ea35bce80926305fc16c09",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 5
+    },
+    "ne2-16384-18-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19460,
+      "sha256": "be74103379c083b483c38eb349a9c90b9f760b64ded45ce321547a8461b356c4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 5
+    },
+    "ne2-16384-19-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 33306,
+      "sha256": "3ad8b56a9cc31381a8c336bbc9f0070ec131804b8037d34466cfd49ed753b780",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 5
+    },
+    "ne2-16384-20-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 44946,
+      "sha256": "c84c454744263893b246adfe4c1a8b48241c1b094935299a259bb54c8b4efffb",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 5
+    },
+    "ne2-16384-21-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 60046,
+      "sha256": "786afee52b975fc0c7346d1737377530b9e14009dd190e4c3e9e3631228fe2bd",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 5
+    },
+    "ne2-16384-22-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 45330,
+      "sha256": "64cabe79c5f62b0dc9ba3a72a797a0812ca6ab7149abe96d4289b47bdebcb652",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 5
+    },
+    "ne2-16384-23-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 75232,
+      "sha256": "6400b5dcaa95d031e8400c7afb0280d7dac260bfcdbcdcc2a6cc8384f217314d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 5
+    },
+    "ne2-16384-24-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 102204,
+      "sha256": "865a1935dfeaeeda79df01154452434b4376d8345bb5da295bb028b0a2438c41",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 5
+    },
+    "ne2-16384-25-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 95980,
+      "sha256": "cf923681c860c7654dd1c3149a9fed581f3293bf4625ee9d59abe2da318e6ec0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 5
+    },
+    "ne2-16384-26-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 41990,
+      "sha256": "8ef81b89d8431aaf33634d4171453d59a761fa4cbd40d4c4d0e8667c2f674ecf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 5
+    },
+    "ne2-16384-27-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11906,
+      "sha256": "967b16a43447629ff11201902dcc8bb38548c24ff097e6191cbecb59bcd5ed79",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 5
+    },
+    "ne2-16384-28-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3116,
+      "sha256": "c9f662323e0fdb5db7d0e7daba20d71f34cb9ac86a16241ee7e0b13dfd1dc1d0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 5
+    },
+    "ne2-16384-29-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 5
+    },
+    "ne2-16384-30-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 5
+    },
+    "ne2-16384-31-5.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 5
+    },
+    "ne2-16384-0-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 610,
+      "sha256": "ed67f0d3bb94d4244932f741e585f7c2b475482b18eef3369a20b19d7f20f219",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 6
+    },
+    "ne2-16384-1-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1338,
+      "sha256": "53770deffd1fe637d1341d85f8b77e7494563f428f590732c21981761e780ad3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 6
+    },
+    "ne2-16384-2-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1744,
+      "sha256": "d609645b29cd9974c24ca11479334620f9a3f45d47e43fff528267c936ade15f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 6
+    },
+    "ne2-16384-3-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 6
+    },
+    "ne2-16384-4-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 6
+    },
+    "ne2-16384-5-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 638,
+      "sha256": "0021783cdbdb72ca1df1e6f8130d3464472e5532cf5af03a3cbdb7de7e62588b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 6
+    },
+    "ne2-16384-6-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 21064,
+      "sha256": "4fbb54e1dc0a52f2ab91abaee6c2b6397d6c3b813af0010fe7715ae57e55919f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 6
+    },
+    "ne2-16384-7-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36538,
+      "sha256": "4b601a5c48c2779f0ac6d00287aa723ff83bf9d8f364ae5b7c5ee6b1c0326180",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 6
+    },
+    "ne2-16384-8-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17468,
+      "sha256": "3f320f9aa407408382d5f80cad540efaf9f8c6cc5a2158b092d29af451248a9b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 6
+    },
+    "ne2-16384-9-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 11698,
+      "sha256": "e21aca3724e25eaff8a29a3dca0fdbbb26c340130ff05a82cb0066b01b977859",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 6
+    },
+    "ne2-16384-10-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3396,
+      "sha256": "90ca460a1cad5f34dc87ef603688062b3955e35b15d0318f4f9b7fea262e326b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 6
+    },
+    "ne2-16384-11-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 6
+    },
+    "ne2-16384-12-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 6
+    },
+    "ne2-16384-13-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1534,
+      "sha256": "5d2a2ecae548a68d63dc98ddec6bab2b89cca02c700e8e6bd34773de0161a434",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 6
+    },
+    "ne2-16384-14-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9940,
+      "sha256": "420936a6f2a1cb9be9c09ace3e13ca3952f9693ffb863d9bb44ede290b1bb72a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 6
+    },
+    "ne2-16384-15-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15968,
+      "sha256": "7f1597143562956de6b5670f2e18e3cd977242da4285acbbd2a0cfc2849b29e5",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 6
+    },
+    "ne2-16384-16-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25052,
+      "sha256": "bb5b9e9ab003e386cada7c152ea5d50cd7a6ccb2b9ca3d745117897f1b7dd595",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 6
+    },
+    "ne2-16384-17-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25900,
+      "sha256": "9d2caabe9bc19a488a1be66a8be7602ec759ee841a93b47c53a7cb01e3a68f10",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 6
+    },
+    "ne2-16384-18-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25940,
+      "sha256": "e221b4335965dd91fca5681d1555cb80c68aea3765d3ce1f1169841d06835bc0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 6
+    },
+    "ne2-16384-19-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 45800,
+      "sha256": "c4575986b7b49e5c0ed567786c5114e933db97fde954a57af9dbf8e93e2307aa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 6
+    },
+    "ne2-16384-20-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24032,
+      "sha256": "6b69d7ed933c827e37699f98c127dd6fb463e114e63ec59732f8098de9c1ce42",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 6
+    },
+    "ne2-16384-21-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5926,
+      "sha256": "77f113440598d2c8d65cb7b1aa779698e5e641796a7753a4f3227fb2b6d01a98",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 6
+    },
+    "ne2-16384-22-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 19792,
+      "sha256": "9033201e393b5fc5e3d7f1de65f3dc2b9c268f35318a14341d301a101ad8bb46",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 6
+    },
+    "ne2-16384-23-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22634,
+      "sha256": "442dcfbd51b42373fc6aab89d97f5b6f2a87e42d4f5871ef13d8b5265d9a6cfc",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 6
+    },
+    "ne2-16384-24-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 48062,
+      "sha256": "0ae80d9d83bb9191ded93023e1cb46620e6da73b2ea91cd9e47905c715e30ccf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 6
+    },
+    "ne2-16384-25-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 53962,
+      "sha256": "1d9289b6fe307cdc47cd020f393a30c63255381be25a5a5f53040d6d5f62069e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 6
+    },
+    "ne2-16384-26-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17280,
+      "sha256": "a1e0434cfa4fad5f05d1be672136c4ba524180145246b179e6bb1287c9e9787c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 6
+    },
+    "ne2-16384-27-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1004,
+      "sha256": "1d86a25cf67af7e30b683af34ed071d0f8325ac70858a6510e627fd984feb252",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 6
+    },
+    "ne2-16384-28-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2116,
+      "sha256": "e28a58a8aee296dc1818843d8cbeacc25b404627ac40ee30ac4dd298ea0f9acf",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 6
+    },
+    "ne2-16384-29-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 6
+    },
+    "ne2-16384-30-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 682,
+      "sha256": "a2ff7573a2f5723f5df10c7049d91da336655bfefdda6d6db589fedc6a5c1be0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 6
+    },
+    "ne2-16384-31-6.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 668,
+      "sha256": "3b500c55bd3ef2d44f4a40130e77580bd78abe431fd63ef688239685b822375b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 6
+    },
+    "ne2-16384-0-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 7
+    },
+    "ne2-16384-1-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 892,
+      "sha256": "f6a96bf30b73eef6a7bf5b19f98ab7cf0d82852c220c8624c36b42bb57a76564",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 7
+    },
+    "ne2-16384-2-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 7
+    },
+    "ne2-16384-3-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 7
+    },
+    "ne2-16384-4-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 7
+    },
+    "ne2-16384-5-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 7
+    },
+    "ne2-16384-6-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 588,
+      "sha256": "3bdeafd49881399bee4d9ced435ad140525e7e8c59ccec2c31ba2aa8108306f9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 7
+    },
+    "ne2-16384-7-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 600,
+      "sha256": "f705c6abee633e1638999bb0cd90fab4c0d6ac3277a2ea0fbd8b1854ba7574f9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 7
+    },
+    "ne2-16384-8-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 12542,
+      "sha256": "624726e4aa7d4bd320fedd6d9f04478b1ce8be3df4da13fcc90dc704f70359ec",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 7
+    },
+    "ne2-16384-9-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 43068,
+      "sha256": "7fc87bfa1e28d520e9927454a5fd6b77eeb06428ca55eb6b3d822f51ccdac697",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 7
+    },
+    "ne2-16384-10-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 37110,
+      "sha256": "ccde5a5662611fa047113cf0f00c2dd50860b572d4e847c6444f8ec21c43524c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 7
+    },
+    "ne2-16384-11-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5608,
+      "sha256": "ab713821fc2e264b1829b125ad7450c592a6ee1e788ea9b23466f705a610c06d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 7
+    },
+    "ne2-16384-12-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 7
+    },
+    "ne2-16384-13-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 7
+    },
+    "ne2-16384-14-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9654,
+      "sha256": "da59589015ae28f4b6fb6e8e6a20c15907a99d70a1db91763bee5cb7e1868a59",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 7
+    },
+    "ne2-16384-15-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25680,
+      "sha256": "0db49c4810e2b931d32d99fe3d155272ec5095408781ebcdd6ae56208a22ccc1",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 7
+    },
+    "ne2-16384-16-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28094,
+      "sha256": "399e27f11858b2019f24ae7b1abbdf1e740b402047f5a631f18caf6f6133077e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 7
+    },
+    "ne2-16384-17-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 33666,
+      "sha256": "fc8a910e289cfc8a99fa65b750eb872d889f7abff2dc34d341aa0fc30892f9fd",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 7
+    },
+    "ne2-16384-18-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27824,
+      "sha256": "577507d7d8e676d9c2ea54fda38b50cdea66a84da661051433e30c0306a70215",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 7
+    },
+    "ne2-16384-19-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 61650,
+      "sha256": "419b3f44d4698596199a288bee527661e491968efb1a628c0dc214c554f15658",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 7
+    },
+    "ne2-16384-20-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 12020,
+      "sha256": "dc117511b56a00faebed1a3c892b97fa6662231abf6f4b7127c7699aae3a810d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 7
+    },
+    "ne2-16384-21-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 7
+    },
+    "ne2-16384-22-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 8664,
+      "sha256": "5336b8f939598ac66c8545686c6a57e964436b8f51bb112b0c540a022fffafb1",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 7
+    },
+    "ne2-16384-23-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4434,
+      "sha256": "0766cbc86c7c5fb2becb1b315043f578c5ffd37b3c4b3a0aae4c98a4bb10a73e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 7
+    },
+    "ne2-16384-24-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17742,
+      "sha256": "384f2208d5682ccf02893963a5173cbf21c19a5556aecb652ee3693fabb6e895",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 7
+    },
+    "ne2-16384-25-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16492,
+      "sha256": "20e7ea189222105ac69d3f6fd4bcc81cce71901a6c033464e903aab8aa5477cb",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 7
+    },
+    "ne2-16384-26-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25018,
+      "sha256": "55fee47eb752f417858dc586e106f28af8e46e0f33585783d4f9696fe64c6a6a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 7
+    },
+    "ne2-16384-27-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 10928,
+      "sha256": "74ac35e925608d728f2b3dce99a01133032812cc867002d9a69d61a20dac538d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 7
+    },
+    "ne2-16384-28-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1606,
+      "sha256": "2f62a1bc0d2625fc1ab4d262e19a506880d60308c888139ea313a0e9359f7f77",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 7
+    },
+    "ne2-16384-29-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1892,
+      "sha256": "2d44bfd0ded6f905bbf297d0921876a565aac1245f72c6fe958602864a6b5064",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 7
+    },
+    "ne2-16384-30-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2988,
+      "sha256": "9fc52a50a15cf9961ad3f820769523fd0c6e6c2c98b5b37081afe95119e106f2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 7
+    },
+    "ne2-16384-31-7.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4188,
+      "sha256": "257d4fb0ca17e6e23f4bc3e084ead5b25b24f9013b724156d301f1bdd1b0a8f7",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 7
+    },
+    "ne2-16384-0-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1174,
+      "sha256": "6c69528efe9f6cc98c890395b3d0e5493bd4cdd5130e7807f24e385484fe2cd4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 8
+    },
+    "ne2-16384-1-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 730,
+      "sha256": "060cfb0330c8fe4536bf5655d0fc7774794566e66c928452e1a66a142f6bc8f7",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 8
+    },
+    "ne2-16384-2-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 782,
+      "sha256": "40e76d1ccc5fc5d4b87b5cc9e8ca6bd4bb6861022dad7fc93e8699285c71bd9e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 8
+    },
+    "ne2-16384-3-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 794,
+      "sha256": "ed7f6f288b7191f35dbe676b9286a840060bf38fe978f8a093bcc91d62a18f3f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 8
+    },
+    "ne2-16384-4-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 8
+    },
+    "ne2-16384-5-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 8
+    },
+    "ne2-16384-6-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 8
+    },
+    "ne2-16384-7-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1456,
+      "sha256": "791922201ee6ed5f749e8bdab09250e8a6c8def73bd555aeadeef8bb8e17053e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 8
+    },
+    "ne2-16384-8-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 12714,
+      "sha256": "0f853e352a1fc0889a6c4d5e9679d1b237f89fda86f94232eae044c535ca97a4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 8
+    },
+    "ne2-16384-9-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 39590,
+      "sha256": "b114f0662651458a637612bb1bc02442a894d9eca2eb594ada8a1f6631a5e4ec",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 8
+    },
+    "ne2-16384-10-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25680,
+      "sha256": "9dd9d9fc32dbe2f1e5b3dd1a8e1a288a70fee458c8f5e7353ec7b494a60f860b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 8
+    },
+    "ne2-16384-11-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 33304,
+      "sha256": "e472f0856797cea025d9ce78e47e0e167b87d486bb6b78c99a1ad7b958fbca7f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 8
+    },
+    "ne2-16384-12-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 18972,
+      "sha256": "a0a6257ee8bdcaf4c8df610e17c20e1afed8a6011646ccbc18105520e82ea788",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 8
+    },
+    "ne2-16384-13-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 602,
+      "sha256": "ac552a23a3b991785da39d26871f304893ab476df750f33714b4f4e363aa965a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 8
+    },
+    "ne2-16384-14-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 626,
+      "sha256": "f812b2635f0a524544a82a9670ed2118d0e0cd2b1ac3a8e0215847dfb1a9ab1c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 8
+    },
+    "ne2-16384-15-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 8
+    },
+    "ne2-16384-16-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5706,
+      "sha256": "690b1fb179c9b82f35cd846057d07b069dcfd59d4c08cc1d3bf6eea45d8105d6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 8
+    },
+    "ne2-16384-17-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 41496,
+      "sha256": "7104fe47f899bd0876da4b044e9ffbdeb23b127ad7be29b5ffe82909b4ecae1b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 8
+    },
+    "ne2-16384-18-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 48794,
+      "sha256": "7f3f6748a62f14bfdf7ea72287bcb4c8e634a87eda5c23d24330fd4c8855530a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 8
+    },
+    "ne2-16384-19-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28464,
+      "sha256": "a4371a5912440d37d3918e0373f38d9d7eedd721317dcb0b005544ddd6bd1ece",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 8
+    },
+    "ne2-16384-20-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1012,
+      "sha256": "f53897905375acc401f912f9ff60a7df35a19f78c5dc91e42892d0ef4c882725",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 8
+    },
+    "ne2-16384-21-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 576,
+      "sha256": "c4477c3329c59315bf79b74de73a380253e8616095a36a34797997f750e2fdc3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 8
+    },
+    "ne2-16384-22-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1216,
+      "sha256": "aedf8e3aad54675bf98ee5558aec538baa412239b0a8ec04f5900dd1f60a59d3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 8
+    },
+    "ne2-16384-23-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 8
+    },
+    "ne2-16384-24-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7588,
+      "sha256": "d8615e0fdb236eb5778a5b94bbce91f11f39cba4c6ac06d19d8c959d77c32cb8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 8
+    },
+    "ne2-16384-25-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22532,
+      "sha256": "6687ce3a9a727ea3526fb8dc5daa8a54d77cde457010582fba2cfb43e669307e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 8
+    },
+    "ne2-16384-26-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 38540,
+      "sha256": "81f00e0b3ea02fedd30947c58e7c8e4ada325c13e5f8e97cd68c716fe51428de",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 8
+    },
+    "ne2-16384-27-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27472,
+      "sha256": "27d3b66ac45a3ceeeac36a06b25448a0f9b2a01e2b4f5b1cc8425bf56aa03193",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 8
+    },
+    "ne2-16384-28-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32870,
+      "sha256": "3e95b50a2a42b35efab8ee25f54baf063c2d9b68aa41227d4102ba2085808db2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 8
+    },
+    "ne2-16384-29-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15614,
+      "sha256": "3c22bea6544a663ead6f7d2afda5e913cfe43f6d54427e4d301f9cba0a74d202",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 8
+    },
+    "ne2-16384-30-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3034,
+      "sha256": "9c0db4be82ff05d6c4a791b077fa3025619eebbbd3145cff8965027741df7a06",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 8
+    },
+    "ne2-16384-31-8.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5088,
+      "sha256": "ed5f707feacde130cd2c0d44b2680cc91a026516685dd36b23e93103a61ec00a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 8
+    },
+    "ne2-16384-0-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3140,
+      "sha256": "50ba7c881621a8a44f1096e1c5e004416b4aa4fac622fd10a730d0254bef4c61",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 9
+    },
+    "ne2-16384-1-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1214,
+      "sha256": "c8ec58dadc2372267352146e59b0247026905d1c9eee753d5da97a9ade7ab684",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 9
+    },
+    "ne2-16384-2-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 2042,
+      "sha256": "53aefa938fe38dcb7ee982700c23836bb3afc98cabeab385a2ba72e2aae936d0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 9
+    },
+    "ne2-16384-3-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3596,
+      "sha256": "8080157c1e8221f28563fbcd17915f0b17db456271e4872b45f998d861e89b45",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 9
+    },
+    "ne2-16384-4-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 9
+    },
+    "ne2-16384-5-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 9
+    },
+    "ne2-16384-6-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 9
+    },
+    "ne2-16384-7-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 9
+    },
+    "ne2-16384-8-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 638,
+      "sha256": "f03376fc9af7eb64a6876bd195fd8d74709d1a4c8f60b46b625cf5f25b1cbafa",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 9
+    },
+    "ne2-16384-9-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 54662,
+      "sha256": "c2891eeeeab95211cbf1a74a3f3065fcd7bd03757cb17ded97da6c49179b7a61",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 9
+    },
+    "ne2-16384-10-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 36856,
+      "sha256": "4ab8b3040a168e0ceb184d0e6ac1ce3b6c34cb485f04e22730e09fbbbe730908",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 9
+    },
+    "ne2-16384-11-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42188,
+      "sha256": "91eae85a88e8f342aa6b271848ba45d004b6afc3ddc2711d1b180b538c3549e0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 9
+    },
+    "ne2-16384-12-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 32738,
+      "sha256": "c35cbbdd0827713c6b0d4df0a04df2fa6983cc9cb9959c592892617eada51fce",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 9
+    },
+    "ne2-16384-13-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 9
+    },
+    "ne2-16384-14-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 9
+    },
+    "ne2-16384-15-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 632,
+      "sha256": "04290ea6c650540f55c81653c11838cddb4c3f8e69b788d00ed796b3f8b1b569",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 9
+    },
+    "ne2-16384-16-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 9
+    },
+    "ne2-16384-17-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 34172,
+      "sha256": "37a6dcef035ea6468c74ddfa87e4a5042b754c66612412ddb1fd7882b9e39c99",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 9
+    },
+    "ne2-16384-18-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42750,
+      "sha256": "a28b74a611e6728b75642078aa78332c897199b3bb2089ffb315bd99cd62eca9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 9
+    },
+    "ne2-16384-19-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 25976,
+      "sha256": "3a91fd3b6af75de5c34ad46a08a18ea6251b25b15c95315d79e954f1a7f38eb3",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 9
+    },
+    "ne2-16384-20-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 16000,
+      "sha256": "8e271ef4db139200e2d0753b245a75fd149bea3f1f5443f15995f32e00ade0f4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 9
+    },
+    "ne2-16384-21-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 792,
+      "sha256": "a1f04cb6325930f2bc6ec0baf5ea006ed3bd33aec29930e22d8e7e46aff95890",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 9
+    },
+    "ne2-16384-22-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 9
+    },
+    "ne2-16384-23-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 9
+    },
+    "ne2-16384-24-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 678,
+      "sha256": "372c5bc840c1580bb235c47dc45222941be1f19ca2bac26142a197983d06e1e9",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 9
+    },
+    "ne2-16384-25-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 726,
+      "sha256": "cbdd3f5cd35c6834ba4af9bfd2fdeb125b6ff77a0e424626a4384a6a015cc81d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 9
+    },
+    "ne2-16384-26-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5142,
+      "sha256": "43b41f63745d5c6e1965c3b27c2aedced311b53b9ded541542dcacb3dfb77206",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 9
+    },
+    "ne2-16384-27-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22186,
+      "sha256": "2085da930eda045652f41cce4850dd3409ebca98fc6c65ff04ec6b82577e5604",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 9
+    },
+    "ne2-16384-28-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 17026,
+      "sha256": "209295efaf2b7683c1f56983a60c08aef64bdda46c188de29b63a0fdc488bd24",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 9
+    },
+    "ne2-16384-29-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 7022,
+      "sha256": "18cbdde1038b143672165efb4d13c3db0fd8bc948d852649510b479872d2a599",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 9
+    },
+    "ne2-16384-30-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6900,
+      "sha256": "7a8cda6b8e693637fa3161e013ac0fc3ea63ba02a52e37b20c58a3d7a219d610",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 9
+    },
+    "ne2-16384-31-9.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4586,
+      "sha256": "c6ad38b060b99b911d71eab3eb72d09c955077b8939cb41427e920af86af940c",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 9
+    },
+    "ne2-16384-0-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1156,
+      "sha256": "e14b203cffb29d7ff606b9f28e456f766f21dee3653549756b9b18159a4eab35",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 10
+    },
+    "ne2-16384-1-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 904,
+      "sha256": "75a413976e243e579366d0ab9ff69c690516c4b98b57f8470dd6661ffa9e979f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 10
+    },
+    "ne2-16384-2-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 912,
+      "sha256": "c4127d2e3079b0568e015b170578fffd31f0ad049a494323489eb37380015284",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 10
+    },
+    "ne2-16384-3-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1362,
+      "sha256": "883201a14b9e47f27b140ffc47c510891edeee9efbc4cbcb1934265e9330f1f8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 10
+    },
+    "ne2-16384-4-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 852,
+      "sha256": "957edfecf43b9466e7fcbd02246305abd3762b0f9f33b61219e2e86528d4b0de",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 10
+    },
+    "ne2-16384-5-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 10
+    },
+    "ne2-16384-6-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 644,
+      "sha256": "6c7abca416eaaf294b6f4420789d0319d151d49bc0e6466afdcebba9121fe549",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 10
+    },
+    "ne2-16384-7-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 10
+    },
+    "ne2-16384-8-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 10
+    },
+    "ne2-16384-9-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 26934,
+      "sha256": "e7977467aca3909ddc574e3016ba17b088e59553d7f9f232485d562de6b2e094",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 10
+    },
+    "ne2-16384-10-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 42712,
+      "sha256": "42ac3898655e8a782ec79f1fa1d97867451c596523437ff89c3cbde230dc6eb2",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 10
+    },
+    "ne2-16384-11-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 43920,
+      "sha256": "2d66f2bc527b5575b7d479e88297bf4341b0624ddd55be93047ce6b10b9ef8c7",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 10
+    },
+    "ne2-16384-12-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 8708,
+      "sha256": "9bc75f73603ab301f992a309233750c579758fc8887a930ec3dd533d51d6ee48",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 10
+    },
+    "ne2-16384-13-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 564,
+      "sha256": "ee54eae06b26ddd4a2afbd32214794a75a1d1faece08fbc02ec6382d061e7ea8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 10
+    },
+    "ne2-16384-14-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 10
+    },
+    "ne2-16384-15-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 10
+    },
+    "ne2-16384-16-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 10
+    },
+    "ne2-16384-17-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 22078,
+      "sha256": "782c6e0e5894b711d5b3b3e8add5fdbcdca1106b289edb9dc84d4e6924d47b7b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 10
+    },
+    "ne2-16384-18-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 37408,
+      "sha256": "572b3a60bf6e5b2d34c27f240de3cece07c7c46aaad742747a2597acb7d052ba",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 10
+    },
+    "ne2-16384-19-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5372,
+      "sha256": "546eb3f736f1c6ac1167b72f505a611c4096a82cc3a5117e70315511cac40e99",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 10
+    },
+    "ne2-16384-20-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9972,
+      "sha256": "ad5492fd12eab2de94745a7d4175d40d49db04ef10d8e6b0fac9b65f72ecc019",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 10
+    },
+    "ne2-16384-21-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 862,
+      "sha256": "3bfd5c87fc37ed8288b816b22918a4583d4640105740802c7db3a3d49e75ed59",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 10
+    },
+    "ne2-16384-22-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 10
+    },
+    "ne2-16384-23-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 10
+    },
+    "ne2-16384-24-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 10
+    },
+    "ne2-16384-25-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 10
+    },
+    "ne2-16384-26-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 27042,
+      "sha256": "18eb50faa2a16ddedef093410ab46964a85f0df3c10b017cd0e6600a6a92b681",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 10
+    },
+    "ne2-16384-27-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 24380,
+      "sha256": "6449429517ff2515d79113307049c6879e07a06f939ee7aad37eb7317ae6467d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 10
+    },
+    "ne2-16384-28-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 23438,
+      "sha256": "a442f645c6f27543a140ec1b92798a6c20810b40f19ef6c6d9f93c9b38dddf8a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 10
+    },
+    "ne2-16384-29-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20452,
+      "sha256": "7f1b5b4d7d9b4af01fdbff47be402a939fe2a05157acbf84530464933c711ba8",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 10
+    },
+    "ne2-16384-30-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3884,
+      "sha256": "74af296e3ed284f637dc479ceb69d7d377c42c7015e439e92aac88a23f4b7c13",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 10
+    },
+    "ne2-16384-31-10.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 834,
+      "sha256": "d78994d36f3e7a1cfd39041e3e2836c597085d2cfe6219f3bec799b393336c64",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 10
+    },
+    "ne2-16384-0-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 590,
+      "sha256": "eec6bf4aa40f14ddb3a4cf7472f59bf958d93da22894312a0f881e462835ea45",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 11
+    },
+    "ne2-16384-1-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 11
+    },
+    "ne2-16384-2-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 11
+    },
+    "ne2-16384-3-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 11
+    },
+    "ne2-16384-4-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 11
+    },
+    "ne2-16384-5-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 11
+    },
+    "ne2-16384-6-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 11
+    },
+    "ne2-16384-7-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 11
+    },
+    "ne2-16384-8-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 786,
+      "sha256": "e64b761391ab52ae2989a0f68ff7dcf8fef456e92eb5a13b531b5f79a00d45f6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 11
+    },
+    "ne2-16384-9-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 35278,
+      "sha256": "aca8ecfe73b355a5412ed73dc9a5b3756c1de45de706c81495c5072c7d45e12d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 11
+    },
+    "ne2-16384-10-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 23270,
+      "sha256": "c167c86fc9ed6241ca6d0a4130ed0fd66cd2954644f6712e828b7f398da6a379",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 11
+    },
+    "ne2-16384-11-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6578,
+      "sha256": "063f89147d1968149de7292e082fdbd3f5b9f3322a8523c917a3c6f016df7279",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 11
+    },
+    "ne2-16384-12-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 11
+    },
+    "ne2-16384-13-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 11
+    },
+    "ne2-16384-14-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 722,
+      "sha256": "c99b3b8edd0ed49264f26c3b504c1dd6c176a973ccef02a87a3b58938f31fc08",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 11
+    },
+    "ne2-16384-15-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 616,
+      "sha256": "6f682f4515eeca1a6a1c406ab712a38c3a580b64b9b54a18ecca1c58296f183a",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 11
+    },
+    "ne2-16384-16-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 11
+    },
+    "ne2-16384-17-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 10412,
+      "sha256": "5e68866162d43b5815219503e9571dc28e60095012524a796dac33b448fb4f64",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 11
+    },
+    "ne2-16384-18-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 14256,
+      "sha256": "d16c3d27dd59ca1cc30bdf36a90ca55d28dfa166d2309d2bc696572711bca35b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 11
+    },
+    "ne2-16384-19-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 11
+    },
+    "ne2-16384-20-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 11
+    },
+    "ne2-16384-21-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 11
+    },
+    "ne2-16384-22-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 636,
+      "sha256": "7dde6769117aeec03eea0dfd0069fd6d112212fa3551e1611e86769c8d42367b",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 11
+    },
+    "ne2-16384-23-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 11
+    },
+    "ne2-16384-24-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 11
+    },
+    "ne2-16384-25-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 11
+    },
+    "ne2-16384-26-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 9948,
+      "sha256": "716538302818cd96368dd96e2a88fbeaa76e5d2773690482a0c2dbda98d2e5eb",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 11
+    },
+    "ne2-16384-27-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4536,
+      "sha256": "e4a7c10c0ab58a30ec39f6143d8007f6dfee6ca8c976b3979b691af776e04962",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 11
+    },
+    "ne2-16384-28-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20190,
+      "sha256": "2f3f1f795f3aa718942fc701c2bfc547a6870ac084cf470f0adaa1804680c144",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 11
+    },
+    "ne2-16384-29-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 20966,
+      "sha256": "be5af318b621f18f0d662bbb498c658272296985b4043adfa64828a5a41d9d93",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 11
+    },
+    "ne2-16384-30-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 664,
+      "sha256": "2fff9ab4ab51518cee0b53b28cedf20a7c1f983e2ed4502986e70d25884c76a0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 11
+    },
+    "ne2-16384-31-11.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 8488,
+      "sha256": "e7d7adc91852eac0d0c2267a6aa8040a11fab820fe87249d5845a3ad56afe75f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 11
+    },
+    "ne2-16384-0-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 842,
+      "sha256": "8200bde66bb068bd3adf49d2d7473585f9bb66678b69f6ea6d489916d0070425",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 12
+    },
+    "ne2-16384-1-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 12
+    },
+    "ne2-16384-2-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 12
+    },
+    "ne2-16384-3-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 12
+    },
+    "ne2-16384-4-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 12
+    },
+    "ne2-16384-5-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 12
+    },
+    "ne2-16384-6-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 12
+    },
+    "ne2-16384-7-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 12
+    },
+    "ne2-16384-8-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 12
+    },
+    "ne2-16384-9-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 50670,
+      "sha256": "bde88033e1719ccbf77b753997d3e02e1576e68e086c86b174a8ba2abdf813c4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 12
+    },
+    "ne2-16384-10-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 6710,
+      "sha256": "5b28defec3de234aaae44c7ef6dd68bddcd955b023d03bfb9f4100f8343055c6",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 12
+    },
+    "ne2-16384-11-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 12
+    },
+    "ne2-16384-12-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 12
+    },
+    "ne2-16384-13-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 12
+    },
+    "ne2-16384-14-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 12
+    },
+    "ne2-16384-15-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 612,
+      "sha256": "7567e7d928c0497fcc8b040f6af29b125c44fcc2c29855892f146b47ed78c3ed",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 12
+    },
+    "ne2-16384-16-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 12
+    },
+    "ne2-16384-17-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 12
+    },
+    "ne2-16384-18-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 12
+    },
+    "ne2-16384-19-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 694,
+      "sha256": "edd5a63432cb1734d2919dd3c3a837af10743f43e7b0089c19ca62ce5fe9852f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 12
+    },
+    "ne2-16384-20-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 824,
+      "sha256": "dd854278c798c3498286d42550180fb92a815ed3f7e60ad9bc3bf436ffb6efab",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 12
+    },
+    "ne2-16384-21-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 12
+    },
+    "ne2-16384-22-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1512,
+      "sha256": "6819d17e47a1b5819e2c7d2d84cdf112eb7e2cef1bfe570b190be4ad4fa516dc",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 12
+    },
+    "ne2-16384-23-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 12
+    },
+    "ne2-16384-24-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 12
+    },
+    "ne2-16384-25-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 12
+    },
+    "ne2-16384-26-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 12
+    },
+    "ne2-16384-27-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 12
+    },
+    "ne2-16384-28-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 3118,
+      "sha256": "a4dde15019756c21e17a76bbc6e22bb3f9b617cc07d48194084a68dd99aa2767",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 12
+    },
+    "ne2-16384-29-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 4332,
+      "sha256": "eb83b063195f570a9036936abe1da164c11a34e98408f569badbc56f7a057b5d",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 12
+    },
+    "ne2-16384-30-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5700,
+      "sha256": "93929bceca0c1429f1e6080c6efcfca4684762cd66256240e5b299ae7dc67f19",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 12
+    },
+    "ne2-16384-31-12.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 15730,
+      "sha256": "b8a7f44fadce4adb973ecfea8ee63bdd970f2beb3c01c31fbcb214133c985b14",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 12
+    },
+    "ne2-16384-0-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 13
+    },
+    "ne2-16384-1-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 13
+    },
+    "ne2-16384-2-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 13
+    },
+    "ne2-16384-3-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 13
+    },
+    "ne2-16384-4-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 13
+    },
+    "ne2-16384-5-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 13
+    },
+    "ne2-16384-6-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 13
+    },
+    "ne2-16384-7-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 13
+    },
+    "ne2-16384-8-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 13
+    },
+    "ne2-16384-9-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 28744,
+      "sha256": "36e5db8534af0edcc7fc10f2254aa9f65247c7c0f52e6194387c0b6e5342c278",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 13
+    },
+    "ne2-16384-10-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 5760,
+      "sha256": "dfd5b668b14b129d58d1295450943044403ffbbd25d33673b85bebe1cbe150a4",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 13
+    },
+    "ne2-16384-11-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 13
+    },
+    "ne2-16384-12-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1674,
+      "sha256": "6237636eb1bab95bdf1124c69ce5144a277661e4eea651bf34603ef374d3450e",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 13
+    },
+    "ne2-16384-13-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 842,
+      "sha256": "a3e6b584c0feb00246a61d0eb44b21cdc0ca91ce2c89d2cbf00fa9e75296044f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 13
+    },
+    "ne2-16384-14-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 13
+    },
+    "ne2-16384-15-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 13
+    },
+    "ne2-16384-16-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 646,
+      "sha256": "3dac0b97625d15228f9c82eaa6c31df27920035e5741d8f0e21b7901e5bf57db",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 13
+    },
+    "ne2-16384-17-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 13
+    },
+    "ne2-16384-18-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 13
+    },
+    "ne2-16384-19-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 13
+    },
+    "ne2-16384-20-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 13
+    },
+    "ne2-16384-21-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 13
+    },
+    "ne2-16384-22-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 1302,
+      "sha256": "4ea32ac635aed04fa4e490be28cd4b05fedd3086f8eb9c4a08470793665c38ce",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 13
+    },
+    "ne2-16384-23-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 13
+    },
+    "ne2-16384-24-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 13
+    },
+    "ne2-16384-25-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 13
+    },
+    "ne2-16384-26-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 13
+    },
+    "ne2-16384-27-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 13
+    },
+    "ne2-16384-28-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 13
+    },
+    "ne2-16384-29-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 13
+    },
+    "ne2-16384-30-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 940,
+      "sha256": "2fdb489c99aafaa59e608ff422ab2f16c0e73d37a7a410e52786b28a7c9abf66",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 13
+    },
+    "ne2-16384-31-13.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 870,
+      "sha256": "f9d3e702f9da68f067420562d10e2a42db9942c19709ae84beb113652d57e50f",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 13
+    },
+    "ne2-16384-0-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 0,
+      "y": 14
+    },
+    "ne2-16384-1-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 1,
+      "y": 14
+    },
+    "ne2-16384-2-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 2,
+      "y": 14
+    },
+    "ne2-16384-3-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 3,
+      "y": 14
+    },
+    "ne2-16384-4-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 4,
+      "y": 14
+    },
+    "ne2-16384-5-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 5,
+      "y": 14
+    },
+    "ne2-16384-6-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 6,
+      "y": 14
+    },
+    "ne2-16384-7-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 7,
+      "y": 14
+    },
+    "ne2-16384-8-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 8,
+      "y": 14
+    },
+    "ne2-16384-9-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 9,
+      "y": 14
+    },
+    "ne2-16384-10-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 10,
+      "y": 14
+    },
+    "ne2-16384-11-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 11,
+      "y": 14
+    },
+    "ne2-16384-12-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 12,
+      "y": 14
+    },
+    "ne2-16384-13-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 778,
+      "sha256": "e9cadadce529dc129f36e2635f685470d5665f1446c41ce50d5181a41fb047f0",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 13,
+      "y": 14
+    },
+    "ne2-16384-14-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 14,
+      "y": 14
+    },
+    "ne2-16384-15-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 15,
+      "y": 14
+    },
+    "ne2-16384-16-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 16,
+      "y": 14
+    },
+    "ne2-16384-17-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 17,
+      "y": 14
+    },
+    "ne2-16384-18-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 18,
+      "y": 14
+    },
+    "ne2-16384-19-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 19,
+      "y": 14
+    },
+    "ne2-16384-20-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 20,
+      "y": 14
+    },
+    "ne2-16384-21-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 21,
+      "y": 14
+    },
+    "ne2-16384-22-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 22,
+      "y": 14
+    },
+    "ne2-16384-23-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 23,
+      "y": 14
+    },
+    "ne2-16384-24-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 24,
+      "y": 14
+    },
+    "ne2-16384-25-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 25,
+      "y": 14
+    },
+    "ne2-16384-26-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 26,
+      "y": 14
+    },
+    "ne2-16384-27-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 27,
+      "y": 14
+    },
+    "ne2-16384-28-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 28,
+      "y": 14
+    },
+    "ne2-16384-29-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 29,
+      "y": 14
+    },
+    "ne2-16384-30-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 30,
+      "y": 14
+    },
+    "ne2-16384-31-14.webp": {
+      "width": 516,
+      "height": 516,
+      "bytes": 556,
+      "sha256": "5f5f9231deea8888e628165bec76d90a9d2a2e56d18fe40b54e63fe2abee7872",
+      "kind": "tile",
+      "levelWidth": 16384,
+      "x": 31,
+      "y": 14
     }
   },
   "ocean": {
     "implementation": "src/render/oceanSurface.ts",
-    "style": "static low-contrast surface ripples with view-dependent near reflection",
     "externalAssets": false,
     "simulationChanged": false
   }

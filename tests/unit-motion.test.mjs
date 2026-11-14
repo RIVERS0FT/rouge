@@ -76,3 +76,9 @@ test('offscreen armies do not keep a stationary close-up animating',()=>{
  const motion=new UnitMotion();motion.update(state(0,[unit()]),0);motion.update(state(2,[unit(.4)]),100);
  assert.equal(motion.activity(150,new Set()).active,false);assert.equal(motion.activity(150,new Set([1])).active,true);
 });
+
+test('motion activity uses only the requested visible armies and tolerates stale visible IDs',()=>{
+ const motion=new UnitMotion();motion.update(state(0,[unit(),unit(4,{id:2})]),0);motion.update(state(2,[unit(.1),unit(5,{id:2})]),100);
+ close(motion.activity(150).speed,.01);close(motion.activity(150,new Set([1,999])).speed,.001);
+ assert.deepEqual(motion.activity(150,new Set([999])),{active:false,speed:0});assert.equal(motion.activity(200,new Set([1,2])).active,false);
+});

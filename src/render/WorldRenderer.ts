@@ -5,6 +5,10 @@ import {staticPlaqueFlag} from './provincePlaqueFlag.ts';
 import {factionFlags} from '../game/factionFlags.ts';
 import type {Flag} from '../game/flags.ts';
 import {MapSurface} from './mapSurface.ts';
+import {FlatMapCache} from './flatMapCache.ts';
+import {mapGeometryTiles,wideBorderTiles} from './mapGeometryTiles.ts';
+import {CountryLabelText} from './countryLabelText.ts';
+import {COUNTRY_FONT_WEIGHT,COUNTRY_INK_OPACITY,COUNTRY_OUTLINE,COUNTRY_OUTLINE_OPACITY,countryInk,countryOutlineWidth} from './countryTypography.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
 import {PoliticalTint} from './politicalTint.ts';
 import {buildCountryPlacements,fitCountryCurve,projectCountryFont,countryCurveSegment,uprightCountryArc,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
@@ -36,13 +40,28 @@ interface Plaque {element:HTMLSpanElement;flag:HTMLImageElement;name:HTMLSpanEle
 interface Range {start:number;count:number}
 /** No country palette: ownership is the only political color on the map. */
 function regionColor():THREE.Color { return new THREE.Color(NEUTRAL_LAND_COLOR); }
+
+function countryTextCurve(placement:CountryPlacement,advanceEm:number){
+ const fit=fitCountryCurve(placement,advanceEm);if(!fit)return null;const {curve}=fit;
+ const worldFont=fit.fontWorld*.95,section=countryCurveSegment(curve,advanceEm*worldFont/0.86),pathPoints=section.points;
+      const arc=uprightCountryArc({x:pathPoints[0].x,y:pathPoints[0].z},{x:section.control.x,y:section.control.z},{x:pathPoints[pathPoints.length-1].x,y:pathPoints[pathPoints.length-1].z});
+      const fontWorld=Math.min(worldFont,arc.length*.86/Math.max(1,advanceEm)),units=100/fontWorld,padding=fontWorld*1.4;
+      const left=Math.min(arc.start.x,arc.control.x,arc.end.x)-padding,top=Math.min(arc.start.y,arc.control.y,arc.end.y)-padding;
+      const w=(Math.max(arc.start.x,arc.control.x,arc.end.x)+padding-left)*units,h=(Math.max(arc.start.y,arc.control.y,arc.end.y)+padding-top)*units;
+      const pathData=`M${((arc.start.x-left)*units).toFixed(3)},${((arc.start.y-top)*units).toFixed(3)} Q${((arc.control.x-left)*units).toFixed(3)},${((arc.control.y-top)*units).toFixed(3)} ${((arc.end.x-left)*units).toFixed(3)},${((arc.end.y-top)*units).toFixed(3)}`;
+ return {fit,curve,pathPoints,fontWorld,units,left,top,w,h,pathData};
+}
 /** One merged land mesh, batched boundaries and a bounded label pool for the global atlas. */
 export class WorldRenderer {
   readonly renderer:THREE.WebGLRenderer;
   readonly scene=new THREE.Scene();
   readonly camera=new THREE.PerspectiveCamera(40,1,0.05,20000);
   private atlas=new THREE.Group();
+  private selectionOverlay=new THREE.Group();private selectionRepeats:THREE.Group[]=[];
+  private viewportWidth=1;private viewportHeight=1;
   private mapSurface:MapSurface;
+  private flatMapCache=new FlatMapCache();private mapRevision=0;private borderOpacity=-1;
+  private countryText=new CountryLabelText(()=>{this.invalidated=true;this.backgroundFrame=true;});
   private coastShadow:CoastShadow;
   private politicalTint:PoliticalTint;
   private repeats:THREE.Group[]=[];
@@ -52,6 +71,8 @@ export class WorldRenderer {
   private selection:LineSegments2;
   private selectionGlow:THREE.Mesh<THREE.BufferGeometry,THREE.MeshBasicMaterial>;
   private selectionGlowWorker:Worker|null=null;
+  private emptyGlow:THREE.BufferGeometry;private hoverGlows=new Map<number,THREE.BufferGeometry>();
+  private hoverPointer:{clientX:number;clientY:number}|null=null;private hoverPickFrame=0;
   private ranges:Range[]=[];
   private colors:THREE.Float32BufferAttribute;
   /** Captor colour + quantized progress per land vertex; never the owner colour attribute. */
@@ -63,8 +84,17 @@ export class WorldRenderer {
   private countryAnchorRevision=0;
   private countryLayer:HTMLDivElement;
   private countryLabels=new Map<number,HTMLSpanElement>();
+  private countryNodes=new WeakMap<HTMLSpanElement,{svg:SVGSVGElement;path:SVGPathElement;text:SVGTextElement;textPath:SVGTextPathElement}>();
   private countryPlacements=new Map<number,CountryPlacement>();
+  private countryCurves=new Map<number,{placement:CountryPlacement;name:string;curve:ReturnType<typeof countryTextCurve>}>();
   private countryPlacementCache:CountryPlacementCache=new Map();
+  private countryLayoutWorker:Worker|null=null;
+  private countryLayoutBusy=false;
+  private countryLayoutReady=false;
+  private countryLayoutPending:{campaign:string;owners:number[];labels:CountryLabel[]}|null=null;
+  private borderWorker:Worker|null=null;private borderWorkerReady=false;private borderWorkerBusy=false;private borderRequest=0;
+  private borderPending:{campaign:string;revision:number;owners:number[];groups:string[]}|null=null;
+  private countryMembers=new Map<number,string>();
   private provinceLayer:HTMLDivElement;
   private dispatchPreview:DispatchPreview;
   private actor=-1;
@@ -86,7 +116,7 @@ export class WorldRenderer {
   private unitSprites:THREE.InstancedMesh;
   private unitSpriteTexture:THREE.CanvasTexture;
   private unitInstanceCapacity=512;
-  private unitColor=new THREE.Color();
+  private unitColors=new Map<number,THREE.Color>();
   private unitPoint=new THREE.Vector3();
   private towns:THREE.InstancedMesh;
   private blendUniform={value:0};
@@ -104,6 +134,7 @@ export class WorldRenderer {
   private desiredFocusZ=WORLD_CENTER.z;
   private globalView=true;private resized=false;
   private invalidated=true;private lastRender=0;
+  private cameraPanning=false;private selectionFrame=false;
   private backgroundFrame=true;private renderRevision=0;
   private blend=0;private lastMode='';private lastLabels=0;
   private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
@@ -120,8 +151,12 @@ export class WorldRenderer {
     this.dispatchPreview=new DispatchPreview(host);host.append(this.provinceLayer);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
-    this.scene.add(this.atlas);
+    this.selectionOverlay.name='selection-overlay';
+    this.scene.add(this.atlas,this.flatMapCache.surface,this.selectionOverlay,this.countryText.group);
     const sea=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_WIDTH,BOUNDS.bottom-BOUNDS.top),new THREE.MeshBasicMaterial({color:OCEAN_FALLBACK,toneMapped:false}));
+    // Opaque land writes depth first so its pixels can reject the expensive
+    // ocean shader. The sea still precedes every transparent map overlay.
+    sea.renderOrder=1;
     sea.rotation.x=-Math.PI/2;sea.position.set(0,-0.25,WORLD_CENTER.z);this.atlas.add(sea);
     const graticule:number[]=[];
     for(let lon=-180;lon<=180;lon+=30){const a=project(lon,SOUTH_LATITUDE),b=project(lon,NORTH_LATITUDE);graticule.push(a.x,-0.15,a.z,b.x,-0.15,b.z);}
@@ -158,14 +193,14 @@ export class WorldRenderer {
     this.captureTint=new THREE.BufferAttribute(new Uint8Array(positions.length/3*4),4,true);this.captureTint.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('captureTint',this.captureTint);
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
-    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;},this.blendUniform);
+    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;this.mapRevision++;},this.blendUniform);
     // Owned countries deepen toward their borders and coasts (GPU-only; vertex colours stay exact).
     const tintWidth=this.renderer.domElement.dataset.surfaceResolution==='compact'?2048:Math.min(4096,this.renderer.capabilities.maxTextureSize);
     this.politicalTint=new PoliticalTint(BOUNDS,{width:tintWidth,height:Math.round(tintWidth*(BOUNDS.bottom-BOUNDS.top)/(BOUNDS.right-BOUNDS.left))});
     this.politicalTint.attach(material);this.politicalTint.stripePeriod.value=11*this.renderer.getPixelRatio();this.renderer.domElement.dataset.politicalTint='painted-edges';
-    this.land=new THREE.Mesh(geometry,material);this.atlas.add(this.land);
+    this.land=new THREE.Mesh(geometry,material);this.atlas.add(mapGeometryTiles(this.land,3));
     this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
-    const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(outlines);
+    const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(mapGeometryTiles(outlines,2));
     this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
     this.renderer.domElement.dataset.boundaryMode='ownership-and-management';
     this.renderer.domElement.dataset.neutralBorders='independent-territories';
@@ -173,7 +208,7 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.selectionBorderWidth=String(SELECTION_BORDER_WIDTH);
     this.renderer.domElement.dataset.coastBorderSegments=String(coasts.length/6);
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
-    this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.atlas.add(this.selection);
+    this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.selectionOverlay.add(this.selection);
     const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:SELECTION_GLOW_OPACITY,depthWrite:false,side:THREE.DoubleSide});
     glowMaterial.onBeforeCompile=shader=>{
       // Subdivision follows the original land triangle plane, not a differently
@@ -187,10 +222,12 @@ export class WorldRenderer {
     };
     glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v4-subpixel-lift';
     const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));initialGlow.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));
-    this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.atlas.add(this.selectionGlow);
+    this.emptyGlow=initialGlow;
+    this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.selectionOverlay.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
     // canonical entity positions and province IDs never duplicate.
     for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.atlas.clone(true);copy.position.x=offset;copy.visible=false;this.repeats.push(copy);this.scene.add(copy);}
+    for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.selectionOverlay.clone(true);copy.position.x=offset;copy.visible=false;this.selectionRepeats.push(copy);this.scene.add(copy);}
     for(let i=0;i<48;i++) {
       const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
       const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
@@ -206,6 +243,12 @@ export class WorldRenderer {
     window.addEventListener('keydown',this.dispatchKey,true);window.addEventListener('pointerdown',this.dispatchOutsidePointer,true);window.addEventListener('blur',this.cancelDispatch);
     document.addEventListener('visibilitychange',this.dispatchVisibility);
     const c=this.renderer.domElement;c.tabIndex=0;c.addEventListener('keydown',this.keyDown);c.addEventListener('pointerdown',this.pointerDown);c.addEventListener('pointermove',this.pointerMove);c.addEventListener('pointerup',this.pointerUp);c.addEventListener('pointercancel',this.pointerCancel);c.addEventListener('lostpointercapture',this.pointerCancel);c.addEventListener('wheel',this.wheel,{passive:false});
+    c.addEventListener('pointerleave',this.clearHover);
+    this.flatMapCache.attach(this.atlas,this.renderer);
+    // Geography and world-wrap transforms never move. Updating thousands of
+    // unchanged matrices for every cache tile consumes the gesture's CPU budget.
+    this.scene.matrixAutoUpdate=false;
+    for(const root of [this.atlas,...this.repeats,this.selectionOverlay,...this.selectionRepeats]){root.traverse(object=>{object.updateMatrix();object.matrixAutoUpdate=false;});root.updateMatrixWorld(true);}
     this.observer=new ResizeObserver(this.resize);this.observer.observe(host);this.resize();this.animation=requestAnimationFrame(this.frame);
   }
   /** Grow GPU buffers; render allocation must never act as a simulation cap. */
@@ -239,7 +282,14 @@ export class WorldRenderer {
   }
   private replaceWideGeometry(lines:LineSegments2,points:number[]) {
     const geometry=new LineSegmentsGeometry().setPositions(points);lines.geometry.dispose();lines.geometry=geometry;lines.visible=points.length>0;
-    for(const copy of this.repeats){const repeat=copy.getObjectByName(lines.name) as LineSegments2;repeat.geometry=geometry;repeat.visible=lines.visible;}
+    for(const copy of lines===this.selection?this.selectionRepeats:this.repeats){const repeat=copy.getObjectByName(lines.name) as LineSegments2;repeat.geometry=geometry;repeat.visible=lines.visible;}
+    if(lines===this.countries){geometry.setDrawRange(0,0);this.replaceBorderTiles(lines,wideBorderTiles(lines));}
+  }
+  private replaceBorderTiles(source:THREE.Mesh|THREE.LineSegments,tiles:THREE.Group){
+    tiles.traverse(object=>{object.updateMatrix();object.matrixAutoUpdate=false;});
+    source.traverse(object=>{if(object!==source&&(object as THREE.Mesh).geometry)(object as THREE.Mesh).geometry.dispose();});source.clear();source.add(tiles);
+    for(const copy of this.repeats){const repeat=copy.getObjectByName(source.name)!;repeat.clear();repeat.add(tiles.clone(true));}
+    for(const root of [this.atlas,...this.repeats])root.updateMatrixWorld(true);
   }
   private relief(material:THREE.Material) {
     material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uRelief; uniform float uOverlayLift;\n'+shader.vertexShader;
@@ -254,7 +304,7 @@ export class WorldRenderer {
       const garrisons=plaqueGarrisons(state);
       if(provinceNamesVisible(this.distance)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
       this.provinceGarrisons=garrisons;
-      if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.host.clientHeight))this.invalidated=true;
+      if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.viewportHeight))this.invalidated=true;
       this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},performance.now());
       // The count is authoritative, even when changes to hidden garrisons need no draw.
       if(this.state?.units.length!==state.units.length)this.renderer.domElement.dataset.totalUnits=String(state.units.length);
@@ -274,47 +324,113 @@ export class WorldRenderer {
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country,p.flag])]);
     if(ownershipChanged||state.campaign!==this.countryCampaign){
       this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
-      this.countryPlacements=buildCountryPlacements(MAP,this.ownerIds,this.countryComponents,this.boundaryEdges,this.countryPlacementCache);
+      this.requestCountryLayout();
       this.renderer.domElement.dataset.countryAnchorRevision=String(++this.countryAnchorRevision);
       this.renderer.domElement.dataset.countryComponents=String(this.countryComponents.length);
     }
     if(countryStamp!==this.countryStamp){this.countryStamp=countryStamp;this.lastLabels=0;this.invalidated=true;}
     if(stamp!==this.groupingStamp||ownershipChanged){
+      this.mapRevision++;
       if(stamp!==this.groupingStamp)this.plaqueTerritories=plaqueTerritories(MAP,grouping,this.provinceAreas);
       this.groupingStamp=stamp;
-      const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[],painted:BorderEdge[]=[];
-      for(const edge of this.boundaryEdges){const kind=classifyBorder(edge,this.ownerIds,groups);if(kind==='country')countries.push(edge);else if(kind==='internal')internal.push(edge);
-        if((kind==='country'||kind==='coast')&&edge.atoms.some(id=>(this.ownerIds[id]??-1)>=0))painted.push(edge);}
-      this.politicalTint.setEdges(painted);this.renderer.domElement.dataset.politicalTintSegments=String(painted.length);
-      const border=borderPositions(internal,.24),geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(border,3));this.admin.geometry.dispose();this.admin.geometry=geometry;
-      for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
-      this.replaceWideGeometry(this.countries,borderPositions(countries,.28));
-      this.renderer.domElement.dataset.managementRevision=String(grouping.revision);this.renderer.domElement.dataset.managementBorderSegments=String(internal.length);
-      this.renderer.domElement.dataset.countryBorderSegments=String(countries.length);this.invalidated=true;
+      this.requestBorders(MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`));
+      this.renderer.domElement.dataset.managementRevision=String(grouping.revision);this.invalidated=true;
     }
     if(this.lang!==lang){this.invalidated=true;this.backgroundFrame=true;this.lastLabels=0;}this.lang=lang;this.renderer.domElement.setAttribute('aria-label',lang==='zh'?'世界战场':'World theatre');
-    if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.invalidated=true;}
+    if(selected!==this.selected){this.selected=selected;this.drawSelection();this.lastLabels=0;this.selectionFrame=true;this.invalidated=true;}
+  }
+  private requestBorders(groups:string[]){
+    this.borderPending={campaign:this.state!.campaign,revision:++this.borderRequest,owners:[...this.ownerIds],groups};this.renderer.domElement.dataset.borderLayoutState='pending';
+    if(!this.borderWorker){
+      const worker=new Worker(new URL('./mapBorders.worker.ts',import.meta.url),{type:'module'});this.borderWorker=worker;
+      worker.onmessage=({data}:{data:{type?:'ready';campaign:string;revision:number;admin:Float32Array;country:Float32Array;attributes:Record<string,Float32Array>;segments:number}})=>{
+        if(this.borderWorker!==worker)return;
+        if(data.type==='ready'){this.borderWorkerReady=true;this.flushBorders();return;}
+        this.borderWorkerBusy=false;
+        if(data.campaign===this.state?.campaign){
+          const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.admin,3));this.admin.geometry.dispose();this.admin.geometry=geometry;
+          for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
+          geometry.setDrawRange(0,0);this.replaceBorderTiles(this.admin,mapGeometryTiles(this.admin,2));
+          this.replaceWideGeometry(this.countries,Array.from(data.country));this.politicalTint.setRibbon(data.attributes,data.segments);
+          const d=this.renderer.domElement.dataset;d.managementBorderSegments=String(data.admin.length/6);d.countryBorderSegments=String(data.country.length/6);d.politicalTintSegments=String(data.segments);d.borderLayoutState=this.borderPending?'pending':'ready';
+          this.mapRevision++;this.invalidated=true;this.backgroundFrame=true;
+        }
+        this.flushBorders();
+      };
+      worker.onerror=()=>{if(this.borderWorker===worker){worker.terminate();this.borderWorker=null;this.borderWorkerReady=false;this.borderWorkerBusy=false;this.renderer.domElement.dataset.borderLayoutState='failed';}};
+    }
+    this.flushBorders();
+  }
+  private flushBorders(){if(!this.borderWorkerReady||this.borderWorkerBusy||!this.borderPending)return;this.borderWorkerBusy=true;this.borderWorker!.postMessage(this.borderPending);this.borderPending=null;}
+  private requestCountryLayout(){
+    const members=new Map<number,number[]>();
+    for(let id=0;id<this.ownerIds.length;id++){const owner=this.ownerIds[id];if(owner<0||!MAP[id].visible)continue;const ids=members.get(owner)??[];ids.push(id);members.set(owner,ids);}
+    this.countryMembers=new Map([...members].map(([owner,ids])=>[owner,ids.join(',')]));
+    // A changed country may no longer contain its old text. Hide only that
+    // country's stale layout while the worker fits its replacement.
+    for(const [owner,entry] of this.countryPlacementCache)if(entry.members!==this.countryMembers.get(owner)){this.countryPlacements.delete(owner);this.countryPlacementCache.delete(owner);}
+    this.countryLayoutPending={campaign:this.countryCampaign,owners:[...this.ownerIds],labels:this.countryComponents};
+    if(!this.countryLayoutWorker){
+      try{
+        this.countryLayoutReady=false;
+        const worker=new Worker(new URL('./countryLabelLayout.worker.ts',import.meta.url),{type:'module'});this.countryLayoutWorker=worker;
+        worker.onmessage=({data}:{data:{type:'ready'}|{type:'layout';campaign:string;entries:[number,{members:string;placement:CountryPlacement}][]}})=>{
+          if(this.countryLayoutWorker!==worker)return;
+          if(data.type==='ready'){this.countryLayoutReady=true;this.flushCountryLayout();return;}
+          this.countryLayoutBusy=false;
+          if(data.campaign===this.countryCampaign)for(const [owner,entry] of data.entries)if(entry.members===this.countryMembers.get(owner)){
+            this.countryPlacementCache.set(owner,entry);this.countryPlacements.set(owner,entry.placement);
+          }
+          this.invalidated=true;this.backgroundFrame=true;this.flushCountryLayout();
+        };
+        worker.onerror=()=>{if(this.countryLayoutWorker===worker){worker.terminate();this.countryLayoutWorker=null;this.countryLayoutReady=false;this.countryLayoutBusy=false;this.renderer.domElement.dataset.countryLayoutState='failed';}};
+      }catch{
+        this.countryPlacements=buildCountryPlacements(MAP,this.ownerIds,this.countryComponents,this.boundaryEdges,this.countryPlacementCache);
+        this.countryLayoutPending=null;this.renderer.domElement.dataset.countryLayoutState='fallback';return;
+      }
+    }
+    this.flushCountryLayout();
+  }
+  private flushCountryLayout(){
+    if(this.countryLayoutBusy)return;
+    if(!this.countryLayoutReady){this.renderer.domElement.dataset.countryLayoutState='pending';return;}
+    if(!this.countryLayoutPending){this.renderer.domElement.dataset.countryLayoutState='ready';return;}
+    this.countryLayoutBusy=true;this.renderer.domElement.dataset.countryLayoutState='pending';
+    this.countryLayoutWorker!.postMessage(this.countryLayoutPending);this.countryLayoutPending=null;
   }
   private drawSelection() {
-    const points:number[]=[],segments:[Vec2,Vec2][]=[];
+    const points:number[]=[];
     // Reuse dissolved region boundaries for both outline and glow. Source parts
     // retain administrative geometry, but their shared sides are not game borders.
     if(this.selected>=0&&MAP[this.selected].visible)for(const edge of this.boundaryEdges)if(edge.atoms.includes(this.selected)){
-      const {a,b}=edge;segments.push([a,b]);points.push(a.x,0.32,a.z,b.x,0.32,b.z);
+      const {a,b}=edge;points.push(a.x,0.32,a.z,b.x,0.32,b.z);
     }
     this.replaceWideGeometry(this.selection,points);
+    this.renderer.domElement.dataset.selectionStyle='outline-hover-glow';
+    this.renderer.domElement.dataset.selectionLayer='live';
+    this.renderer.domElement.dataset.selectedRegion=String(this.selected);
+  }
+  private setHover(id:number){
+    if(id>=0&&!MAP[id]?.visible)id=-1;
+    if(id===this.hover)return;this.hover=id;this.drawHover();this.selectionFrame=true;this.invalidated=true;
+  }
+  private replaceGlow(geometry:THREE.BufferGeometry){
+    this.selectionGlow.geometry=geometry;for(const copy of this.selectionRepeats)(copy.getObjectByName('selected-inner-glow') as THREE.Mesh).geometry=geometry;
+    this.renderer.domElement.dataset.selectionGlowVertices=String(geometry.getAttribute('position').count);
+  }
+  private drawHover(){
     this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;
-    const replaceGlow=(geometry:THREE.BufferGeometry)=>{this.selectionGlow.geometry.dispose();this.selectionGlow.geometry=geometry;for(const copy of this.repeats)(copy.getObjectByName('selected-inner-glow') as THREE.Mesh).geometry=geometry;};
-    const empty=new THREE.BufferGeometry();empty.setAttribute('position',new THREE.Float32BufferAttribute([],3));empty.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));empty.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));replaceGlow(empty);
-    this.renderer.domElement.dataset.selectionStyle='outline-inner-glow';
+    this.replaceGlow(this.emptyGlow);
     this.renderer.domElement.dataset.selectionGlowCoverage='single-nearest-boundary';
     this.renderer.domElement.dataset.selectionGlowOpacity=String(SELECTION_GLOW_OPACITY);
     this.renderer.domElement.dataset.selectionGlowVertices='0';this.renderer.domElement.dataset.selectionGlowPending='false';delete this.renderer.domElement.dataset.selectionGlowError;
     this.renderer.domElement.dataset.selectionGlowWidth=String(SELECTION_GLOW_WIDTH);
-    this.renderer.domElement.dataset.selectedRegion=String(this.selected);
-    const range=this.ranges[this.selected];if(!range?.count||!segments.length)return;
+    this.renderer.domElement.dataset.hoveredRegion=String(this.hover);
+    const range=this.ranges[this.hover];if(!range?.count)return;
+    const cached=this.hoverGlows.get(this.hover);if(cached){this.hoverGlows.delete(this.hover);this.hoverGlows.set(this.hover,cached);this.replaceGlow(cached);return;}
+    const segments:[Vec2,Vec2][]=[];for(const edge of this.boundaryEdges)if(edge.atoms.includes(this.hover))segments.push([edge.a,edge.b]);if(!segments.length)return;
     // Large coastlines are rebuilt off-thread; only tiny bounded buffers are copied
-    // on selection. A newer selection cancels stale work instead of queuing it.
+    // on hover. A newer hover cancels stale work instead of queuing it.
     const land=(this.land.geometry.getAttribute('position').array as Float32Array).slice(range.start*3,(range.start+range.count)*3);
     const edges=Float64Array.from(segments.flatMap(([a,b])=>[a.x,a.z,b.x,b.z]));
     try{
@@ -322,8 +438,11 @@ export class WorldRenderer {
       this.renderer.domElement.dataset.selectionGlowPending='true';
       worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;relief:Float32Array;elapsed:number}})=>{
         if(this.selectionGlowWorker!==worker)return;
-        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));geometry.setAttribute('landRelief',new THREE.BufferAttribute(data.relief,1));replaceGlow(geometry);
-        this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.invalidated=true;this.backgroundFrame=true;
+        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));geometry.setAttribute('landRelief',new THREE.BufferAttribute(data.relief,1));
+        this.hoverGlows.set(this.hover,geometry);let vertices=0;for(const entry of this.hoverGlows.values())vertices+=entry.getAttribute('position').count;
+        while(this.hoverGlows.size>1&&(this.hoverGlows.size>8||vertices>1_000_000)){const id=this.hoverGlows.keys().next().value!,old=this.hoverGlows.get(id)!;vertices-=old.getAttribute('position').count;this.hoverGlows.delete(id);old.dispose();}
+        this.replaceGlow(geometry);
+        this.renderer.domElement.dataset.selectionGlowVertices=String(data.distance.length);this.renderer.domElement.dataset.selectionGlowBuildMs=data.elapsed.toFixed(1);this.renderer.domElement.dataset.selectionGlowPending='false';this.selectionFrame=true;this.invalidated=true;
         worker.terminate();this.selectionGlowWorker=null;
       };
       worker.onerror=()=>{if(this.selectionGlowWorker===worker){this.renderer.domElement.dataset.selectionGlowPending='false';this.renderer.domElement.dataset.selectionGlowError='workerFailed';worker.terminate();this.selectionGlowWorker=null;}};
@@ -333,15 +452,17 @@ export class WorldRenderer {
   }
   zoom(delta:number){this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(delta*0.008)});}
   view(mode:'strategic'|'terrain') {
+    this.clearHover();
     this.renderer.domElement.dataset.settled='false';this.invalidated=true;
     if(mode==='strategic'){this.globalView=true;this.focus.set(WORLD_CENTER.x,0,WORLD_CENTER.z);this.desiredFocusZ=WORLD_CENTER.z;this.desiredDistance=worldCoverDistance(this.camera.aspect);}
     else if(this.selected>=0)this.focusProvince(this.selected);
   }
   focusProvince(id:number) {
+    this.clearHover();
     const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);this.desiredFocusZ=p.center.z;
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.cancelDispatch();this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
+  private resize=()=>{this.cancelDispatch();this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.viewportWidth=w;this.viewportHeight=h;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:Pick<PointerEvent,'clientX'|'clientY'>):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
@@ -355,11 +476,13 @@ export class WorldRenderer {
     this.invalidated=true;this.renderer.domElement.dataset.settled='false';
     if(action.type==='select'){this.onPick(action.region,action.attack);return;}
     if(action.type==='deselect'){this.onPick(-1,false);return;}
+    this.clearHover();
     this.globalView=false;
     if(action.type==='zoom')this.desiredDistance=THREE.MathUtils.clamp(action.distance,5,worldCoverDistance(this.camera.aspect));
-    else {this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
+    else {this.cameraPanning=true;this.focus.x=wrapX(action.x);this.desiredFocusZ=THREE.MathUtils.clamp(action.z,BOUNDS.top,BOUNDS.bottom);}
   });
   setInputContext(context:MapInputContext){
+    this.clearHover();
     if(this.labelTimer!==null){clearTimeout(this.labelTimer);this.labelTimer=null;}
     this.backgroundFrame=true;this.invalidated=true;this.lastLabels=0;
     this.cancelDispatch();this.mapInput.setContext(context);this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;
@@ -369,6 +492,13 @@ export class WorldRenderer {
   private touchBase:{x:number;y:number;span:number;distance:number;fx:number;fz:number}|null=null;
   private touchMoved=false;
   private touchStartedAt=0;
+  private clearHover=()=>{if(this.hoverPickFrame)cancelAnimationFrame(this.hoverPickFrame);this.hoverPickFrame=0;this.hoverPointer=null;this.setHover(-1);};
+  private queueHover(e:PointerEvent){
+    this.hoverPointer={clientX:e.clientX,clientY:e.clientY};if(this.hoverPickFrame)return;
+    this.hoverPickFrame=requestAnimationFrame(()=>{this.hoverPickFrame=0;const point=this.hoverPointer;if(!point||!this.mapInput.active||this.down)return;
+      this.setHover(document.elementFromPoint(point.clientX,point.clientY)===this.renderer.domElement?this.pick(point):-1);
+    });
+  }
   private resetTouchBase(){
     const points=[...this.touches.values()];if(!points.length){this.touchBase=null;return;}
     const a=points[0],b=points[1]??a;
@@ -454,6 +584,7 @@ export class WorldRenderer {
   private pointerDown=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
     if(e.pointerType==='touch'||e.pointerType==='pen'){
+      this.clearHover();
       if(!this.touches.size){this.touchMoved=false;this.touchStartedAt=performance.now();}
       this.touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
       if(this.touches.size>1)this.touchMoved=true;
@@ -484,15 +615,15 @@ export class WorldRenderer {
       if(points.length>1||Math.hypot(x-base.x,y-base.y)>=5)this.touchMoved=true;
       if(!this.touchMoved)return;
       if(points.length>1&&base.span>0&&span>0)this.mapInput.dispatch({type:'zoom',distance:base.distance*base.span/span});
-      const scale=2*base.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+      const scale=2*base.distance*Math.tan(20*Math.PI/180)/this.viewportHeight;
       this.mapInput.dispatch({type:'pan',x:base.fx-(x-base.x)*scale,z:base.fz-(y-base.y)*scale});
       return;
     }
     if(this.down){
       if(Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5)this.down.moved=true;
-      if(this.down.moved&&this.down.button!==2){this.globalView=false;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.host.clientHeight;
+      if(this.down.moved&&this.down.button!==2){this.clearHover();this.globalView=false;this.cameraPanning=true;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.viewportHeight;
         this.mapInput.dispatch({type:'pan',x:this.down.fx-(e.clientX-this.down.x)*scale,z:this.down.fz-(e.clientY-this.down.y)*scale});}
-    }
+    }else this.queueHover(e);
   };
   private selectAt(e:PointerEvent,attack:boolean){
     // Pointer capture can deliver a release above HUD controls or outside the map.
@@ -559,7 +690,7 @@ export class WorldRenderer {
     const occupied:LabelRect[]=[];let n=0,townCount=0;
     const paint=(name:string,x:number,z:number,ocean=false)=>{
       if(!inRect({x,z},BOUNDS))return;const canonicalX=x;x=nearestWorldX(x,this.focus.x);
-      const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.host.clientWidth/2,sy=(1-screen.y)*this.host.clientHeight/2;
+      const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.viewportWidth/2,sy=(1-screen.y)*this.viewportHeight/2;
       if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>overlaps(p,{left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5}))||n>=48)return;
       occupied.push({left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
@@ -628,51 +759,73 @@ export class WorldRenderer {
     return next.size;
   }
   private drawMapNames() {
-    const width=this.host.clientWidth,height=this.host.clientHeight;
+    this.countryText.begin();
+    const drawingSize=this.renderer.getSize(new THREE.Vector2()),width=drawingSize.x,height=drawingSize.y;
     let countryCount=0;const provinceCount=this.drawProvincePlaques(width,height),activeOwners=new Set<number>(),point=new THREE.Vector3();
-    for(const label of this.countryLabels.values())label.hidden=true;
+    if(!this.countryText.ready)return;
+    // Lay out SVG text on the map once, then project the entire plane with the
+    // same camera as the terrain. Re-centering text on a projected screen arc
+    // changes glyph positions whenever perspective changes during a zoom.
+    const screenProjection=new THREE.Matrix4().set(width/2,0,0,width/2,0,-height/2,0,height/2,0,0,1,0,0,0,0,1)
+      .multiply(this.camera.projectionMatrix).multiply(this.camera.matrixWorldInverse);
+    const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix,this.camera.matrixWorldInverse)),sphere=new THREE.Sphere();
+    const visibleLabels=new Set<HTMLSpanElement>();
+    const attribute=(element:Element,key:string,value:string)=>{if(element.getAttribute(key)!==value)element.setAttribute(key,value);};
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
       const placement=this.countryPlacements.get(component.owner);if(!placement)continue;
       const name=countryName(this.lang,player),spacing=countryLetterSpacing(name),count=Array.from(name).length;
       const measureKey=`curve:${name}:${spacing}`;let advanceEm=this.labelWidths.get(measureKey);
-      if(advanceEm===undefined){this.labelMeasure.font=`400 100px ${COUNTRY_LABEL_FONT}`;advanceEm=this.labelMeasure.measureText(name).width/100+Math.max(0,count-1)*spacing;this.labelWidths.set(measureKey,advanceEm);}
-      const fit=fitCountryCurve(placement,advanceEm);if(!fit)continue;
-      const {curve}=fit,referenceX=nearestWorldX(curve.anchor.x,this.focus.x),copy=Math.round((referenceX-curve.anchor.x)/WORLD_WIDTH);
-      const center=new THREE.Vector3(referenceX,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z).project(this.camera);
-      const probe=new THREE.Vector3(referenceX+1,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z).project(this.camera);
-      const northProbe=new THREE.Vector3(referenceX,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z+1).project(this.camera);
+      if(advanceEm===undefined){this.labelMeasure.font=`${COUNTRY_FONT_WEIGHT} 100px ${COUNTRY_LABEL_FONT}`;advanceEm=this.labelMeasure.measureText(name).width/100+Math.max(0,count-1)*spacing;this.labelWidths.set(measureKey,advanceEm);}
+      let cached=this.countryCurves.get(component.owner);
+      if(!cached||cached.placement!==placement||cached.name!==name){cached={placement,name,curve:countryTextCurve(placement,advanceEm)};this.countryCurves.set(component.owner,cached);}
+      if(!cached.curve)continue;const {fit,curve,pathPoints,fontWorld,units,left,top,w,h,pathData}=cached.curve;
+      const referenceX=nearestWorldX(curve.anchor.x,this.focus.x),copy=Math.round((referenceX-curve.anchor.x)/WORLD_WIDTH);
+      const elevation=.18+(heightAt(curve.anchor.x,curve.anchor.z)-.16)*this.blend;
+      const center=new THREE.Vector3(referenceX,elevation,curve.anchor.z).project(this.camera);
+      const probe=new THREE.Vector3(referenceX+1,elevation,curve.anchor.z).project(this.camera);
+      const northProbe=new THREE.Vector3(referenceX,elevation,curve.anchor.z+1).project(this.camera);
       const ax=(probe.x-center.x)*width/2,ay=(probe.y-center.y)*height/2,bx=(northProbe.x-center.x)*width/2,by=(northProbe.y-center.y)*height/2,trace=ax*ax+ay*ay+bx*bx+by*by;
-      const localScale=Math.sqrt(Math.max(0,(trace-Math.sqrt(Math.max(0,trace*trace-4*(ax*by-ay*bx)**2)))/2)),size=projectCountryFont(fit.fontWorld,localScale);if(!size)continue;
-      const font=size.screen,section=countryCurveSegment(curve,advanceEm*size.world/0.86),pathPoints=section.points;
+      const localScale=Math.sqrt(Math.max(0,(trace-Math.sqrt(Math.max(0,trace*trace-4*(ax*by-ay*bx)**2)))/2)),size=projectCountryFont(fit.fontWorld,localScale);
+      const textKey=this.countryText.preload(pathData,w,h,name,COUNTRY_LABEL_FONT,`${spacing}em`,cached);if(!size)continue;
       for(const offset of [-1,0,1]){
-        const projected=pathPoints.map(p=>{const point=new THREE.Vector3(p.x+(copy+offset)*WORLD_WIDTH,heightAt(p.x,p.z)*this.blend+.8,p.z).project(this.camera);return {x:(point.x+1)*width/2,y:(1-point.y)*height/2,depth:point.z};});
-        const padding=font*1.4+2,left=Math.min(...projected.map(p=>p.x))-padding,right=Math.max(...projected.map(p=>p.x))+padding,top=Math.min(...projected.map(p=>p.y))-padding,bottom=Math.max(...projected.map(p=>p.y))+padding;
+        sphere.center.set(left+(copy+offset)*WORLD_WIDTH+w/(2*units),elevation,top+h/(2*units));sphere.radius=Math.hypot(w,h)/(2*units)+fontWorld*2;
+        if(!frustum.intersectsSphere(sphere))continue;
+        let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,outsideDepth=true;
+        for(const p of pathPoints){point.set(p.x+(copy+offset)*WORLD_WIDTH,elevation,p.z).project(this.camera);const px=(point.x+1)*width/2,py=(1-point.y)*height/2;minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);if(point.z>=-1&&point.z<=1)outsideDepth=false;}
+        const screenPadding=size.screen*1.4+2,bounds={left:minX-screenPadding,right:maxX+screenPadding,top:minY-screenPadding,bottom:maxY+screenPadding};
         const poolId=component.owner*3+offset+1;
-        if(projected.every(p=>p.depth<-1||p.depth>1)||!labelIntersectsViewport({left,right,top,bottom},width,height))continue;
-        const control=new THREE.Vector3(section.control.x+(copy+offset)*WORLD_WIDTH,heightAt(section.control.x,section.control.z)*this.blend+.8,section.control.z).project(this.camera);
-        const arc=uprightCountryArc(projected[0],{x:(control.x+1)*width/2,y:(1-control.y)*height/2},projected[projected.length-1]);
-        const fittedFont=Math.min(font,arc.length*.86/Math.max(1,advanceEm));if(fittedFont<10)continue;
+        if(outsideDepth||!labelIntersectsViewport(bounds,width,height))continue;
         let label=this.countryLabels.get(poolId);
         if(!label){label=document.createElement('span');label.className='country-label';this.countryLabels.set(poolId,label);this.countryLayer.append(label);}
-        if(!label.querySelector('textPath')){
+        if(!this.countryNodes.has(label)){
           const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),defs=document.createElementNS(ns,'defs'),path=document.createElementNS(ns,'path'),text=document.createElementNS(ns,'text'),textPath=document.createElementNS(ns,'textPath');
           const id=`country-curve-${poolId}`;path.id=id;defs.append(path);textPath.setAttribute('href',`#${id}`);textPath.setAttribute('startOffset','50%');text.setAttribute('text-anchor','middle');text.append(textPath);svg.append(defs,text);label.replaceChildren(svg);
+          this.countryNodes.set(label,{svg,path,text,textPath});
         }
-        const svg=label.firstElementChild as SVGSVGElement,path=svg.querySelector('path')!,text=svg.querySelector('text')!,textPath=svg.querySelector('textPath')!;
-        const w=right-left,h=bottom-top;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('width',String(w));svg.setAttribute('height',String(h));
-        path.setAttribute('d',`M${(arc.start.x-left).toFixed(3)},${(arc.start.y-top).toFixed(3)} Q${(arc.control.x-left).toFixed(3)},${(arc.control.y-top).toFixed(3)} ${(arc.end.x-left).toFixed(3)},${(arc.end.y-top).toFixed(3)}`);
+        const {svg,path,text,textPath}=this.countryNodes.get(label)!;
+        attribute(svg,'viewBox',`0 0 ${w} ${h}`);attribute(svg,'width',String(w));attribute(svg,'height',String(h));
+        attribute(path,'d',pathData);
         if(textPath.textContent!==name)textPath.textContent=name;
-        text.setAttribute('font-family',COUNTRY_LABEL_FONT);text.setAttribute('font-size',String(fittedFont));text.setAttribute('letter-spacing',`${spacing}em`);
-        label.style.transform=`translate(${left+w/2}px,${top+h/2}px) translate(-50%,-50%)`;label.style.width=`${w}px`;label.style.height=`${h}px`;label.style.fontSize=`${fittedFont}px`;label.style.fontFamily=COUNTRY_LABEL_FONT;
+        attribute(text,'font-family',COUNTRY_LABEL_FONT);attribute(text,'font-size','100');attribute(text,'letter-spacing',`${spacing}em`);attribute(text,'vector-effect','non-scaling-stroke');
+        const fontPixels=fontWorld*localScale,ink=countryInk(component.owner);
+        attribute(text,'fill',ink);attribute(text,'fill-opacity',String(COUNTRY_INK_OPACITY));attribute(text,'stroke',COUNTRY_OUTLINE);attribute(text,'stroke-opacity',String(COUNTRY_OUTLINE_OPACITY));attribute(text,'stroke-width',String(countryOutlineWidth(fontPixels)));
+        this.countryText.update(label,svg,w,h,units,left+(copy+offset)*WORLD_WIDTH,top,elevation,fontPixels,this.renderer.getPixelRatio(),ink,textKey);
+        const transform=screenProjection.clone().multiply(new THREE.Matrix4().set(1/units,0,0,left+(copy+offset)*WORLD_WIDTH,0,0,-1/units,elevation,0,1/units,0,top,0,0,0,1));
+        // Equivalent homogeneous matrices must use a unit constant w: otherwise
+        // SVG font metric scaling sees camera distance as a huge font transform.
+        const divisor=transform.elements[15];if(divisor<=0)continue;
+        for(let i=0;i<16;i++)transform.elements[i]/=divisor;
+        label.style.transform=`matrix3d(${transform.elements.join(',')})`;label.style.transformOrigin='0 0';label.style.width=`${w}px`;label.style.height=`${h}px`;label.style.fontSize='100px';label.style.fontFamily=COUNTRY_LABEL_FONT;
         label.dataset.owner=String(component.owner);label.dataset.copy=String(copy+offset);label.dataset.primary=String(offset===0);label.dataset.anchorX=String(curve.anchor.x);label.dataset.anchorZ=String(curve.anchor.z);label.dataset.anchorKind='interior-curve';
-        label.dataset.clearance=String(curve.clearance);label.dataset.fontWorld=String(fittedFont/localScale);label.hidden=false;countryCount++;
+        label.dataset.clearance=String(curve.clearance);label.dataset.fontWorld=String(fontWorld);label.dataset.elevation=String(elevation);if(label.hidden)label.hidden=false;visibleLabels.add(label);countryCount++;
       }
     }
-    for(const [poolId,label] of this.countryLabels)if(!activeOwners.has(Math.floor(poolId/3))){label.remove();this.countryLabels.delete(poolId);}
+    for(const [poolId,label] of this.countryLabels){if(!visibleLabels.has(label)&&!label.hidden)label.hidden=true;if(!activeOwners.has(Math.floor(poolId/3))){this.countryText.remove(label);label.remove();this.countryLabels.delete(poolId);}}
     this.renderer.domElement.dataset.countryLabelRevision=String(++this.countryLabelRevision);
     this.renderer.domElement.dataset.countryLabels=String(countryCount);this.renderer.domElement.dataset.provinceLabels=String(provinceCount);
     this.renderer.domElement.dataset.countryLabelOwners=[...new Set([...this.countryLabels.values()].filter(label=>!label.hidden).map(label=>label.dataset.owner))].join(',');
+    this.countryText.end();this.renderer.domElement.dataset.countryTextPending=String(this.countryText.pending);
   }
   private frame=(time:number)=>{
     this.animation=requestAnimationFrame(this.frame);
@@ -682,28 +835,31 @@ export class WorldRenderer {
     // instead of competing with loading, controls or another LAN client. State
     // updates and the network simulation continue; reopening the map redraws the
     // newest state. Finish camera easing and allow resize/artwork refresh frames.
-    if(!this.mapInput.active&&!moving&&!this.backgroundFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
+    if(!this.mapInput.active&&!moving&&!this.backgroundFrame&&!this.selectionFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
     const motion=this.unitMotion.activity(time,moving?undefined:this.visibleUnitIds);
     // Continue between snapshots and draw the exact endpoint before sleeping.
-    // Camera motion and perceptible army motion may use 60fps in either mode.
+    // Camera gestures follow the display refresh rate, including 120/144 Hz.
+    // Army interpolation and stationary views retain their independent budgets.
     if(!moving&&!motion.active&&!this.unitsWereMoving&&!this.invalidated&&!this.dirty.size)return;
-    const interval=moving?1000/60:motion.active?unitMotionFrameInterval(motion.speed,this.distance,this.host.clientHeight):1000/30;
+    // Selection feedback renders on the next display frame, including at rest.
+    const interval=moving||this.cameraPanning||this.selectionFrame||this.flatMapCache.pending?0:motion.active?unitMotionFrameInterval(motion.speed,this.distance,this.viewportHeight):1000/30;
     if(time-this.lastRender<interval-0.5)return;
     this.unitsWereMoving=motion.active;
-    this.lastRender=time;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;
+    this.lastRender=interval?time-(time-this.lastRender)%interval:time;this.cameraPanning=false;this.selectionFrame=false;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;for(const copy of this.selectionRepeats)copy.visible=!this.globalView;
     const elapsed=Math.max(0,(time-this.last)/1000||0.016);this.last=time;
     this.distance=advanceCameraDistance(this.distance,this.desiredDistance,elapsed,this.lastCameraTarget!==this.desiredDistance);this.lastCameraTarget=this.desiredDistance;
     this.blend=1-THREE.MathUtils.smoothstep(this.distance,90,320);this.blendUniform.value=this.blend;
-    this.overlayLiftUniform.value=selectionOverlayLift(this.distance,this.host.clientHeight);
+    this.overlayLiftUniform.value=selectionOverlayLift(this.distance,this.viewportHeight);
     this.renderer.domElement.dataset.overlayLiftScale=this.overlayLiftUniform.value.toFixed(5);
     // Scale the near plane with zoom: a 0.05 near plane loses sea/land depth precision at global distances.
     this.camera.far=Math.max(20000,this.distance*4);this.camera.near=Math.max(0.05,this.distance*0.01);this.camera.updateProjectionMatrix();
     const angle=this.blend*0.6;this.focus.z=clampViewZ(this.desiredFocusZ,this.distance,angle);this.camera.position.set(this.focus.x,this.distance*Math.cos(angle),this.focus.z+this.distance*Math.sin(angle));this.camera.lookAt(this.focus);this.camera.updateMatrixWorld();
     const presentation=unitRenderMode(this.blend),mode=presentation==='3d'?'near':'far';if(mode!==this.lastMode){this.onMode(mode==='near');this.lastMode=mode;}
-    (this.admin.material as THREE.LineBasicMaterial).opacity=internalBorderOpacity(this.distance);
+    const opacity=internalBorderOpacity(this.distance);if(opacity!==this.borderOpacity){this.borderOpacity=opacity;this.mapRevision++;}
+    (this.admin.material as THREE.LineBasicMaterial).opacity=opacity;
     this.renderer.domElement.dataset.internalBorderOpacity=String(internalBorderOpacity(this.distance));
-    if(this.dirty.size){this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
-    if(this.captureDirty.size){this.captureTint.clearUpdateRanges();for(const id of this.captureDirty){const r=this.ranges[id],key=this.captureKeys.get(id)??0;if(!r)continue;
+    if(this.dirty.size){this.mapRevision++;this.colors.clearUpdateRanges();for(const id of this.dirty){const r=this.ranges[id],owner=this.ownerIds[id],color=owner<0?regionColor():new THREE.Color(factionColor(owner));for(let v=r.start;v<r.start+r.count;v++)this.colors.setXYZ(v,color.r,color.g,color.b);if(r.count)this.colors.addUpdateRange(r.start*3,r.count*3);}this.colors.needsUpdate=true;this.dirty.clear();}
+    if(this.captureDirty.size){this.mapRevision++;this.captureTint.clearUpdateRanges();for(const id of this.captureDirty){const r=this.ranges[id],key=this.captureKeys.get(id)??0;if(!r)continue;
       if(key)this.captureColor.set(factionColor(Math.floor(key/64)));const level=key?(key%64)/63:0;
       for(let v=r.start;v<r.start+r.count;v++)this.captureTint.setXYZW(v,key?this.captureColor.r:0,key?this.captureColor.g:0,key?this.captureColor.b:0,level);
       if(r.count)this.captureTint.addUpdateRange(r.start*4,r.count*4);}this.captureTint.needsUpdate=true;this.captureDirty.clear();}
@@ -712,6 +868,8 @@ export class WorldRenderer {
     this.ensureUnitCapacity(this.mapUnits.length);
     const sprites=presentation==='2d',pixels=unitSpritePixels(this.distance);
     const glyphs=this.unitSprites.geometry.getAttribute('unitGlyph') as THREE.InstancedBufferAttribute;
+    const flatSprites=sprites&&this.blend===0;
+    if(flatSprites){this.dummy.position.set(0,.55,0);this.dummy.quaternion.copy(this.camera.quaternion);this.dummy.scale.setScalar(unitSpriteWorldSize(this.distance-.55,this.viewportHeight,pixels));this.dummy.updateMatrix();}
     this.unitSprites.visible=sprites;this.bodies.visible=this.heads.visible=!sprites;
     let n=0;this.visibleUnitIds.clear();
     for(const u of this.mapUnits) {
@@ -719,21 +877,22 @@ export class WorldRenderer {
       if(!inRect(pos,BOUNDS))continue;
       // Both representations share the same canonical position, wrap and viewport
       // test. A mode switch never spawns, deletes or duplicates simulation units.
-      const x=nearestWorldX(pos.x,this.focus.x),z=pos.z,y=heightAt(pos.x,z)*this.blend;
+      const x=nearestWorldX(pos.x,this.focus.x),z=pos.z,y=this.blend?heightAt(pos.x,z)*this.blend:0;
       const screen=this.unitPoint.set(x,y+0.55,z).project(this.camera);
-      const marginX=16/Math.max(1,this.host.clientWidth),marginY=16/Math.max(1,this.host.clientHeight);
+      const marginX=16/Math.max(1,this.viewportWidth),marginY=16/Math.max(1,this.viewportHeight);
       if(screen.z<-1||screen.z>1||Math.abs(screen.x)>1+marginX||Math.abs(screen.y)>1+marginY)continue;
       this.visibleUnitIds.add(u.id);
-      this.unitColor.set(u.owner<0?0x595f50:factionColor(u.owner));
+      let unitColor=this.unitColors.get(u.owner);if(!unitColor){unitColor=new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner));this.unitColors.set(u.owner,unitColor);}
       if(sprites){
-        const depth=-this.unitPoint.set(x,y+0.55,z).applyMatrix4(this.camera.matrixWorldInverse).z;
-        this.dummy.position.set(x,y+0.55,z);this.dummy.quaternion.copy(this.camera.quaternion);
-        this.dummy.scale.setScalar(unitSpriteWorldSize(depth,this.host.clientHeight,pixels));this.dummy.updateMatrix();
-        this.unitSprites.setMatrixAt(n,this.dummy.matrix);this.unitSprites.setColorAt(n,this.unitColor);glyphs.setX(n,unitGlyph(u.kind,!!u.transport?.embarked));
+        if(flatSprites)this.dummy.matrix.setPosition(x,.55,z);
+        else{const depth=-this.unitPoint.set(x,y+0.55,z).applyMatrix4(this.camera.matrixWorldInverse).z;
+          this.dummy.position.set(x,y+0.55,z);this.dummy.quaternion.copy(this.camera.quaternion);
+          this.dummy.scale.setScalar(unitSpriteWorldSize(depth,this.viewportHeight,pixels));this.dummy.updateMatrix();}
+        this.unitSprites.setMatrixAt(n,this.dummy.matrix);this.unitSprites.setColorAt(n,unitColor);glyphs.setX(n,unitGlyph(u.kind,!!u.transport?.embarked));
       }else{
         // One visible field unit remains one 3D model.
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,this.unitColor);
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,unitColor);
         this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);
       }
       n++;
@@ -744,15 +903,45 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.politicalTint.render(this.renderer);this.drawMapNames();this.drawDispatch();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.mapUnits;this.backgroundFrame=false;
+    this.mapSurface.update(this.camera);this.politicalTint.render(this.renderer);this.drawMapNames();this.drawDispatch();this.drawWorld();this.renderedUnits=this.mapUnits;
+    this.backgroundFrame=this.blend===0&&this.flatMapCache.pending;if(this.backgroundFrame)this.invalidated=true;
     this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
-    this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
+    this.renderer.domElement.dataset.viewportWidth=String(this.viewportWidth);this.renderer.domElement.dataset.viewportHeight=String(this.viewportHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
     this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites=String(this.unitSprites.count);this.renderer.domElement.dataset.renderedModels=String(this.bodies.count);this.renderer.domElement.dataset.unitSpritePixels=String(pixels);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
-  dispose(){this.cancelDispatch();this.dispatchPreview.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+  private drawWorld(){
+    if(this.blend>0){this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.renderer.render(this.scene,this.camera);return;}
+    // Selection is a live world-space overlay, never part of a background tile.
+    const live=[this.bodies,this.heads,this.unitSprites,this.towns,this.countryText.group,this.selectionOverlay,...this.selectionRepeats,...this.labels.map(label=>label.sprite)],visibility=live.map(object=>object.visible);
+    this.flatMapCache.prepare(this.renderer,this.camera,this.mapRevision,!this.globalView,(camera,width,height,pixelRatio,viewport)=>{
+      for(const object of live)object.visible=false;
+      const lines=[this.countries.material] as LineMaterial[],resolutions=lines.map(material=>material.resolution.clone());
+      const widths=lines.map(material=>material.linewidth);for(const material of lines)material.linewidth*=pixelRatio/this.renderer.getPixelRatio();
+      // LineSegments2 normally reads the main canvas viewport. Use the cropped
+      // viewport so 2.2 CSS-pixel borders keep their width, without an extra
+      // multiplier from the cache's overscan. Wrapped copies share this material.
+      const lineHooks=lines.map(material=>material.onBeforeRender);
+      for(const material of lines)material.onBeforeRender=()=>{material.resolution.set(width/this.renderer.getPixelRatio(),height/this.renderer.getPixelRatio());};
+      const stripe=this.politicalTint.stripePeriod.value,detail=pixelRatio/this.renderer.getPixelRatio();
+      this.politicalTint.stripePeriod.value*=detail;
+      this.politicalTint.stripeOffset.value=viewport.offsetX+viewport.offsetY-(viewport.width+viewport.height-(this.renderer.domElement.width+this.renderer.domElement.height)*detail)/2;
+      try{this.coastShadow.renderMask(this.renderer,camera,!this.globalView,{width,height,pixelRatio,offsetX:viewport.maskOffsetX,offsetY:viewport.maskOffsetY});this.renderer.render(this.scene,camera);}
+      finally{this.politicalTint.stripePeriod.value=stripe;this.politicalTint.stripeOffset.value=0;for(let i=0;i<live.length;i++)live[i].visible=visibility[i];for(let i=0;i<lines.length;i++){lines[i].resolution.copy(resolutions[i]);lines[i].linewidth=widths[i];lines[i].onBeforeRender=lineHooks[i];}}
+    });
+    // Newly revealed geography uses the normal full-resolution renderer until
+    // an entire replacement is ready. Never enlarge a coarse temporary image.
+    if(!this.flatMapCache.usable){this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.renderer.render(this.scene,this.camera);return;}
+    const backgrounds=[this.atlas,...this.repeats],visible=backgrounds.map(object=>object.visible);
+    for(const object of backgrounds)object.visible=false;this.flatMapCache.surface.visible=true;
+    try{this.renderer.render(this.scene,this.camera);}
+    finally{this.flatMapCache.surface.visible=false;for(let i=0;i<backgrounds.length;i++)backgrounds[i].visible=visible[i];}
+  }
+  dispose(){this.cancelDispatch();this.dispatchPreview.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+    cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
+    for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
 }

@@ -10,18 +10,18 @@ async function expectPanelLayout(page:Page,owned=true){
  await expect(panel.locator('h2')).toBeInViewport({ratio:1});
  const country=panel.getByTestId('province-country');await expect(country).toBeVisible();
  await expect(country.locator('bdi')).toHaveText((await panel.getByTestId('province-owner-name').textContent())!);
- expect(await country.locator('svg').count()).toBe(await panel.locator('.province-ownership .owner-swatch svg').count());
+ await expect(panel.locator('.province-ownership')).toHaveCount(0);
  await expect.poll(()=>panel.evaluate(element=>element.scrollTop)).toBe(0);
  await expect(panel.locator('.province-summary')).toHaveCount(1);
  const layout=await panel.evaluate(element=>{
   const box=(selector:string)=>element.querySelector(selector)!.getBoundingClientRect();
   const heading=box('.province-heading'),summary=box('.province-summary'),action=box('.province-actions');
   const production=element.querySelector('.province-production')?.getBoundingClientRect();
-  const ownership=box('.province-ownership'),garrison=box('.province-garrison');
+  const garrisonLabel=box('.province-garrison dt'),garrisonValue=box('.province-garrison dd');
   return {
    overflows:[element,...element.querySelectorAll('h2,.province-country,.province-summary,.province-ownership,.province-garrison')].some(node=>node.scrollWidth>node.clientWidth+1),
    ordered:heading.bottom<=summary.top&&summary.bottom<=(production?.top??action.top)&&(production?.bottom??summary.bottom)<=action.top,
-   columns:ownership.right<=garrison.left&&Math.abs(ownership.top-garrison.top)<1,
+   columns:garrisonLabel.right<=garrisonValue.left&&garrisonLabel.top>=summary.top&&garrisonLabel.bottom<=summary.bottom,
    production:Boolean(production)
   };
  });
@@ -37,7 +37,7 @@ for(const language of ['zh','en'] as const)test(`${language}: territory panel sh
   await page.getByTestId('open-settings').click();await page.getByRole('button',{name:'English',exact:true}).click();await page.getByTestId('settings-resume').click();
  }
  const panel=page.locator('#province-panel');
- await expect(panel).toContainText(language==='zh'?'属于者':'Owned by');
+ await expect(panel).not.toContainText(language==='zh'?'属于者':'Owned by');
  await expect(page.getByTestId('province-owner-name')).toHaveText('Panel Commander');
  await expect(panel).toContainText(language==='zh'?'自动生产':'Auto-production');
  await expectPanelLayout(page);

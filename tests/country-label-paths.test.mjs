@@ -47,7 +47,7 @@ test('curved country corridors bend with the territory and protect whole glyphs,
  const shorter=countryCurveSegment(curve,curve.length/2);assert.ok(Math.hypot(shorter.points[0].x-shorter.points.at(-1).x,shorter.points[0].z-shorter.points.at(-1).z)<Math.hypot(a.x-b.x,a.z-b.z));
 });
 
-test('country text scales past 40 pixels without changing its world anchor or path',()=>{
+test('country text scales below 10 pixels and past 40 pixels without changing its world anchor or path',()=>{
  const fit=fitCountryCurve(placement([region(0,[[rect(-80,-40,160,80)]])]).get(0),5);
  assert.ok(fit);
  const anchor={...fit.curve.anchor},near=projectCountryFont(fit.fontWorld,2),closer=projectCountryFont(fit.fontWorld,4);
@@ -56,7 +56,10 @@ test('country text scales past 40 pixels without changing its world anchor or pa
  assert.equal(near.world,closer.world);
  assert.deepEqual(countryCurveSegment(fit.curve,near.world*5/.86),countryCurveSegment(fit.curve,closer.world*5/.86));
  assert.deepEqual(fit.curve.anchor,anchor);
- assert.equal(projectCountryFont(fit.fontWorld,.001),null);
+ const far=projectCountryFont(fit.fontWorld,.001);
+ assert.ok(far&&far.screen>0&&far.screen<10);
+ assert.equal(far.world,near.world);
+ assert.deepEqual(countryCurveSegment(fit.curve,far.world*5/.86),countryCurveSegment(fit.curve,near.world*5/.86));
 });
 
 test('lakes, concave bays and separate islands cannot be used as text space',()=>{

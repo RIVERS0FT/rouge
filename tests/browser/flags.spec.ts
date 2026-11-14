@@ -55,7 +55,7 @@ test('every computer faction flies a distinct real flag beside its name',async({
  await page.getByTestId('setup-ai-count').fill('7');await page.getByTestId('begin-campaign').click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await expect(page.getByTestId('province-owner-name')).toHaveText('指挥官');
- await expect(page.locator('#province-panel .owner-swatch>svg[role="img"]')).toHaveAttribute('aria-label','中国');
+ await expect(page.locator('#province-panel .province-country-flag>svg[role="img"]')).toHaveAttribute('aria-label','中国');
  await page.getByTestId('outliner-all-nations').click();
  await expect(page.locator('#nations-panel .nation-row')).toHaveCount(8);
  const names=await page.locator('#nations-panel .faction-swatch>svg[role="img"]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('aria-label')));

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCoastShadow} from '../src/render/coastShadow.ts';
+import {createCoastShadow,coastShadowTiles} from '../src/render/coastShadow.ts';
 
 test('coast ribbons join real shoreline endpoints and exclude political and internal edges',()=>{
  const edges=[{a:{x:0,z:0},b:{x:10,z:0},atoms:[0]},{a:{x:10,z:0},b:{x:10,z:10},atoms:[0]},{a:{x:0,z:0},b:{x:0,z:10},atoms:[0,1]}];
@@ -10,6 +10,18 @@ test('coast ribbons join real shoreline endpoints and exclude political and inte
  assert.deepEqual([...g.getAttribute('aPrevious').array].slice(2,4),[0,0]);
  assert.equal(JSON.stringify(edges),original);assert.equal(mesh.material.depthTest,false);assert.equal(mesh.material.depthWrite,false);
  g.dispose();mesh.material.dispose();
+});
+
+test('coast tiles retain every join and cover both ends of cross-tile segments',()=>{
+ const edges=[{a:{x:-400,z:0},b:{x:400,z:10},atoms:[0]},{a:{x:400,z:10},b:{x:410,z:20},atoms:[0]},{a:{x:900,z:400},b:{x:910,z:410},atoms:[1]}];
+ const mesh=createCoastShadow(edges),source=mesh.geometry,tiles=coastShadowTiles(source);
+ assert.ok(tiles.length>1);assert.equal(tiles.reduce((sum,g)=>sum+g.instanceCount,0),edges.length);
+ const rows=g=>Array.from({length:g.instanceCount},(_,i)=>['aStart','aEnd','aPrevious','aNext','aExtent'].flatMap(name=>Array.from(g.getAttribute(name).array.slice(i*g.getAttribute(name).itemSize,(i+1)*g.getAttribute(name).itemSize))).join(','));
+ assert.deepEqual(tiles.flatMap(rows).sort(),rows(source).sort());
+ for(const tile of tiles)for(const name of ['aStart','aEnd']){const attr=tile.getAttribute(name);for(let i=0;i<tile.instanceCount;i++){
+  const c=tile.boundingSphere.center;assert.ok(Math.hypot(attr.getX(i)-c.x,-.2-c.y,attr.getY(i)-c.z)<=tile.boundingSphere.radius+1e-8);
+ }}
+ for(const tile of tiles)tile.dispose();source.dispose();mesh.material.dispose();
 });
 
 test('seam endpoints, branches and empty coastlines stay finite without synthetic closing edges',()=>{

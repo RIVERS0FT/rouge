@@ -1,0 +1,52 @@
+{
+  "baselineCommit": "46ce37f",
+  "snapshotSha256": "34cc9533e2c42b7c76d613ce1bd9db003a2bc91a9c88f5c5774b0b4d600ced5f",
+  "initialTick": 7708,
+  "players": 101,
+  "ai": 100,
+  "units": 5236,
+  "before": {
+    "three": {
+      "averageFps": 55.28357811303161,
+      "worstFrameEquivalentFps": 18.51851851851852,
+      "ticks": 118
+    },
+    "two": {
+      "averageFps": 54.596109558691865,
+      "worstFrameEquivalentFps": 14.02524544179466,
+      "ticks": 106
+    }
+  },
+  "after": {
+    "three": {
+      "averageFps": 54.31409709061374,
+      "worstFrameEquivalentFps": 13.869625520112637,
+      "ticks": 122
+    },
+    "two": {
+      "averageFps": 53.53983221965486,
+      "worstFrameEquivalentFps": 18.48428835490132,
+      "ticks": 120
+    }
+  },
+  "emptyPageRafFps": 55.872434322827765,
+  "simulationSpeedup": 1.070184796664846,
+  "transportSpeedup": 2.0530562120141345,
+  "targets": {
+    "pureMap3dAverageFps": 60,
+    "ai1003dAverageFps": 30,
+    "ai1002dAverageFps": 60
+  },
+  "pureMap": {
+    "averageFps": 34.52334901442077,
+    "worstFrameEquivalentFps": 10.298661174046757,
+    "mapUnits": 0,
+    "motionTracks": 0,
+    "ticks": 0
+  },
+  "acceptance": {
+    "pureMap3d": false,
+    "ai1003d": true,
+    "ai1002d": false
+  }
+}

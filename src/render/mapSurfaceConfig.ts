@@ -1,6 +1,6 @@
 import {WORLD_BOUNDS} from '../game/geo.ts';
 
-/** Visual-only tone: the level plains in SR_50M are close to 206/255.
+/** Visual-only tone: keep the NE II luminance centered on a pale atlas ground.
  * Multiply all political RGB channels equally, retaining their hue and identity. */
 export const RELIEF_MIDPOINT=206/255;
 export const RELIEF_STRENGTH=.85;
