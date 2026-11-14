@@ -1,4 +1,5 @@
 import {isRegionGarrison} from '../../game/capacity.ts';
+import {recoveryMultiplier} from '../../game/construction.ts';
 import {UNITS} from '../../game/content.ts';
 import {MAP, PLAYABLE_COUNT} from '../../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../../game/territoryEconomy.ts';
@@ -10,7 +11,7 @@ import type {GameState} from '../../game/types.ts';
 export const VICTORY_SHARE = 0.6;
 export const DOMINATION_SECONDS = 30;
 export const victoryTarget = () => Math.ceil(PLAYABLE_COUNT * VICTORY_SHARE);
-/** Gold accrues at 0.5 × the region's production rate per game second. */
+/** Gold accrues at 0.5 × the region's base rate, adjusted by recovery. */
 export const INCOME_PER_RATE = 0.5;
 export const CAPTURE_REWARD = 30;
 export const CAPTURE_THRESHOLD = 8;
@@ -23,7 +24,7 @@ export function territoryCounts(state: GameState): Map<number, number> {
 
 export function incomePerSecond(state: GameState, actor: number): number {
  let rate = 0;
- for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable) rate += INCOME_PER_RATE * regionProductionRate(province.id);
+ for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable) rate += INCOME_PER_RATE * regionProductionRate(province.id) * recoveryMultiplier(province.recovery);
  return rate;
 }
 

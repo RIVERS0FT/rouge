@@ -1,6 +1,18 @@
 import {countryName,type CountryIdentity} from '../game/countryNames.ts';
 export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
+ constructionTitle:['建设','Construction'],constructionFunds:['建设资金','Build funds'],
+ constructionBuild:['建造','Build'],constructionUpgrade:['升级','Upgrade'],constructionLevel:['{level} 级','Level {level}'],
+ constructionIncome:['建设资金收入 +{amount}/秒','Build income +{amount}/s'],
+ constructionTarget:['建设地块','Building site'],constructionBuilt:['{built}/{total} 槽已建','{built}/{total} slots built'],
+ constructionNext:['下一级：{effect}','Next level: {effect}'],constructionEmpty:['未建造','No building'],
+ 'construction.market':['集市','Market'],'construction.barracks':['兵营','Barracks'],'construction.fortress':['要塞','Fortress'],
+ 'construction.market.benefit':['建设资金 +{amount}/秒','+{amount} build funds/s'],
+ 'construction.barracks.benefit':['本地产兵速度 +{amount}%','+{amount}% local production speed'],
+ 'construction.fortress.benefit':['击败守军后，占领耗时 +{amount}%','+{amount}% capture time after defenders fall'],
+ 'error.noFunds':['建设资金不足','Insufficient build funds'],'error.slotOccupied':['建设槽已有其他建筑','The slot already has a different building'],
+ 'error.constructionChanged':['建设槽已更新，请重试','The building slot has changed; try again'],
+ 'error.constructionContested':['争夺中的地块无法建设','Cannot build in a contested region'],
  backgroundLoading:['正在后台准备游戏…','Preparing game in the background…'],loadingResources:['正在准备游戏资源…','Preparing game resources…'],resourceFailed:['游戏资源未能加载，请检查连接后重新加载。','Game resources could not load. Check your connection and reload.'],reloadResources:['重新加载','Reload'],
  starting:['正在进入战役…','Starting campaign…'],baseStats:['基础属性','Base attributes'],experience:['经验','XP'],levelShort:['等级','LV'],allRegions:['所有地块','All regions'],
  playerAppearance:['玩家外观','Player appearance'],playerLeader:['玩家形象','Player portrait'],playerFlag:['国旗','Flag'],editAppearance:['修改外观','Edit appearance'],editPlayerLeader:['修改玩家形象','Edit player portrait'],editPlayerFlag:['修改国旗','Edit flag'],
