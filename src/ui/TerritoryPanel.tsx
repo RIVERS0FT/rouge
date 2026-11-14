@@ -1,3 +1,4 @@
+import type {CountryAction} from '../game/countryActions.ts';
 import {useLayoutEffect, useRef} from 'react';
 import {regionGarrison} from '../game/capacity.ts';
 import {UNITS} from '../game/content.ts';
@@ -5,7 +6,7 @@ import {constructionProductionMultiplier, fundsIncomeRate, recoveryMultiplier} f
 import {factionColor} from '../game/factionColors.ts';
 import {MAP} from '../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../game/territoryEconomy.ts';
-import type {Command, GameState, Kind} from '../game/types.ts';
+import type {GameState, Kind} from '../game/types.ts';
 import {FactionSwatch} from './FactionSwatch.tsx';
 import {DockPanel, Pips, SectionRibbon} from './hud/DockPanel.tsx';
 import {CAPTURE_THRESHOLD} from './hud/hudModel.ts';
@@ -17,7 +18,7 @@ import {TerritoryConstruction} from './TerritoryConstruction.tsx';
 
 type Props = {
  state: GameState; selected: number; actor: number; eliminated: boolean; language: Language; hidden?: boolean;
- onFocus: () => void; onManage: () => void; onClose: () => void; onCommand: (command: Command) => void;
+ onFocus: () => void; onManage: () => void; onClose: () => void; onCommand: (command: CountryAction) => void;
 };
 
 /**

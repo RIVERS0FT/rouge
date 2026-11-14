@@ -1,3 +1,4 @@
+import {countryActions, type CountryAction} from '../game/countryActions.ts';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {LEADERS} from '../game/content.ts';
 import {createGame, isEliminated} from '../game/engine.ts';
@@ -6,7 +7,7 @@ import type {Flag} from '../game/flags.ts';
 import {MAP} from '../game/map.ts';
 import {deleteSave, decodeSave, encodeSave, listSaves, MAX_SAVE_BYTES, readSave, writeSave, type SaveInfo} from '../game/save.ts';
 import {getSpawnCapacity, makeAISetups} from '../game/spawns.ts';
-import type {Command, GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
+import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
 import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
 import type {WorldRenderer} from '../render/WorldRenderer.ts';
 import {CommanderPortrait} from './CommanderHud.tsx';
@@ -205,10 +206,10 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }
  async function changeRoomAI(aiCount: number) {if(!ticket) return; setBusy(true); try {setRoom(await configureRoom(ticket, aiCount));} catch(error) {report(error);} finally {setBusy(false);}}
  async function beginMatch() {if(!ticket) return; setBusy(true); try {await api(`/rooms/${ticket.code}/start`, {}, ticket.token);} catch(error) {report(error);} finally {setBusy(false);}}
- function issue(command: Command) {if(localStarting) return; if(eliminated) {notifyResult({ok: false, error: 'eliminated'}); return;} session.current?.command(command);}
+ function issue(command: CountryAction) {if(localStarting) return; if(eliminated) {notifyResult({ok: false, error: 'eliminated'}); return;} session.current?.command(command);}
  function selectProvince(id: number, attack: boolean) {
   if(screen !== 'game' || localStarting) return;
-  if(attack) {if(eliminated || !MAP[selected] || !MAP[id]) return; issue({type: 'march', from: selected, to: id, fraction: 1});}
+  if(attack) {if(eliminated || !MAP[selected] || !MAP[id]) return; issue(countryActions.march(selected,id));}
   else if(id === -1) {setSelected(-1); setDock(current => current === 'region' ? null : current);}
   else if(MAP[id]) {setSelected(id); if(!compactRef.current) setDock('region');}
  }
@@ -347,7 +348,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     onName={setName} onCode={setCode} onStart={startSolo} onCreateRoom={() => roomAction(false)} onJoinRoom={() => roomAction(true)}/>}
    {modal === 'territories' && game && <TerritoryManagement state={game} grouping={game.grouping} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={issue}/>}
    {modal === 'talents' && player && game && <TalentsDialog player={player} campaign={game.campaign} seenRound={seenTalentRound} eliminated={eliminated} pending={pendingTalent !== null} language={language}
-    onChoose={id => {setPendingTalent(id); issue({type: 'talent', id});}} onReroll={expectedCost => issue({type: 'reroll', expectedCost})}/>}
+    onChoose={id => {setPendingTalent(id); issue(countryActions.talent(id));}} onReroll={expectedCost => issue({type: 'reroll', expectedCost})}/>}
   </ModalDialog>}
   {localStarting && <ModalDialog label={text('starting')} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting" className="starting-modal">
    <p role="status" data-testid="local-starting"><Icon name="hourglass" size={18}/>{text('starting')}</p>

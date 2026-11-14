@@ -5,6 +5,8 @@ import { MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
 import { createLanServer } from '../server/lan.ts';
 import { applyFrame } from '../src/platform/replication.ts';
 import { PLAYABLE_COUNT } from '../src/game/map.ts';
+import {countryActions} from '../src/game/countryActions.ts';
+import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 const setup={name:'Human',leader:'warden',loadout:['infantry'],flag:{type:'custom',pattern:'vertical',colors:['#123456','#abcdef','#ffffff']}};
 test('real HTTP LAN: two online seats, host-only start, token-bound commands and streamed snapshots',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${host.server.address().port}`;
@@ -20,6 +22,33 @@ test('real HTTP LAN: two online seats, host-only start, token-bound commands and
   assert.equal((await request(`/rooms/${a.code}/info`,undefined,'forged')).status,401);
   const controller=new AbortController();const stream=await fetch(`${base}/api/rooms/${a.code}/events`,{headers:{Authorization:`Bearer ${b.token}`,'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID},signal:controller.signal});const reader=stream.body.getReader();let text='';for(let i=0;i<4&&!text.includes('"state"');i++){const{value}=await reader.read();text+=new TextDecoder().decode(value);}assert.ok(text.includes('"state"'));assert.ok(text.includes('"started":true'));controller.abort();
   const denied=await fetch(base+'/api/rooms',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify({setup})});assert.equal(denied.status,403);
+ }finally{await host.close();}
+});
+
+test('real HTTP LAN uses the full march contract and rejects payload ownership and partial orders',async()=>{
+ const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
+ const base=`http://127.0.0.1:${host.server.address().port}/api`;
+ const post=async(path,body,token)=>{
+  const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)});
+  const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);
+  return {status:r.status,data};
+ };
+ try{
+  const a=(await post('/rooms',{setup})).data,path=`/rooms/${a.code}`;
+  const b=(await post(path+'/join',{setup})).data;
+  assert.equal((await post(path+'/start',{},a.token)).status,200);
+  // Use the same deterministic friendly route as the local worker test.
+  const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to);
+  host.rooms.get(a.code).engine=e;
+  for(const command of [{...action,fraction:.5},{type:'march',from,to},{...action,fraction:'1'}]){
+   assert.deepEqual(await post(path+'/command',{command},a.token),{status:400,data:{ok:false,error:'invalidCommand'}});
+   assert.equal(e.state.provinces[from].march,undefined);
+   assert.equal(e.state.units.filter(u=>u.origin===from&&u.target!==null).length,0);
+  }
+  assert.deepEqual(await post(path+'/command',{actor:0,command:action},b.token),{status:400,data:{ok:false,error:'notOwner'}});
+  assert.deepEqual(await post(path+'/command',{command:action},a.token),{status:200,data:{ok:true}});
+  assert.equal(e.state.provinces[from].march.pendingIds.length,11);
+  assert.equal(e.state.units.filter(u=>u.origin===from&&u.target===to).length,1);
  }finally{await host.close();}
 });
 
@@ -45,7 +74,7 @@ test('LAN rejects missing and obsolete rules for every room endpoint without mut
   const headers={'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID};
   const created=await fetch(base+'/api/rooms',{method:'POST',headers,body:JSON.stringify({setup})});
   assert.equal(created.status,201);const ticket=await created.json(),room=host.rooms.get(ticket.code);
-  for(const rules of [undefined,'legacy-land-only-v1','admin1-groups-terrain-collision-v2','admin1-locked-game-regions-neutral-garrisons-v11']){
+  for(const rules of [undefined,'legacy-land-only-v1','admin1-groups-terrain-collision-v2','admin1-locked-game-regions-neutral-garrisons-v11','admin1-locked-game-regions-v15']){
    const incompatible={'Content-Type':'application/json','X-Rouge-Map':MAP_ID,Authorization:`Bearer ${ticket.token}`,...(rules?{'X-Rouge-Rules':rules}:{})};
    for(const [suffix,method,body]of [['','POST',{setup}],[`/${ticket.code}/join`,'POST',{setup}],[`/${ticket.code}/start`,'POST',{}],[`/${ticket.code}/command`,'POST',{command:{type:'upgrade',kind:'infantry',stat:'attack'}}],[`/${ticket.code}/info`,'GET'],[`/${ticket.code}/events`,'GET']]){
     const r=await fetch(base+'/api/rooms'+suffix,{method,headers:incompatible,body:body===undefined?undefined:JSON.stringify(body)});

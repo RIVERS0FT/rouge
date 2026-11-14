@@ -19,13 +19,4 @@ export interface Player { id:number; name:string; country?:CountryIdentity; flag
 export interface GameEvent { tick:number; key:'capture'|'level'|'victory'; player:number; province?:number }
 export interface GameState { version:typeof import('./content.ts').STATE_VERSION; map:'earth-natural-earth-admin1-511-regions-v5'; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[] }
 export interface PlayerSetup { name:string; flag?:Flag; leader:Leader; loadout:Kind[]; ai?:boolean }
-export type Command =
-  | {type:'mergeGroups';groups:string[];expectedRevision:number}
-  | {type:'splitGroup';group:string;atoms:string[];expectedRevision:number}
-  | {type:'march';from:number;to:number;fraction:number}
-  | {type:'construct';province:number;kind:ConstructionKind;expectedLevel:0|1}
-  | {type:'production';province:number;kind:Kind}
-  | {type:'upgrade';kind:Kind;stat:Upgrade}
-  | {type:'talent';id:string}
-  | {type:'reroll';expectedCost?:number};
 export type Result = {ok:true} | {ok:false;error:string};

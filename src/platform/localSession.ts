@@ -1,4 +1,5 @@
-import type {Command,GameState,Result} from '../game/types.ts';
+import type {CountryAction} from '../game/countryActions.ts';
+import type {GameState,Result} from '../game/types.ts';
 import type {Session} from './session.ts';
 /** Keep controls ordered while the module worker loads its terrain atlas. The
  * first authoritative state, not construction of Worker, marks a usable game. */
@@ -20,5 +21,5 @@ export function createLocalSession(worker:Pick<Worker,'onmessage'|'onerror'|'onm
   else if(data.type==='error')fail(data.error);
  };
  worker.onerror=()=>fail();worker.onmessageerror=()=>fail();
- return{mode:'solo',actor:0,command:(command:Command)=>send({type:'command',command}),pause:value=>send({type:'pause',value}),speed:value=>send({type:'speed',value}),dispose};
+ return{mode:'solo',actor:0,command:(command:CountryAction)=>send({type:'command',command}),pause:value=>send({type:'pause',value}),speed:value=>send({type:'speed',value}),dispose};
 }

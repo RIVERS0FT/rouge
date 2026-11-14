@@ -1,10 +1,11 @@
+import type {CountryAction} from '../game/countryActions.ts';
 import {useEffect,useMemo,useState} from 'react';
 import {MAP,TERRITORY_TOPOLOGY} from '../game/map.ts';
 import type {TerritoryGrouping} from '../game/territoryGrouping.ts';
-import type {Command,GameState} from '../game/types.ts';
+import type {GameState} from '../game/types.ts';
 import {t,type Language} from './i18n.ts';
 const atomIndex=new Map(MAP.map(p=>[p.code,p.id]));
-export function TerritoryManagement({state,grouping,selected,actor,eliminated,language,onCommand}:{state:GameState;grouping:TerritoryGrouping;selected:number;actor:number;eliminated:boolean;language:Language;onCommand:(command:Command)=>void}){
+export function TerritoryManagement({state,grouping,selected,actor,eliminated,language,onCommand}:{state:GameState;grouping:TerritoryGrouping;selected:number;actor:number;eliminated:boolean;language:Language;onCommand:(command:CountryAction)=>void}){
  const text=(key:string)=>t(language,key),code=MAP[selected]?.code,groupId=grouping.atomToGroup[code];
  const groups=useMemo(()=>new Map(grouping.groups.map(g=>[g.id,g])),[grouping]);
  const group=groups.get(groupId),[merge,setMerge]=useState<string[]>([]),[split,setSplit]=useState<string[]>([]);

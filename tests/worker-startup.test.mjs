@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame} from '../src/game/engine.ts';
+import {countryActions} from '../src/game/countryActions.ts';
+import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 const messages=[],timers=[];
 const oldSelf=globalThis.self,oldInterval=globalThis.setInterval;
 globalThis.self={postMessage:message=>messages.push(structuredClone(message))};
@@ -15,6 +17,23 @@ test('actual worker advertises readiness, initializes, applies upgrades and adva
  receive({type:'command',command:{type:'upgrade',kind:'infantry',stat:'attack'}});
  assert.deepEqual(messages.at(-2),{type:'result',result:{ok:true}});assert.equal(messages.at(-1).state.players[0].upgrades.infantry.attack,1);
  timers[0]();timers[0]();assert.equal(messages.at(-1).state.tick,2);
+});
+test('actual worker uses the authoritative full march contract and ignores a payload actor',()=>{
+ const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to);
+ receive({type:'init',state:e.state});
+ const before=messages.at(-1).state;
+ for(const invalid of [{...action,fraction:.5},{type:'march',from,to},{...action,fraction:'1'}]){
+  receive({type:'command',command:invalid});
+  assert.deepEqual(messages.at(-2),{type:'result',result:{ok:false,error:'invalidCommand'}});
+  assert.deepEqual(messages.at(-1).state,before);
+ }
+ const rival=before.provinces.find(p=>p.owner===1).id;
+ receive({type:'command',actor:1,command:countryActions.march(rival,to)});
+ assert.deepEqual(messages.at(-2),{type:'result',result:{ok:false,error:'notOwner'}});
+ assert.deepEqual(messages.at(-1).state,before);
+ receive({type:'command',command:action});
+ assert.deepEqual(messages.at(-2),{type:'result',result:{ok:true}});
+ assert.equal(messages.at(-1).state.provinces[from].march.pendingIds.length,11);
 });
 test('actual worker explicitly rejects invalid initialization instead of appearing inert',()=>{
  receive({type:'init',state:{}});assert.deepEqual(messages.at(-1),{type:'error',error:'invalidSave'});

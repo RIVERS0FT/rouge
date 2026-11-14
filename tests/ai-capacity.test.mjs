@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
+import {countryActions} from '../src/game/countryActions.ts';
 import {MAP,provinceByCode} from '../src/game/map.ts';
 import {regionCapacity,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {stats} from '../src/game/content.ts';
@@ -58,24 +59,40 @@ test('AI sends the same full march command as the player and respects friendly c
  const template=s.units[0];
  for(let i=0;i<regionCapacity(to)-2;i++)s.units.push({...template,id:s.nextId++,...MAP[to].center,province:to,origin:to});
  assert.equal(destinationRoom(s,1,to),2);
+ const playerEngine=new Engine(s);
+ playerEngine.state.players[1].ai=false;
  const submit=engine.command.bind(engine);
  let observed;
  engine.command=(actor,command)=>{
   if(command.type!=='march'||command.from!==home.id)return submit(actor,command);
   const result=submit(actor,command);
-  observed={actor,command,result,order:structuredClone(s.provinces[home.id].march)};
+  if(result.ok)observed={actor,command,result,order:structuredClone(s.provinces[home.id].march)};
   return result;
  };
  engine.step(80);
- assert.deepEqual(observed?.command,{type:'march',from:home.id,to,fraction:1});
+ const action=countryActions.march(home.id,to);
+ assert.deepEqual(observed?.command,action);
+ playerEngine.step(80);
+ assert.deepEqual(playerEngine.command(1,action),{ok:true});
+ const released=state=>state.units.filter(u=>u.origin===home.id&&u.target!==null).map(u=>[u.id,u.target]);
+ assert.deepEqual(released(playerEngine.state),released(s));
+ assert.deepEqual(playerEngine.state.provinces[home.id].march,observed.order);
+ const saved=structuredClone(playerEngine.state),aiState=structuredClone(s);
+ for(const [subject,before] of [[playerEngine,saved],[engine,aiState]]){
+  assert.deepEqual(subject.command(-1,action),{ok:false,error:'notPlaying'});
+  assert.deepEqual(subject.command(0,action),{ok:false,error:'notOwner'});
+  assert.deepEqual(subject.command(1,{...action,fraction:.5}),{ok:false,error:'invalidCommand'});
+  assert.deepEqual(subject.state,before);
+ }
  assert.equal(observed.actor,1);
  assert.deepEqual(observed.result,{ok:true});
  assert.equal(observed.order.reserved,true);
  assert.equal(observed.order.pendingIds.length,1);
  const sent=()=>s.units.filter(u=>u.origin===home.id&&u.target===to);
  assert.equal(sent().length,1);
- engine.step(MARCH_INTERVAL_TICKS-1);assert.equal(sent().length,1);
- engine.step();assert.equal(sent().length,2);
+ engine.step(MARCH_INTERVAL_TICKS-1);playerEngine.step(MARCH_INTERVAL_TICKS-1);assert.equal(sent().length,1);
+ engine.step();playerEngine.step();assert.equal(sent().length,2);
+ assert.deepEqual(released(playerEngine.state),released(s));
  assert.equal(s.provinces[home.id].march,undefined);
 });
 

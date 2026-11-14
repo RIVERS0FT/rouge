@@ -14,7 +14,7 @@ function stepWithoutProduction(e){for(const p of e.state.provinces)p.production=
 test('only released troops leave the counted garrison and waiting troops still occupy home capacity',()=>{
  const {e,from,to}=garrisonFixture(),before=e.state.units.map(u=>({x:u.x,z:u.z}));
  assert.equal(regionGarrison(e.state,0,from),12);
- assert.ok(e.command(0,{type:'march',from,to,fraction:.5}).ok);
+ assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
  assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
  assert.equal(regionGarrison(e.state,0,from),11);assert.equal(regionTroops(e.state,0,from),12);
  assert.equal(regionReservations(e.state,0,to),1);assert.equal(destinationRoom(e.state,0,from),0);
@@ -28,7 +28,7 @@ test('only released troops leave the counted garrison and waiting troops still o
 
 test('physical production capacity remains full while the first troop has received orders',()=>{
  const {e,from,to}=garrisonFixture();e.state.provinces[from].production=13.99;
- assert.ok(e.command(0,{type:'march',from,to,fraction:.5}).ok);e.step();
+ assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);e.step();
  assert.equal(regionGarrison(e.state,0,from),11);assert.equal(regionTroops(e.state,0,from),12);
  assert.equal(e.state.provinces[from].production,13.99);assert.equal(e.state.units.length,12);
 });
