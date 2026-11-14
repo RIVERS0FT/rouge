@@ -5,7 +5,7 @@ import {countryActions} from '../src/game/countryActions.ts';
 import {MAP,provinceByCode} from '../src/game/map.ts';
 import {regionCapacity,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {stats} from '../src/game/content.ts';
-import {destinationRoom} from '../src/game/capacity.ts';
+import {regionTroops} from '../src/game/capacity.ts';
 import {validateState} from '../src/game/save.ts';
 
 const initial=createGame([
@@ -49,7 +49,7 @@ test('AI waits for four troops then sends every available troop at the shared ma
  assert.ok(validateState(ready.state));
 });
 
-test('AI sends the same full march command as the player and respects friendly capacity',()=>{
+test('AI sends the same full march command as the player and sends all troops to a full friendly region',()=>{
  const {engine,home}=fixture(12,4);
  const s=engine.state,homeNeighbors=new Set(home.neighbors);
  for(const id of homeNeighbors)s.provinces[id].owner=1;
@@ -57,8 +57,8 @@ test('AI sends the same full march command as the player and respects friendly c
  assert.notEqual(to,undefined);
  s.grouping=reconcileGrouping(s);
  const template=s.units[0];
- for(let i=0;i<regionCapacity(to)-2;i++)s.units.push({...template,id:s.nextId++,...MAP[to].center,province:to,origin:to});
- assert.equal(destinationRoom(s,1,to),2);
+ for(let i=0;i<regionCapacity(to);i++)s.units.push({...template,id:s.nextId++,...MAP[to].center,province:to,origin:to});
+ assert.equal(regionTroops(s,1,to),regionCapacity(to));
  const playerEngine=new Engine(s);
  playerEngine.state.players[1].ai=false;
  const submit=engine.command.bind(engine);
@@ -87,11 +87,12 @@ test('AI sends the same full march command as the player and respects friendly c
  assert.equal(observed.actor,1);
  assert.deepEqual(observed.result,{ok:true});
  assert.equal(observed.order.reserved,true);
- assert.equal(observed.order.pendingIds.length,1);
+ assert.equal(observed.order.pendingIds.length,3);
  const sent=()=>s.units.filter(u=>u.origin===home.id&&u.target===to);
  assert.equal(sent().length,1);
  engine.step(MARCH_INTERVAL_TICKS-1);playerEngine.step(MARCH_INTERVAL_TICKS-1);assert.equal(sent().length,1);
  engine.step();playerEngine.step();assert.equal(sent().length,2);
+ engine.step(2*MARCH_INTERVAL_TICKS);playerEngine.step(2*MARCH_INTERVAL_TICKS);assert.equal(sent().length,4);
  assert.deepEqual(released(playerEngine.state),released(s));
  assert.equal(s.provinces[home.id].march,undefined);
 });

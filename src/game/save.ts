@@ -3,7 +3,7 @@ import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, stats } from './content.ts';
 import {validateTravel} from './terrain-navigation.ts';
-import {regionCapacity,validGroupingState} from './territoryEconomy.ts';
+import {validGroupingState} from './territoryEconomy.ts';
 import {isRegionGarrison} from './capacity.ts';
 import {isConstructionKind,MAX_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
@@ -46,7 +46,7 @@ export function validateState(value:unknown):value is GameState{
   }
   const pending=new Map<number,number>();
   for(const p of s.provinces){const order=p.march;if(order)for(const id of order.pendingIds){if(pending.has(id))return false;pending.set(id,p.id);}}
-  const ids=new Set<number>(),population=new Map<string,number>();
+  const ids=new Set<number>();
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
@@ -62,9 +62,8 @@ export function validateState(value:unknown):value is GameState{
     if(u.transport){
       if(!u.travel||u.transport.embarked!==true||u.transport.from!==u.origin||u.transport.to!==u.target||!integer(u.transport.index,1,u.travel.points.length-1)||!u.travel.points[u.transport.index].sea)return false;
     }
-    if(u.transport?.embarked){ids.add(u.id);continue;}
-    const key=`${u.owner}:${u.province}`,count=(population.get(key)??0)+1;
-    if(!u.travel&&u.assault===undefined){if(count>regionCapacity(u.province))return false;population.set(key,count);}ids.add(u.id);
+    // Legitimate arrivals can put more troops here than local training allows.
+    ids.add(u.id);
   }
   return !pending.size&&s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
 }

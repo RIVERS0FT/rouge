@@ -3,8 +3,8 @@ import { validFlag } from './flags.ts';
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION=pkg.version;
-// Bump the LAN protocol identity when its commands or state shape change.
-export const RULES_ID='admin1-locked-game-regions-v16';
+// Bump the LAN protocol identity when shared simulation rules, commands, or state shape change.
+export const RULES_ID='admin1-locked-game-regions-v17';
 export const STATE_VERSION=6;
 export const MAP_ID='earth-natural-earth-admin1-511-regions-v5' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
@@ -27,21 +27,40 @@ export const UNITS:Record<Kind,UnitStats>={
   heavyCavalry:{hp:155,attack:30,defense:25,attackSpeed:0.65,splash:0,range:1.6,train:32,speed:3.4,seaSpeed:3},
   horseArtillery:{hp:70,attack:28,defense:0,attackSpeed:0.55,splash:0.8,range:5.8,train:30,speed:2.8,seaSpeed:3},
 };
-export const TALENTS:{id:string;kind?:Kind}[]=[
-  {id:'industry'},{id:'forcedMarch'},{id:'entrenchment'},{id:'veterans'},
-  {id:'logistics'},{id:'conqueror'},{id:'charge',kind:'cavalry'},
-  {id:'barrage',kind:'artillery'},{id:'sappers',kind:'engineer'},
+type UnitModifier={stat:keyof UnitStats;factor?:number;bonus?:number};
+type Talent={id:string;kind?:Kind;unit?:UnitModifier};
+// Preserve existing IDs: current saves may contain these talents or pending offers.
+export const TALENTS:readonly Talent[]=[
+  {id:'industry'},{id:'forcedMarch',unit:{stat:'speed',factor:1.2}},{id:'entrenchment'},
+  {id:'veterans',unit:{stat:'attack',factor:1.12}},{id:'logistics'},{id:'conqueror'},
+  {id:'fieldMedicine',unit:{stat:'hp',factor:1.15}},
+  {id:'protectiveGear',unit:{stat:'defense',bonus:8}},
+  {id:'combatDrills',unit:{stat:'attackSpeed',factor:1.12}},
+  {id:'rangefinding',unit:{stat:'range',factor:1.10}},
+  {id:'navalLogistics',unit:{stat:'seaSpeed',factor:1.25}},
+  {id:'warSpoils'},{id:'taxReform'},{id:'publicWorks'},{id:'rapidRecovery'},
+  {id:'charge',kind:'cavalry',unit:{stat:'attack',factor:1.25}},
+  {id:'barrage',kind:'artillery',unit:{stat:'attack',factor:1.25}},
+  {id:'sappers',kind:'engineer'},
+  {id:'shieldWall',kind:'infantry',unit:{stat:'hp',factor:1.15}},
+  {id:'forwardMarksmen',kind:'infantry',unit:{stat:'range',factor:1.2}},
+  {id:'lightSaddles',kind:'cavalry',unit:{stat:'speed',factor:1.15}},
+  {id:'wideSalvo',kind:'artillery',unit:{stat:'splash',factor:1.25}},
+  {id:'armoredSappers',kind:'engineer',unit:{stat:'defense',bonus:12}},
+  {id:'breachDrills',kind:'engineer',unit:{stat:'attack',factor:1.2}},
 ];
+export const TALENT_BY_ID:ReadonlyMap<string,Talent>=new Map(TALENTS.map(t=>[t.id,t]));
+export function hasTalent(p:Pick<Player,'talents'>|undefined,id:string):boolean{return p?.talents.includes(id)??false;}
 export function upgradeCost(level:number):number {return Math.floor(30*Math.pow(level+1,1.65));}
 export function stats(p:Player|undefined,kind:Kind):UnitStats {
-  const b=UNITS[kind],u=p?.upgrades[kind],has=(id:string)=>p?.talents.includes(id)??false;
-  return {
-    ...b,
-    hp:b.hp+(u?.health??0)*12,
-    attack:(b.attack+(u?.attack??0)*2)*(has('veterans')?1.12:1)*(UNIT_FAMILY[kind]==='cavalry'&&has('charge')?1.25:1)*(UNIT_FAMILY[kind]==='artillery'&&has('barrage')?1.25:1),
-    speed:(b.speed+(u?.speed??0)*0.16)*(has('forcedMarch')?1.2:1),
-    range:b.range,
-  };
+  const b=UNITS[kind],u=p?.upgrades[kind];
+  const result={...b,hp:b.hp+(u?.health??0)*12,attack:b.attack+(u?.attack??0)*2,speed:b.speed+(u?.speed??0)*0.16};
+  if(p)for(const id of p.talents){
+    const talent=TALENT_BY_ID.get(id),mod=talent?.unit;
+    if(mod&&(!talent.kind||UNIT_FAMILY[talent.kind]===UNIT_FAMILY[kind]))
+      result[mod.stat]=result[mod.stat]*(mod.factor??1)+(mod.bonus??0);
+  }
+  return result;
 }
 export function validateSetup(value:unknown):value is {name:string;leader:Leader;loadout:Kind[];ai?:boolean} {
   if(!value||typeof value!=='object')return false;const v=value as Record<string,unknown>;

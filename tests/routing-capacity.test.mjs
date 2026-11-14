@@ -1,12 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,Engine} from '../src/game/engine.ts';
+import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import {MAP,SOURCE_MAP,provinceByCode,pointInProvince} from '../src/game/map.ts';
 import {findRegionRoute} from '../src/game/navigation.ts';
 import {validateTravel} from '../src/game/terrain-navigation.ts';
 import {UNITS,stats} from '../src/game/content.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
-import {destinationRoom,regionTroops,regionReservations} from '../src/game/capacity.ts';
+import {regionGarrison,regionTroops,regionReservations} from '../src/game/capacity.ts';
 import {validateState,encodeSave,decodeSave,writeSave,listSaves,deleteSave,SAVE_PREFIX} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 const setups=[{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'steward',loadout:['infantry']}];
@@ -15,7 +15,7 @@ const from=id('DEU-3487'),target=id('DEU-1574');
 function add(s,region,owner,n){for(let k=0;k<n;k++){const c=MAP[region].center;s.units.push({id:s.nextId++,owner,kind:'infantry',x:c.x,z:c.z,hp:stats(s.players[owner],'infantry').hp,province:region,origin:region,target:null,destination:null,route:[],cooldown:0});}}
 function empty(){const e=fresh();e.state.units=[];for(const p of e.state.provinces){p.owner=-1;p.production=0;}e.state.provinces[id('USA-3521')].owner=1;return e;}
 function ready(e){e.state.grouping=reconcileGrouping(e.state);return e;}
-function invariant(s){const counts=new Map();for(const u of s.units){if(!u.travel){const key=`${u.owner}:${u.province}`;counts.set(key,(counts.get(key)??0)+1);assert.ok(counts.get(key)<=regionCapacity(u.province),key);}assert.ok(u.transport?.embarked||pointInProvince(u.province,u.x,u.z));}}
+function invariant(s){for(const u of s.units)assert.ok(u.transport?.embarked||pointInProvince(u.province,u.x,u.z));}
 test('source atlas retains UK and Ireland detail while gameplay uses locked merged regions',()=>{
  for(const code of ['GBR-3409','GBR-2745','GBR-2764','CHN-1807','CHN-1808'])assert.ok(MAP[id(code)].playable);
  assert.equal(MAP.length,1153);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('GBR-')).length>100);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('IRL-')).length>=20);
@@ -51,11 +51,28 @@ test('480 stationed battalions exceed removed global limits and survive producti
  assert.deepEqual(decodeSave(encodeSave(e.state,'Large army')).state,e.state);assert.deepEqual(applyFrame(null,encodeFrame(e.state,undefined,0).frame),e.state);
  e.step(300);assert.equal(e.state.units.filter(u=>u.owner===0).length,480);const victim=e.state.units.find(u=>u.province===regions[0]);e.state.units=e.state.units.filter(u=>u!==victim);e.step(300);assert.equal(e.state.units.filter(u=>u.owner===0).length,480);assert.equal(regionTroops(e.state,0,regions[0]),12);
 });
-test('destination reservations cap dispatch and prevent oversubscription and competing production',()=>{
- const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;add(e.state,from,0,regionCapacity(from));add(e.state,target,0,regionCapacity(target)-2);ready(e);
- assert.equal(destinationRoom(e.state,0,target),2);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(regionReservations(e.state,0,target),1);assert.equal(destinationRoom(e.state,0,target),1);
- e.state.provinces[target].production=13.99;e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);
- e.step(3000);assert.equal(regionTroops(e.state,0,target),regionCapacity(target));invariant(e.state);assert.ok(validateState(e.state));
+test('incoming queued and marching units constrain only destination training',()=>{
+ const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;add(e.state,from,0,3);add(e.state,target,0,regionCapacity(target)-2);ready(e);
+ const targetState=e.state.provinces[target];targetState.production=13.99;
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);
+ assert.equal(regionReservations(e.state,0,target),1);
+ assert.equal(e.state.provinces[from].march.pendingIds.length,2);
+ // The single release on its own is not enough to block training. The other
+ // two troops are still queued at the source and count toward training only.
+ e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);assert.equal(targetState.production,13.99);
+ e.step(2*MARCH_INTERVAL_TICKS-1);assert.equal(regionReservations(e.state,0,target),3);
+ assert.equal(e.state.provinces[from].march,undefined);assert.equal(targetState.production,13.99);
+});
+test('a normal friendly march arrives above training capacity and round-trips through save and LAN',()=>{
+ const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;
+ const cap=regionCapacity(target);add(e.state,from,0,1);add(e.state,target,0,cap);ready(e);
+ const moving=e.state.units[0],targetState=e.state.provinces[target];targetState.production=13.99;
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(moving.assault,undefined);
+ for(let i=0;i<3000&&moving.target!==null;i++)e.step();
+ assert.equal(moving.target,null);assert.equal(moving.province,target);assert.equal(regionGarrison(e.state,0,target),cap+1);
+ assert.equal(targetState.production,13.99);assert.ok(validateState(e.state));invariant(e.state);
+ assert.deepEqual(decodeSave(encodeSave(e.state,'Overflow')).state,e.state);
+ assert.deepEqual(applyFrame(null,encodeFrame(e.state,undefined,0).frame),e.state);
 });
 test('dispatch never creates a free home production slot before troops physically leave',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);e.state.provinces[from].production=13.99;
@@ -67,8 +84,8 @@ test('continuous terrain travel does not route through or require capture of int
  const direct=Math.hypot(MAP[target].center.x-u.x,MAP[target].center.z-u.z),distance=u.travel.points.slice(1).reduce((n,p,i)=>n+Math.hypot(p.x-u.travel.points[i].x,p.z-u.travel.points[i].z),0);assert.ok(distance>=direct-1e-6);
  e.step(3000);assert.equal(e.state.provinces[target].owner,0);invariant(e.state);
 });
-test('save rejects excess garrison and forged terrain waypoints, without limiting total army',()=>{
- const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from)+1);ready(e);assert.equal(validateState(e.state),false);e.state.units.pop();assert.ok(validateState(e.state));
+test('save still rejects forged terrain waypoints without imposing a garrison limit',()=>{
+ const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from)+1);ready(e);assert.ok(validateState(e.state));
  assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);const moving=e.state.units.find(u=>u.travel);assert.ok(moving);moving.travel.points.at(-1).x+=100;assert.equal(validateState(e.state),false);
 });
 test('new-map save namespace preserves old pixel-map saves',()=>{
