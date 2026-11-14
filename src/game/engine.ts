@@ -1,7 +1,7 @@
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
-import { chooseSpawnPairs, getSpawnCapacity } from './spawns.ts';
+import { chooseSpawnRegions, getSpawnCapacity } from './spawns.ts';
 import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 import {UNIT_RADIUS,separateCircles,type CollisionReport} from './collision.ts';
@@ -17,24 +17,15 @@ function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
-  const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
+  const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
-  // Equal initial budgets: two complete locked gameplay regions and five
-  // troops per region.
-  const startingTroops=new Map<number,number>();
-  const spawnPairs=chooseSpawnPairs(seed,setups.length,s);
-  assignCountryNames(s.players,spawnPairs.map(pair=>MAP[pair[0]]));
-  spawnPairs.forEach((pair,actor)=>{
-    for(const representative of pair){
-      const groupId=s.grouping.atomToGroup[MAP[representative].code],group=s.grouping.groups.find(g=>g.id===groupId)!;
-      const atoms=group.atoms.map(code=>MAP.findIndex(p=>p.code===code)).filter(id=>id>=0&&MAP[id].playable)
-        .sort((a,b)=>Number(b===representative)-Number(a===representative)||a-b);
-      let remaining=5;for(const id of atoms){s.provinces[id].owner=actor;const count=Math.min(remaining,regionCapacity(id));startingTroops.set(id,count);remaining-=count;}
-    }
-  });
+  // Start every seat on exactly one locked gameplay province, with five units.
+  const spawnRegions=chooseSpawnRegions(seed,setups.length);
+  assignCountryNames(s.players,spawnRegions.map(id=>MAP[id]));
+  spawnRegions.forEach((id,actor)=>{s.provinces[id].owner=actor;});
   const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
   for(const p of s.provinces) {
-    const count=!MAP[p.id].playable?0:p.owner>=0?(startingTroops.get(p.id)??0):frontier.has(p.id)?Math.min(2,regionCapacity(p.id)):0;
+    const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?Math.min(2,regionCapacity(p.id)):0;
     if(p.owner>=0)p.kind=s.players[p.owner].loadout[0];
     for(let i=0;i<count;i++)spawn(s,p.id,p.kind);
   }

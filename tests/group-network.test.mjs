@@ -3,7 +3,10 @@ import {createGame,Engine} from '../src/game/engine.ts';import {MAP} from '../sr
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 const game=()=>createGame([{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'warden',loadout:['infantry']}],42);
 test('management partition is sent only on revisions and replica receives exact authoritative merge',()=>{
- const e=new Engine(game()),first=encodeFrame(e.state,undefined,0);let client=applyFrame(null,structuredClone(first.frame));
+ const state=game(),home=state.provinces.find(p=>p.owner===0).id;
+ const neighbor=MAP[home].neighbors.find(id=>MAP[id].playable&&state.provinces[id].owner===-1);
+ assert.ok(neighbor!==undefined);state.provinces[neighbor].owner=0;
+ const e=new Engine(state),first=encodeFrame(e.state,undefined,0);let client=applyFrame(null,structuredClone(first.frame));
  const quiet=encodeFrame(e.state,first.base,0);assert.equal(quiet.frame.type,'delta');assert.equal('grouping' in quiet.frame.state,false);assert.ok(JSON.stringify(quiet.frame).length<JSON.stringify(first.frame).length/3);
  const codes=new Map(MAP.map(p=>[p.code,p.id]));const own=e.state.grouping.groups.filter(g=>g.atoms.every(id=>e.state.provinces[codes.get(id)].owner===0));assert.equal(own.length,2);
  assert.equal(e.command(0,{type:'mergeGroups',groups:own.map(g=>g.id),expectedRevision:e.state.grouping.revision}).ok,true);

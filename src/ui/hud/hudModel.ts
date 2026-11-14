@@ -1,9 +1,9 @@
 import {isRegionGarrison} from '../../game/capacity.ts';
-import {recoveryMultiplier} from '../../game/construction.ts';
+import {constructionFunds, recoveryMultiplier} from '../../game/construction.ts';
 import {UNITS} from '../../game/content.ts';
 import {MAP, PLAYABLE_COUNT} from '../../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../../game/territoryEconomy.ts';
-import type {GameState} from '../../game/types.ts';
+import type {ConstructionKind, GameState} from '../../game/types.ts';
 
 /** Derived, read-only HUD figures. These mirror the authoritative engine rules
  * (income per owned playable region, garrison definition, victory share) and
@@ -50,6 +50,16 @@ export function factionSummaries(state: GameState): FactionSummary[] {
   const owned = territory.get(player.id) ?? 0;
   return {id: player.id, territory: owned, share: owned / PLAYABLE_COUNT, army: army.get(player.id) ?? 0, level: player.level, eliminated: owned === 0, ai: player.ai};
  }).sort((a, b) => b.territory - a.territory || b.army - a.army || a.id - b.id);
+}
+
+/** Playable base provinces are visited once, regardless of their current grouping.
+ * Only the local actor's funds are returned to the details view. */
+export function nationDetails(state: GameState, nation: number, actor: number) {
+ const buildings: Record<ConstructionKind, number> = {market: 0, barracks: 0, fortress: 0};
+ for(const province of state.provinces) {
+  if(province.owner === nation && MAP[province.id]?.playable && province.construction) buildings[province.construction.kind]++;
+ }
+ return {army: armyBreakdown(state, nation), buildings, funds: nation === actor ? constructionFunds(state, actor) : null};
 }
 
 export interface RegionSummary {id: number; garrison: number; capacity: number; production: number; train: number; capture: number; captor: number; recovering: boolean; full: boolean}

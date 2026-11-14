@@ -3,10 +3,10 @@ import test from 'node:test';
 import {request as httpRequest} from 'node:http';
 import assert from 'node:assert/strict';
 import {Engine,createGame} from '../src/game/engine.ts';
-import {makeAISetups,chooseSpawnPairs,getSpawnCapacity} from '../src/game/spawns.ts';
+import {makeAISetups,chooseSpawnRegions,getSpawnCapacity} from '../src/game/spawns.ts';
 import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
 import {TerrainNavigator,validateTravel} from '../src/game/terrain-navigation.ts';
-import {MAP,pointInProvince,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
+import {BOUNDS,MAP,pointInProvince} from '../src/game/map.ts';
 import {Navigator,cellAt} from '../src/game/navigation.ts';
 import {createLanServer} from '../server/lan.ts';
 import {MAP_ID,RULES_ID} from '../src/game/content.ts';
@@ -15,20 +15,24 @@ const setup={name:'Human',leader:'warden',loadout:['infantry']};
 test('seeded starts are dispersed, non-overlapping, equally resourced and land-connected with expansion exits',()=>{
  const starts=[];
  for(const seed of [0,42,1234]){
-  const setups=[setup,...makeAISetups(3,seed)],s=createGame(setups,seed),again=createGame(setups,seed),pairs=chooseSpawnPairs(seed,4,s),nav=new TerrainNavigator();
-  assert.deepEqual(s,again);assert.equal(new Set(pairs.flat()).size,8);starts.push(pairs[0][0]);
-  for(const [actor,pair]of pairs.entries()){
-   const initialGroups=new Set(pair.map(id=>INITIAL_TERRITORY_GROUPING.atomToGroup[MAP[id].code]));assert.equal(initialGroups.size,2);
-   const codes=new Set(INITIAL_TERRITORY_GROUPING.groups.filter(g=>initialGroups.has(g.id)).flatMap(g=>g.atoms));
-   const owned=s.provinces.filter(p=>p.owner===actor);assert.deepEqual(owned.map(p=>MAP[p.id].code).sort(),[...codes].sort());
-   assert.equal(owned.reduce((n,p)=>n+regionCapacity(p.id),0),24);assert.ok(Math.abs(owned.reduce((n,p)=>n+regionProductionRate(p.id),0)-2)<1e-12);
-   assert.equal(s.units.filter(u=>u.owner===actor).length,10);assert.equal(s.players[actor].gold,120);
-   for(const a of pair){const b=pair.find(p=>p!==a);assert.ok(MAP[a].neighbors.includes(b));
-    const flow=nav.plan(MAP[a].center,MAP[b].center);assert.ok(flow);assert.ok(validateTravel(flow,MAP[a].center,MAP[b].center));assert.ok(flow.points.every(p=>!p.sea));
-    assert.ok(MAP[a].neighbors.some(n=>n!==b));assert.ok(s.units.filter(u=>u.province===a).every(u=>pointInProvince(a,u.x,u.z)));
-   }
+  const setups=[setup,...makeAISetups(3,seed)],s=createGame(setups,seed),again=createGame(setups,seed),regions=chooseSpawnRegions(seed,4),nav=new TerrainNavigator();
+  assert.deepEqual(s,again);assert.equal(new Set(regions).size,4);starts.push(regions[0]);
+  for(const [actor,id]of regions.entries()){
+   assert.deepEqual(s.provinces.filter(p=>p.owner===actor).map(p=>p.id),[id]);
+   assert.equal(regionCapacity(id),12);assert.equal(regionProductionRate(id),1);
+   const units=s.units.filter(u=>u.owner===actor);
+   assert.equal(units.length,5);assert.equal(s.players[actor].gold,120);
+   assert.ok(units.every(u=>u.province===id&&pointInProvince(id,u.x,u.z)));
+   assert.ok(MAP[id].neighbors.some(n=>[[id,n],[n,id]].every(([from,to])=>{
+    const start=MAP[from].center,end=MAP[to].center,flow=nav.plan(start,end);
+    return flow&&validateTravel(flow,start,end)&&flow.points.every(p=>!p.sea);
+   })));
   }
-  for(let i=0;i<pairs.length;i++)for(let j=i+1;j<pairs.length;j++)for(const a of pairs[i])for(const b of pairs[j])assert.ok(Math.hypot(MAP[a].center.x-MAP[b].center.x,MAP[a].center.z-MAP[b].center.z)>100);
+  const width=BOUNDS.right-BOUNDS.left;
+  for(const [i,a]of regions.entries())for(const b of regions.slice(i+1)){
+   const dx=Math.abs(MAP[a].center.x-MAP[b].center.x);
+   assert.ok(Math.hypot(Math.min(dx,width-dx),MAP[a].center.z-MAP[b].center.z)>100);
+  }
   assert.deepEqual(decodeSave(encodeSave(s,'Spawn preserved')).state,s);
  }
  assert.equal(new Set(starts).size,3);
@@ -59,6 +63,7 @@ test('real HTTP lobby: two online humans unlock start; host owns AI configuratio
  assert.equal((await req(path+'/start',{},b.token)).status,403);
  assert.equal((await req(path+'/start',{},a.token)).status,200);
  const room=host.rooms.get(a.code);assert.equal(room.engine.state.players.length,6);assert.deepEqual(room.engine.state.players.map(p=>p.ai),[false,false,true,true,true,true]);
+ for(const p of room.engine.state.players){assert.equal(room.engine.state.provinces.filter(v=>v.owner===p.id).length,1);assert.equal(room.engine.state.units.filter(u=>u.owner===p.id).length,5);}
  assert.equal((await req(path+'/config',{aiCount:0},a.token)).status,409);assert.equal((await req(path+'/join',{setup})).status,409);
 }));
 test('physical map capacity reserves AI seats without imposing a four-human limit',async()=>withServer(async(host,req)=>{

@@ -225,7 +225,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }
  function toggleOutliner() {const next = !outlinerOpen; setOutlinerOpen(next); if(compact && next) setDock(null);}
  function closeDock() {
-  const current = dock, panel = document.querySelector('.dock-panel');
+  const current = dock, panel = document.querySelector('.dock-panel:not([hidden])');
   setDock(null);
   if(current && panel?.contains(document.activeElement)) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-rail="${current}"]`)?.focus({preventScroll: true}));
  }
@@ -315,7 +315,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     {province && <TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} hidden={dock !== 'region'}
      onFocus={() => world.current?.focusProvince(selected)} onManage={() => setModal('territories')} onClose={closeDock} onCommand={issue}/>}
     {dock === 'military' && <MilitaryPanel player={player} eliminated={eliminated} language={language} onCommand={issue} onClose={closeDock}/>}
-    {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={focusNation} onClose={closeDock}/>}
+    {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={id => {if(compact) closeDock(); focusNation(id);}} onClose={closeDock}/>}
    </div>
    <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} language={language} open={outlinerOpen}
     onFocusNation={focusNation} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>

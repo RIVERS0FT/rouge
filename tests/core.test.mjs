@@ -9,7 +9,7 @@ import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
 class MemoryStorage {m=new Map();get length(){return this.m.size;}key(i){return [...this.m.keys()][i]??null;}getItem(k){return this.m.get(k)??null;}setItem(k,v){this.m.set(k,v);}removeItem(k){this.m.delete(k);}}
 const fresh=()=>new Engine(createGame(setups,1234,'test'));
-const initial=fresh().state,HOME=initial.provinces.find(p=>p.owner===0).id,ALLY=initial.provinces.find(p=>p.owner===0&&p.id!==HOME).id,TARGET=MAP[HOME].neighbors.find(n=>initial.provinces[n].owner===-1);
+const initial=fresh().state,HOME=initial.provinces.find(p=>p.owner===0).id,TARGET=MAP[HOME].neighbors.find(n=>initial.provinces[n].owner===-1);
 test('1162 locked gameplay regions have valid anchors and symmetric land adjacency',()=>{
  assert.equal(MAP.length,1162);assert.equal(new Set(MAP.map(p=>p.code)).size,MAP.length);
  for(const p of MAP.filter(p=>p.playable)){assert.ok(p.parts.length>0);if(p.playable)assert.ok(pointInProvince(p.id,p.center.x,p.center.z),p.code);for(const n of p.neighbors){assert.ok(MAP[n].neighbors.includes(p.id));assert.notEqual(n,p.id);}}
@@ -20,7 +20,7 @@ test('fixed seed and command sequence produce identical state',()=>{
 });
 test('auto-production continues without consuming military funds',()=>{const e=fresh();e.state.players[1].ai=false;e.state.players[0].gold=0;const before=e.state.units.filter(u=>u.owner===0).length;const producing=e.state.provinces.filter(p=>p.owner===0&&e.state.units.filter(u=>u.owner===0&&u.province===p.id).length<regionCapacity(p.id));for(const p of producing)p.production=14-.025*regionProductionRate(p.id);e.step();assert.equal(e.state.units.filter(u=>u.owner===0).length,before+producing.length);assert.ok(e.state.players[0].gold>0);});
 test('reject forged ownership, invalid inputs and unsupported production; islands have no land route',()=>{
- const e=fresh(),before=structuredClone(e.state);assert.equal(e.command(1,{type:'march',from:HOME,to:ALLY,fraction:1}).ok,false);assert.equal(findRegionRoute(HOME,MAP.find(p=>p.code==='USA-3517').id),null);assert.equal(e.command(0,{type:'march',from:HOME,to:ALLY,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);assert.deepEqual(e.state,before);
+ const e=fresh(),before=structuredClone(e.state);assert.equal(e.command(1,{type:'march',from:HOME,to:TARGET,fraction:1}).ok,false);assert.equal(findRegionRoute(HOME,MAP.find(p=>p.code==='USA-3517').id),null);assert.equal(e.command(0,{type:'march',from:HOME,to:TARGET,fraction:NaN}).ok,false);assert.equal(e.command(0,{type:'production',province:HOME,kind:'engineer'}).ok,false);assert.equal(e.command(99,{type:'reroll'}).ok,false);assert.deepEqual(e.state,before);
 });
 test('health upgrades preserve wounded health ratio and deduct cost exactly once',()=>{
  const e=fresh(),p=e.state.players[0],u=e.state.units.find(u=>u.owner===0);u.hp=stats(p,'infantry').hp/2;const before=p.gold;assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'health'}).ok,true);assert.equal(u.hp/stats(p,'infantry').hp,0.5);assert.equal(p.gold,before-30);

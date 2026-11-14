@@ -1,4 +1,4 @@
-import {getSpawnCapacity,chooseSpawnPairs} from './spawns.ts';
+import {getSpawnCapacity,chooseSpawnRegions,chooseLegacySpawnPairs} from './spawns.ts';
 import {assignCountryNames,validCountryIdentity} from './countryNames.ts';
 import { settleEliminations } from './elimination.ts';
 import { validFlag } from './flags.ts';
@@ -18,7 +18,7 @@ const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isI
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
-  if(s.version!==5||s.map!==MAP_ID||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
+  if(s.version!==5||s.map!==MAP_ID||(s.spawnModel!==undefined&&s.spawnModel!=='single')||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
@@ -73,12 +73,18 @@ function migrateLegacyRoster(value:unknown):void {
     for(const k of KINDS)if(!LEGACY_KINDS.includes(k)&&!Object.hasOwn(p.upgrades,k))p.upgrades[k]={attack:0,health:0,speed:0};
   }
 }
+function restoreCountryNames(state:GameState):void {
+  const ids=state.spawnModel==='single'
+    ?chooseSpawnRegions(state.seed,state.players.length)
+    :chooseLegacySpawnPairs(state.seed,state.players.length).map(pair=>pair[0]);
+  assignCountryNames(state.players,ids.map(id=>MAP[id]));
+}
 // Integrity checksum only, not an anti-cheat signature.
 export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');migrateLegacyRoster(state);if(!validateState(state))throw new Error();if(state.players.some(p=>p.ai&&!p.country))assignCountryNames(state.players,chooseSpawnPairs(state.seed,state.players.length).map(pair=>MAP[pair[0]]));settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');migrateLegacyRoster(state);if(!validateState(state))throw new Error();if(state.players.some(p=>p.ai&&!p.country))restoreCountryNames(state);settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{
