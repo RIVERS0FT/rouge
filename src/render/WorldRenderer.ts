@@ -1,3 +1,7 @@
+import {plaqueGarrisons,plaqueTerritories,type PlaqueTerritory} from './provincePlaques.ts';
+import {staticPlaqueFlag} from './provincePlaqueFlag.ts';
+import {factionFlags} from '../game/factionFlags.ts';
+import type {Flag} from '../game/flags.ts';
 import {MapSurface} from './mapSurface.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
 import {PoliticalTint} from './politicalTint.ts';
@@ -26,6 +30,7 @@ import type { GameState, Vec2 } from '../game/types.ts';
 import { factionColor, NEUTRAL_LAND_COLOR } from '../game/factionColors.ts';
 export { factionColor, FACTION_COLORS } from '../game/factionColors.ts';
 interface Label {sprite:THREE.Sprite;canvas:HTMLCanvasElement;texture:THREE.CanvasTexture;key:string}
+interface Plaque {element:HTMLSpanElement;flag:HTMLImageElement;name:HTMLSpanElement;count:HTMLSpanElement}
 interface Range {start:number;count:number}
 /** No country palette: ownership is the only political color on the map. */
 function regionColor():THREE.Color { return new THREE.Color(NEUTRAL_LAND_COLOR); }
@@ -59,7 +64,12 @@ export class WorldRenderer {
   private countryPlacements=new Map<number,CountryPlacement>();
   private countryPlacementCache:CountryPlacementCache=new Map();
   private provinceLayer:HTMLDivElement;
-  private provinceLabels=new Map<number,HTMLSpanElement>();
+  private provinceLabels=new Map<number,Plaque>();
+  private visiblePlaques=new Set<number>();
+  private plaqueTerritories:PlaqueTerritory[]=[];
+  private provinceAreas=this.countryGeometry.map(parts=>parts.reduce((area,part)=>area+part.area,0));
+  private provinceGarrisons=new Uint32Array(0);
+  private provinceFlags=new WeakMap<Flag,string>();
   private labelMeasure=document.createElement('canvas').getContext('2d')!;
   private labelWidths=new Map<string,number>();
   private countryStamp='';
@@ -99,8 +109,8 @@ export class WorldRenderer {
     this.camera.up.set(0,0,-1);
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
-    this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');host.append(this.provinceLayer);
-    this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
+    this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
+    this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer,this.provinceLayer);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.scene.add(this.atlas);
@@ -231,6 +241,9 @@ export class WorldRenderer {
     // movements accumulate from the last rendered state, never the previous tick.
     if(this.state!==state){
       this.mapUnits=state.units.filter(mapUnitVisible);
+      const garrisons=plaqueGarrisons(state);
+      if(provinceNamesVisible(this.distance)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
+      this.provinceGarrisons=garrisons;
       if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.host.clientHeight))this.invalidated=true;
       this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},performance.now());
       // The count is authoritative, even when changes to hidden garrisons need no draw.
@@ -246,7 +259,7 @@ export class WorldRenderer {
       const capture=p.captor>=0&&p.capture>0?p.captor*64+Math.max(1,Math.min(63,Math.round(p.capture/8*63))):0;
       if((this.captureKeys.get(p.id)??0)!==capture){if(capture)this.captureKeys.set(p.id,capture);else this.captureKeys.delete(p.id);this.captureDirty.add(p.id);this.invalidated=true;}
     }
-    const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country])]);
+    const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country,p.flag])]);
     if(ownershipChanged||state.campaign!==this.countryCampaign){
       this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
       this.countryPlacements=buildCountryPlacements(MAP,this.ownerIds,this.countryComponents,this.boundaryEdges,this.countryPlacementCache);
@@ -255,6 +268,7 @@ export class WorldRenderer {
     }
     if(countryStamp!==this.countryStamp){this.countryStamp=countryStamp;this.lastLabels=0;this.invalidated=true;}
     if(stamp!==this.groupingStamp||ownershipChanged){
+      if(stamp!==this.groupingStamp)this.plaqueTerritories=plaqueTerritories(MAP,grouping,this.provinceAreas);
       this.groupingStamp=stamp;
       const groups=MAP.map(p=>grouping.atomToGroup[p.code]??`atom:${p.id}`),internal:BorderEdge[]=[],countries:BorderEdge[]=[],painted:BorderEdge[]=[];
       for(const edge of this.boundaryEdges){const kind=classifyBorder(edge,this.ownerIds,groups);if(kind==='country')countries.push(edge);else if(kind==='internal')internal.push(edge);
@@ -439,28 +453,61 @@ export class WorldRenderer {
     if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,72]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
   }
+  private drawProvincePlaques(width:number,height:number):number {
+    const next=new Set<number>();
+    if(this.state&&provinceNamesVisible(this.distance)){
+      const state=this.state,flags=factionFlags(state.players),point=new THREE.Vector3();
+      const candidates:{territory:PlaqueTerritory;x:number;y:number;rect:LabelRect;pixelWidth:number;count:string;name:string;copy:number;selected:boolean}[]=[];
+      const nameFont='600 12px Georgia,"Noto Serif CJK SC","Songti SC",serif';
+      for(const territory of this.plaqueTerritories){
+        const {anchor,id,members}=territory,baseX=nearestWorldX(anchor.x,this.focus.x);
+        // Province range is narrow; avoid measuring/layout for offscreen anchors.
+        const p=point.set(baseX,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera);
+        if(p.z<-1||p.z>1||Math.abs(p.x)>1+190/width||Math.abs(p.y)>1+24/height)continue;
+        const name=territory.name[this.lang==='zh'?0:1],key=`plaque:${name}`;
+        let nameWidth=this.labelWidths.get(key);
+        if(nameWidth===undefined){this.labelMeasure.font=nameFont;nameWidth=Math.min(124,Math.ceil(this.labelMeasure.measureText(name).width+2));this.labelWidths.set(key,nameWidth);}
+        const count=String(members.reduce((sum,member)=>sum+(this.provinceGarrisons[member]??0),0));
+        const pixelWidth=nameWidth+52+Math.max(12,count.length*9);
+        const x=(p.x+1)*width/2,y=(1-p.y)*height/2,rect={left:x-pixelWidth/2,right:x+pixelWidth/2,top:y-13,bottom:y+13};
+        if(!labelIntersectsViewport(rect,width,height))continue;
+        candidates.push({territory,x,y,rect,pixelWidth,count,name,copy:Math.round((baseX-anchor.x)/WORLD_WIDTH),selected:members.includes(this.selected)});
+      }
+      candidates.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.territory.id-b.territory.id);
+      const accepted:LabelRect[]=[];
+      for(const {territory:{id,anchor},x,y,rect,pixelWidth,count,name,copy,selected} of candidates){
+        if(accepted.some(other=>overlaps(other,rect,3)))continue;
+        accepted.push(rect);next.add(id);
+        const owner=state.provinces[id].owner,flag=flags[owner];
+        let plaque=this.provinceLabels.get(id);
+        if(!plaque){
+          const element=document.createElement('span'),flagBox=document.createElement('span'),flag=document.createElement('img'),name=document.createElement('span'),count=document.createElement('span');
+          element.className='province-label';flagBox.className='province-plaque-flag';flag.alt='';flag.draggable=false;
+          name.className='province-plaque-name';count.className='province-plaque-count';
+          flagBox.append(flag);element.append(flagBox,name,count);plaque={element,flag,name,count};
+          this.provinceLabels.set(id,plaque);this.provinceLayer.append(element);
+        }
+        if(flag){
+          let source=this.provinceFlags.get(flag);
+          if(!source){source=staticPlaqueFlag(flag);this.provinceFlags.set(flag,source);}
+          if(plaque.flag.getAttribute('src')!==source)plaque.flag.src=source;
+        }
+        plaque.flag.hidden=!flag;
+        if(plaque.name.textContent!==name)plaque.name.textContent=name;
+        if(plaque.count.textContent!==count)plaque.count.textContent=count;
+        const element=plaque.element;element.hidden=false;
+        element.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;element.style.width=`${pixelWidth}px`;
+        element.dataset.region=String(id);element.dataset.owner=String(owner);element.dataset.selected=String(selected);
+        element.dataset.anchorX=String(anchor.x);element.dataset.anchorZ=String(anchor.z);element.dataset.copy=String(copy);element.dataset.primary='true';
+      }
+    }
+    for(const id of this.visiblePlaques)if(!next.has(id))this.provinceLabels.get(id)!.element.hidden=true;
+    this.visiblePlaques=next;
+    return next.size;
+  }
   private drawMapNames() {
     const width=this.host.clientWidth,height=this.host.clientHeight;
-    let countryCount=0,provinceCount=0;const activeOwners=new Set<number>(),point=new THREE.Vector3();
-    const drawProvince=(id:number,name:string,anchor:Vec2)=>{
-      const font=12,spacing=.035,family='Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`600 ${font}px ${family}`,key=`${fontKey}:${name}`;
-      let textWidth=this.labelWidths.get(key);
-      if(textWidth===undefined){this.labelMeasure.font=fontKey;const metrics=this.labelMeasure.measureText(name);textWidth=Math.ceil(Math.max(metrics.width,metrics.actualBoundingBoxLeft+metrics.actualBoundingBoxRight)+Array.from(name).length*font*spacing+4);if(this.labelWidths.size>=16384)this.labelWidths.clear();this.labelWidths.set(key,textWidth);}
-      const textHeight=font*1.2,baseX=nearestWorldX(anchor.x,this.focus.x);let visible=0;
-      for(const offset of [-1,0,1]){
-        const p=point.set(baseX+offset*WORLD_WIDTH,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera),x=(p.x+1)*width/2,y=(1-p.y)*height/2;
-        const rect={left:x-textWidth/2-2,right:x+textWidth/2+2,top:y-textHeight/2-2,bottom:y+textHeight/2+2},poolId=id*3+offset+1;let label=this.provinceLabels.get(poolId);
-        if(p.z<-1||p.z>1||!labelIntersectsViewport(rect,width,height)){if(label)label.hidden=true;continue;}
-        if(!label){label=document.createElement('span');label.className='province-label';this.provinceLabels.set(poolId,label);this.provinceLayer.append(label);}
-        if(label.textContent!==name)label.textContent=name;label.hidden=false;
-        label.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;label.style.width=`${textWidth}px`;label.style.height=`${textHeight}px`;label.style.fontSize=`${font}px`;label.style.fontFamily=family;label.style.letterSpacing=`${spacing}em`;
-        label.dataset.region=String(id);label.dataset.anchorX=String(anchor.x);label.dataset.anchorZ=String(anchor.z);label.dataset.copy=String(Math.round((baseX-anchor.x)/WORLD_WIDTH)+offset);label.dataset.primary=String(offset===0);visible++;
-      }
-      return visible;
-    };
-    if(provinceNamesVisible(this.distance)){
-      for(const province of MAP)if(province.visible)provinceCount+=drawProvince(province.id,province.name[this.lang==='zh'?0:1],province.center);
-    }else for(const label of this.provinceLabels.values())label.hidden=true;
+    let countryCount=0;const provinceCount=this.drawProvincePlaques(width,height),activeOwners=new Set<number>(),point=new THREE.Vector3();
     for(const label of this.countryLabels.values())label.hidden=true;
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
