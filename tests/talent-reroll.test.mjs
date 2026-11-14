@@ -17,7 +17,7 @@ test('paid rerolls use current leader level and successful lifetime count; stale
  pending(p);
  assert.equal(talentRerollCost(p),30);
  assert.deepEqual(e.command(0,{type:'reroll',expectedCost:30}),{ok:true});
- assert.equal(p.gold,90);assert.equal(p.rerollsUsed,1);assert.equal(p.drafts,1);
+ assert.equal(p.funds,154);assert.equal(p.rerollsUsed,1);assert.equal(p.drafts,1);
  assert.equal(p.choices.length,3);assert.ok(p.choices.some(id=>!choices.includes(id)));
  const stale=structuredClone(p),rng=e.state.rng;
  assert.deepEqual(e.command(0,{type:'reroll',expectedCost:30}),{ok:false,error:'talentRerollPriceChanged'});
@@ -29,12 +29,12 @@ test('paid rerolls use current leader level and successful lifetime count; stale
  const firstFrame=encodeFrame(e.state,undefined,0);
  const receiver=applyFrame(null,firstFrame.frame);
  assert.deepEqual(e.command(0,{type:'reroll',expectedCost:55}),{ok:true});
- assert.equal(p.gold,35);assert.equal(p.rerollsUsed,2);
+ assert.equal(p.funds,99);assert.equal(p.rerollsUsed,2);
  const after=applyFrame(receiver,encodeFrame(e.state,firstFrame.base,0).frame);
- assert.equal(after.players[0].gold,35);assert.equal(talentRerollCost(after.players[0]),70);
+ assert.equal(after.players[0].funds,99);assert.equal(talentRerollCost(after.players[0]),70);
  assert.deepEqual(after.players[0].choices,p.choices);
- const before=structuredClone(e.state);
- assert.deepEqual(e.command(0,{type:'reroll',expectedCost:70}),{ok:false,error:'noGold'});
+ p.funds=69;const before=structuredClone(e.state);
+ assert.deepEqual(e.command(0,{type:'reroll',expectedCost:70}),{ok:false,error:'noFunds'});
  assert.deepEqual(e.command(0,{type:'reroll',expectedCost:-1}),{ok:false,error:'invalidCommand'});
  assert.deepEqual(e.state,before);
  assert.deepEqual(decodeSave(encodeSave(e.state,'Paid rerolls')).state,e.state);

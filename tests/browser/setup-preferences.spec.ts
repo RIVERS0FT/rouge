@@ -82,7 +82,7 @@ test('talent cards reveal once per draft and reroll, even with browser reduced m
  await page.getByTestId('portrait-talents').click();
  const reroll=page.getByTestId('reroll-talents'),cards=page.locator('.talent-card h3');
  const grid=page.locator('.talent-grid'),turns=grid.locator('.talent-card-turn');
- await expect(reroll).toHaveText(/40 金币/);await expect(reroll).toBeEnabled();
+ await expect(reroll).toHaveText(/40 资金/);await expect(reroll).toBeEnabled();
  await expect(grid).toHaveAttribute('data-reveal','true');
  await expect(turns.first()).toHaveCSS('animation-name','talent-card-reveal');
  await expect(turns.nth(2)).toHaveCSS('animation-delay','0.09s');
@@ -92,11 +92,11 @@ test('talent cards reveal once per draft and reroll, even with browser reduced m
  await expect(grid).toHaveAttribute('data-reveal','false');
  await expect(turns.first()).toHaveCSS('animation-name','none');
  const before=await cards.allTextContents();
- await reroll.click();await expect(reroll).toHaveText(/55 金币/);
+ await reroll.click();await expect(reroll).toHaveText(/55 资金/);
  await expect(grid).toHaveAttribute('data-reveal','true');
  await expect(turns.first()).toHaveCSS('animation-name','talent-card-reveal');
  expect((await cards.allTextContents()).some(id=>!before.includes(id))).toBe(true);
- await reroll.click();await expect(reroll).toHaveText(/70 金币/);await expect(reroll).toBeDisabled();
+ await reroll.click();await expect(reroll).toHaveText(/70 资金/);await expect(reroll).toBeDisabled();
  await page.getByRole('button',{name:'关闭',exact:true}).click();
  await page.getByTestId('portrait-talents').click();
  await expect(grid).toHaveAttribute('data-reveal','false');

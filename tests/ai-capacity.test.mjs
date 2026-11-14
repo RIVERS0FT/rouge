@@ -48,7 +48,7 @@ test('AI waits for four troops then staggers a 75% dispatch at base capacity 12'
 test('AI factions act on deterministic staggered phases, once each per 80 ticks',()=>{
  const s=createGame(Array.from({length:8},(_,id)=>({name:`Faction ${id}`,leader:'warden',loadout:['infantry'],ai:id>0})),21,'ai-staggered');
  s.units=[];
- for(const p of s.players){p.gold=0;p.choices=['industry'];p.drafts=1;}
+ for(const p of s.players){p.funds=0;p.choices=['industry'];p.drafts=1;}
  const e=new Engine(s),replica=new Engine(structuredClone(s));
  e.step(79);assert.ok(e.state.players.every(p=>p.choices.length===1));
  for(let actor=1;actor<8;actor++){

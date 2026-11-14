@@ -51,7 +51,7 @@ test('every new kind can capture without engineer bonuses and AI can upgrade its
   const u=s.units.find(u=>u.owner===0);Object.assign(u,{province:target,origin:target,x:MAP[target].center.x,z:MAP[target].center.z});s.units=[u];
   e.step(20);assert.ok(Math.abs(s.provinces[target].capture-1)<1e-8);
   e.step(141);assert.equal(s.provinces[target].owner,0);assert.equal(s.provinces[target].kind,k);
-  p.ai=true;p.gold=1000;e.step(80);assert.ok(Object.values(p.upgrades[k]).some(x=>x>0));
+  p.ai=true;p.funds=1000;e.step(80);assert.ok(Object.values(p.upgrades[k]).some(x=>x>0));
  }
 });
 for(const kind of NEW)test(kind+': real sea transport, landing and occupation preserve kind and valid save',()=>{

@@ -1,29 +1,29 @@
 import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
-import { KINDS, LEADERS, MAP_ID, TALENTS, STATS, stats } from './content.ts';
+import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, stats } from './content.ts';
 import {validateTravel} from './terrain-navigation.ts';
 import {regionCapacity,validGroupingState} from './territoryEconomy.ts';
 import {isRegionGarrison} from './capacity.ts';
-import {isConstructionKind,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
+import {isConstructionKind,MAX_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
 import type { GameState } from './types.ts';
 export interface StorageLike{readonly length:number;key(index:number):string|null;getItem(key:string):string|null;setItem(key:string,value:string):void;removeItem(key:string):void}
 export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leader:string;corrupted?:boolean}
 // Import byte guard is a resource-safety check, not a gameplay troop cap.
 export const MAX_SAVE_BYTES=128*1024*1024;
-export const SAVE_PREFIX='rouge.save.natural-earth-admin1.regions.v5.';
+export const SAVE_PREFIX=`rouge.save.natural-earth-admin1.regions.v${STATE_VERSION}.`;
 const PREFIX=SAVE_PREFIX;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
-  if(s.version!==5||s.map!==MAP_ID||s.spawnModel!=='single'||s.neutralGarrisonModel!=='preplaced'||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
+  if(s.version!==STATE_VERSION||s.map!==MAP_ID||s.spawnModel!=='single'||s.neutralGarrisonModel!=='preplaced'||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.gold,0,1e12)||!number(p.constructionFunds,0,MAX_CONSTRUCTION_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
+    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
     if(!Array.isArray(p.loadout)||p.loadout.length!==1||!KINDS.includes(p.loadout[0]))return false;
     if(!Array.isArray(p.talents)||p.talents.length>7||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
     if(!Array.isArray(p.choices)||p.choices.length>3||new Set(p.choices).size!==p.choices.length||!p.choices.every(t=>talentIds.includes(t)&&!p.talents.includes(t)))return false;

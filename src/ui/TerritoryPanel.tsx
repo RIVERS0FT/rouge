@@ -1,14 +1,14 @@
 import {useLayoutEffect, useRef} from 'react';
 import {regionGarrison} from '../game/capacity.ts';
 import {UNITS} from '../game/content.ts';
-import {constructionProductionMultiplier, recoveryMultiplier} from '../game/construction.ts';
+import {constructionProductionMultiplier, fundsIncomeRate, recoveryMultiplier} from '../game/construction.ts';
 import {factionColor} from '../game/factionColors.ts';
 import {MAP} from '../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../game/territoryEconomy.ts';
 import type {Command, GameState, Kind} from '../game/types.ts';
 import {FactionSwatch} from './FactionSwatch.tsx';
 import {DockPanel, Pips, SectionRibbon} from './hud/DockPanel.tsx';
-import {CAPTURE_THRESHOLD, INCOME_PER_RATE} from './hud/hudModel.ts';
+import {CAPTURE_THRESHOLD} from './hud/hudModel.ts';
 import {Icon} from './icons.tsx';
 import {t, playerName, type Language} from './i18n.ts';
 import {Tip, TipNote, TipRow, TipTitle} from './Tooltip.tsx';
@@ -41,7 +41,7 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const productionTime = UNITS[province.kind].train, capacity = regionCapacity(selected);
  const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
  const recovery = recoveryMultiplier(province.recovery), production = rate * constructionProductionMultiplier(province) * recovery;
- const income = INCOME_PER_RATE * rate * recovery;
+ const income = province.owner < 0 ? 0 : fundsIncomeRate(province, rate);
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
  return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}

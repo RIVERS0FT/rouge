@@ -17,7 +17,7 @@ test('ledger figures mirror engine rules: playable territory, income per region 
  for(const player of state.players) {
   const owned = state.provinces.filter(p => p.owner === player.id && MAP[p.id].playable);
   assert.equal(counts.get(player.id), owned.length);
-  const expected = owned.reduce((sum, p) => sum + .5 * regionProductionRate(p.id), 0);
+  const expected = owned.reduce((sum, p) => sum + .75 * regionProductionRate(p.id), 0);
   assert.ok(Math.abs(incomePerSecond(state, player.id) - expected) < 1e-9);
  }
  assert.equal(victoryTarget(), Math.ceil(PLAYABLE_COUNT * .6));

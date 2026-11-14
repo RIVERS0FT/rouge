@@ -74,7 +74,7 @@ test('nonexistent regions cannot produce or receive orders and victory counts on
  v.state.units=v.state.units.filter(u=>u.owner===0);v.step();assert.equal(v.state.winner,0);
 });
 test('cropped saves and LAN reject full-world Miller state without touching legacy storage',()=>{
- const s=createGame(setups);assert.equal(s.version,5);assert.ok(validateState(s));
+ const s=createGame(setups);assert.equal(s.version,6);assert.ok(validateState(s));
  const legacy={...s,version:3,map:'earth-admin1-miller-v1'};
  assert.equal(validateState(legacy),false);assert.throws(()=>applyFrame(null,{type:'state',state:legacy}),/incompatibleMap/);
  const m=new Map([['rouge.save.earth.miller.v1.slot','legacy']]);

@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
+import {CAPTURE_REWARD} from '../../game/construction.ts';
 import {STATS, upgradeCost} from '../../game/content.ts';
 import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
@@ -10,7 +11,7 @@ import {leaderProgress} from '../commanderIdentity.ts';
 import {Icon, type IconName} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {Tip, TipNote, TipRow, TipTitle} from '../Tooltip.tsx';
-import {armyBreakdown, CAPTURE_REWARD, DOMINATION_SECONDS, incomePerSecond, signed, victoryTarget} from './hudModel.ts';
+import {armyBreakdown, DOMINATION_SECONDS, incomePerSecond, signed, victoryTarget} from './hudModel.ts';
 
 function Metric({icon, label, tip, className = '', children}: {icon: IconName; label: string; tip: ReactNode; className?: string; children: ReactNode}) {
  return <Tip as="div" className={`resource ${className}`} content={tip} focusable tapToggle>
@@ -38,14 +39,14 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
  return <header className="hud-top">
   <FactionIdentity flag={factionFlag(state.players, actor)} actor={actor} language={language} color={factionColor(actor)}/>
   <div className="hud-ledger" role="group" aria-label={text('stateLedger')}>
-   <Metric icon="coin" label={text('gold')} className="resource-treasury" tip={<>
-    <TipTitle aside={Math.floor(player.gold).toLocaleString()}>{text('treasuryLabel')}</TipTitle>
+   <Metric icon="coin" label={text('funds')} className="resource-treasury" tip={<>
+    <TipTitle aside={Math.floor(player.funds).toLocaleString()}>{text('funds')}</TipTitle>
     <TipRow label={text('incomePerSecond')} value={`${signed(income)}${text('perSecond')}`} tone={income > 0 ? 'good' : 'muted'}/>
     <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${income.toFixed(1)}${text('perSecond')}`}/>
     <TipRow label={text('captureReward')} value={`+${CAPTURE_REWARD}`} tone="good"/>
-    <TipRow label={text('cheapestUpgrade')} value={cheapest === null ? text('allUpgradesMax') : cheapest} tone={cheapest !== null && player.gold >= cheapest ? 'good' : 'muted'}/>
+    <TipRow label={text('cheapestUpgrade')} value={cheapest === null ? text('allUpgradesMax') : cheapest} tone={cheapest !== null && player.funds >= cheapest ? 'good' : 'muted'}/>
    </>}>
-    <strong>{Math.floor(player.gold).toLocaleString()}</strong>
+    <strong>{Math.floor(player.funds).toLocaleString()}</strong>
     <small className="resource-delta" data-tone={income > 0 ? 'good' : 'muted'}>{signed(income)}{text('perSecond')}</small>
    </Metric>
    <Metric icon="sabres" label={text('army')} tip={<>

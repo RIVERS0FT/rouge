@@ -10,16 +10,16 @@ import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
 
-import {CONSTRUCTION,STARTING_CONSTRUCTION_FUNDS,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,constructionIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
+import {CONSTRUCTION,STARTING_FUNDS,MAX_FUNDS,CAPTURE_REWARD,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,fundsIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
 import { destinationRoom, isRegionGarrison, queuedMarchReservations } from './capacity.ts';
-import { DT, MAP_ID, KINDS, STATS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
+import { DT, MAP_ID, STATE_VERSION, KINDS, STATS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
-  const s:GameState={version:5,map:MAP_ID,neutralGarrisonModel:'preplaced',campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
-  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerollsUsed:0}));
+  const s:GameState={version:STATE_VERSION,map:MAP_ID,neutralGarrisonModel:'preplaced',campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
+  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,funds:STARTING_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerollsUsed:0}));
   // Start every seat on exactly one locked gameplay province, with five units.
   const spawnRegions=chooseSpawnRegions(seed,setups.length);
   assignCountryNames(s.players,spawnRegions.map(id=>MAP[id]));
@@ -119,9 +119,9 @@ export class Engine{
         if(province.construction&&province.construction.kind!==c.kind)return fail('slotOccupied');
         if(level===2)return fail('maxLevel');
         if(level!==c.expectedLevel)return fail('constructionChanged');
-        const cost=CONSTRUCTION[c.kind].costs[level],funds=p.constructionFunds;
-        if(funds+1e-7<cost)return fail('noFunds');
-        p.constructionFunds=Math.max(0,funds-cost);
+        const cost=CONSTRUCTION[c.kind].costs[level],funds=p.funds;
+        if(funds<cost)return fail('noFunds');
+        p.funds=funds-cost;
         province.construction={kind:c.kind,level:level===0?1:2};
         return{ok:true};
       }
@@ -133,8 +133,8 @@ export class Engine{
       }
       case 'upgrade':{
         if(!KINDS.includes(c.kind)||!STATS.includes(c.stat)||!p.loadout.includes(c.kind))return fail('invalidCommand');
-        const level=p.upgrades[c.kind][c.stat],cost=upgradeCost(level);if(level>=8)return fail('maxLevel');if(p.gold<cost)return fail('noGold');
-        const oldHp=stats(p,c.kind).hp;p.gold-=cost;p.upgrades[c.kind][c.stat]++;
+        const level=p.upgrades[c.kind][c.stat],cost=upgradeCost(level);if(level>=8)return fail('maxLevel');if(p.funds<cost)return fail('noFunds');
+        const oldHp=stats(p,c.kind).hp;p.funds-=cost;p.upgrades[c.kind][c.stat]++;
         if(c.stat==='health'){const newHp=stats(p,c.kind).hp;for(const u of s.units)if(u.owner===actor&&u.kind===c.kind)u.hp=u.hp/oldHp*newHp;}return{ok:true};
       }
       case 'talent':{
@@ -147,9 +147,9 @@ export class Engine{
           if(!Number.isSafeInteger(c.expectedCost)||c.expectedCost<1)return fail('invalidCommand');
           if(c.expectedCost!==cost)return fail('talentRerollPriceChanged');
         }
-        if(p.gold<cost)return fail('noGold');
+        if(p.funds<cost)return fail('noFunds');
         const previous=p.choices;
-        p.gold-=cost;p.rerollsUsed++;
+        p.funds-=cost;p.rerollsUsed++;
         p.choices=[];draft(s,p,previous);return{ok:true};
       }
       default:return fail('invalidCommand');
@@ -281,12 +281,11 @@ export class Engine{
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
         const player=s.players[attacker],engineers=nearby.some(u=>u.kind==='engineer');
         province.capture+=DT*captureSpeedMultiplier(province)*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
-        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=CAPTURE_RECOVERY_SECONDS;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=CAPTURE_RECOVERY_SECONDS;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+CAPTURE_REWARD);s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
       if(province.owner<0)continue;
       const owner=s.players[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery);
-      owner.gold+=DT*.5*rate*recovery;
-      owner.constructionFunds=Math.min(MAX_CONSTRUCTION_FUNDS,owner.constructionFunds+DT*constructionIncomeRate(province,rate));
+      owner.funds=Math.min(MAX_FUNDS,owner.funds+DT*fundsIncomeRate(province,rate));
       province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
@@ -393,7 +392,7 @@ export class Engine{
     for(const u of s.units){const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
     for(const p of scheduled.filter(p=>territories.has(p.id))){
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
-      if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
+      if(p.funds>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const id of territories.get(p.id)??[]){
         const province=s.provinces[id];if(province.march)continue;
         const units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
