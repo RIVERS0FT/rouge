@@ -1,10 +1,10 @@
 import {MapSurface} from './mapSurface.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
 import {PoliticalTint} from './politicalTint.ts';
-import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,uprightCountryArc,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
+import {buildCountryPlacements,fitCountryCurve,projectCountryFont,countryCurveSegment,uprightCountryArc,type CountryPlacement,type CountryPlacementCache} from './countryLabelPaths.ts';
 import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
-import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
+import {buildCountryLabels,regionMoments,countryLetterSpacing,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY,selectionOverlayLift} from './selectionGlow.ts';
 import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged,mapUnitVisible} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
@@ -440,7 +440,7 @@ export class WorldRenderer {
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
   }
   private drawMapNames() {
-    const width=this.host.clientWidth,height=this.host.clientHeight,scale=height/(2*this.distance*Math.tan(20*Math.PI/180));
+    const width=this.host.clientWidth,height=this.host.clientHeight;
     let countryCount=0,provinceCount=0;const activeOwners=new Set<number>(),point=new THREE.Vector3();
     const drawProvince=(id:number,name:string,anchor:Vec2)=>{
       const font=12,spacing=.035,family='Georgia,"Noto Serif CJK SC","Songti SC",serif',fontKey=`600 ${font}px ${family}`,key=`${fontKey}:${name}`;
@@ -465,7 +465,7 @@ export class WorldRenderer {
     for(const component of this.countryComponents){
       const player=this.state?.players[component.owner];if(!player)continue;activeOwners.add(component.owner);
       const placement=this.countryPlacements.get(component.owner);if(!placement)continue;
-      const name=countryName(this.lang,player),style=countryTypography(name,component.area,scale),spacing=Math.min(.14,style.spacing),count=Array.from(name).length;
+      const name=countryName(this.lang,player),spacing=countryLetterSpacing(name),count=Array.from(name).length;
       const measureKey=`curve:${name}:${spacing}`;let advanceEm=this.labelWidths.get(measureKey);
       if(advanceEm===undefined){this.labelMeasure.font=`400 100px ${COUNTRY_LABEL_FONT}`;advanceEm=this.labelMeasure.measureText(name).width/100+Math.max(0,count-1)*spacing;this.labelWidths.set(measureKey,advanceEm);}
       const fit=fitCountryCurve(placement,advanceEm);if(!fit)continue;
@@ -474,8 +474,8 @@ export class WorldRenderer {
       const probe=new THREE.Vector3(referenceX+1,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z).project(this.camera);
       const northProbe=new THREE.Vector3(referenceX,heightAt(curve.anchor.x,curve.anchor.z)*this.blend+.8,curve.anchor.z+1).project(this.camera);
       const ax=(probe.x-center.x)*width/2,ay=(probe.y-center.y)*height/2,bx=(northProbe.x-center.x)*width/2,by=(northProbe.y-center.y)*height/2,trace=ax*ax+ay*ay+bx*bx+by*by;
-      const localScale=Math.sqrt(Math.max(0,(trace-Math.sqrt(Math.max(0,trace*trace-4*(ax*by-ay*bx)**2)))/2)),font=Math.min(style.font,fit.fontWorld*localScale*.95);if(font<10||localScale<=0)continue;
-      const fontWorld=font/localScale,section=countryCurveSegment(curve,advanceEm*fontWorld/0.86),pathPoints=section.points;
+      const localScale=Math.sqrt(Math.max(0,(trace-Math.sqrt(Math.max(0,trace*trace-4*(ax*by-ay*bx)**2)))/2)),size=projectCountryFont(fit.fontWorld,localScale);if(!size)continue;
+      const font=size.screen,section=countryCurveSegment(curve,advanceEm*size.world/0.86),pathPoints=section.points;
       for(const offset of [-1,0,1]){
         const projected=pathPoints.map(p=>{const point=new THREE.Vector3(p.x+(copy+offset)*WORLD_WIDTH,heightAt(p.x,p.z)*this.blend+.8,p.z).project(this.camera);return {x:(point.x+1)*width/2,y:(1-point.y)*height/2,depth:point.z};});
         const padding=font*1.4+2,left=Math.min(...projected.map(p=>p.x))-padding,right=Math.max(...projected.map(p=>p.x))+padding,top=Math.min(...projected.map(p=>p.y))-padding,bottom=Math.max(...projected.map(p=>p.y))+padding;

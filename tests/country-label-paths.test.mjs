@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildCountryLabels} from '../src/render/countryLabels.ts';
 import {buildBorderEdges} from '../src/render/territoryBorders.ts';
-import {buildCountryPlacements,fitCountryCurve,countryCurveSegment,uprightCountryArc} from '../src/render/countryLabelPaths.ts';
+import {buildCountryPlacements,fitCountryCurve,projectCountryFont,countryCurveSegment,uprightCountryArc} from '../src/render/countryLabelPaths.ts';
 import {WORLD_BOUNDS,wrapX} from '../src/game/geo.ts';
 const bounds={left:-500,right:500,top:-500,bottom:500};
 const rect=(x,z,w,h)=>[{x,z},{x:x+w,z},{x:x+w,z:z+h},{x,z:z+h}];
@@ -45,6 +45,18 @@ test('curved country corridors bend with the territory and protect whole glyphs,
  const turns=curve.points.slice(1,-1).map((p,i)=>{const a=curve.points[i],b=curve.points[i+2];return Math.sign((p.x-a.x)*(b.z-p.z)-(p.z-a.z)*(b.x-p.x));});assert.equal(new Set(turns.filter(Boolean)).size,1,'the curve has no second turn or inflection');
  for(const center of curve.points)for(let k=0;k<16;k++){const angle=k*Math.PI/8,radius=fit.fontWorld*1.2;assert.ok(inside(map,{x:center.x+Math.cos(angle)*radius,z:center.z+Math.sin(angle)*radius}));}
  const shorter=countryCurveSegment(curve,curve.length/2);assert.ok(Math.hypot(shorter.points[0].x-shorter.points.at(-1).x,shorter.points[0].z-shorter.points.at(-1).z)<Math.hypot(a.x-b.x,a.z-b.z));
+});
+
+test('country text scales past 40 pixels without changing its world anchor or path',()=>{
+ const fit=fitCountryCurve(placement([region(0,[[rect(-80,-40,160,80)]])]).get(0),5);
+ assert.ok(fit);
+ const anchor={...fit.curve.anchor},near=projectCountryFont(fit.fontWorld,2),closer=projectCountryFont(fit.fontWorld,4);
+ assert.ok(near&&closer&&closer.screen>40);
+ assert.equal(closer.screen,near.screen*2);
+ assert.equal(near.world,closer.world);
+ assert.deepEqual(countryCurveSegment(fit.curve,near.world*5/.86),countryCurveSegment(fit.curve,closer.world*5/.86));
+ assert.deepEqual(fit.curve.anchor,anchor);
+ assert.equal(projectCountryFont(fit.fontWorld,.001),null);
 });
 
 test('lakes, concave bays and separate islands cannot be used as text space',()=>{
