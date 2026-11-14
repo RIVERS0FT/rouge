@@ -10,7 +10,7 @@ import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
 
 import {CONSTRUCTION,STARTING_CONSTRUCTION_FUNDS,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,constructionIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
-import { destinationRoom, isRegionGarrison } from './capacity.ts';
+import { destinationRoom, isRegionGarrison, queuedMarchReservations } from './capacity.ts';
 import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
@@ -73,10 +73,11 @@ function experience(s:GameState,id:number,amount:number):void{
   const p=s.players[id];if(!p)return;p.xp+=amount;
   while(p.level<8&&p.xp>=60+p.level*45){p.xp-=60+p.level*45;p.level++;p.drafts++;s.events.push({tick:s.tick,key:'level',player:id});}draft(s,p);
 }
+export const MARCH_INTERVAL_TICKS=Math.max(1,Math.round(.25/DT));
 export class Engine{
   state:GameState;navigation=new TerrainNavigator();
   collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
-  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
+  constructor(state:GameState){this.state=structuredClone(state);for(const p of this.state.provinces)if(p.march&&!('pendingIds' in p.march))delete p.march;settleEliminations(this.state);this.clearBuildings();}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
     if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
@@ -91,12 +92,16 @@ export class Engine{
         if(!MAP[c.from].playable||!MAP[c.to].playable||c.from===c.to)return fail('invalidCommand');
         const available=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
         const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
-        const n=Math.min(requested,destinationRoom(s,actor,c.to));if(n<1)return fail('targetFull');
-        const unitIds=this.dispatch(available,c.to,n);
-        if(!unitIds.length)return fail('unreachable');
-        // Only the original contingent keeps this order open. Reinforcements
-        // follow it without extending its lifetime indefinitely.
-        if(c.fraction===1)from.march={to:c.to,unitIds};else delete from.march;
+        const friendly=to.owner===actor;
+        const n=friendly?Math.min(requested,destinationRoom(s,actor,c.to)-queuedMarchReservations(s,actor,c.to,c.from)):requested;
+        if(n<1)return fail('targetFull');
+        const startsNow=from.lastMarchTick===undefined||s.tick-from.lastMarchTick>=MARCH_INTERVAL_TICKS;
+        const first=startsNow?this.dispatchOne(available,c.to):null;
+        if(startsNow&&!first)return fail('unreachable');
+        if(first)from.lastMarchTick=s.tick;
+        const remaining=available.filter(u=>u.id!==first);
+        const pendingIds=remaining.slice(0,n-(first?1:0)).map(u=>u.id);
+        if(pendingIds.length)from.march={to:c.to,owner:actor,pendingIds,...(friendly?{reserved:true}:{})};else delete from.march;
         return{ok:true};
       }
       case 'construct':{
@@ -233,7 +238,8 @@ export class Engine{
       const nearbyWaypoint=!last&&!point.sea&&!travel.points[travel.index+1].sea&&goalDistance<=waypointRadius&&distanceToTravelSegment(nextPlan,candidate)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(candidate,travelCorridorPoint(nextPlan,candidate));
       const arrived=goalDistance<=move+1e-9||nearbyArrival||nearbyWaypoint,final=arrived&&last;
       // Administrative capacities limit garrisons, not transit through boundaries.
-      if(final&&s.units.filter(v=>v.id!==u.id&&v.owner===u.owner&&v.province===u.target&&!v.travel).length>=regionCapacity(u.target))continue;
+      if(final&&u.assault!==u.target&&s.provinces[u.target].owner===u.owner&&
+          s.units.filter(v=>v.id!==u.id&&v.owner===u.owner&&v.province===u.target&&!v.travel).length>=regionCapacity(u.target))continue;
       u.x=nx;u.z=nz;const region=provinceAt(nx,nz);if(region>=0)u.province=region;
       if(point.sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};else delete u.transport;
       if(arrived&&(point.sea||nearbyArrival||nearbyWaypoint||Math.hypot(u.x-point.x,u.z-point.z)<=1e-6)){if(!nearbyArrival&&!nearbyWaypoint){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
@@ -244,6 +250,12 @@ export class Engine{
     // Sparse destinations scale with moving armies, not players × the entire map.
     const reservations=new Map<number,number>();
     for(const u of s.units)if(u.destination!==null&&u.province!==u.destination){const key=popKey(u.owner,u.destination);reservations.set(key,(reservations.get(key)??0)+1);}
+    const queuedReservations=new Map<number,number>();
+    for(const province of s.provinces){
+      const order=province.march;
+      if(!order||!('pendingIds' in order)||!order.reserved||province.owner!==order.owner||s.provinces[order.to].owner!==order.owner)continue;
+      const key=popKey(order.owner,order.to);queuedReservations.set(key,(queuedReservations.get(key)??0)+order.pendingIds.length);
+    }
     const byProvince=new Map<number,Unit[]>();
     for(const u of s.units){if(u.transport?.embarked)continue;const group=byProvince.get(u.province)??[];group.push(u);byProvince.set(u.province,group);}
     for(const province of s.provinces){
@@ -264,19 +276,14 @@ export class Engine{
       province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
-      if(garrison+(reservations.get(popKey(province.owner,province.id))??0)>=regionCapacity(province.id))continue;
+      const key=popKey(province.owner,province.id);
+      if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=regionCapacity(province.id))continue;
       province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
-      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;}
+      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;
+        else if(province.march&&'pendingIds' in province.march&&province.march.owner===province.owner)
+          province.march={...province.march,pendingIds:[...province.march.pendingIds,s.nextId-1]};}
     }
-    // Include troops trained during this order, but stop once its original
-    // contingent has arrived / captured the destination, died or been redirected.
-    const activeMarchers=new Map(s.units.filter(u=>u.target!==null).map(u=>[u.id,u]));
-    for(const province of s.provinces){
-      const order=province.march;if(!order)continue;
-      const active=order.unitIds.some(id=>{const u=activeMarchers.get(id);return u&&u.owner===province.owner&&u.origin===province.id&&u.target===order.to;});
-      if(!active){delete province.march;continue;}
-      this.dispatch(s.units.filter(u=>isRegionGarrison(u,province.owner,province.id)),order.to,destinationRoom(s,province.owner,order.to));
-    }
+    this.releaseMarches();
     // All captures have settled: losing then gaining a region in this tick is not defeat.
     if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
     if(s.tick>=80)this.ai();
@@ -290,16 +297,37 @@ export class Engine{
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
   }
-  private dispatch(units:Unit[],to:number,limit:number):number[]{
-    const sent:number[]=[];
-    for(const u of units){
-      if(sent.length>=limit)break;
-      const st=stats(this.state.players[u.owner],u.kind),travel=this.navigation.plan(u,MAP[to].center,st.speed,st.seaSpeed);if(!travel)continue;
-      u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;sent.push(u.id);
+  private releaseMarches():void {
+    const s=this.state;
+    if(!s.provinces.some(p=>p.march))return;
+    const units=new Map(s.units.map(u=>[u.id,u]));
+    for(const province of s.provinces){
+      const order=province.march;if(!order)continue;
+      const owner=province.owner;
+      if(owner<0||!('pendingIds' in order)||order.owner!==owner){delete province.march;continue;}
+      const pending=order.pendingIds.filter(id=>{const u=units.get(id);return u&&isRegionGarrison(u,owner,province.id);});
+      if(!pending.length){delete province.march;continue;}
+      if(province.lastMarchTick!==undefined&&s.tick-province.lastMarchTick<MARCH_INTERVAL_TICKS){
+        if(pending.length!==order.pendingIds.length)province.march={...order,pendingIds:pending};
+        continue;
+      }
+      if(s.provinces[order.to].owner===owner&&destinationRoom(s,owner,order.to)-(order.reserved?0:queuedMarchReservations(s,owner,order.to,province.id))<1){delete province.march;continue;}
+      let started:number|null=null;
+      while(pending.length&&!started)started=this.dispatchOne([units.get(pending.shift()!)!],order.to);
+      if(started)province.lastMarchTick=s.tick;
+      if(pending.length)province.march={...order,pendingIds:pending};else delete province.march;
     }
-    return sent;
   }
-  private halt(unit:Unit):void {delete unit.travel;delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  private dispatchOne(units:Unit[],to:number):number|null{
+    for(const u of units){
+      const st=stats(this.state.players[u.owner],u.kind),travel=this.navigation.plan(u,MAP[to].center,st.speed,st.seaSpeed);if(!travel)continue;
+      u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;
+      if(this.state.provinces[to].owner!==u.owner)u.assault=to;else delete u.assault;
+      return u.id;
+    }
+    return null;
+  }
+  private halt(unit:Unit):void {delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   /** Repair old saves / newly disembarked units that started inside a house.
    * Only same-land, same-province (or certified route corridor) candidates count. */
   private clearBuildings(units:readonly Unit[]=this.state.units):void {
@@ -353,7 +381,8 @@ export class Engine{
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const id of territories.get(p.id)??[]){
-        const province=s.provinces[id],units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
+        const province=s.provinces[id];if(province.march&&'pendingIds' in province.march)continue;
+        const units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
         // Small administrative atoms must be able to move a full garrison.
         if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;
         const neighbors=MAP[province.id].neighbors,targets=neighbors.filter(id=>s.provinces[id].owner!==p.id).sort((a,b)=>(garrisons.get(a)?.length??0)-(garrisons.get(b)?.length??0));

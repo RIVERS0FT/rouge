@@ -61,8 +61,8 @@ for(const shift of [false,true])test(`${shift?'Shift-click':'right-click'} still
  await page.mouse.click(point.x,point.y,{button:shift?'left':'right'});
  if(shift)await page.keyboard.up('Shift');
  await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
- await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
- const orders=await saveOrders(page);expect(orders).toHaveLength(12);
+ await expect(page.getByTestId('region-capacity')).toContainText('11 / 12');
+ const orders=await saveOrders(page);expect(orders).toHaveLength(1);
  expect(orders.every((u:any)=>u.destination===mapOrderFixture.target&&u.travel?.points.length>=2)).toBe(true);
 });
 
@@ -88,8 +88,8 @@ test.describe('touch orders',()=>{
   await worldView(page);const point=await targetPoint(page);
   await touch('touchStart',[{...point,id:1}]);await page.waitForTimeout(600);await touch('touchEnd',[]);
   await expect(canvas).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
-  await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
-  const orders=await saveOrders(page);expect(orders).toHaveLength(12);
+  await expect(page.getByTestId('region-capacity')).toContainText('11 / 12');
+  const orders=await saveOrders(page);expect(orders).toHaveLength(1);
   expect(orders.every((u:any)=>u.destination===mapOrderFixture.target)).toBe(true);await cdp.detach();
  });
 });
