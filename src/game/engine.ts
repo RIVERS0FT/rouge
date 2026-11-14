@@ -17,30 +17,47 @@ function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
-  const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
+  const s:GameState={version:5,map:MAP_ID,neutralGarrisonModel:'preplaced',campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),spawnModel:'single',players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
   s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
   // Start every seat on exactly one locked gameplay province, with five units.
   const spawnRegions=chooseSpawnRegions(seed,setups.length);
   assignCountryNames(s.players,spawnRegions.map(id=>MAP[id]));
   spawnRegions.forEach((id,actor)=>{s.provinces[id].owner=actor;});
-  const frontier=new Set(s.provinces.filter(p=>p.owner>=0).flatMap(p=>MAP[p.id].neighbors));
+  // Five garrison units per playable tile, including untouched neutral land.
+  // During setup, use a local spatial lookup rather than scanning thousands of
+  // units for each placement. Normal reinforcements still use live positions.
+  const cellSize=9,key=(x:number,z:number)=>`${x}:${z}`,placed=new Map<string,Unit[]>();
   for(const p of s.provinces) {
-    const count=!MAP[p.id].playable?0:p.owner>=0?5:frontier.has(p.id)?Math.min(2,regionCapacity(p.id)):0;
+    if(!MAP[p.id].playable)continue;
     if(p.owner>=0)p.kind=s.players[p.owner].loadout[0];
-    for(let i=0;i<count;i++)spawn(s,p.id,p.kind);
+    const center=MAP[p.id].center,nearby:Unit[]=[];
+    for(let x=Math.floor((center.x-9)/cellSize);x<=Math.floor((center.x+9)/cellSize);x++)
+      for(let z=Math.floor((center.z-9)/cellSize);z<=Math.floor((center.z+9)/cellSize);z++)
+        for(const u of placed.get(key(x,z))??[])
+          if(Math.abs(u.x-center.x)<9&&Math.abs(u.z-center.z)<9)nearby.push(u);
+    for(let i=0;i<5;i++)if(spawn(s,p.id,p.kind,nearby)){
+      const u=s.units[s.units.length-1],slot=key(Math.floor(u.x/cellSize),Math.floor(u.z/cellSize));
+      const bucket=placed.get(slot)??[];bucket.push(u);placed.set(slot,bucket);
+      nearby.push(u);
+    }
   }
   s.grouping=reconcileGrouping(s);return s;
 }
-function spawn(s:GameState,province:number,kind:Kind):boolean{
+function spawn(s:GameState,province:number,kind:Kind,initialNearby?:readonly Unit[]):boolean{
   const p=s.provinces[province],id=s.nextId,c=MAP[province].center,radius=UNIT_RADIUS[kind];
   let x=c.x,z=c.z,best=-Infinity;
-  const nearby=s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9);
+  const nearby=initialNearby??s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9);
   // Search a deterministic small formation; don't spawn every reinforcement on
   // the same center. Tiny islands may still have less room than a full footprint.
   for(let i=0;i<512;i++){
     const a=(id+i)*2.399963,r=i<384?3*Math.sqrt(i/383):3+5*Math.sqrt((i-384)/127),candidate={x:c.x+Math.cos(a)*r,z:c.z+Math.sin(a)*r};
-    if(!pointInProvince(province,candidate.x,candidate.z)||terrainAt(candidate,true)<0||!terrainSegment(c,candidate,false)||!buildingSegment(candidate,candidate,radius))continue;
-    const gap=Math.min(radius,...nearby.map(u=>Math.hypot(u.x-candidate.x,u.z-candidate.z)-UNIT_RADIUS[u.kind]));
+    let gap=radius;
+    for(const u of nearby){
+      gap=Math.min(gap,Math.hypot(u.x-candidate.x,u.z-candidate.z)-UNIT_RADIUS[u.kind]);
+      if(gap<=best)break;
+    }
+    if(gap<=best)continue;
+    if(!pointInProvince(province,candidate.x,candidate.z)||!(initialNearby?terrainLocalSegment(c,candidate):terrainAt(candidate,true)>=0&&terrainSegment(c,candidate,false))||!buildingSegment(candidate,candidate,radius))continue;
     const score=Math.min(gap,terrainClearance(candidate,radius));if(score>best){best=score;x=candidate.x;z=candidate.z;}if(score>=radius-1e-6)break;
   }
   if(!Number.isFinite(best))return false;s.nextId++;
@@ -119,13 +136,33 @@ export class Engine{
     }
   }
   step(count=1):void{for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
+  private activeUnits():Unit[]{
+    const s=this.state;
+    if(s.neutralGarrisonModel!=='preplaced')return s.units;
+    // Preplaced neutral guards never travel on their own. Keep them as actual
+    // units for rendering, saves and province accounting, but skip remote idle
+    // simulation. A full cell of padding exceeds any attack/splash range plus
+    // movement and collision correction budget in a tick. Embarked hostiles
+    // also wake nearby guards before a possible same-tick disembarkation.
+    const size=16,key=(x:number,z:number)=>`${x}:${z}`,occupied=new Set<string>(),active=new Set<string>();
+    for(const u of s.units)if(u.owner>=0){
+      const x=Math.floor(u.x/size),z=Math.floor(u.z/size),cell=key(x,z);
+      if(occupied.has(cell))continue;occupied.add(cell);
+      for(let a=x-1;a<=x+1;a++)for(let b=z-1;b<=z+1;b++)active.add(key(a,b));
+    }
+    // Guards leaving the active area finish an already-running cooldown.
+    // Nonstandard imported movement orders are never put to sleep.
+    return s.units.filter(u=>u.owner>=0||u.cooldown>0||u.target!==null||u.travel||u.transport||
+      active.has(key(Math.floor(u.x/size),Math.floor(u.z/size))));
+  }
   private tick():void{
-    const s=this.state,topologyBefore=s.topology;s.tick++;this.clearBuildings();
+    const s=this.state,topologyBefore=s.topology;s.tick++;
+    const active=this.activeUnits();this.clearBuildings(active);
     const damage=new Map<number,{amount:number;attacker:number}>(),buckets=new Map<string,Unit[]>();
     // Reservations and production use locked game-region accounts; transit is unconstrained.
     const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
-    for(const u of s.units){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
-    for(const u of s.units){
+    for(const u of active){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
+    for(const u of active){
       const st=stats(s.players[u.owner],u.kind);
       // Carry sub-tick remainder during continuous fire (e.g. 0.65 attacks/s).
       u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,nearest=st.range*st.range;
@@ -203,7 +240,7 @@ export class Engine{
     }
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
-    this.separate();
+    this.separate(active);
     // Sparse destinations scale with moving armies, not players × the entire map.
     const reservations=new Map<number,number>();
     for(const u of s.units)if(u.destination!==null&&u.province!==u.destination){const key=popKey(u.owner,u.destination);reservations.set(key,(reservations.get(key)??0)+1);}
@@ -265,8 +302,8 @@ export class Engine{
   private halt(unit:Unit):void {delete unit.travel;delete unit.transport;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   /** Repair old saves / newly disembarked units that started inside a house.
    * Only same-land, same-province (or certified route corridor) candidates count. */
-  private clearBuildings():void {
-    for(const u of [...this.state.units].sort((a,b)=>a.id-b.id)){
+  private clearBuildings(units:readonly Unit[]=this.state.units):void {
+    for(const u of [...units].sort((a,b)=>a.id-b.id)){
       const radius=UNIT_RADIUS[u.kind];if((u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)||buildingSegment(u,u,radius))continue;
       const neighbors=this.state.units.filter(v=>v.id!==u.id&&!v.transport?.embarked&&Math.abs(v.x-u.x)<4.3&&Math.abs(v.z-u.z)<4.3),beforeClearance=terrainClearance(u,radius);
       let found=false,fallback:{x:number;z:number}|undefined,bestGap=-Infinity;
@@ -285,8 +322,8 @@ export class Engine{
       if(!found&&fallback){u.x=fallback.x;u.z=fallback.z;if(u.travel)u.province=provinceAt(u.x,u.z);}
     }
   }
-  private separate():void {
-    const bodies=this.state.units.filter(u=>!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit}));
+  private separate(active:readonly Unit[]):void {
+    const bodies=active.filter(u=>u.hp>0&&!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit}));
     const clearance=new Map<number,number>();
     this.collision=separateCircles(bodies,(body,to)=>{
       const u=body.unit,travel=u.travel;if(!buildingSegment(body,to,body.radius))return false;

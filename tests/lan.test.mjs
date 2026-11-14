@@ -3,6 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
 import { createLanServer } from '../server/lan.ts';
+import { applyFrame } from '../src/platform/replication.ts';
+import { PLAYABLE_COUNT } from '../src/game/map.ts';
 const setup={name:'Human',leader:'warden',loadout:['infantry'],flag:{type:'custom',pattern:'vertical',colors:['#123456','#abcdef','#ffffff']}};
 test('real HTTP LAN: two online seats, host-only start, token-bound commands and streamed snapshots',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${host.server.address().port}`;
@@ -72,4 +74,43 @@ test('LAN admits all four new kinds, starts and accepts only their own upgrades'
    assert.equal((await req(path,{command:{type:'upgrade',kind:'infantry',stat:'attack'}},tickets[i].token)).status,400);
   }
  }finally{await host.close();}
+});
+
+test('a full neutral-garrison reconnect survives the next ordered LAN delta',async()=>{
+ const host=createLanServer();
+ await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
+ const base=`http://127.0.0.1:${host.server.address().port}/api`,controller=new AbortController();
+ const headers={'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,'Content-Type':'application/json'};
+ const post=async(path,body,token)=>{
+  const r=await fetch(base+path,{method:'POST',headers:{...headers,...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)});
+  assert.ok(r.ok,await r.clone().text());return r.json();
+ };
+ try{
+  const a=await post('/rooms',{setup}),path=`/rooms/${a.code}`,b=await post(path+'/join',{setup});
+  await connectTicket(base,a);await connectTicket(base,b);
+  await post(path+'/start',{},a.token);
+  const response=await fetch(base+path+'/events',{headers:{...headers,Authorization:`Bearer ${b.token}`},signal:controller.signal});
+  assert.equal(response.status,200);
+  const reader=response.body.getReader(),decoder=new TextDecoder();
+  let buffer='';
+  async function frame(type){
+   for(;;){
+    const end=buffer.indexOf('\n\n');
+    if(end>=0){
+     const event=JSON.parse(buffer.slice(6,end));
+     buffer=buffer.slice(end+2);
+     if(event.type===type)return event;
+     continue;
+    }
+    const chunk=await reader.read();assert.ok(!chunk.done,`stream ended before ${type}`);
+    buffer+=decoder.decode(chunk.value,{stream:true});
+   }
+  }
+  const first=applyFrame(null,await frame('state'));
+  assert.equal(first.units.filter(u=>u.owner===-1).length,(PLAYABLE_COUNT-2)*5);
+  const delta=await frame('delta');
+  assert.ok(delta.neutral);
+  assert.equal(delta.state.units.length,10);
+  assert.equal(applyFrame(first,delta).units.length,first.units.length);
+ }finally{controller.abort();await host.close();}
 });
