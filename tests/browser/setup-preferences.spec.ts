@@ -71,3 +71,18 @@ test.describe('touch talent choices',()=>{
   await page.getByRole('button',{name:'关闭',exact:true}).tap();await expect(page.getByRole('dialog')).toHaveCount(0);
  });
 });
+
+test('talent reroll button shows the authoritative rising gold price and disables when funds run out',async({page})=>{
+ const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-talents-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+ await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
+ await page.goto('/');await page.getByTestId('open-saves').click();
+ await page.locator('.save-card').filter({hasText:'Queued talent choices'}).getByRole('button',{name:'载入',exact:true}).click();
+ await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+ await page.getByTestId('portrait-talents').click();
+ const reroll=page.getByTestId('reroll-talents'),cards=page.locator('.talent-card h3');
+ await expect(reroll).toHaveText(/40 金币/);await expect(reroll).toBeEnabled();
+ const before=await cards.allTextContents();
+ await reroll.click();await expect(reroll).toHaveText(/55 金币/);
+ expect((await cards.allTextContents()).some(id=>!before.includes(id))).toBe(true);
+ await reroll.click();await expect(reroll).toHaveText(/70 金币/);await expect(reroll).toBeDisabled();
+});

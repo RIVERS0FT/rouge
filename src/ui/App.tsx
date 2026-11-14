@@ -346,7 +346,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     onName={setName} onCode={setCode} onStart={startSolo} onCreateRoom={() => roomAction(false)} onJoinRoom={() => roomAction(true)}/>}
    {modal === 'territories' && game && <TerritoryManagement state={game} grouping={game.grouping} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={issue}/>}
    {modal === 'talents' && player && <TalentsDialog player={player} eliminated={eliminated} pending={pendingTalent !== null} language={language}
-    onChoose={id => {setPendingTalent(id); issue({type: 'talent', id});}} onReroll={() => issue({type: 'reroll'})}/>}
+    onChoose={id => {setPendingTalent(id); issue({type: 'talent', id});}} onReroll={expectedCost => issue({type: 'reroll', expectedCost})}/>}
   </ModalDialog>}
   {localStarting && <ModalDialog label={text('starting')} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting" className="starting-modal">
    <p role="status" data-testid="local-starting"><Icon name="hourglass" size={18}/>{text('starting')}</p>
