@@ -1,16 +1,19 @@
-/* Compact layouts (phones, small or short screens): the command rail becomes
-   the bottom navigation, docked windows and the outliner become sheets, and
-   the commander card folds into a pill above the navigation.
+/* Narrow/short screens fit the same anchored HUD as desktop.
    Keep the query in sync with COMPACT_QUERY in App.tsx. */
 .app[data-input-device="touch"] button:not(.dispatch-region){min-width:44px;min-height:44px;touch-action:manipulation}
 
 @media (max-width:800px),(max-width:1000px) and (max-height:500px),(pointer:coarse) and (max-height:560px){
  .app,.app.is-game{min-height:0;height:100dvh;max-height:100dvh;overflow:hidden;
   --m-left:max(8px,env(safe-area-inset-left));--m-right:max(8px,env(safe-area-inset-right));--m-top:max(8px,env(safe-area-inset-top));--m-bottom:max(8px,env(safe-area-inset-bottom));
-  --band-h:56px;--nav-h:58px;--pill-h:46px;
-  --search-top:calc(var(--m-top) + var(--band-h) + 8px);
-  --sheet-top:calc(var(--search-top) + 52px);
-  --sheet-bottom:calc(var(--m-bottom) + var(--nav-h) + var(--pill-h) + 16px)}
+  --band-h:56px;--search-top:calc(var(--m-top) + var(--band-h) + 8px)}
+ .app.is-game{
+  --rail-w:52px;--portrait-w:clamp(88px,20vw,124px);--portrait-h:clamp(64px,20dvh,132px);
+  --side-gap:6px;--rail-top:var(--search-top);
+  --portrait-clearance:calc(var(--m-bottom) + var(--portrait-h) + var(--side-gap));
+  --compact-dock-left:calc(var(--m-left) + var(--rail-w) + var(--side-gap));
+  --compact-dock-w:min(330px, max(0px, calc(100% - var(--compact-dock-left) - var(--m-right) - 6px)), max(240px, 46vw));
+  --compact-outliner-w:min(270px, max(0px, calc(100% - var(--compact-dock-left) - var(--m-right) - 6px)), max(240px, 40vw));
+ }
  .app button:not(.dispatch-region){min-height:44px;min-width:44px;touch-action:manipulation}
  .app input,.app select{min-height:44px;font-size:16px}
  .app small,.app .small{font-size:12px;line-height:1.5}
@@ -33,39 +36,42 @@
  .is-game .clock-face time{font-size:16px}
  .is-game .clock-pause{width:44px;height:44px}
  .is-game .speed-pips{flex-direction:row;gap:2px}
- .is-game .speed-pips button{width:30px;min-width:30px;height:44px;font-size:13px;color:var(--muted);background:#0a0e0d;box-shadow:inset 0 0 0 1px var(--brass-lo)}
+ .is-game .speed-pips button{width:44px;min-width:44px;height:44px;font-size:13px;color:var(--muted);background:#0a0e0d;box-shadow:inset 0 0 0 1px var(--brass-lo)}
  .is-game .speed-pips button[aria-pressed="true"]{color:var(--brass-hi);background:linear-gradient(180deg,#c6a46740,#c6a46714);box-shadow:inset 0 0 0 1px var(--brass),0 0 8px #efd79f40}
  .is-game .clock-actions{gap:10px;margin-left:2px;padding-left:8px}
  .is-game .clock-action{width:44px;height:44px}
 
  /* Region finder under the band. */
- .app.is-game[data-layout] .map-search{top:var(--search-top);left:var(--m-left);right:var(--m-right);width:auto;transform:none;z-index:16}
+ .app.is-game[data-layout] .map-search{top:var(--search-top);left:50%;right:auto;width:min(320px,calc(100% - 2 * max(var(--compact-dock-left), var(--m-right))));transform:translateX(-50%);z-index:16}
  .is-game .map-search input{min-height:44px;font-size:16px}
  .is-game .map-search-results{max-height:40dvh}
  .is-game .map-search-results button{padding:8px 12px}
 
- /* Rail → bottom navigation. */
- .is-game .hud-rail{top:auto;left:var(--m-left);right:var(--m-right);bottom:var(--m-bottom);width:auto;height:var(--nav-h);z-index:20;flex-direction:row;align-items:stretch;justify-content:space-between;gap:2px;padding:3px;border-radius:6px}
- .is-game .rail-slot{display:flex;flex:1 1 0;min-width:0}
- .is-game .rail-button{flex:1;width:auto;height:100%;justify-content:center;gap:2px;padding:2px;border-radius:4px}
- .is-game .rail-medallion{width:28px;height:28px;box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass-lo),inset 0 1px 0 #ffffff1c}
+ /* The command rail stays on the left. Very short screens can scroll it
+    without shrinking the 44px controls or shifting them to another edge. */
+ .is-game .hud-rail{left:var(--m-left);top:var(--rail-top);width:var(--rail-w);max-height:calc(100dvh - var(--rail-top) - var(--portrait-clearance));z-index:20;gap:0;padding:2px 3px;overflow:hidden auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:none}
+ .is-game .hud-rail::-webkit-scrollbar{display:none}
+ .is-game .rail-slot{display:block;flex:none}
+ .is-game .rail-button{width:44px;height:44px;justify-content:center;gap:1px;padding:0;border-radius:4px}
+ .is-game .rail-medallion{width:25px;height:25px;flex:none;box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass-lo),inset 0 1px 0 #ffffff1c}
  .is-game .rail-medallion .icon{width:17px;height:17px}
- .is-game .rail-label{display:block;font-size:11.5px}
+ .is-game .rail-label{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:9px;letter-spacing:0}
  .is-game .rail-button[aria-expanded="true"]{background:linear-gradient(180deg,#c6a46733,#c6a46714);box-shadow:inset 0 0 0 1px #c6a46766}
  .is-game .rail-button[aria-expanded="true"] .rail-medallion{box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass),0 0 10px #efd79f55}
  .is-game .rail-badge{top:-6px;right:-8px;min-width:17px;height:17px;font-size:10px}
 
- /* Sheets. */
- .is-game .hud-dock{left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15}
+ /* Side panels keep their desktop anchors and can be opened one at a time. */
+ .is-game .hud-dock{left:var(--compact-dock-left);right:auto;top:var(--rail-top);bottom:var(--portrait-clearance);width:var(--compact-dock-w);z-index:15}
  .is-game .hud-dock:not(.mobile-panel-open){display:none}
- /* Sheets scroll as a whole, so the footer follows the content instead of covering it. */
+ /* Content and footer scroll as one; the header keeps Close reachable. */
  .is-game .hud-dock>.dock-panel{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--brass-lo) transparent}
+ .is-game .hud-dock .dock-band{position:sticky;top:0;z-index:3;min-height:56px}
  .is-game .hud-dock .dock-body{flex:none;overflow:visible}
- .is-game .strategic-panel{display:none;left:var(--m-left);right:var(--m-right);top:var(--sheet-top);bottom:var(--sheet-bottom);width:auto;max-width:520px;z-index:15;gap:8px;overflow:auto;overscroll-behavior:contain;border-radius:var(--radius)}
+ .is-game .strategic-panel{display:none;left:auto;right:var(--m-right);top:var(--rail-top);bottom:var(--m-bottom);width:var(--compact-outliner-w);z-index:15;gap:8px;overflow:auto;overscroll-behavior:contain;border-radius:var(--radius)}
  .is-game .strategic-panel.mobile-panel-open{display:flex}
  .is-game .strategic-panel .outliner{flex:none;overflow:visible}
  .is-game .strategic-panel .outliner-band{position:static}
- .is-game .strategic-panel .dispatches{flex:none;margin-top:0;max-height:none;overflow:visible}
+ .is-game .strategic-panel .dispatches{flex:none;margin-top:auto;max-height:none;overflow:visible}
  .is-game .dispatches .dispatch-entry{font-size:14px;column-gap:10px}
  .is-game .dispatches .dispatch-time{font-size:12px;line-height:22.4px}
  .is-game .dispatches .dispatch-icon{height:22.4px}
@@ -82,19 +88,20 @@
  #province-panel .province-production select{min-height:44px;font-size:16px}
  #province-panel .territory-manage-trigger{min-height:44px;font-size:14px}
 
- /* Commander pill above the navigation. */
- .is-game .commander-portrait{left:var(--m-left);right:auto;bottom:calc(var(--m-bottom) + var(--nav-h) + 8px);width:min(250px,calc(100% - var(--m-left) - var(--m-right)));height:var(--pill-h);border-radius:calc(var(--pill-h) / 2);box-shadow:inset 0 0 0 2px var(--brass-mid),inset 0 0 0 3px #000b,0 6px 16px #000b}
- .is-game .commander-portrait::before,.is-game .commander-portrait::after,.is-game .commander-alert{display:none}
- .is-game .commander-art{inset:3px auto 3px 3px;width:40px;overflow:hidden;border-radius:50%;background:#111614}
- .is-game .commander-art .leader-bust{object-fit:cover;object-position:50% 8%}
- .is-game .commander-rank{top:6px;left:auto;right:6px;width:34px;height:34px}
- .is-game .commander-rank::after{font-size:15px}
- .is-game .commander-portrait-copy{left:50px;right:46px;top:0;bottom:0;display:flex;align-items:center;padding:0 4px;background:none;box-shadow:none;text-align:left}
- .is-game .commander-player{font-size:15px}
+ /* Keep the same framed portrait, scaled at the lower-left anchor. */
+ .is-game .commander-portrait{left:var(--m-left);bottom:var(--m-bottom);width:var(--portrait-w);height:var(--portrait-h)}
+ .is-game .commander-portrait::before{inset:4px}
+ .is-game .commander-art{inset:2px 2px 0}
+ .is-game .commander-rank{top:5px;left:5px;width:26px;height:26px}
+ .is-game .commander-rank::after{font-size:13px}
+ .is-game .commander-alert{top:6px;right:6px;width:20px;height:20px}
+ .is-game .commander-alert .icon{width:13px;height:13px}
+ .is-game .commander-portrait-copy{left:5px;right:5px;bottom:5px;padding:3px 5px}
+ .is-game .commander-player{font-size:12px}
  .is-game .commander-talents{min-width:44px;min-height:44px}
 
- .is-game .pause-banner,.elimination-status{top:var(--sheet-top);padding:5px 14px;font-size:12px;max-width:80%}
- .is-game .toast{bottom:calc(var(--sheet-bottom) + 6px);font-size:14px;max-width:calc(100% - 24px)}
+ .is-game .pause-banner,.elimination-status{top:calc(var(--search-top) + 52px);padding:5px 14px;font-size:12px;max-width:80%}
+ .is-game .toast{bottom:calc(var(--m-bottom) + 6px);font-size:14px;max-width:calc(100% - 24px)}
 
  /* Modal windows fill the safe area. */
  .modal-backdrop{padding:var(--m-top) var(--m-right) var(--m-bottom) var(--m-left)}
@@ -148,16 +155,12 @@
 /* Phones in portrait: the speed pips and level metric yield to the essentials. */
 @media (max-width:480px){
  .is-game .speed-pips,.is-game .resource.level-resource{display:none}
- .is-game .rail-label{font-size:11px}
 }
 
-/* Short landscape screens: search on the left half, sheets on the right half. */
+/* A slimmer panel title leaves room for the contents in landscape. */
 @media (orientation:landscape) and (max-width:1000px) and (max-height:500px),(pointer:coarse) and (orientation:landscape) and (max-height:560px){
- .app,.app.is-game{--sheet-top:var(--search-top);--sheet-bottom:calc(var(--m-bottom) + var(--nav-h) + 8px)}
- .app.is-game[data-layout] .map-search{right:calc(50% + 6px)}
- .is-game .hud-dock,.is-game .strategic-panel{left:calc(50% + 6px);max-width:none}
- .is-game .pause-banner,.elimination-status{left:25%;top:calc(var(--search-top) + 52px)}
- /* Short sheets: a slimmer title band leaves room for the content. */
+ .app.is-game{--portrait-h:clamp(58px,16dvh,84px)}
+
  .is-game .dock-band{padding:6px 58px 9px}
  .is-game .dock-kicker{display:none}
  .is-game .dock-band h2{font-size:18px}

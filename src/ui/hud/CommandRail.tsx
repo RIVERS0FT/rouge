@@ -10,8 +10,8 @@ type RailItem = {
 };
 
 /**
- * The left command rail of round brass medallions. On compact screens the very
- * same buttons become the bottom navigation, so every action keeps one control.
+ * The left command rail uses the same controls across screen sizes. The
+ * compact layout lets it scroll vertically if it cannot show all buttons.
  */
 export function CommandRail({language, dock, outlinerOpen, hasRegion, pendingTalents, onDock, onTalents, onOutliner}: {
  language: Language; dock: Dock | null; outlinerOpen: boolean; hasRegion: boolean; pendingTalents: number;

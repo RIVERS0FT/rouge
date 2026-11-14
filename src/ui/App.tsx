@@ -40,7 +40,7 @@ import {World} from './World.tsx';
 
 type Modal = 'setupSolo' | 'setupLan' | 'playerLeader' | 'playerFlag' | 'saves' | 'talents' | 'settings' | 'territories';
 const TICKET_KEY = 'rouge.ticket.ne-admin1-groups.v1';
-/** Compact layouts turn docks into sheets and the rail into bottom navigation. Keep in sync with hud.css. */
+/** Compact layouts narrow the desktop HUD and open side panels on demand. Keep in sync with compact.css. */
 export const COMPACT_QUERY = '(max-width: 800px), (max-width: 1000px) and (max-height: 500px), (pointer: coarse) and (max-height: 560px)';
 
 function useCompactLayout(): boolean {
@@ -119,7 +119,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  useEffect(() => {world.current?.setInputContext(screen === 'game' && !localStarting && !modal && !showDefeat && game?.winner === null ? 'game' : 'blocked');}, [screen, localStarting, modal, showDefeat, game?.winner]);
  useEffect(() => {document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'; document.title = text('title'); try {localStorage.setItem('rouge.language', language);} catch {/* Language still works without storage. */}}, [language]);
  useEffect(() => {if(!toast) return; const id = setTimeout(() => setToast(''), 4500); return () => clearTimeout(id);}, [toast]);
- // Entering a compact layout folds docks into closed sheets; widening restores the region dock and outliner.
+ // Entering a compact layout closes the side panels; widening restores the region dock and outliner.
  const previousCompact = useRef(compact);
  useEffect(() => {
   if(previousCompact.current === compact) return;
