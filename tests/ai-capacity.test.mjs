@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,Engine} from '../src/game/engine.ts';
+import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import {MAP,provinceByCode} from '../src/game/map.ts';
 import {regionCapacity,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {stats} from '../src/game/content.ts';
@@ -23,11 +23,25 @@ function fixture(capacity,count){
 test('preprocessed game regions have full budgets, never one-slot raw-atom garrisons',()=>{
  for(const p of MAP)assert.equal(regionCapacity(p.id),p.playable?12:0);
 });
-test('AI keeps four-troop threshold and 75% dispatch at base region capacity 12',()=>{
- const waiting=fixture(12,3).engine;waiting.step(80);
+test('AI waits for four troops then staggers a 75% dispatch at base capacity 12',()=>{
+ const {engine:waiting,home:waitingHome}=fixture(12,3);waiting.step(80);
  assert.ok(waiting.state.units.every(u=>u.target===null));
- const ready=fixture(12,4).engine;ready.step(80);
- assert.equal(ready.state.units.filter(u=>u.target!==null).length,3);
+ assert.equal(waiting.state.provinces[waitingHome.id].march,undefined);
+ const {engine:ready,home}=fixture(12,4);
+ const sent=()=>ready.state.units.filter(u=>u.target!==null);
+ const pending=()=>ready.state.provinces[home.id].march?.pendingIds;
+ ready.step(80);
+ assert.equal(sent().length,1);
+ const destination=sent()[0].target,queued=pending();
+ assert.equal(queued.length,2);
+ assert.equal(ready.state.units.filter(u=>u.target===null&&u.province===home.id).length,3);
+ ready.step(MARCH_INTERVAL_TICKS-1);
+ assert.equal(sent().length,1);assert.deepEqual(pending(),queued);
+ ready.step();assert.equal(sent().length,2);assert.deepEqual(pending(),queued.slice(1));
+ ready.step(MARCH_INTERVAL_TICKS);assert.equal(sent().length,3);
+ assert.ok(sent().every(u=>u.target===destination));
+ assert.equal(pending(),undefined);
+ assert.equal(ready.state.units.filter(u=>u.target===null&&u.province===home.id).length,1);
  assert.ok(validateState(ready.state));
 });
 
