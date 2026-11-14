@@ -4,7 +4,7 @@ import { test, expect, type Page } from '@playwright/test';
 async function assertLayout(page: Page) {
   const flag=await page.getByTestId('faction-identity').boundingBox();
   const portrait=await page.getByTestId('commander-portrait').boundingBox();
-  // Closed sheets are not rendered at all on compact layouts; measure the dock only on wide ones.
+  // Compact viewports keep side panels closed initially.
   await expect(page.locator('.hud-bottom')).toHaveCount(0);
   const name=await page.locator('.commander-portrait-copy h2').boundingBox();
   const talent=await page.getByTestId('portrait-talents').boundingBox();
@@ -25,12 +25,17 @@ async function assertLayout(page: Page) {
   await expect(page.locator('.commander-player')).toHaveAttribute('title',/\S/);
   expect(flag).not.toBeNull();expect(portrait).not.toBeNull();
   if(await page.locator('.app').getAttribute('data-layout')==='compact'){
-    // Compact layouts collapse docked windows into sheets and fold the portrait
-    // into a pill above the bottom navigation. Verify reachable functionality.
+    // On compact layouts the panels start closed, but their desktop anchors
+    // and the framed portrait stay in place.
     const toggle=page.getByTestId('toggle-province-panel');
     await expect(toggle).toHaveAttribute('aria-expanded','false');
     await expect(page.locator('.province-panel')).toBeHidden();
     expect(flag!.x).toBeLessThan(45);expect(flag!.y).toBeLessThan(40);
+    const rail=(await page.locator('.hud-rail').boundingBox())!;
+    expect(rail.x).toBeCloseTo(portrait!.x);
+    expect(rail.y+rail.height).toBeLessThan(portrait!.y);
+    expect(portrait!.width).toBeLessThanOrEqual(124);
+    expect(viewport.height-portrait!.y-portrait!.height).toBe(8);
     for(const locator of [page.getByTestId('commander-portrait'),page.getByTestId('portrait-talents'),page.getByTestId('mobile-talents'),toggle]){
       const box=await locator.boundingBox();expect(box).not.toBeNull();
       expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -40,10 +45,14 @@ async function assertLayout(page: Page) {
     }
     await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true');
     await expect(page.locator('.province-panel')).toBeVisible();
-    const expanded=await page.locator('.province-panel').boundingBox(),control=await toggle.boundingBox();
-    expect(expanded!.x).toBeGreaterThanOrEqual(0);expect(expanded!.y).toBeGreaterThanOrEqual(0);
-    expect(expanded!.x+expanded!.width).toBeLessThanOrEqual(viewport.width);
-    expect(expanded!.y+expanded!.height).toBeLessThanOrEqual(control!.y);
+    const expanded=(await page.locator('.province-panel').boundingBox())!;
+    expect(expanded.x).toBeGreaterThan(rail.x+rail.width);
+    expect(expanded.y).toBeCloseTo(rail.y);
+    expect(expanded.x+expanded.width).toBeLessThanOrEqual(viewport.width);
+    expect(expanded.y+expanded.height).toBeLessThan(portrait!.y);
+    const close=(await page.locator('.province-panel .dock-close').boundingBox())!;
+    expect(close.width).toBeGreaterThanOrEqual(44);
+    expect(close.height).toBeGreaterThanOrEqual(44);
     await toggle.click();await expect(page.locator('.province-panel')).toBeHidden();
     await page.getByTestId('mobile-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -113,8 +122,8 @@ for (const leader of ['warden','vanguard','steward'] as const) {
     if(leader==='steward')for(const size of [{width:390,height:844},{width:667,height:375},{width:320,height:568}]){
       await page.setViewportSize(size);await assertLayout(page);
       const portrait=await page.getByTestId('commander-portrait').boundingBox(),upgrades=await page.getByTestId('open-upgrades').boundingBox();
-      // The portrait pill and the bottom navigation never overlap.
-      expect(portrait!.y+portrait!.height<=upgrades!.y-4||portrait!.x+portrait!.width<=upgrades!.x-4).toBe(true);
+      // Left rail controls always end above the bottom-left commander card.
+      expect(upgrades!.y+upgrades!.height).toBeLessThan(portrait!.y);
       await expect(page.locator('.commander-player')).toHaveText(playerName);
       await page.getByTestId('portrait-talents').click();await expect(page.getByRole('dialog')).toBeVisible();
       await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);

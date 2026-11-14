@@ -42,9 +42,9 @@ async function assertFullscreen(page:Page){
  }
  expect(apart(search,upgrade)).toBe(true);expect(apart(search,settings)).toBe(true);expect(apart(upgrade,settings)).toBe(true);
  if(await page.locator('.app').getAttribute('data-layout')==='compact'){
-  // The command rail becomes the bottom navigation; sheets start closed.
+  // The command rail stays left of the game; compact side panels start closed.
   for(const rect of [settings,regions,upgrade,search])expect(rect!.height).toBeGreaterThanOrEqual(44);
-  expect(upgrade!.y).toBeGreaterThan(view.height*.7);
+  expect(upgrade!.x).toBeLessThan(80);expect(upgrade!.y).toBeGreaterThan(settings!.y+settings!.height);
   await expect(page.getByTestId('toggle-province-panel')).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('.province-panel')).toBeHidden();
  }else{
