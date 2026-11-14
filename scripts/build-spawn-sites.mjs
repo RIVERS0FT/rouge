@@ -1,5 +1,5 @@
-/** Run after prepare:map. Derive every safe land-linked candidate and a maximum
- * non-overlapping allocation offline, so opening setup never runs pathfinding. */
+/** Run after prepare:map. Derive every safe land-linked candidate and a legacy paired
+ * allocation offline, so opening setup never runs pathfinding. */
 import {writeFile} from 'node:fs/promises';
 import {MAP,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
 import {MAP_ID} from '../src/game/content.ts';
@@ -23,6 +23,9 @@ for(const p of MAP)for(const other of neighbors[p.id]){
 graph.forEach(list=>list.sort((a,b)=>a-b));
 const matching=maximumMatching(graph),pairs=[];
 for(let a=0;a<matching.length;a++){const b=matching[a];if(b>a)pairs.push(edges.get(`${a}:${b}`));}
-const data={mapId:MAP_ID,terrainRevision:TERRAIN_REVISION,eligibleGroups:graph.filter(g=>g.length).length,candidatePairs:edges.size,pairs};
+// A single start only needs one valid land exit. No matching is needed to
+// allocate unique sites; preserve the old matching for legacy birthplaces.
+const regions=MAP.filter(p=>neighbors[p.id].length>0).map(p=>p.id);
+const data={regions,mapId:MAP_ID,terrainRevision:TERRAIN_REVISION,eligibleGroups:graph.filter(g=>g.length).length,candidatePairs:edges.size,pairs};
 await writeFile(new URL('../data/spawn-sites.json',import.meta.url),JSON.stringify(data)+'\n');
-console.log(`Spawn sites: ${pairs.length} non-overlapping pairs from ${edges.size} legal group links (${data.eligibleGroups} eligible groups).`);
+console.log(`Spawn sites: ${regions.length} single regions; ${pairs.length} non-overlapping pairs from ${edges.size} legal group links (${data.eligibleGroups} eligible groups).`);

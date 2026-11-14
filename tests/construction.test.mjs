@@ -70,6 +70,8 @@ test('a market augments only construction income; a barracks augments only local
 test('fortress slows only post-combat capture; ownership change retains facilities and gradually restores output',()=>{
  const normal=fresh(),fort=fresh();
  for(const e of [normal,fort]){
+  // This fixture represents a mid-game attack, not conquest of the last tile.
+  e.state.provinces[adjacent].owner=0;
   const v=e.state.units.find(u=>u.owner===0&&u.province===home);
   assert.ok(v&&Math.hypot(v.x-MAP[home].center.x,v.z-MAP[home].center.z)<3.7);
   e.state.units=[{...v,owner:1}];

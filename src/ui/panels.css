@@ -87,7 +87,7 @@
 .upgrade-copy small{font-size:11.5px;color:var(--muted);line-height:1.5}
 .upgrade-buy{flex:none;min-width:78px;font-variant-numeric:tabular-nums}
 
-/* Nations window: ranked table rows that double as camera shortcuts. */
+/* Nations window and the outliner share these ranked rows. */
 .nation-head,.nation-row{display:grid;grid-template-columns:30px minmax(0,1fr) 54px 54px;gap:8px;align-items:center}
 .nation-head{padding:0 10px 7px;font-size:11px;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid #c6a46738}
 .nation-head>span:nth-child(n+3){text-align:right}
@@ -113,3 +113,17 @@
 .outliner-nations .nation-swatch{width:22px;height:15px}
 .outliner-nations .nation-copy bdi{font-size:12.5px;font-weight:500}
 .outliner-nations .nation-stat{font-size:13px}
+
+/* Single-country view within the existing nations dock. */
+.nation-actions{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px}
+.nation-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0;padding:5px 9px;font-size:12px;color:var(--brass-hi)}
+.nation-actions button:disabled{opacity:.45}
+.nation-actions button:hover:not(:disabled){background:#c6a46720}
+.nation-swatch.nation-detail-flag{width:38px;height:26px}
+.nation-tags{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px;font-size:11px;color:var(--muted)}
+.nation-metrics{margin:0 0 12px;background:#0b0f0e99;box-shadow:inset 0 0 0 1px #c6a46726}
+.nation-metrics>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 8px}
+.nation-metrics>div+div{border-top:1px solid #c6a46726}
+.nation-metrics dt{font-size:12px;color:var(--text-2)}
+.nation-metrics dd{margin:0;color:var(--parchment);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.nation-detail .section-ribbon{margin:0 0 4px}
