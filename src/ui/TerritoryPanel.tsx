@@ -1,6 +1,7 @@
 import {useLayoutEffect, useRef} from 'react';
 import {regionGarrison} from '../game/capacity.ts';
 import {UNITS} from '../game/content.ts';
+import {constructionProductionMultiplier, recoveryMultiplier} from '../game/construction.ts';
 import {factionColor} from '../game/factionColors.ts';
 import {MAP} from '../game/map.ts';
 import {regionCapacity, regionProductionRate} from '../game/territoryEconomy.ts';
@@ -12,6 +13,7 @@ import {Icon} from './icons.tsx';
 import {t, playerName, type Language} from './i18n.ts';
 import {Tip, TipNote, TipRow, TipTitle} from './Tooltip.tsx';
 import {UnitIcon} from './UnitSelection.tsx';
+import {TerritoryConstruction} from './TerritoryConstruction.tsx';
 
 type Props = {
  state: GameState; selected: number; actor: number; eliminated: boolean; language: Language; hidden?: boolean;
@@ -38,6 +40,8 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const status = province.capture > 0 ? 'contested' : province.recovery > 0 ? 'recovering' : 'stable';
  const productionTime = UNITS[province.kind].train, capacity = regionCapacity(selected);
  const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
+ const recovery = recoveryMultiplier(province.recovery), production = rate * constructionProductionMultiplier(province) * recovery;
+ const income = INCOME_PER_RATE * rate * recovery;
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
  return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}
@@ -91,12 +95,13 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
    </div>
   </section>}
   {province.owner >= 0 && <dl className="province-ledger">
-   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`+${(INCOME_PER_RATE * rate).toFixed(1)}${text('perSecond')}`}>{text('regionIncome')}</TipTitle><TipNote>{text('incomePerSecond')}</TipNote></>}>
-    <dt><Icon name="coin" size={15}/>{text('regionIncome')}</dt><dd data-tone="good">+{(INCOME_PER_RATE * rate).toFixed(1)}{text('perSecond')}</dd>
+   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`+${income.toFixed(1)}${text('perSecond')}`}>{text('regionIncome')}</TipTitle><TipNote>{text('incomePerSecond')}</TipNote></>}>
+    <dt><Icon name="coin" size={15}/>{text('regionIncome')}</dt><dd data-tone="good">+{income.toFixed(1)}{text('perSecond')}</dd>
    </Tip>
-   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`×${rate.toFixed(1)}`}>{text('productionRate')}</TipTitle>{province.recovery > 0 && <TipRow label={text('recovering')} value="×0.5" tone="bad"/>}</>}>
-    <dt><Icon name="hammer" size={15}/>{text('productionRate')}</dt><dd>×{(rate * (province.recovery > 0 ? .5 : 1)).toFixed(1)}</dd>
+   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`×${production.toFixed(2)}`}>{text('productionRate')}</TipTitle>{province.recovery > 0 && <TipRow label={text('recovering')} value={`×${recovery.toFixed(2)}`} tone="bad"/>}</>}>
+    <dt><Icon name="hammer" size={15}/>{text('productionRate')}</dt><dd>×{production.toFixed(2)}</dd>
    </Tip>
   </dl>}
+  <TerritoryConstruction state={state} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={onCommand}/>
  </DockPanel>;
 }

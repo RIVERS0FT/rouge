@@ -9,6 +9,7 @@ import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
 
+import {CONSTRUCTION,STARTING_CONSTRUCTION_FUNDS,MAX_CONSTRUCTION_FUNDS,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,constructionIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
 import { destinationRoom, isRegionGarrison } from './capacity.ts';
 import { DT, MAP_ID, KINDS, STATS, TALENTS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup, talentApplies } from './content.ts';
 import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
@@ -17,7 +18,7 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||campaign.length>100)throw new Error('invalidSetup');
   const s:GameState={version:5,map:MAP_ID,campaign,seed,rng:(seed>>>0)||1,tick:0,nextId:1,topology:0,grouping:structuredClone(INITIAL_TERRITORY_GROUPING),players:[],provinces:MAP.map(p=>({id:p.id,owner:-1,production:0,kind:'infantry',recovery:0,captor:-1,capture:0})),units:[],events:[],winner:null,domination:setups.map(()=>0)};
-  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
+  s.players=setups.map((p,id)=>({id,name:p.name.trim(),leader:p.leader,...(p.flag?{flag:structuredClone(p.flag)}:{}),loadout:[...p.loadout],ai:p.ai??false,gold:120,constructionFunds:STARTING_CONSTRUCTION_FUNDS,xp:0,level:1,upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}])) as Player['upgrades'],talents:[],choices:[],drafts:0,rerolls:1}));
   // Equal initial budgets: two complete locked gameplay regions and five
   // troops per region.
   const startingTroops=new Map<number,number>();
@@ -88,6 +89,21 @@ export class Engine{
         // Only the original contingent keeps this order open. Reinforcements
         // follow it without extending its lifetime indefinitely.
         if(c.fraction===1)from.march={to:c.to,unitIds};else delete from.march;
+        return{ok:true};
+      }
+      case 'construct':{
+        if(!Number.isInteger(c.province)||!isConstructionKind(c.kind)||(c.expectedLevel!==0&&c.expectedLevel!==1))return fail('invalidCommand');
+        const province=s.provinces[c.province];
+        if(!province||!MAP[c.province]?.playable||province.owner!==actor)return fail('notOwner');
+        if(province.capture>0)return fail('constructionContested');
+        const level=province.construction?.level??0;
+        if(province.construction&&province.construction.kind!==c.kind)return fail('slotOccupied');
+        if(level===2)return fail('maxLevel');
+        if(level!==c.expectedLevel)return fail('constructionChanged');
+        const cost=CONSTRUCTION[c.kind].costs[level],funds=p.constructionFunds??STARTING_CONSTRUCTION_FUNDS;
+        if(funds+1e-7<cost)return fail('noFunds');
+        p.constructionFunds=Math.max(0,funds-cost);
+        province.construction={kind:c.kind,level:level===0?1:2};
         return{ok:true};
       }
       case 'production':{
@@ -210,14 +226,18 @@ export class Engine{
       if(attacker>=0){
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
         const player=s.players[attacker],engineers=nearby.some(u=>u.kind==='engineer');
-        province.capture+=DT*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
-        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=15;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+        province.capture+=DT*captureSpeedMultiplier(province)*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
+        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=CAPTURE_RECOVERY_SECONDS;province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.gold+=30;s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
-      if(province.owner<0)continue;const owner=s.players[province.owner];owner.gold+=DT*0.5*regionProductionRate(province.id);province.recovery=Math.max(0,province.recovery-DT);
+      if(province.owner<0)continue;
+      const owner=s.players[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery);
+      owner.gold+=DT*.5*rate*recovery;
+      owner.constructionFunds=Math.min(MAX_CONSTRUCTION_FUNDS,(owner.constructionFunds??STARTING_CONSTRUCTION_FUNDS)+DT*constructionIncomeRate(province,rate));
+      province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
       if(garrison+(reservations.get(popKey(province.owner,province.id))??0)>=regionCapacity(province.id))continue;
-      province.production+=DT*regionProductionRate(province.id)*(province.recovery>0?0.5:1)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
+      province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;}
     }
     // Include troops trained during this order, but stop once its original
