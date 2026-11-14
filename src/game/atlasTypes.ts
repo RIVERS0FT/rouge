@@ -2,6 +2,6 @@
 export interface AdminAtlas {
  format:number;mapId:string;source:string;sourceRevision:string;
  provinces:{id:string;code:string;sourceId:number;name:[string,string];country:string;center:[number,number];geometry:number[][][][];neighbors:number[]}[];
- gameplayGroups:{id:string;atomIds:string[];legacyHint:number|null;reason:string}[];
+ gameplayGroups:{id:string;atomIds:string[];legacyHint:number|null;reason:string;displayName?:[string,string]}[];
  initialGroups:{id:string;atomIds:string[];legacyHint:number|null;reason:string}[];
 }

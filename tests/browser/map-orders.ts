@@ -26,7 +26,7 @@ export async function saveOrders(page:Page){
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Map order result');await page.getByTestId('create-save').click();
  return page.evaluate(()=>{
-  const saves=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v4.')&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
+  const saves=Object.keys(localStorage).filter(k=>k.startsWith('rouge.save.natural-earth-admin1.regions.v5.')&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
   const save=saves.find(s=>s.name==='Map order result');
   if(!save)throw Error('Map order result save missing');
   return JSON.parse(save.body).units.filter((u:any)=>u.owner===0&&u.destination!==null);

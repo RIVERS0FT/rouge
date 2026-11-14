@@ -1,6 +1,6 @@
 # Locked gameplay regions, map v3
 
-> 地图 v3 历史记录。当前 v4 增量、存档和联机规则见 [STATE_REGION_CONSOLIDATION.md](STATE_REGION_CONSOLIDATION.md)。
+> 地图 v3 历史记录。[v4 增量](STATE_REGION_CONSOLIDATION.md)与[当前 v5 增量、存档及联机规则](STATE_REGION_REFERENCE_1_15.md)另见说明。
 
 ## Actual operational map
 

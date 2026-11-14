@@ -2,7 +2,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {consolidateStateRegions} from './apply-state-region-consolidation.mjs';
+import {consolidateStateRegions,applyCurrentStateMergers} from './apply-state-region-consolidation.mjs';
 const root=new URL('../',import.meta.url),output=new URL('src/generated/world.json',root);
 async function writeChanged(path,content){
   const bytes=typeof content==='string'?Buffer.from(content):content;
@@ -18,12 +18,15 @@ const partition=JSON.parse(gunzipSync(partitionBytes));
 if(partition.schema!==1||partition.sourceSha256!==createHash('sha256').update(compressed).digest('hex')||!Array.isArray(partition.groups))throw new Error('Gameplay partition does not match the source atlas');
 if(partition.overridesSha256!==createHash('sha256').update(await readFile(new URL('data/gameplay-region-overrides.json',root))).digest('hex'))throw new Error('Gameplay overrides require partition regeneration');
 const decisions=JSON.parse(await readFile(new URL('data/state-region-consolidation.json',root)));
+const overlapAudit=await readFile(new URL('data/admin1-overlap-audit.json',root));
 if(decisions.basePartitionSha256!==createHash('sha256').update(partitionBytes).digest('hex')
- || decisions.overlapAuditSha256!==createHash('sha256').update(await readFile(new URL('data/admin1-overlap-audit.json',root))).digest('hex'))throw new Error('State-region consolidation requires the pinned base partition and overlap audit');
-const mergedGroups=consolidateStateRegions(source,partition.groups,decisions);
+ || decisions.overlapAuditSha256!==createHash('sha256').update(overlapAudit).digest('hex'))throw new Error('State-region consolidation requires the pinned base partition and overlap audit');
+const historicalGroups=consolidateStateRegions(source,partition.groups,decisions);
+const currentDecisions=JSON.parse(await readFile(new URL('data/state-region-1.15.1-overrides.json',root)));
+const mergedGroups=applyCurrentStateMergers(source,historicalGroups,currentDecisions,JSON.parse(overlapAudit));
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
-const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:mergedGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason}))};
+const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:mergedGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{})}))};
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);

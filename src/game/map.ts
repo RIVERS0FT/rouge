@@ -1,7 +1,7 @@
 /** The operational map is the locked output of the SAME grouping kernel used
  * for in-game merge/split. Raw Natural Earth shapes and topology are retained
  * separately; no destructive dissolve or historical-boundary fabrication. */
-import {SOURCE_MAP,PREPROCESSED_GROUPING,SOURCE_TOPOLOGY,contains,containsPart,boundsOf} from './sourceMap.ts';
+import {SOURCE_MAP,PREPROCESSED_GROUPING,PREPROCESSED_GROUP_NAMES,SOURCE_TOPOLOGY,contains,containsPart,boundsOf} from './sourceMap.ts';
 import {createTerritoryGrouping,type TerritoryTopology} from './territoryGrouping.ts';
 import {MAP_ID} from './content.ts';
 import {WORLD_BOUNDS,PROJECTION_ID,CROP_ID,NORTH_LATITUDE,SOUTH_LATITUDE} from './geo.ts';
@@ -22,13 +22,13 @@ export const MAP:ProvinceDef[]=PREPROCESSED_GROUPING.groups.map((group,id)=>{
  const parts=members.flatMap(p=>p.parts),navigationPart=parts.indexOf(primary.parts[primary.navigationPart]);
  const visibleBounds=members.filter(p=>p.visible).map(p=>p.bounds);
  const bounds=visibleBounds.length?{left:Math.min(...visibleBounds.map(b=>b.left)),right:Math.max(...visibleBounds.map(b=>b.right)),top:Math.min(...visibleBounds.map(b=>b.top)),bottom:Math.max(...visibleBounds.map(b=>b.bottom))}:primary.bounds;
- return {...primary,id,code:group.atoms[0],sourceAtoms:[...group.atoms],locked:true,parts,polygon:parts[navigationPart][0],navigationPart,bounds,neighbors:[],visible:members.some(p=>p.visible),playable:members.some(p=>p.playable),cropped:members.some(p=>p.cropped)};
+ return {...primary,id,code:group.atoms[0],name:PREPROCESSED_GROUP_NAMES.get(group.atoms[0])??primary.name,sourceAtoms:[...group.atoms],locked:true,parts,polygon:parts[navigationPart][0],navigationPart,bounds,neighbors:[],visible:members.some(p=>p.visible),playable:members.some(p=>p.playable),cropped:members.some(p=>p.cropped)};
 });
 export const SOURCE_TO_REGION:Readonly<Record<string,number>>=Object.freeze(Object.fromEntries(MAP.flatMap(p=>p.sourceAtoms!.map(code=>[code,p.id]))));
 for(const region of MAP){const neighbors=new Set<number>();for(const code of region.sourceAtoms!)for(const source of sourceByCode.get(code)!.neighbors){const id=SOURCE_TO_REGION[SOURCE_MAP[source].code];if(id!==region.id)neighbors.add(id);}region.neighbors=[...neighbors].sort((a,b)=>a-b);}
 export const VISIBLE_COUNT=MAP.filter(p=>p.visible).length;
 export const PLAYABLE_COUNT=MAP.filter(p=>p.playable).length;
-export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v4',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
+export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v5',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
 const SIZE=25,index=new Map<string,{id:number;part:Vec2[][];bounds:ReturnType<typeof boundsOf>}[]>();
 for(const p of MAP)if(p.visible)for(const part of p.parts){
  const bounds=intersectBounds(boundsOf(part[0]),BOUNDS);if(!bounds)continue;

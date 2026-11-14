@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.15.1",
+  "referenceCatalog": "https://vic3tabula.com/en/states",
+  "referenceChangelog": "https://store.steampowered.com/news/app/529340/view/680766201707627231",
+  "merges": [
+    {
+      "referenceState": "STATE_KAMCHATKA",
+      "removedState": "STATE_CHUKOTKA",
+      "primary": "group:RUS-3468",
+      "fragment": "group:RUS-2321",
+      "primaryStateId": 571,
+      "fragmentStateId": 570,
+      "primarySourceIds": ["RUS-3468"],
+      "fragmentSourceIds": ["RUS-2321"],
+      "displayName": ["堪察加", "Kamchatka"]
+    }
+  ]
+}
