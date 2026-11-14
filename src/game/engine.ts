@@ -405,7 +405,7 @@ export class Engine{
             .sort((a,b)=>Math.hypot(a.center.x-MAP[province.id].center.x,a.center.z-MAP[province.id].center.z)-Math.hypot(b.center.x-MAP[province.id].center.x,b.center.z-MAP[province.id].center.z)||a.id-b.id).slice(0,4);
           destination=candidates.find(m=>this.navigation.plan(MAP[province.id].center,m.center))?.id;
         }
-        if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:Math.max(0.75,1/units.length)});
+        if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:1});
       }
     }
   }
