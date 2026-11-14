@@ -9,7 +9,7 @@ import {validateTerritoryGrouping} from '../src/game/territoryGrouping.ts';
 const setups=[{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'steward',loadout:['infantry']}];
 test('actual gameplay map retains every source geometry and stable member while reducing operational records',()=>{
  assert.throws(()=>provinceByCode('constructor'),/Unknown province/);assert.throws(()=>provinceByCode('__proto__'),/Unknown province/);
- assert.equal(SOURCE_MAP.length,4596);assert.equal(MAP.length,1162);assert.equal(PLAYABLE_COUNT,1158);
+ assert.equal(SOURCE_MAP.length,4596);assert.equal(MAP.length,1154);assert.equal(PLAYABLE_COUNT,1150);
  assert.equal(validateTerritoryGrouping(SOURCE_TOPOLOGY,PREPROCESSED_GROUPING),true);
  assert.equal(PREPROCESSED_GROUPING.lockedParts.length,MAP.length);
  const seen=new Set();for(const region of MAP){assert.equal(region.locked,true);for(const code of region.sourceAtoms){assert.equal(seen.has(code),false);seen.add(code);const source=SOURCE_MAP.find(p=>p.code===code);assert.equal(SOURCE_TO_REGION[code],region.id);assert.equal(provinceByCode(code),region.id);for(const part of source.parts)assert.ok(region.parts.includes(part),'source ring topology is retained, not destructively dissolved');if(source.playable)assert.equal(provinceAt(source.center.x,source.center.z),region.id,code);}}
@@ -19,7 +19,7 @@ test('source administrative searches resolve to the same selectable production a
  const region=MAP.find(p=>p.playable&&p.sourceAtoms.length>=3),codes=region.sourceAtoms;
  for(const code of codes)assert.equal(searchProvinces(code)[0].id,region.id);
  const s=createGame(setups,42);s.units=[];for(const p of s.provinces){p.owner=-1;p.production=0;}s.provinces[region.id].owner=0;s.provinces[MAP.find(p=>p.playable&&p.id!==region.id).id].owner=1;s.grouping=reconcileGrouping(s);
- const e=new Engine(s);assert.equal(e.state.provinces.length,1162);assert.equal(regionCapacity(region.id),12);assert.equal(regionProductionRate(region.id),1);
+ const e=new Engine(s);assert.equal(e.state.provinces.length,1154);assert.equal(regionCapacity(region.id),12);assert.equal(regionProductionRate(region.id),1);
  for(const code of codes)assert.equal(e.command(0,{type:'production',province:provinceByCode(code),kind:'infantry'}).ok,true);
  const queue=e.state.provinces[region.id];queue.production=14-DT/2;e.step();
  assert.equal(e.state.units.filter(u=>u.owner===0&&u.province===region.id).length,1,'all original members share one training queue');

@@ -2,6 +2,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {consolidateStateRegions} from './apply-state-region-consolidation.mjs';
 const root=new URL('../',import.meta.url),output=new URL('src/generated/world.json',root);
 async function writeChanged(path,content){
   const bytes=typeof content==='string'?Buffer.from(content):content;
@@ -12,12 +13,17 @@ const compressed=await readFile(new URL('data/natural-earth-admin1-base.json.gz'
 if(createHash('sha256').update(compressed).digest('hex')!=='3206750f49f264d247f1590571365d14d72a0d2aa020c7be5f2d10223db835ff')throw new Error('Natural Earth atlas checksum mismatch');
 const source=JSON.parse(gunzipSync(compressed));
 if(source.format!==1||source.mapId!=='earth-natural-earth-admin1-511-v1'||source.provinces.length!==4596)throw new Error('Invalid administrative atlas');
-const partition=JSON.parse(gunzipSync(await readFile(new URL('data/gameplay-region-partition.json.gz',root))));
+const partitionBytes=await readFile(new URL('data/gameplay-region-partition.json.gz',root));
+const partition=JSON.parse(gunzipSync(partitionBytes));
 if(partition.schema!==1||partition.sourceSha256!==createHash('sha256').update(compressed).digest('hex')||!Array.isArray(partition.groups))throw new Error('Gameplay partition does not match the source atlas');
 if(partition.overridesSha256!==createHash('sha256').update(await readFile(new URL('data/gameplay-region-overrides.json',root))).digest('hex'))throw new Error('Gameplay overrides require partition regeneration');
+const decisions=JSON.parse(await readFile(new URL('data/state-region-consolidation.json',root)));
+if(decisions.basePartitionSha256!==createHash('sha256').update(partitionBytes).digest('hex')
+ || decisions.overlapAuditSha256!==createHash('sha256').update(await readFile(new URL('data/admin1-overlap-audit.json',root))).digest('hex'))throw new Error('State-region consolidation requires the pinned base partition and overlap audit');
+const mergedGroups=consolidateStateRegions(source,partition.groups,decisions);
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
-const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:partition.groups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason}))};
+const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:mergedGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason}))};
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);
@@ -28,7 +34,7 @@ if(!old?.equals(raw))await writeFile(output,raw);
 const moduleText="import atlas from './world.json' with {type:'json'};\nexport default atlas;\n";
 await writeChanged(new URL('src/generated/world.js',root),moduleText);
 await writeChanged(new URL('src/generated/world.d.ts',root),"import type {AdminAtlas} from '../game/atlasTypes.ts';\ndeclare const atlas:AdminAtlas;\nexport default atlas;\n");
-console.log(`Natural Earth atlas: ${atlas.provinces.length} complete Admin1 atoms; ${atlas.initialGroups.length} approximate initial groups.`);
+console.log(`Natural Earth atlas: ${atlas.provinces.length} complete Admin1 atoms; ${atlas.gameplayGroups.length} locked gameplay groups.`);
 
 // Independent physical land/water mesh, generated offline, never on CI.
 const terrain=gunzipSync(await readFile(new URL('data/terrain-navigation.json.gz',root)));
