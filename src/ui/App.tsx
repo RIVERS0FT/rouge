@@ -302,7 +302,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  return <div className={`app ${screen === 'menu' ? 'is-menu' : screen === 'game' ? 'is-game' : 'is-lobby'}`} data-layout={compact ? 'compact' : 'wide'} data-dock={dock ?? 'none'}
   data-input-device={inputDevice} data-resource-state="ready" data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <SessionLifetime session={session}/>
-  <World state={state} selected={screen === 'game' ? selected : -1} language={language} onPick={selectProvince} onMode={() => {}} worldRef={world}/>
+  <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' && !eliminated ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target) => {for(const source of sources) issue(countryActions.march(source,target));}} worldRef={world}/>
   <div className="map-vignette"/>
   {screen !== 'game' && <div className="language-switch">
    <button type="button" className={language === 'zh' ? 'active' : ''} onClick={() => setLanguage('zh')} aria-label="简体中文">中</button><span>/</span>
