@@ -1,4 +1,5 @@
 import {test,expect,type Page} from '@playwright/test';
+import pkg from '../../package.json' with {type: 'json'};
 
 async function noTechnicalCopy(page:Page){
  await expect(page.locator('.atlas-credit,.input-hint,.platform-note,.settings-controls,.territory-group-id')).toHaveCount(0);
@@ -54,6 +55,7 @@ for(const language of ['zh','en'] as const)test(`${language}: concise menus and 
  await expect(page.getByRole('dialog')).toContainText(zh?'经验':'XP');await noTechnicalCopy(page);
  await page.keyboard.press('Escape');await page.getByTestId('open-settings').click();
  await expect(page.getByTestId('settings-save')).toBeEnabled();
+ await expect(page.getByTestId('game-version')).toHaveText(`v${pkg.version}`);
  await expect(page.locator('.settings-status')).toContainText(zh?'已暂停':'paused');await noTechnicalCopy(page);
  await page.screenshot({path:`artifacts/concise-settings-${language}.png`});
  await page.getByTestId('settings-resume').click();await expect(page.getByRole('dialog')).toHaveCount(0);

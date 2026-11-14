@@ -79,7 +79,10 @@ try{
  await page.screenshot({path:'artifacts/pages-live-battle.png'});
  checks.push('territory ownership, garrison and production without march controls; compact flag-only top identity');
  checks.push('unit upgrade');
- await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
+ await page.getByTestId('open-settings').click();
+ await expect(page.getByTestId('game-version')).toHaveText(`v${info.version}`);
+ checks.push('settings version matches deployed manifest');
+ await page.getByTestId('settings-save').click();
  await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages verification');
  await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Pages verification'})).toBeVisible();
