@@ -6,7 +6,7 @@ import {createGame} from '../src/game/engine.ts';
 import {encodeSave,decodeSave} from '../src/game/save.ts';
 const base={type:'custom',pattern:'solid',colors:['#123456','#abcdef','#FFFFFF']};
 const shape={kind:'rect',x:10,y:10,width:15,height:15,color:'#ffaa00'};
-test('drawn shapes are normalized and strictly bounded; legacy flags remain valid',()=>{
+test('drawn shapes are normalized and strictly bounded; custom flags may have no drawn shapes',()=>{
  assert.ok(validFlag(base));assert.ok(validFlag({type:'preset',id:'cn'}));
  for(const kind of FLAG_SHAPES)assert.ok(validFlag({...base,shapes:[{...shape,kind}]}));
  for(const bad of [{...shape,kind:'script'},{...shape,color:'url(https://evil)'},{...shape,x:Infinity},{...shape,x:10.123},{...shape,width:0},{...shape,y:59,height:2},{...shape,x:80,width:11},{...shape,kind:'circle',width:14},{...shape,onload:'bad'}])assert.equal(validFlagShape(bad),false);

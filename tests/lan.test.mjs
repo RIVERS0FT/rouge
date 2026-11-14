@@ -45,7 +45,7 @@ test('LAN rejects missing and obsolete rules for every room endpoint without mut
   const headers={'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID};
   const created=await fetch(base+'/api/rooms',{method:'POST',headers,body:JSON.stringify({setup})});
   assert.equal(created.status,201);const ticket=await created.json(),room=host.rooms.get(ticket.code);
-  for(const rules of [undefined,'legacy-land-only-v1','admin1-groups-terrain-collision-v2']){
+  for(const rules of [undefined,'legacy-land-only-v1','admin1-groups-terrain-collision-v2','admin1-locked-game-regions-neutral-garrisons-v11']){
    const incompatible={'Content-Type':'application/json','X-Rouge-Map':MAP_ID,Authorization:`Bearer ${ticket.token}`,...(rules?{'X-Rouge-Rules':rules}:{})};
    for(const [suffix,method,body]of [['','POST',{setup}],[`/${ticket.code}/join`,'POST',{setup}],[`/${ticket.code}/start`,'POST',{}],[`/${ticket.code}/command`,'POST',{command:{type:'upgrade',kind:'infantry',stat:'attack'}}],[`/${ticket.code}/info`,'GET'],[`/${ticket.code}/events`,'GET']]){
     const r=await fetch(base+'/api/rooms'+suffix,{method,headers:incompatible,body:body===undefined?undefined:JSON.stringify(body)});

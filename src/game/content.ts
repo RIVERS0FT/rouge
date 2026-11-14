@@ -2,13 +2,12 @@ import { validFlag } from './flags.ts';
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION='0.5.0';
-// Network protocol identity; independent of backwards-compatible local save schema.
-export const RULES_ID='admin1-locked-game-regions-neutral-garrisons-v11';
+// Bump the LAN protocol identity when its commands or state shape change.
+export const RULES_ID='admin1-locked-game-regions-v12';
 export const MAP_ID='earth-natural-earth-admin1-511-regions-v3' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];
-export const LEGACY_KINDS:Kind[]=['infantry','cavalry','artillery','engineer'];
 export type UnitFamily='infantry'|'cavalry'|'artillery'|'engineer';
 export const UNIT_FAMILY:Record<Kind,UnitFamily>={infantry:'infantry',cavalry:'cavalry',artillery:'artillery',engineer:'engineer',skirmisher:'infantry',grenadier:'infantry',heavyCavalry:'cavalry',horseArtillery:'artillery'};
 export function talentApplies(t:{kind?:Kind},loadout:Kind[]):boolean{return !t.kind||loadout.some(k=>UNIT_FAMILY[k]===UNIT_FAMILY[t.kind!]);}

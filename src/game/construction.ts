@@ -18,7 +18,7 @@ export function isConstructionKind(value: unknown): value is ConstructionKind {
 }
 export function constructionFunds(state: Pick<GameState,'players'>, owner: number): number {
  const player=state.players[owner];
- return player ? Math.floor((player.constructionFunds??STARTING_CONSTRUCTION_FUNDS)+1e-7) : 0;
+ return player ? Math.floor(player.constructionFunds+1e-7) : 0;
 }
 export function recoveryMultiplier(secondsRemaining: number): number {
  return 1-.5*Math.max(0,Math.min(1,secondsRemaining/CAPTURE_RECOVERY_SECONDS));

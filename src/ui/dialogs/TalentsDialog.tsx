@@ -1,5 +1,5 @@
 import {useEffect,useState,type MutableRefObject} from 'react';
-import {canRerollTalent,talentRerollCost,talentRerollsUsed} from '../../game/talentReroll.ts';
+import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
 import type {Player} from '../../game/types.ts';
 import {leaderProgress} from '../commanderIdentity.ts';
 import {LeaderBust} from '../LeaderBust.tsx';
@@ -16,7 +16,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
 }) {
  const text = (key: string) => t(language, key), progress = leaderProgress(player), rerollCost = talentRerollCost(player);
  // Progress and gold change on normal ticks; only an authoritative round changes this key.
- const round = JSON.stringify([campaign, player.id, player.talents.length, talentRerollsUsed(player), player.choices]);
+ const round = JSON.stringify([campaign, player.id, player.talents.length, player.rerollsUsed, player.choices]);
  return <>
   <div className="talent-hero">
    <div className="talent-portrait"><LeaderBust leader={player.leader} label={text(player.leader)}/></div>

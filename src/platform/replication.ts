@@ -19,7 +19,7 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   const players=state.players.map(p=>({...p,choices:p.id===actor?[...p.choices]:[]}));
   const delta=!!base&&base.campaign===state.campaign&&base.provinces.length===state.provinces.length;
   const previous=delta?base.neutral:undefined;
-  const useSparse=state.neutralGarrisonModel==='preplaced'&&state.units.every((u,i)=>u.id>(state.units[i-1]?.id??0)&&(u.owner>=0||regularNeutral(u)));
+  const useSparse=state.units.every((u,i)=>u.id>(state.units[i-1]?.id??0)&&(u.owner>=0||regularNeutral(u)));
   const current=useSparse?new Map<number,Unit>():undefined,updated:Unit[]=[],removed:number[]=[],fieldUnits:Unit[]=[];
   if(current){
     for(const u of state.units){
@@ -39,14 +39,14 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
-  if(frame.state.map!==MAP_ID||frame.state.version!==5)throw new Error('incompatibleMap');
+  if(frame.state.map!==MAP_ID||frame.state.version!==5||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw new Error('incompatibleMap');
   if(frame.type==='state'){if(!validGroupingState(frame.state))throw new Error('invalidSnapshot');return frame.state;}
   if(!current||current.campaign!==frame.campaign||current.tick!==frame.baseTick||frame.state.map!==current.map)throw new Error('snapshotGap');
   const provinces=current.provinces.slice();
   for(const p of frame.provinces){if(!Number.isInteger(p.id)||p.id<0||p.id>=provinces.length)throw new Error('invalidSnapshot');provinces[p.id]=p;}
   const next={...frame.state,grouping:frame.state.grouping??current.grouping,provinces};
   if(frame.neutral){
-    if(next.neutralGarrisonModel!=='preplaced'||current.neutralGarrisonModel!=='preplaced'||next.units.some(u=>u.owner<0))throw new Error('invalidSnapshot');
+    if(next.units.some(u=>u.owner<0))throw new Error('invalidSnapshot');
     const units=new Map<number,Unit>();
     for(const u of current.units)if(u.owner<0)units.set(u.id,u);
     for(const id of frame.neutral.removed)if(!units.delete(id))throw new Error('invalidSnapshot');

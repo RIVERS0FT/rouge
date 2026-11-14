@@ -1,4 +1,4 @@
-import {availableTalentIds,canRerollTalent,talentRerollCost,talentRerollsUsed} from './talentReroll.ts';
+import {availableTalentIds,canRerollTalent,talentRerollCost} from './talentReroll.ts';
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
@@ -83,7 +83,7 @@ export const MARCH_INTERVAL_TICKS=Math.max(1,Math.round(.25/DT));
 export class Engine{
   state:GameState;navigation=new TerrainNavigator();
   collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
-  constructor(state:GameState){this.state=structuredClone(state);for(const p of this.state.provinces)if(p.march&&!('pendingIds' in p.march))delete p.march;settleEliminations(this.state);this.clearBuildings();}
+  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
   command(actor:number,input:unknown):Result{
     const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
     if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
@@ -119,7 +119,7 @@ export class Engine{
         if(province.construction&&province.construction.kind!==c.kind)return fail('slotOccupied');
         if(level===2)return fail('maxLevel');
         if(level!==c.expectedLevel)return fail('constructionChanged');
-        const cost=CONSTRUCTION[c.kind].costs[level],funds=p.constructionFunds??STARTING_CONSTRUCTION_FUNDS;
+        const cost=CONSTRUCTION[c.kind].costs[level],funds=p.constructionFunds;
         if(funds+1e-7<cost)return fail('noFunds');
         p.constructionFunds=Math.max(0,funds-cost);
         province.construction={kind:c.kind,level:level===0?1:2};
@@ -149,7 +149,7 @@ export class Engine{
         }
         if(p.gold<cost)return fail('noGold');
         const previous=p.choices;
-        p.gold-=cost;p.rerollsUsed=talentRerollsUsed(p)+1;delete p.rerolls;
+        p.gold-=cost;p.rerollsUsed++;
         p.choices=[];draft(s,p,previous);return{ok:true};
       }
       default:return fail('invalidCommand');
@@ -158,7 +158,6 @@ export class Engine{
   step(count=1):void{for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
   private activeUnits():Unit[]{
     const s=this.state;
-    if(s.neutralGarrisonModel!=='preplaced')return s.units;
     // Preplaced neutral guards never travel on their own. Keep them as actual
     // units for rendering, saves and province accounting, but skip remote idle
     // simulation. A full cell of padding exceeds any attack/splash range plus
@@ -268,7 +267,7 @@ export class Engine{
     const queuedReservations=new Map<number,number>();
     for(const province of s.provinces){
       const order=province.march;
-      if(!order||!('pendingIds' in order)||!order.reserved||province.owner!==order.owner||s.provinces[order.to].owner!==order.owner)continue;
+      if(!order||!order.reserved||province.owner!==order.owner||s.provinces[order.to].owner!==order.owner)continue;
       const key=popKey(order.owner,order.to);queuedReservations.set(key,(queuedReservations.get(key)??0)+order.pendingIds.length);
     }
     const byProvince=new Map<number,Unit[]>();
@@ -287,7 +286,7 @@ export class Engine{
       if(province.owner<0)continue;
       const owner=s.players[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery);
       owner.gold+=DT*.5*rate*recovery;
-      owner.constructionFunds=Math.min(MAX_CONSTRUCTION_FUNDS,(owner.constructionFunds??STARTING_CONSTRUCTION_FUNDS)+DT*constructionIncomeRate(province,rate));
+      owner.constructionFunds=Math.min(MAX_CONSTRUCTION_FUNDS,owner.constructionFunds+DT*constructionIncomeRate(province,rate));
       province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
       if(owners.some(id=>id!==province.owner))continue;
       const garrison=occupants.filter(u=>u.owner===province.owner).length;
@@ -295,7 +294,7 @@ export class Engine{
       if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=regionCapacity(province.id))continue;
       province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
       if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;
-        else if(province.march&&'pendingIds' in province.march&&province.march.owner===province.owner)
+        else if(province.march&&province.march.owner===province.owner)
           province.march={...province.march,pendingIds:[...province.march.pendingIds,s.nextId-1]};}
     }
     this.releaseMarches();
@@ -319,7 +318,7 @@ export class Engine{
     for(const province of s.provinces){
       const order=province.march;if(!order)continue;
       const owner=province.owner;
-      if(owner<0||!('pendingIds' in order)||order.owner!==owner){delete province.march;continue;}
+      if(owner<0||order.owner!==owner){delete province.march;continue;}
       const pending=order.pendingIds.filter(id=>{const u=units.get(id);return u&&isRegionGarrison(u,owner,province.id);});
       if(!pending.length){delete province.march;continue;}
       if(province.lastMarchTick!==undefined&&s.tick-province.lastMarchTick<MARCH_INTERVAL_TICKS){
@@ -343,7 +342,7 @@ export class Engine{
     return null;
   }
   private halt(unit:Unit):void {delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
-  /** Repair old saves / newly disembarked units that started inside a house.
+  /** Keep loaded and newly disembarked units clear of houses.
    * Only same-land, same-province (or certified route corridor) candidates count. */
   private clearBuildings(units:readonly Unit[]=this.state.units):void {
     for(const u of [...units].sort((a,b)=>a.id-b.id)){
@@ -396,7 +395,7 @@ export class Engine{
       if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
       if(p.gold>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
       for(const id of territories.get(p.id)??[]){
-        const province=s.provinces[id];if(province.march&&'pendingIds' in province.march)continue;
+        const province=s.provinces[id];if(province.march)continue;
         const units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
         // Small administrative atoms must be able to move a full garrison.
         if(units.length<Math.min(4,regionCapacity(province.id))||!units.length)continue;

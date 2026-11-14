@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {assignCountryNames,countryName,COUNTRY_FORMS,validCountryIdentity} from '../src/game/countryNames.ts';
 import {createGame} from '../src/game/engine.ts';
 import {MAP} from '../src/game/map.ts';
-import {chooseSpawnRegions,chooseLegacySpawnPairs,makeAISetups,getSpawnCapacity} from '../src/game/spawns.ts';
+import {chooseSpawnRegions,makeAISetups,getSpawnCapacity} from '../src/game/spawns.ts';
 import {encodeSave,decodeSave,validateState,checksum} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {playerName} from '../src/ui/i18n.ts';
@@ -52,34 +52,12 @@ test('country names persist through saves, full and delta LAN frames and conques
  assignCountryNames(state.players,state.players.map(()=>MAP[0]));assert.deepEqual(state.players.map(p=>p.country),names);
  const invalid=structuredClone(updated);invalid.players[0].country=invalid.players[2].country;assert.equal(countryName('zh',invalid.players[0]),human.name);invalid.players[2].country.name[0]='';assert.equal(validateState(invalid),false);
 });
-test('old paired-start v5 saves retain both domains and recover historical AI birthplaces',()=>{
- const state=createGame([human,...makeAISetups(3)],71);
- const legacy=chooseLegacySpawnPairs(state.seed,state.players.length);
- delete state.spawnModel;
- for(const p of state.players)delete p.country;
- const expected=structuredClone(state.players);
- assignCountryNames(expected,legacy.map(pair=>MAP[pair[0]]));
- state.units=state.units.filter(u=>u.owner>=0).map(u=>{
-  const id=legacy[u.owner][0],{x,z}=MAP[id].center;
-  return {...u,province:id,origin:id,x,z};
- });
- for(const p of state.provinces){p.owner=-1;p.kind='infantry';}
- for(const [actor,regions] of legacy.entries())for(const id of regions){
-  state.provinces[id].owner=actor;state.provinces[id].kind=state.players[actor].loadout[0];
- }
- const envelope=JSON.parse(encodeSave(state,'Old campaign'));const loaded=decodeSave(JSON.stringify(envelope)).state;
- assert.deepEqual(loaded.players.map(p=>p.country),expected.map(p=>p.country));
- assert.deepEqual(loaded.provinces,state.provinces);
- assert.deepEqual(loaded.units,state.units);
- for(const p of loaded.players)assert.equal(loaded.provinces.filter(v=>v.owner===p.id).length,2);
- const malformed=JSON.parse(envelope.body);malformed.players[1].country={origin:'x',name:['','']};envelope.body=JSON.stringify(malformed);envelope.hash=checksum(envelope.body);
- assert.throws(()=>decodeSave(JSON.stringify(envelope)),/invalidSave/);
-});
-
-test('new single-start saves can recover missing AI names from their own birthplaces',()=>{
- const state=createGame([human,...makeAISetups(3)],71),expected=state.players.map(p=>p.country);
- for(const p of state.players)delete p.country;
- assert.deepEqual(decodeSave(encodeSave(state,'Missing name')).state.players.map(p=>p.country),expected);
+test('current saves reject missing AI identities and historical paired starts without migration',()=>{
+ const state=createGame([human,...makeAISetups(3)],71),envelope=JSON.parse(encodeSave(state,'Current'));
+ const wrap=mutate=>{const old=JSON.parse(envelope.body);mutate(old);const body=JSON.stringify(old);return JSON.stringify({...envelope,body,hash:checksum(body)});};
+ assert.throws(()=>decodeSave(wrap(s=>delete s.spawnModel)),/invalidSave/);
+ assert.throws(()=>decodeSave(wrap(s=>delete s.players[1].country)),/invalidSave/);
+ assert.throws(()=>decodeSave(wrap(s=>s.players[1].country={origin:'x',name:['','']})),/invalidSave/);
 });
 
 test('browser country fixture is a valid playable save before any UI is launched',()=>{

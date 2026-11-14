@@ -7,7 +7,7 @@ import type {Player, Vec2} from './types.ts';
  * Each computer faction flies the real flag of the country it spawned in;
  * when that flag is already flown (or the country has none in the catalog) it
  * takes the nearest unused national flag instead. The result is derived from
- * the shared state alone, so every client and every old save agrees on it
+ * the shared state alone, so every participant sees the same flag
  * without anything new being stored or sent over the network. */
 type FlagOwner = Pick<Player, 'id' | 'flag' | 'country'>;
 

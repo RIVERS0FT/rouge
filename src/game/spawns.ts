@@ -1,5 +1,5 @@
 import sites from '../../data/spawn-sites.json' with {type:'json'};
-import {BOUNDS,MAP,INITIAL_TERRITORY_GROUPING} from './map.ts';
+import {BOUNDS,MAP} from './map.ts';
 import {TERRAIN_REVISION} from './terrain-navigation.ts';
 import {KINDS,LEADERS,MAP_ID} from './content.ts';
 import type {PlayerSetup} from './types.ts';
@@ -11,11 +11,6 @@ const availableRegions=new Set<number>();
 for(const id of sites.regions){
  if(!MAP[id]?.playable||!MAP[id].locked||availableRegions.has(id))throw new Error('noSpawnRegions');
  availableRegions.add(id);
-}
-const allocatedGroups=new Set<string>();
-for(const pair of sites.pairs){
- if(pair.length!==2)throw new Error('noSpawnRegions');
- for(const id of pair){const group=INITIAL_TERRITORY_GROUPING.atomToGroup[MAP[id]?.code];if(!group||allocatedGroups.has(group))throw new Error('noSpawnRegions');allocatedGroups.add(group);}
 }
 export function getSpawnCapacity():number{return availableRegions.size;}
 /** Server/local-session-owned AI seats. A lobby client can request only a count. */
@@ -45,23 +40,4 @@ export function chooseSpawnRegions(seed:number,count:number):number[]{
   }
  }
  return order;
-}
-const cache=new Map<number,[number,number][]>();
-/** Keep historical AI birthplaces for old saves lacking a stored identity. New
- * campaigns do not use the paired allocation. */
-export function chooseLegacySpawnPairs(seed:number,count:number):[number,number][]{
- if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||!Number.isSafeInteger(count)||count<2||count>sites.pairs.length)throw new Error('invalidSetup');
- let order=cache.get(seed);
- if(!order){
-  const remaining=sites.pairs.map((pair,index)=>({pair:pair as [number,number],index,distance:Infinity}));
-  order=[];
-  while(remaining.length){
-   let best=0;
-   for(let i=1;i<remaining.length;i++)if(remaining[i].distance>remaining[best].distance||(remaining[i].distance===remaining[best].distance&&(hash(seed,remaining[i].index)<hash(seed,remaining[best].index))))best=i;
-   const [selected]=remaining.splice(best,1);order.push(selected.pair);
-   for(const candidate of remaining)for(const a of candidate.pair)for(const b of selected.pair){const pa=MAP[a].center,pb=MAP[b].center;candidate.distance=Math.min(candidate.distance,(pa.x-pb.x)**2+(pa.z-pb.z)**2);}
-  }
-  if(cache.size>=32)cache.delete(cache.keys().next().value!);cache.set(seed,order);
- }
- return order.slice(0,count).map(pair=>[...pair]);
 }

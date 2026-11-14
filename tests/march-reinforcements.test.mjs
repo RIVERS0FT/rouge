@@ -121,10 +121,10 @@ test('saves and ordered LAN deltas preserve queue creation, cooldown and complet
  assert.equal(third.provinces[from].lastMarchTick,MARCH_INTERVAL_TICKS);
 });
 
-test('legacy follow records load without creating a new dispatch and malformed queues are rejected',()=>{
+test('legacy follow records and malformed queues are rejected',()=>{
  const {e,from,to}=garrisonFixture({count:1}),id=e.state.units[0].id;
  e.state.provinces[from].march={to,unitIds:[id]};
- assert.ok(validateState(e.state));assert.equal(new Engine(decodeSave(encodeSave(e.state,'Legacy')).state).state.provinces[from].march,undefined);
+ assert.equal(validateState(e.state),false);assert.throws(()=>encodeSave(e.state,'Legacy'),/invalidSave/);
  for(const march of [null,{}, {to:from,unitIds:[id]},{to:MAP.length,unitIds:[id]},{to,unitIds:[]},{to,unitIds:[id,id]},{to,owner:1,pendingIds:[id]},{to,owner:0,pendingIds:[e.state.nextId-1] ,reserved:false}]){
   const s=structuredClone(e.state);s.provinces[from].march=march;assert.equal(validateState(s),false);
  }

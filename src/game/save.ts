@@ -1,8 +1,7 @@
-import {getSpawnCapacity,chooseSpawnRegions,chooseLegacySpawnPairs} from './spawns.ts';
-import {assignCountryNames,validCountryIdentity} from './countryNames.ts';
-import { settleEliminations } from './elimination.ts';
+import {getSpawnCapacity} from './spawns.ts';
+import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
-import { KINDS, LEGACY_KINDS, LEADERS, MAP_ID, TALENTS, STATS, PROVINCE_CAP, stats } from './content.ts';
+import { KINDS, LEADERS, MAP_ID, TALENTS, STATS, stats } from './content.ts';
 import {validateTravel} from './terrain-navigation.ts';
 import {regionCapacity,validGroupingState} from './territoryEconomy.ts';
 import {isRegionGarrison} from './capacity.ts';
@@ -19,14 +18,13 @@ const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isI
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
-  if(s.version!==5||s.map!==MAP_ID||(s.spawnModel!==undefined&&s.spawnModel!=='single')||(s.neutralGarrisonModel!==undefined&&s.neutralGarrisonModel!=='preplaced')||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
+  if(s.version!==5||s.map!==MAP_ID||s.spawnModel!=='single'||s.neutralGarrisonModel!=='preplaced'||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||(p.country!==undefined&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.gold,0,1e12)||(p.constructionFunds!==undefined&&!number(p.constructionFunds,0,MAX_CONSTRUCTION_FUNDS))||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!(p.rerollsUsed===undefined?integer(p.rerolls,0,1):p.rerolls===undefined&&integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)))return false;
-    // Preserve legacy multi-unit v5 saves; new campaigns are single-unit only.
-    if(!Array.isArray(p.loadout)||p.loadout.length<1||p.loadout.length>3||(p.loadout.length>1&&!p.loadout.includes('infantry'))||new Set(p.loadout).size!==p.loadout.length||!p.loadout.every(k=>KINDS.includes(k)))return false;
+    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.gold,0,1e12)||!number(p.constructionFunds,0,MAX_CONSTRUCTION_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
+    if(!Array.isArray(p.loadout)||p.loadout.length!==1||!KINDS.includes(p.loadout[0]))return false;
     if(!Array.isArray(p.talents)||p.talents.length>7||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
     if(!Array.isArray(p.choices)||p.choices.length>3||new Set(p.choices).size!==p.choices.length||!p.choices.every(t=>talentIds.includes(t)&&!p.talents.includes(t)))return false;
     if(!p.upgrades||!KINDS.every(k=>p.upgrades[k]&&STATS.every(st=>integer(p.upgrades[k][st],0,8))))return false;
@@ -42,13 +40,12 @@ export function validateState(value:unknown):value is GameState{
     if(p.march===undefined)continue;
     const order=p.march;
     if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable)return false;
-    if('pendingIds' in order&&(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)))return false;
-    const orderIds='pendingIds' in order?order.pendingIds:order.unitIds;
-    if(!Array.isArray(orderIds)||orderIds.length<1||('pendingIds' in order&&orderIds.length>s.units.length)||new Set(orderIds).size!==orderIds.length||!orderIds.every(id=>integer(id,1,s.nextId-1)))return false;
-    if('unitIds' in order&&order.unitIds.length>regionCapacity(p.id))return false;
+    if(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)||Object.hasOwn(order,'unitIds'))return false;
+    const orderIds=order.pendingIds;
+    if(!Array.isArray(orderIds)||orderIds.length<1||orderIds.length>s.units.length||new Set(orderIds).size!==orderIds.length||!orderIds.every(id=>integer(id,1,s.nextId-1)))return false;
   }
   const pending=new Map<number,number>();
-  for(const p of s.provinces){const order=p.march;if(order&&'pendingIds' in order)for(const id of order.pendingIds){if(pending.has(id))return false;pending.set(id,p.id);}}
+  for(const p of s.provinces){const order=p.march;if(order)for(const id of order.pendingIds){if(pending.has(id))return false;pending.set(id,p.id);}}
   const ids=new Set<number>(),population=new Map<string,number>();
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,0.00001,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
@@ -71,37 +68,18 @@ export function validateState(value:unknown):value is GameState{
   }
   return !pending.size&&s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
 }
-// Only old four-kind saves may gain zeroed upgrade entries. Validate strictly afterwards.
-function migrateLegacyRoster(value:unknown):void {
-  if(!value||typeof value!=='object')return;
-  const s=value as GameState;
-  if(s.version!==5||!Array.isArray(s.players)||!Array.isArray(s.units)||!Array.isArray(s.provinces))return;
-  if(!s.players.every(p=>p&&Array.isArray(p.loadout)&&p.loadout.every(k=>LEGACY_KINDS.includes(k)))
-    ||!s.units.every(u=>u&&LEGACY_KINDS.includes(u.kind))
-    ||!s.provinces.every(p=>p&&LEGACY_KINDS.includes(p.kind)))return;
-  for(const p of s.players){
-    if(!p.upgrades||typeof p.upgrades!=='object'||!LEGACY_KINDS.every(k=>p.upgrades[k]))continue;
-    for(const k of KINDS)if(!LEGACY_KINDS.includes(k)&&!Object.hasOwn(p.upgrades,k))p.upgrades[k]={attack:0,health:0,speed:0};
-  }
-}
-function restoreCountryNames(state:GameState):void {
-  const ids=state.spawnModel==='single'
-    ?chooseSpawnRegions(state.seed,state.players.length)
-    :chooseLegacySpawnPairs(state.seed,state.players.length).map(pair=>pair[0]);
-  assignCountryNames(state.players,ids.map(id=>MAP[id]));
-}
 // Integrity checksum only, not an anti-cheat signature.
 export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');migrateLegacyRoster(state);if(!validateState(state))throw new Error();if(state.players.some(p=>p.ai&&!p.country))restoreCountryNames(state);settleEliminations(state);return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{
   const key=slotKey(id),data=encodeSave(state,name),old=storage.getItem(key);
-  // setItem is atomic; preserve a verified previous revision before replacing current data.
-  if(old){try{decodeSave(old);storage.setItem(key+'.backup',old);}catch(e){if(e instanceof Error&&e.message!=='invalidSave')throw e;}}
+  // Never overwrite unreadable data; a current-format previous revision is backed up.
+  if(old!==null){decodeSave(old);storage.setItem(key+'.backup',old);}
   storage.setItem(key,data);
 }
 export function readSave(storage:StorageLike,id:string):{state:GameState;recovered:boolean}{
