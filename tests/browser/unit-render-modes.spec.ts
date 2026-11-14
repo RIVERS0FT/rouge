@@ -1,7 +1,7 @@
 import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
-const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs','--marching'],{encoding:'utf8',maxBuffer:16*1024*1024}));
 async function load(page:Page){
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
@@ -36,7 +36,7 @@ test('2D sprites and 3D models switch repeatedly without changing units or selec
   await expect(canvas).toHaveAttribute('data-rendered-instances',String(fixture.count));
   await expect(canvas).toHaveAttribute('data-total-units',String(fixture.total));
   await expect(canvas).toHaveAttribute('data-selected-region',selected!);
-  await expect(page.getByTestId('region-capacity')).toContainText(`${fixture.count} / ${fixture.regions[0].capacity}`);
+  await expect(page.getByTestId('region-capacity')).toContainText(`0 / ${fixture.regions[0].capacity}`);
   if(!pass)await page.screenshot({path:'artifacts/units-terrain-3d.png'});
  }
  expect(errors).toEqual([]);
@@ -73,7 +73,7 @@ test('phone pinch switches unit representation and resizing preserves the active
 });
 test('strategic sprites grow past the original 512-unit allocation',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);
- const capacity=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-capacity-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+ const capacity=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-capacity-fixture.mjs','--marching'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),capacity);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Capacity regression fixture'}).getByRole('button',{name:'载入',exact:true}).click();

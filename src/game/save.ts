@@ -18,7 +18,7 @@ const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isI
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
-  if(s.version!==5||s.map!==MAP_ID||(s.spawnModel!==undefined&&s.spawnModel!=='single')||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
+  if(s.version!==5||s.map!==MAP_ID||(s.spawnModel!==undefined&&s.spawnModel!=='single')||(s.neutralGarrisonModel!==undefined&&s.neutralGarrisonModel!=='preplaced')||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);

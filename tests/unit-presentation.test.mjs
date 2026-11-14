@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {KINDS} from '../src/game/content.ts';
-import {UNIT_GLYPHS,unitGlyph,unitRenderMode,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from '../src/render/unitPresentation.ts';
+import {UNIT_GLYPHS,unitGlyph,unitRenderMode,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged,mapUnitVisible} from '../src/render/unitPresentation.ts';
 import {createUnitSpriteMesh} from '../src/render/unitSprites.ts';
 
 test('2D and 3D units switch exclusively at the existing map mode boundary',()=>{
@@ -49,5 +49,18 @@ test('count, identity, ownership, class and embarkation changes invalidate immed
  assert.equal(unitPresentationChanged([visualUnit],[],2400,960),true);
  for(const change of [{id:2},{owner:1},{kind:'cavalry'},{transport:{embarked:true}}]){
   assert.equal(unitPresentationChanged([visualUnit],[{...visualUnit,...change}],2400,960),true);
+ }
+});
+
+
+test('map art hides all garrisons immediately, but never hides eligible field units or transports',()=>{
+ const stationed={...visualUnit,province:4,target:null};
+ for(const owner of [-1,0,3]){
+  const unit={...stationed,owner};
+  assert.equal(mapUnitVisible(unit),false);
+  assert.equal(mapUnitVisible({...unit,x:20,z:24}),false,'garrison collision movement is not marching');
+  assert.equal(mapUnitVisible({...unit,target:4}),true,'an arriving or capturing unit is still ordered');
+  assert.equal(mapUnitVisible({...unit,target:5,travel:{}}),true);
+  assert.equal(mapUnitVisible({...unit,target:5,transport:{embarked:true}}),true);
  }
 });

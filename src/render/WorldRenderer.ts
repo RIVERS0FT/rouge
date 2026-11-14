@@ -6,7 +6,7 @@ import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryTypography,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY,selectionOverlayLift} from './selectionGlow.ts';
-import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged} from './unitPresentation.ts';
+import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresentationChanged,mapUnitVisible} from './unitPresentation.ts';
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
 import {unitMotionSegment} from './unitMotionSegment.ts';
@@ -77,6 +77,7 @@ export class WorldRenderer {
   private overlayLiftUniform={value:1};
   private state:GameState|null=null;
   private renderedUnits:GameState['units']=[];
+  private mapUnits:GameState['units']=[];
   private boundaryEdges:BorderEdge[]=[];private groupingStamp='';
   private selected=-1;private hover=-1;private lang:'zh'|'en'='zh';
   private ownerIds=MAP.map(()=>-1);
@@ -228,8 +229,13 @@ export class WorldRenderer {
   update(state:GameState,selected:number,lang:'zh'|'en') {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
     // movements accumulate from the last rendered state, never the previous tick.
-    if(this.state!==state&&unitPresentationChanged(this.renderedUnits,state.units,this.distance,this.host.clientHeight))this.invalidated=true;
-    if(this.state!==state)this.unitMotion.update(state,performance.now());
+    if(this.state!==state){
+      this.mapUnits=state.units.filter(mapUnitVisible);
+      if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.host.clientHeight))this.invalidated=true;
+      this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},performance.now());
+      // The count is authoritative, even when changes to hidden garrisons need no draw.
+      if(this.state?.units.length!==state.units.length)this.renderer.domElement.dataset.totalUnits=String(state.units.length);
+    }
     if(this.state?.campaign!==state.campaign)this.invalidated=true;
     this.state=state;
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
@@ -534,12 +540,12 @@ export class WorldRenderer {
       if(r.count)this.captureTint.addUpdateRange(r.start*4,r.count*4);}this.captureTint.needsUpdate=true;this.captureDirty.clear();}
     const selectedRange=this.ranges[this.selected];
     if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
-    this.ensureUnitCapacity(this.state?.units.length??0);
+    this.ensureUnitCapacity(this.mapUnits.length);
     const sprites=presentation==='2d',pixels=unitSpritePixels(this.distance);
     const glyphs=this.unitSprites.geometry.getAttribute('unitGlyph') as THREE.InstancedBufferAttribute;
     this.unitSprites.visible=sprites;this.bodies.visible=this.heads.visible=!sprites;
     let n=0;this.visibleUnitIds.clear();
-    for(const u of this.state?.units??[]) {
+    for(const u of this.mapUnits) {
       const pos=this.unitMotion.position(u,time);
       if(!inRect(pos,BOUNDS))continue;
       // Both representations share the same canonical position, wrap and viewport
@@ -556,7 +562,7 @@ export class WorldRenderer {
         this.dummy.scale.setScalar(unitSpriteWorldSize(depth,this.host.clientHeight,pixels));this.dummy.updateMatrix();
         this.unitSprites.setMatrixAt(n,this.dummy.matrix);this.unitSprites.setColorAt(n,this.unitColor);glyphs.setX(n,unitGlyph(u.kind,!!u.transport?.embarked));
       }else{
-        // One simulation unit remains one 3D model, matching the garrison count.
+        // One visible field unit remains one 3D model.
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
         this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,this.unitColor);
         this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);
@@ -569,7 +575,7 @@ export class WorldRenderer {
     this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.politicalTint.render(this.renderer);this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.state?.units??[];this.backgroundFrame=false;
+    this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.politicalTint.render(this.renderer);this.drawMapNames();this.renderer.render(this.scene,this.camera);this.renderedUnits=this.mapUnits;this.backgroundFrame=false;
     this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
     this.renderer.domElement.dataset.viewportWidth=String(this.host.clientWidth);this.renderer.domElement.dataset.viewportHeight=String(this.host.clientHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);

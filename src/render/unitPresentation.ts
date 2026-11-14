@@ -1,4 +1,10 @@
+import {isRegionGarrison} from '../game/capacity.ts';
 import type {Kind,Unit} from '../game/types.ts';
+
+/** Keep the same definition as dispatch and garrison totals, including neutral units. */
+export function mapUnitVisible(unit:Unit):boolean {
+  return !isRegionGarrison(unit,unit.owner,unit.province);
+}
 
 /** The existing map switches its UI mode at this same relief threshold. */
 export function unitRenderMode(relief:number):'2d'|'3d' { return relief>0.5?'3d':'2d'; }

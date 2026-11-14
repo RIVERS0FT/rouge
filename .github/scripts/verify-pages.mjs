@@ -37,13 +37,13 @@ try{
  const r=await page.goto(`${site}?release=${info.sourceCommit}`,{waitUntil:'networkidle',timeout:90000});
  assert.equal(r.status(),200);
  await expect(page.getByTestId('single-player')).toBeVisible();
- await expect(page.locator('canvas')).toHaveAttribute('data-ready','true');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true');
  if(regions){
-  await expect(page.locator('canvas')).toHaveAttribute('data-region-count',String(atlas.provinces.length));
-  await expect(page.locator('canvas')).toHaveAttribute('data-boundary-mode','ownership-and-management');
-  await expect(page.locator('canvas')).toHaveAttribute('data-country-borders','true');
-  await expect(page.locator('canvas')).toHaveAttribute('data-neutral-borders','independent-territories');
-  assert.ok(Number(await page.locator('canvas').getAttribute('data-country-border-segments'))>0);
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-region-count',String(atlas.provinces.length));
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-boundary-mode','ownership-and-management');
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-country-borders','true');
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-neutral-borders','independent-territories');
+  assert.ok(Number(await page.locator('.world canvas').getAttribute('data-country-border-segments'))>0);
   assert.ok(atlas.sourceAtomCount>atlas.provinces.length);
   checks.push(atlas.provinces.length+' locked gameplay regions from '+atlas.sourceAtomCount+' source areas, live ownership borders and independent neutral territories');
  }
@@ -56,8 +56,8 @@ try{
  await page.getByTestId('begin-campaign').click();
  await expect(page.getByTestId('open-settings')).toBeVisible();
  await expect(page.locator('.render-error')).toHaveCount(0);
- await expect(page.locator('canvas')).toHaveAttribute('data-framing','cover');
- await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-framing','cover');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true');
  const clock=page.getByTestId('game-clock'),tick=Number(await clock.getAttribute('data-tick'));
  await expect.poll(async()=>Number(await clock.getAttribute('data-tick')),{timeout:20000}).toBeGreaterThan(tick);
  await page.getByTestId('toggle-pause').click();
@@ -74,8 +74,8 @@ try{
  await page.getByTestId('upgrade-infantry-attack').click();
  await expect(page.locator('.upgrade-card').first()).toContainText('1/8');
  await page.keyboard.press('Escape');
- await page.locator('canvas').focus();await page.keyboard.press('Home');
- await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
+ await page.locator('.world canvas').focus();await page.keyboard.press('Home');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-settled','true');
  await page.screenshot({path:'artifacts/pages-live-battle.png'});
  checks.push('territory ownership, garrison and production without march controls; compact flag-only top identity');
  checks.push('unit upgrade');
@@ -97,23 +97,20 @@ try{
  await page.locator('.save-card').filter({hasText:'Map order fixture'}).getByRole('button',{name:/^(载入|Load)$/}).click();
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true');
  await page.getByTestId('toggle-pause').click();await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
- const unitsCanvas=page.locator('canvas'),unitCount=await unitsCanvas.getAttribute('data-total-units');
+ const unitsCanvas=page.locator('.world canvas'),unitCount=await unitsCanvas.getAttribute('data-total-units');
  await unitsCanvas.focus();await page.keyboard.press('End');for(let n=0;n<4;n++)await page.keyboard.press('+');
  await expect(unitsCanvas).toHaveAttribute('data-settled','true');
  await expect(unitsCanvas).toHaveAttribute('data-unit-render-mode','3d');
  await expect(unitsCanvas).toHaveAttribute('data-rendered-sprites','0');
- assert.ok(Number(await unitsCanvas.getAttribute('data-rendered-models'))>0);
- await page.screenshot({path:'artifacts/pages-units-3d.png'});
+ await expect(unitsCanvas).toHaveAttribute('data-rendered-models','0');
  await page.keyboard.press('Home');await expect(unitsCanvas).toHaveAttribute('data-settled','true');
  await expect(unitsCanvas).toHaveAttribute('data-unit-render-mode','2d');
  await expect(unitsCanvas).toHaveAttribute('data-rendered-models','0');
- assert.ok(Number(await unitsCanvas.getAttribute('data-rendered-sprites'))>0);
+ await expect(unitsCanvas).toHaveAttribute('data-rendered-sprites','0');
+ assert.ok(Number(unitCount)>0);
  await expect(unitsCanvas).toHaveAttribute('data-total-units',unitCount);
- await page.screenshot({path:'artifacts/pages-units-2d.png'});
- checks.push('2D strategic unit sprites and 3D terrain models switch without changing troop count');
- await page.locator('canvas').focus();await page.keyboard.press('Home');
- await expect(page.locator('canvas')).toHaveAttribute('data-settled','true');
- const targetPoint=await page.locator('canvas').evaluate((canvas,world)=>{
+ checks.push('stationed troops remain counted without showing on either map zoom');
+ const targetPoint=await page.locator('.world canvas').evaluate((canvas,world)=>{
   const rect=canvas.getBoundingClientRect(),d=canvas.dataset;
   const scale=rect.height/(2*(Number(d.distance)-.16)*Math.tan(20*Math.PI/180));
   const x=rect.x+rect.width/2+(world.x-Number(d.focusX))*scale,y=rect.y+rect.height/2+(world.z-Number(d.focusZ))*scale;
@@ -121,8 +118,19 @@ try{
   return {x,y};
  },mapOrderFixture.centers.target);
  await page.mouse.click(targetPoint.x,targetPoint.y,{button:'right'});
- await expect(page.locator('canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
- await expect(page.getByTestId('region-capacity')).toContainText('3 / 12');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region',String(mapOrderFixture.source));
+ await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
+ await expect.poll(async()=>Number(await unitsCanvas.getAttribute('data-rendered-sprites'))).toBeGreaterThan(0);
+ await expect(unitsCanvas).toHaveAttribute('data-total-units',unitCount);
+ await page.screenshot({path:'artifacts/pages-units-2d.png'});
+ await unitsCanvas.focus();await page.keyboard.press('End');for(let n=0;n<4;n++)await page.keyboard.press('+');
+ await expect(unitsCanvas).toHaveAttribute('data-settled','true');
+ await expect(unitsCanvas).toHaveAttribute('data-unit-render-mode','3d');
+ await expect(unitsCanvas).toHaveAttribute('data-rendered-sprites','0');
+ await expect.poll(async()=>Number(await unitsCanvas.getAttribute('data-rendered-models'))).toBeGreaterThan(0);
+ await expect(unitsCanvas).toHaveAttribute('data-total-units',unitCount);
+ await page.screenshot({path:'artifacts/pages-units-3d.png'});
+ checks.push('dispatched troops switch from 2D sprites to 3D models without changing troop count');
  await page.screenshot({path:'artifacts/pages-live-map-order.png'});
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder(/^(存档名称|Save name)$/).fill('Pages map order');await page.getByTestId('create-save').click();
@@ -138,7 +146,7 @@ try{
   assert.equal(routes.map,atlas.mapId);
   assert.equal(routes.grouping.mapId,atlas.mapId);
   assert.equal(routes.grouping.groups.flatMap(g=>g.atoms).length,atlas.provinces.length);
-  assert.equal(routes.units.length,9);
+  assert.equal(routes.units.length,12);
   assert.ok(routes.units.every(u=>u.destination===mapOrderFixture.target&&u.route.length===0&&u.travel?.points.length>=2));
   fs.writeFileSync('artifacts/remote-route-verification.json',JSON.stringify(routes,null,2));
   checks.push('new-map saved grouping, non-adjacent orders and continuous terrain waypoints');
