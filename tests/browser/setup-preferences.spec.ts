@@ -72,7 +72,8 @@ test.describe('touch talent choices',()=>{
  });
 });
 
-test('talent reroll button shows the authoritative rising gold price and disables when funds run out',async({page})=>{
+test('talent cards reveal once per draft and reroll, even with browser reduced motion',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
  const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-talents-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
@@ -80,9 +81,28 @@ test('talent reroll button shows the authoritative rising gold price and disable
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await page.getByTestId('portrait-talents').click();
  const reroll=page.getByTestId('reroll-talents'),cards=page.locator('.talent-card h3');
+ const grid=page.locator('.talent-grid'),turns=grid.locator('.talent-card-turn');
  await expect(reroll).toHaveText(/40 金币/);await expect(reroll).toBeEnabled();
+ await expect(grid).toHaveAttribute('data-reveal','true');
+ await expect(turns.first()).toHaveCSS('animation-name','talent-card-reveal');
+ await expect(turns.nth(2)).toHaveCSS('animation-delay','0.09s');
+ await expect(grid.locator('.talent-card-back[aria-hidden=true]')).toHaveCount(3);
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.getByTestId('portrait-talents').click();
+ await expect(grid).toHaveAttribute('data-reveal','false');
+ await expect(turns.first()).toHaveCSS('animation-name','none');
  const before=await cards.allTextContents();
  await reroll.click();await expect(reroll).toHaveText(/55 金币/);
+ await expect(grid).toHaveAttribute('data-reveal','true');
+ await expect(turns.first()).toHaveCSS('animation-name','talent-card-reveal');
  expect((await cards.allTextContents()).some(id=>!before.includes(id))).toBe(true);
  await reroll.click();await expect(reroll).toHaveText(/70 金币/);await expect(reroll).toBeDisabled();
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.getByTestId('portrait-talents').click();
+ await expect(grid).toHaveAttribute('data-reveal','false');
+ await expect(reroll).toBeDisabled();
+ await page.locator('.talent-card').first().focus();
+ await page.keyboard.press('Enter');
+ await expect(grid).toHaveAttribute('data-reveal','true');
+ await expect(turns.first()).toHaveCSS('animation-name','talent-card-reveal');
 });

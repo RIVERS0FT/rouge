@@ -129,7 +129,8 @@
  .talent-portrait{width:64px;height:64px}
  .talent-lede{font-size:15px}
  .talent-grid{grid-template-columns:1fr;gap:10px}
- .talent-card{min-height:0;padding:16px}
+ .talent-card{min-height:0}
+ .talent-card-front{padding:16px}
  .talent-symbol{width:58px;height:58px;font-size:30px;margin:4px 0 10px}
  .talent-card p,.talent-select{font-size:14px}
  .settings-language{flex-wrap:wrap;gap:10px}

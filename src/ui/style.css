@@ -119,5 +119,3 @@ small,.small{font-size:12px;line-height:1.6}
 .country-label text{fill:currentColor;stroke:#eee6d3;stroke-width:.45px;paint-order:stroke fill;font-weight:400;dominant-baseline:central}
 
 .province-label{color:#263a31}
-
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}.hud-alert,.commander-portrait.has-talent,.commander-alert,.rail-badge{animation:none!important}}

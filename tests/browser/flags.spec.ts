@@ -25,7 +25,7 @@ test('all national presets are selectable and editor fits mobile landscape',asyn
  await page.getByTestId('begin-campaign').click();await expect(page.getByTestId('faction-identity').getByRole('img',{name:'瑞士',exact:true})).toBeVisible();
 });
 
-test('cloth previews animate while reduced motion and the drawing surface remain still',async({page})=>{
+test('cloth previews stay animated with reduced motion while the drawing surface remains still',async({page})=>{
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('edit-player-flag').click();
  await page.getByLabel('旗帜类型',{exact:true}).selectOption('custom');
  const preview=page.locator('.flag-controls .player-flag');await expect(preview).toHaveClass(/is-cloth/);
@@ -41,7 +41,12 @@ test('cloth previews animate while reduced motion and the drawing surface remain
  await expect(page.locator('.flag-drawing-canvas .player-flag')).not.toHaveClass(/is-cloth/);
  await expect(page.locator('.flag-drawing-canvas .player-flag')).toHaveAttribute('viewBox','0 0 90 60');
  await page.emulateMedia({reducedMotion:'reduce'});
- expect(await preview.evaluate(node=>node.getAnimations({subtree:true}).length)).toBe(0);
+ await expect.poll(()=>preview.evaluate(node=>getComputedStyle(node).animationName)).toBe('flag-billow');
+ const reducedTransform=await preview.evaluate(node=>getComputedStyle(node).transform);
+ await expect.poll(()=>preview.evaluate(node=>getComputedStyle(node).transform)).not.toBe(reducedTransform);
+ const canvas=preview.locator('canvas');
+ const pixels=await canvas.evaluate(node=>(node as HTMLCanvasElement).toDataURL());
+ await expect.poll(()=>canvas.evaluate(node=>(node as HTMLCanvasElement).toDataURL())).not.toBe(pixels);
  await expect(preview).toBeVisible();await page.screenshot({path:'artifacts/cloth-flags-reduced-motion.png'});
 });
 

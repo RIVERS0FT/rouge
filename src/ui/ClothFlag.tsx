@@ -10,7 +10,6 @@ import {CLOTH_MARGIN, clothOffset, clothShade, FLAG_HEIGHT, FLAG_WIDTH} from './
 const FRAME_MS = 1000 / 30;
 const flags = new Set<ClothRenderer>();
 let loop = 0, last = 0;
-const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function tick(time: number) {
  loop = flags.size ? requestAnimationFrame(tick) : 0;
  if(time - last < FRAME_MS - .5) return;
@@ -44,15 +43,12 @@ class ClothRenderer {
   // Layout size, not getBoundingClientRect(): the gust's skew must never feed back into the canvas size.
   const cssWidth = this.host.offsetWidth, cssHeight = this.host.offsetHeight;
   if(!cssWidth || !cssHeight) return;
-  const still = reducedMotion();
   if(covered && this.host.closest('.hud-top') && this.drawnStatic) return;
   const ratio = Math.min(2, window.devicePixelRatio || 1), width = Math.round(cssWidth * ratio), height = Math.round(cssHeight * ratio);
   const size = `${width}x${height}`;
-  if(still && this.drawnStatic === size) return;
   if(this.size !== size) this.prepare(width, height, size);
-  const t = still ? 0 : seconds;
-  if(this.source) this.drawPixels(t); else this.drawColumns(t);
-  this.drawnStatic = still || covered ? size : '';
+  if(this.source) this.drawPixels(seconds); else this.drawColumns(seconds);
+  this.drawnStatic = covered ? size : '';
  }
  private prepare(width: number, height: number, size: string) {
   this.size = size;
