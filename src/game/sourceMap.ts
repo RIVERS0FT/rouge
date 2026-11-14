@@ -73,11 +73,14 @@ export const SOURCE_TOPOLOGY:TerritoryTopology={mapId:data.mapId,atoms:SOURCE_MA
 // remaining connected components rather than inventing a cropped-edge bridge.
 const byCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 const initialParts:string[][]=[];
+export const PREPROCESSED_GROUP_NAMES=new Map<string,[string,string]>();
 for(const g of data.gameplayGroups){
   const remaining=new Set(g.atomIds);
   for(const start of [...remaining].sort())if(remaining.delete(start)){
     const part=[start];for(let i=0;i<part.length;i++)for(const n of byCode.get(part[i])!.neighbors){const code=SOURCE_MAP[n].code;if(remaining.delete(code))part.push(code);}
     initialParts.push(part);
+    // Use a curated name only for the complete group, never for crop fragments.
+    if(g.displayName&&part.length===g.atomIds.length)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
   }
 }
 export const PREPROCESSED_GROUPING=createTerritoryGrouping(SOURCE_TOPOLOGY,initialParts,{locked:true});

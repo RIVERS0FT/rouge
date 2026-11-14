@@ -5,7 +5,7 @@ import {ATOM_BUDGETS,regionCapacity,regionProductionRate,applyGroupingCommand,re
 const index=new Map(MAP.map(p=>[p.code,p.id]));
 function state(){return{grouping:structuredClone(INITIAL_TERRITORY_GROUPING),provinces:MAP.map(p=>({owner:p.playable?0:-1,production:0})),units:[]};}
 test('NE initial groups receive fixed max(12, playable atoms) capacity and exactly one production rate',()=>{
- assert.equal(TERRITORY_TOPOLOGY.mapId,'earth-natural-earth-admin1-511-regions-v4');assert.equal(MAP.length,1154);
+ assert.equal(TERRITORY_TOPOLOGY.mapId,'earth-natural-earth-admin1-511-regions-v5');assert.equal(MAP.length,1153);
  let expected=0;
  for(const group of INITIAL_TERRITORY_GROUPING.groups){
   const active=group.atoms.filter(a=>MAP[index.get(a)].playable),cap=active.length?Math.max(12,active.length):0;
@@ -13,7 +13,7 @@ test('NE initial groups receive fixed max(12, playable atoms) capacity and exact
   assert.equal(group.atoms.reduce((n,a)=>n+ATOM_BUDGETS[a].productionRate,0),Number(active.length>0));expected+=cap;
  }
  assert.equal(MAP.reduce((n,p)=>n+regionCapacity(p.id),0),expected);
- assert.equal(expected,1150*12,'one fixed budget per locked gameplay region');
+ assert.equal(expected,1149*12,'one fixed budget per locked gameplay region');
  for(const p of MAP)if(p.playable)assert.ok(regionCapacity(p.id)>=1);else assert.equal(regionCapacity(p.id)+regionProductionRate(p.id),0);
 });
 test('NE split, reunion and capture transfer no atomic capacity, production or troops',()=>{
