@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
-import {CAPTURE_REWARD} from '../../game/construction.ts';
+import {captureReward} from '../../game/construction.ts';
 import {STATS, upgradeCost} from '../../game/content.ts';
 import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
@@ -43,7 +43,7 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
     <TipTitle aside={Math.floor(player.funds).toLocaleString()}>{text('funds')}</TipTitle>
     <TipRow label={text('incomePerSecond')} value={`${signed(income)}${text('perSecond')}`} tone={income > 0 ? 'good' : 'muted'}/>
     <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${income.toFixed(1)}${text('perSecond')}`}/>
-    <TipRow label={text('captureReward')} value={`+${CAPTURE_REWARD}`} tone="good"/>
+    <TipRow label={text('captureReward')} value={`+${captureReward(player)}`} tone="good"/>
     <TipRow label={text('cheapestUpgrade')} value={cheapest === null ? text('allUpgradesMax') : cheapest} tone={cheapest !== null && player.funds >= cheapest ? 'good' : 'muted'}/>
    </>}>
     <strong>{Math.floor(player.funds).toLocaleString()}</strong>

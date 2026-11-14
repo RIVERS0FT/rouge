@@ -41,8 +41,9 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const status = province.capture > 0 ? 'contested' : province.recovery > 0 ? 'recovering' : 'stable';
  const productionTime = UNITS[province.kind].train, capacity = regionCapacity(selected);
  const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
- const recovery = recoveryMultiplier(province.recovery), production = rate * constructionProductionMultiplier(province) * recovery;
- const income = province.owner < 0 ? 0 : fundsIncomeRate(province, rate);
+ const country = state.players[province.owner];
+ const recovery = recoveryMultiplier(province.recovery, country), production = rate * constructionProductionMultiplier(province) * recovery;
+ const income = province.owner < 0 ? 0 : fundsIncomeRate(province, rate, country);
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
  return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}

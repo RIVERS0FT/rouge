@@ -1,4 +1,5 @@
-import type {ConstructionKind, GameState, Province} from './types.ts';
+import {hasTalent} from './content.ts';
+import type {ConstructionKind, GameState, Player, Province} from './types.ts';
 
 /** Facilities consume shared funds and specialize local output.
  * These are gameplay facilities, not new pathfinding obstacles. */
@@ -21,16 +22,27 @@ export function availableFunds(state: Pick<GameState,'players'>, owner: number):
  const player=state.players[owner];
  return player ? Math.floor(player.funds) : 0;
 }
-export function recoveryMultiplier(secondsRemaining: number): number {
- return 1-.5*Math.max(0,Math.min(1,secondsRemaining/CAPTURE_RECOVERY_SECONDS));
+type CountryTalents=Pick<Player,'talents'>;
+export function captureReward(country?: CountryTalents): number {
+ return hasTalent(country,'warSpoils')?40:CAPTURE_REWARD;
+}
+export function constructionCost(kind: ConstructionKind, level: 0|1, country?: CountryTalents): number {
+ const base=CONSTRUCTION[kind].costs[level];
+ return hasTalent(country,'publicWorks')?Math.floor(base*.85):base;
+}
+export function recoveryDuration(country?: CountryTalents): number {
+ return CAPTURE_RECOVERY_SECONDS*(hasTalent(country,'rapidRecovery') ? .75 : 1);
+}
+export function recoveryMultiplier(secondsRemaining: number,country?: CountryTalents): number {
+ return 1-.5*Math.max(0,Math.min(1,secondsRemaining/recoveryDuration(country)));
 }
 export function constructionProductionMultiplier(p: Pick<Province,'construction'>): number {
  const b=p.construction;
  return b?.kind==='barracks' ? 1+CONSTRUCTION.barracks.benefits[b.level-1] : 1;
 }
-export function fundsIncomeRate(p: Pick<Province,'construction'|'recovery'>, baseRate: number): number {
+export function fundsIncomeRate(p: Pick<Province,'construction'|'recovery'>, baseRate: number, country?: CountryTalents): number {
  const b=p.construction;
- return baseRate*recoveryMultiplier(p.recovery)*(BASE_FUNDS_INCOME+(b?.kind==='market'?CONSTRUCTION.market.benefits[b.level-1]:0));
+ return baseRate*recoveryMultiplier(p.recovery,country)*(BASE_FUNDS_INCOME+(b?.kind==='market'?CONSTRUCTION.market.benefits[b.level-1]:0))*(hasTalent(country,'taxReform')?1.15:1);
 }
 export function captureSpeedMultiplier(p: Pick<Province,'construction'>): number {
  const b=p.construction;

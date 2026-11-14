@@ -81,6 +81,7 @@ test('talent cards reveal once per draft and reroll, even with browser reduced m
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await page.getByTestId('portrait-talents').click();
  const reroll=page.getByTestId('reroll-talents'),cards=page.locator('.talent-card h3');
+ await expect(cards).toHaveText(['战地医疗','前沿射手','坚固阵地']);
  const grid=page.locator('.talent-grid'),turns=grid.locator('.talent-card-turn');
  await expect(reroll).toHaveText(/40 资金/);await expect(reroll).toBeEnabled();
  await expect(grid).toHaveAttribute('data-reveal','true');

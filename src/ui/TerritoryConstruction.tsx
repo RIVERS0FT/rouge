@@ -1,6 +1,6 @@
 import type {CountryAction} from '../game/countryActions.ts';
 import {useMemo, useState} from 'react';
-import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, fundsIncomeRate} from '../game/construction.ts';
+import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, constructionCost, fundsIncomeRate} from '../game/construction.ts';
 import {MAP} from '../game/map.ts';
 import {regionProductionRate} from '../game/territoryEconomy.ts';
 import type {ConstructionKind, GameState} from '../game/types.ts';
@@ -43,7 +43,7 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
  let income = 0;
  for(const member of members) {
   const region = state.provinces[member], item = region.construction;
-  if(region.owner === actor) income += fundsIncomeRate(region, regionProductionRate(member));
+  if(region.owner === actor) income += fundsIncomeRate(region, regionProductionRate(member), state.players[actor]);
   if(item) counts[item.kind]++;
  }
  if(!own && !building && members.length <= 1) return null;
@@ -84,12 +84,12 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
      <small>{benefit(building.kind, building.level)}</small>
      {editable && building.level === 1 && <small>{text('constructionNext').replace('{effect}', benefit(building.kind, 2))}</small>}
     </div>
-    {editable && (building.level === 1 ? buy(building.kind, CONSTRUCTION[building.kind].costs[1], text('constructionUpgrade'), 1) :
+    {editable && (building.level === 1 ? buy(building.kind, constructionCost(building.kind, 1, state.players[actor]), text('constructionUpgrade'), 1) :
      <span className="construction-max">{text('max')}</span>)}
    </div> : editable ? kinds.map(kind => <div className="construction-option" key={kind}>
     <Icon name={icon[kind]} size={16}/>
     <div className="construction-copy"><strong>{name(kind)}</strong><small>{benefit(kind, 1)}</small></div>
-    {buy(kind, CONSTRUCTION[kind].costs[0], text('constructionBuild'), 0)}
+    {buy(kind, constructionCost(kind, 0, state.players[actor]), text('constructionBuild'), 0)}
    </div>) : <p className="construction-empty">{text('constructionEmpty')}</p>}
   </div>
  </section>;

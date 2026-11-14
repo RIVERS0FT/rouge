@@ -20,8 +20,8 @@ three rendered soldiers are one battalion footprint, not three physics bodies.
   clearance. Existing narrow passages or old saves may have clipped footprints;
   separation never worsens that clearance or pushes a center across water.
 - Resting troops stay in their assigned administrative atom. Transit can cross
-  administrative borders and updates its actual atom. Destination capacity and
-  reservations retain their existing meaning.
+  administrative borders and updates its actual atom. Destination capacity does not
+  restrict travel or arrival; reservations only count toward local training.
 - Troops settle within 2.3 units of the final center, inside the actual target
   atom. Production searches a small deterministic formation for open space.
   Neither arrival nor reinforcement deliberately targets one occupied point.

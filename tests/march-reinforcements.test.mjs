@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import {DT,UNITS} from '../src/game/content.ts';
 import {MAP} from '../src/game/map.ts';
-import {isRegionGarrison,regionGarrison,destinationRoom,regionReservations,queuedMarchReservations} from '../src/game/capacity.ts';
+import {isRegionGarrison,regionGarrison,regionReservations} from '../src/game/capacity.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
@@ -18,7 +18,6 @@ test('dispatch starts exactly one now, and releases each subsequent battalion af
  assert.equal(MARCH_INTERVAL_TICKS*DT,.25);
  assert.deepEqual(order(e,from,to),{ok:true});
  assert.equal(regionGarrison(e.state,0,from),4);assert.equal(regionReservations(e.state,0,to),1);
- assert.equal(queuedMarchReservations(e.state,0,to),4);
  assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),positions);
  assert.deepEqual(e.state.provinces[from].march.pendingIds,ids.slice(1));
  e.step(MARCH_INTERVAL_TICKS-1);assert.equal(regionGarrison(e.state,0,from),4);
@@ -60,7 +59,7 @@ test('replacing the order from the same source does not restart the departure co
 for(const targetOwner of [-1,1])test(`target owner ${targetOwner}: attack bypasses even fully booked capacity and previously launched troops can arrive after capture`,()=>{
  const {e,from,to}=garrisonFixture({count:3,targetOwner}),template=structuredClone(e.state.units[0]),cap=regionCapacity(to);
  for(let i=0;i<cap;i++)add(e,to,template);
- assert.equal(destinationRoom(e.state,0,to),0);assert.ok(order(e,from,to).ok);
+ assert.equal(regionGarrison(e.state,0,to),cap);assert.ok(order(e,from,to).ok);
  e.step(2*MARCH_INTERVAL_TICKS);
  assert.equal(regionGarrison(e.state,0,from),0);
  const attack=e.state.units.filter(u=>u.assault===to);assert.equal(attack.length,3);
@@ -76,29 +75,39 @@ for(const targetOwner of [-1,1])test(`target owner ${targetOwner}: attack bypass
  // delayed by physical steering, but capacity must not block over-cap arrival.
  assert.ok(regionGarrison(e.state,0,to)>cap);
  for(const u of attack)if(u.travel)Object.assign(u,originalLocations.get(u.id));
- assert.equal(destinationRoom(e.state,0,to),0);assert.ok(validateState(e.state));
+ assert.ok(validateState(e.state));
  assert.deepEqual(decodeSave(encodeSave(e.state,'Overflow')).state,e.state);
 });
 
-test('friendly storage and queued reserves block other sources; partial orders leave unselected units at home',()=>{
+test('full friendly target accepts complete, concurrent orders from different sources',()=>{
  const {e,from,to}=garrisonFixture({count:3}),template=structuredClone(e.state.units[0]),cap=regionCapacity(to);
- for(let i=0;i<cap-2;i++)add(e,to,template);
- const other=MAP.find(p=>p.playable&&p.id!==from&&p.id!==to&&e.state.provinces[p.id].owner<0).id;
- e.state.provinces[other].owner=0;e.state.grouping=reconcileGrouping(e.state);add(e,other,template);
- assert.ok(order(e,from,to,.67).ok);assert.equal(queuedMarchReservations(e.state,0,to),1);
- assert.deepEqual(order(e,other,to),{ok:false,error:'targetFull'});
- e.step(MARCH_INTERVAL_TICKS);
- assert.equal(regionGarrison(e.state,0,from),1);assert.equal(e.state.provinces[from].march,undefined);
- assert.deepEqual(order(e,from,to),{ok:false,error:'targetFull'});
+ for(let i=0;i<cap;i++)add(e,to,template);
+ const other=MAP[to].neighbors.find(id=>id!==from&&e.state.provinces[id].owner<0&&e.navigation.plan(MAP[id].center,MAP[to].center));
+ assert.notEqual(other,undefined);
+ e.state.provinces[other].owner=0;e.state.grouping=reconcileGrouping(e.state);
+ for(let i=0;i<2;i++)add(e,other,template);
+ assert.deepEqual(order(e,from,to,.67),{ok:false,error:'invalidCommand'});
+ assert.ok(order(e,from,to).ok);assert.ok(order(e,other,to).ok);
+ assert.equal(e.state.provinces[from].march.pendingIds.length,2);
+ assert.equal(e.state.provinces[other].march.pendingIds.length,1);
+ assert.equal(regionGarrison(e.state,0,from),2);assert.equal(regionGarrison(e.state,0,other),1);
+ e.step(2*MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionGarrison(e.state,0,other),0);
+ assert.equal(e.state.units.filter(u=>u.target===to).length,5);
+ assert.equal(e.state.provinces[from].march,undefined);assert.equal(e.state.provinces[other].march,undefined);
+ assert.ok(validateState(e.state));
 });
 
-test('still queued attackers stop at home when their destination becomes friendly and full',()=>{
+test('queued attackers still depart when their destination becomes friendly and full',()=>{
  const {e,from,to}=garrisonFixture({count:3,targetOwner:-1}),template=structuredClone(e.state.units[0]);
- assert.ok(order(e,from,to).ok);e.state.provinces[to].owner=0;e.state.grouping=reconcileGrouping(e.state);
+ assert.ok(order(e,from,to).ok);assert.equal(e.state.provinces[from].march.reserved,undefined);
+ e.state.provinces[to].owner=0;e.state.grouping=reconcileGrouping(e.state);
  for(let i=0;i<regionCapacity(to);i++)add(e,to,template);
- e.step(MARCH_INTERVAL_TICKS);
- assert.equal(regionGarrison(e.state,0,from),2);assert.equal(e.state.provinces[from].march,undefined);
- assert.equal(e.state.units[0].target,to);
+ const restored=new Engine(decodeSave(encodeSave(e.state,'Queued after capture')).state);
+ e.step(2*MARCH_INTERVAL_TICKS);restored.step(2*MARCH_INTERVAL_TICKS);
+ assert.equal(regionGarrison(e.state,0,from),0);assert.equal(e.state.provinces[from].march,undefined);
+ assert.equal(e.state.units.filter(u=>u.target===to).length,3);
+ assert.deepEqual(restored.state,e.state);
 });
 
 test('losing the source clears its queue rather than dispatching the new owner',()=>{
@@ -114,7 +123,9 @@ test('saves and ordered LAN deltas preserve queue creation, cooldown and complet
  const client=applyFrame(null,wire(first.frame));order(e,from,to);
  const update=encodeFrame(e.state,first.base,0),second=applyFrame(client,wire(update.frame));
  assert.deepEqual(second,e.state);assert.equal(client.provinces[from].march,undefined);
+ assert.equal(e.state.provinces[from].march.reserved,true);
  const restored=new Engine(decodeSave(encodeSave(e.state,'Queued')).state);
+ assert.equal(restored.state.provinces[from].march.reserved,true);
  e.step(MARCH_INTERVAL_TICKS);restored.step(MARCH_INTERVAL_TICKS);assert.deepEqual(restored.state,e.state);
  const finish=encodeFrame(e.state,update.base,0),third=applyFrame(second,wire(finish.frame));
  assert.deepEqual(third,e.state);assert.equal(third.provinces[from].march,undefined);

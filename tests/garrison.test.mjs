@@ -2,8 +2,7 @@ import {test} from 'node:test';
 import {MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import assert from 'node:assert/strict';
 import {MAP} from '../src/game/map.ts';
-import {regionCapacity} from '../src/game/territoryEconomy.ts';
-import {isRegionGarrison,regionGarrison,regionTroops,regionReservations,destinationRoom} from '../src/game/capacity.ts';
+import {isRegionGarrison,regionGarrison,regionTroops,regionReservations} from '../src/game/capacity.ts';
 import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {garrisonFixture} from './helpers/garrison-fixture.mjs';
@@ -17,7 +16,7 @@ test('only released troops leave the counted garrison and waiting troops still o
  assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
  assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
  assert.equal(regionGarrison(e.state,0,from),11);assert.equal(regionTroops(e.state,0,from),12);
- assert.equal(regionReservations(e.state,0,to),1);assert.equal(destinationRoom(e.state,0,from),0);
+ assert.equal(regionReservations(e.state,0,to),1);
  e.step(5*MARCH_INTERVAL_TICKS);
  assert.equal(regionGarrison(e.state,0,from),6);assert.equal(regionReservations(e.state,0,to),6);
  assert.ok(validateState(e.state));
@@ -43,7 +42,6 @@ test('a friendly arrival becomes garrison only after its order ends, once, with 
  }
  assert.equal(sawDestinationTransit,true);assert.equal(unit.target,null);assert.equal(unit.province,to);
  assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionGarrison(e.state,0,to),1);assert.equal(regionReservations(e.state,0,to),0);
- assert.equal(destinationRoom(e.state,0,to),regionCapacity(to)-1);
  for(let i=0;i<20;i++)stepWithoutProduction(e);
  assert.equal(regionGarrison(e.state,0,to),1);assert.equal(e.state.units.length,1);assert.ok(validateState(e.state));
  assert.ok(e.command(0,{type:'march',from:to,to:from,fraction:1}).ok);assert.equal(regionGarrison(e.state,0,to),0);
@@ -65,7 +63,7 @@ test('fighting during departure stays excluded; casualties release reservations 
  assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
  assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionGarrison(e.state,1,from),1);
  e.step();assert.ok(!e.state.units.some(u=>u.id===unit.id));
- assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionReservations(e.state,0,to),0);assert.equal(destinationRoom(e.state,0,to),regionCapacity(to));
+ assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionReservations(e.state,0,to),0);
 });
 
 test('embarked troops are neither source nor destination garrison and remain reserved through save and LAN',()=>{

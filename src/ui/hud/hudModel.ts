@@ -21,7 +21,7 @@ export function territoryCounts(state: GameState): Map<number, number> {
 
 export function incomePerSecond(state: GameState, actor: number): number {
  let rate = 0;
- for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable) rate += fundsIncomeRate(province, regionProductionRate(province.id));
+ for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable) rate += fundsIncomeRate(province, regionProductionRate(province.id), state.players[actor]);
  return rate;
 }
 
