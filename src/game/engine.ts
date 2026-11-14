@@ -1,3 +1,4 @@
+import {countryActions, type CountryAction} from './countryActions.ts';
 import {availableTalentIds,canRerollTalent,talentRerollCost} from './talentReroll.ts';
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
@@ -13,7 +14,7 @@ import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGroupi
 import {CONSTRUCTION,STARTING_FUNDS,MAX_FUNDS,CAPTURE_REWARD,CAPTURE_RECOVERY_SECONDS,isConstructionKind,recoveryMultiplier,fundsIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
 import { destinationRoom, isRegionGarrison, queuedMarchReservations } from './capacity.ts';
 import { DT, MAP_ID, STATE_VERSION, KINDS, STATS, UNITS, PROVINCE_CAP, stats, upgradeCost, validateSetup } from './content.ts';
-import type { GameState, PlayerSetup, Player, Unit, Kind, Command, Result } from './types.ts';
+import type { GameState, PlayerSetup, Player, Unit, Kind, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
@@ -85,19 +86,19 @@ export class Engine{
   collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
   constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
   command(actor:number,input:unknown):Result{
-    const s=this.state,p=s.players[actor],fail=(error:string):Result=>({ok:false,error});
-    if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object')return fail('invalidCommand');const c=input as Command;
+    const s=this.state,p=Number.isInteger(actor)&&actor>=0?s.players[actor]:undefined,fail=(error:string):Result=>({ok:false,error});
+    if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object'||Array.isArray(input))return fail('invalidCommand');const c=input as CountryAction;
     switch(c.type){
       case 'mergeGroups':case 'splitGroup':{
         const input=c.type==='mergeGroups'?{type:'merge',mapId:MAP_ID,groups:c.groups,expectedRevision:c.expectedRevision}:{type:'split',mapId:MAP_ID,group:c.group,atoms:c.atoms,expectedRevision:c.expectedRevision};
         const result=applyGroupingCommand(s,actor,input);if(!result.ok)return fail(result.error);s.grouping=result.state;return{ok:true};
       }
       case 'march':{
-        if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!Number.isFinite(c.fraction)||c.fraction<0.25||c.fraction>1)return fail('invalidCommand');
+        if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||c.fraction!==1)return fail('invalidCommand');
         const from=s.provinces[c.from],to=s.provinces[c.to];if(!from||!to||from.owner!==actor)return fail('notOwner');
         if(!MAP[c.from].playable||!MAP[c.to].playable||c.from===c.to)return fail('invalidCommand');
         const available=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
-        const requested=Math.floor(available.length*c.fraction);if(requested<1)return fail('noTroops');
+        const requested=available.length;if(requested<1)return fail('noTroops');
         const friendly=to.owner===actor;
         const n=friendly?Math.min(requested,destinationRoom(s,actor,c.to)-queuedMarchReservations(s,actor,c.to,c.from)):requested;
         if(n<1)return fail('targetFull');
@@ -391,8 +392,8 @@ export class Engine{
     for(const v of s.provinces)if(MAP[v.id].playable&&v.owner>=0){const ids=territories.get(v.owner)??[];ids.push(v.id);territories.set(v.owner,ids);}
     for(const u of s.units){const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
     for(const p of scheduled.filter(p=>territories.has(p.id))){
-      if(p.choices.length)this.command(p.id,{type:'talent',id:p.choices[0]});
-      if(p.funds>160)this.command(p.id,{type:'upgrade',kind:p.loadout[Math.floor(random(s)*p.loadout.length)],stat:STATS[Math.floor(random(s)*3)]});
+      if(p.choices.length)this.command(p.id,countryActions.talent(p.choices[0]));
+      if(p.funds>160)this.command(p.id,countryActions.upgrade(p.loadout[Math.floor(random(s)*p.loadout.length)],STATS[Math.floor(random(s)*3)]));
       for(const id of territories.get(p.id)??[]){
         const province=s.provinces[id];if(province.march)continue;
         const units=(garrisons.get(id)??[]).filter(u=>isRegionGarrison(u,p.id,id));
@@ -405,7 +406,7 @@ export class Engine{
             .sort((a,b)=>Math.hypot(a.center.x-MAP[province.id].center.x,a.center.z-MAP[province.id].center.z)-Math.hypot(b.center.x-MAP[province.id].center.x,b.center.z-MAP[province.id].center.z)||a.id-b.id).slice(0,4);
           destination=candidates.find(m=>this.navigation.plan(MAP[province.id].center,m.center))?.id;
         }
-        if(destination!==undefined)this.command(p.id,{type:'march',from:province.id,to:destination,fraction:1});
+        if(destination!==undefined)this.command(p.id,countryActions.march(province.id,destination));
       }
     }
   }

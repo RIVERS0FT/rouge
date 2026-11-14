@@ -1,8 +1,9 @@
+import type {CountryAction} from '../game/countryActions.ts';
 import {useMemo, useState} from 'react';
 import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, fundsIncomeRate} from '../game/construction.ts';
 import {MAP} from '../game/map.ts';
 import {regionProductionRate} from '../game/territoryEconomy.ts';
-import type {Command, ConstructionKind, GameState} from '../game/types.ts';
+import type {ConstructionKind, GameState} from '../game/types.ts';
 import {SectionRibbon} from './hud/DockPanel.tsx';
 import {t, type Language} from './i18n.ts';
 import {Icon, type IconName} from './icons.tsx';
@@ -13,7 +14,7 @@ const regionIds = new Map(MAP.map(region => [region.code, region.id]));
 
 type Props = {
  state: GameState; selected: number; actor: number; eliminated: boolean; language: Language;
- onCommand: (command: Command) => void;
+ onCommand: (command: CountryAction) => void;
 };
 
 /** A runtime territory is a view over base regions, never a second building slot or wallet. */

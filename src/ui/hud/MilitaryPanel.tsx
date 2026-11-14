@@ -1,5 +1,6 @@
+import {countryActions, type CountryAction} from '../../game/countryActions.ts';
 import {STATS, stats, upgradeCost} from '../../game/content.ts';
-import type {Command, Player} from '../../game/types.ts';
+import type {Player} from '../../game/types.ts';
 import {Icon} from '../icons.tsx';
 import {t, type Language} from '../i18n.ts';
 import {Tip, TipRow, TipTitle} from '../Tooltip.tsx';
@@ -11,7 +12,7 @@ const MAX_LEVEL = 8;
 /** Unit upgrades as a docked military window, so the map stays playable while
  * the treasury is spent. Each card shows live attributes and level pips. */
 export function MilitaryPanel({player, eliminated, language, onCommand, onClose}: {
- player: Player; eliminated: boolean; language: Language; onCommand: (command: Command) => void; onClose: () => void;
+ player: Player; eliminated: boolean; language: Language; onCommand: (command: CountryAction) => void; onClose: () => void;
 }) {
  const text = (key: string) => t(language, key), funds = Math.floor(player.funds);
  return <DockPanel id="military-panel" className="military-panel" kicker={text('militaryTitle')} title={text('upgrades')} titleId="military-title"
@@ -35,7 +36,7 @@ export function MilitaryPanel({player, eliminated, language, onCommand, onClose}
        <small>{text(`${stat}.desc`)}</small>
       </div>
       <button type="button" className="secondary upgrade-buy" data-testid={`upgrade-${kind}-${stat}`} disabled={eliminated || maxed || player.funds < cost}
-       onClick={() => onCommand({type: 'upgrade', kind, stat})}>{maxed ? text('max') : `＋ ${cost}`}</button>
+       onClick={() => onCommand(countryActions.upgrade(kind,stat))}>{maxed ? text('max') : `＋ ${cost}`}</button>
      </Tip>;
     })}
    </article>)}

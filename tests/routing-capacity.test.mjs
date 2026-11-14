@@ -59,7 +59,7 @@ test('destination reservations cap dispatch and prevent oversubscription and com
 });
 test('dispatch never creates a free home production slot before troops physically leave',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);e.state.provinces[from].production=13.99;
- assert.ok(e.command(0,{type:'march',from,to:target,fraction:.5}).ok);e.step();assert.equal(regionTroops(e.state,0,from),regionCapacity(from));assert.equal(e.state.provinces[from].production,13.99);
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);e.step();assert.equal(regionTroops(e.state,0,from),regionCapacity(from));assert.equal(e.state.provinces[from].production,13.99);
 });
 test('continuous terrain travel does not route through or require capture of intermediate administrative centers',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,1);ready(e);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);
@@ -69,7 +69,7 @@ test('continuous terrain travel does not route through or require capture of int
 });
 test('save rejects excess garrison and forged terrain waypoints, without limiting total army',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from)+1);ready(e);assert.equal(validateState(e.state),false);e.state.units.pop();assert.ok(validateState(e.state));
- assert.ok(e.command(0,{type:'march',from,to:target,fraction:.5}).ok);const moving=e.state.units.find(u=>u.travel);assert.ok(moving);moving.travel.points.at(-1).x+=100;assert.equal(validateState(e.state),false);
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);const moving=e.state.units.find(u=>u.travel);assert.ok(moving);moving.travel.points.at(-1).x+=100;assert.equal(validateState(e.state),false);
 });
 test('new-map save namespace preserves old pixel-map saves',()=>{
  const map=new Map([['rouge.save.state-regions.v1.keep','old-campaign']]);const storage={get length(){return map.size},key:i=>[...map.keys()][i]??null,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};

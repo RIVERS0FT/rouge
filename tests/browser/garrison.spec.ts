@@ -13,7 +13,7 @@ test('region details exclude dispatched troops still inside the source after loa
   await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.selectedCode);await page.locator('.map-search-results button').first().click();
   await expect(page.getByTestId('region-capacity')).toContainText('6 / 12');
   await expect(page.getByTestId('region-capacity')).toHaveAttribute('title',/不含已派出部队/);
-  await expect(page.getByTestId('army-total')).toHaveText('12');
+  await expect(page.getByTestId('army-total')).toHaveText('18');
   const canvas=page.locator('.world canvas'),plaque=page.locator(`.province-label[data-region="${fixture.selected}"]`);
   await expect(canvas).toHaveAttribute('data-settled','true');
   await expect(plaque).toBeVisible();
