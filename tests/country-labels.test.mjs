@@ -104,7 +104,7 @@ test('only the complete text bounds leaving the screen hides a map name',()=>{
  for(const rect of [{left:-30,right:-1,top:20,bottom:40},{left:101,right:130,top:20,bottom:40},{left:20,right:40,top:-20,bottom:-1},{left:20,right:40,top:101,bottom:130}])assert.equal(labelIntersectsViewport(rect,100,100),false);
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8'),names=renderer.slice(renderer.indexOf('private drawMapNames('),renderer.indexOf('private frame='));
  assert.doesNotMatch(names,/querySelectorAll|blockers|occupied|COUNTRY_LABEL_LIMIT|distance>=180|area\)\*scale<18/);
- assert.match(names,/for\(const province of MAP\)/);assert.match(names,/for\(const component of this.countryComponents\)/);
+ assert.match(names,/this\.drawProvincePlaques\(width,height\)/);assert.match(names,/for\(const component of this.countryComponents\)/);
  assert.match(renderer,/this\.drawLabels\(time\);[\s\S]*?this\.drawMapNames\(\);this\.renderer\.render/);
  assert.doesNotMatch(renderer.slice(renderer.indexOf('private drawLabels('),renderer.indexOf('private drawMapNames(')),/this\.drawMapNames/);
 });
@@ -113,5 +113,8 @@ test('province names retain the original below-500 zoom range independently of c
  assert.equal(provinceNamesVisible(100),true);assert.equal(provinceNamesVisible(499.999),true);
  assert.equal(provinceNamesVisible(500),false);assert.equal(provinceNamesVisible(800),false);
  const renderer=fs.readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
- assert.match(renderer,/if\(provinceNamesVisible\(this\.distance\)\)\{[\s\S]*?drawProvince[\s\S]*?\}else for\(const label of this\.provinceLabels\.values\(\)\)label\.hidden=true;/);
+ const plaques=renderer.slice(renderer.indexOf('private drawProvincePlaques('),renderer.indexOf('private drawMapNames('));
+ assert.match(plaques,/if\(this\.state&&provinceNamesVisible\(this\.distance\)\)/);
+ assert.match(plaques,/labelIntersectsViewport\(rect,width,height\)/);
+ assert.match(plaques,/if\(!next\.has\(id\)\)this\.provinceLabels\.get\(id\)!\.element\.hidden=true/);
 });
