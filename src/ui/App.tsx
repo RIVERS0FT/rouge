@@ -5,7 +5,7 @@ import {createGame, isEliminated} from '../game/engine.ts';
 import {factionColor} from '../game/factionColors.ts';
 import type {Flag} from '../game/flags.ts';
 import {MAP} from '../game/map.ts';
-import {deleteSave, decodeSave, encodeSave, listSaves, MAX_SAVE_BYTES, readSave, writeSave, type SaveInfo} from '../game/save.ts';
+import {deleteSave, decodeSave, encodeSave, listSaves, MAX_SAVE_BYTES, readSave, writeAutosave, writeSave, type SaveInfo} from '../game/save.ts';
 import {getSpawnCapacity, makeAISetups} from '../game/spawns.ts';
 import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
 import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
@@ -175,12 +175,16 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   }
   session.current.pause?.(paused || modal === 'settings');
  }, [paused, modal, screen]);
- function saveCurrent(id: string, displayName: string, quiet = false): boolean {
+ function saveCurrent(id: string | null, displayName: string): boolean {
   if(!latest.current || session.current?.mode !== 'solo') return false;
-  try {writeSave(localStorage, id, latest.current, displayName); if(!quiet) setToast(text('saveSuccess')); refreshSaves(); return true;}
+  try {
+   if(id===null) writeAutosave(localStorage, latest.current, displayName);
+   else {writeSave(localStorage, id, latest.current, displayName); setToast(text('saveSuccess'));}
+   refreshSaves(); return true;
+  }
   catch {setToast(text('saveFailed')); return false;}
  }
- useEffect(() => {if(game && session.current?.mode === 'solo' && game.tick - autoTick.current >= 1200) {autoTick.current = game.tick; saveCurrent(`auto-${game.campaign}`, text('autosave'), true);}}, [game?.tick]);
+ useEffect(() => {if(game && session.current?.mode === 'solo' && game.tick - autoTick.current >= 1200) {autoTick.current = game.tick; saveCurrent(null, text('autosave'));}}, [game?.tick]);
  useEffect(() => {if(screen === 'game' || screen === 'menu') world.current?.view('strategic');}, [screen, actor]);
  function resetHud(region: number) {setDock(!compactRef.current && region >= 0 ? 'region' : null); setOutlinerOpen(!compactRef.current);}
  function cancelLocalStart() {session.current?.dispose(); session.current = null; setLocalStarting(false); setGame(null); setScreen('menu'); setModal(null);}
@@ -247,7 +251,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  function changeSpeed(value: number) {session.current?.speed?.(value); setSpeed(value);}
  function leave() {
   if(screen === 'game' && !window.confirm(text('exitConfirm'))) return;
-  if(session.current?.mode === 'solo' && latest.current) {if(!saveCurrent(`auto-${latest.current.campaign}`, text('autosave'), true) && !window.confirm(text('saveFailed'))) return;}
+  if(session.current?.mode === 'solo' && latest.current) {if(!saveCurrent(null, text('autosave')) && !window.confirm(text('saveFailed'))) return;}
   session.current?.dispose(); session.current = null; setGame(null); setScreen('menu'); setRoom(null); setModal(null); setPaused(false); setDock(null);
   try {sessionStorage.removeItem(TICKET_KEY);} catch {/* Nothing to forget. */}
   setTicket(null);

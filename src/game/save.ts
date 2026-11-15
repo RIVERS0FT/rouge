@@ -14,6 +14,9 @@ export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leade
 export const MAX_SAVE_BYTES=128*1024*1024;
 export const SAVE_PREFIX=`rouge.save.natural-earth-admin1.regions.v${STATE_VERSION}.`;
 const PREFIX=SAVE_PREFIX;
+export const AUTOSAVE_ID='auto';
+export const isAutosave=(id:string)=>id===AUTOSAVE_ID||id.startsWith('auto-');
+const autosaveKey=PREFIX+AUTOSAVE_ID;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
 export function validateState(value:unknown):value is GameState{
@@ -75,18 +78,43 @@ export function decodeSave(raw:string):{state:GameState;name:string;savedAt:stri
   try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
+/** One atomic replacement, including when the previous automatic snapshot is unreadable. */
+export function writeAutosave(storage:StorageLike,state:GameState,name:string):void{
+  storage.setItem(autosaveKey,encodeSave(state,name));
+}
 export function writeSave(storage:StorageLike,id:string,state:GameState,name:string):void{
+  if(isAutosave(id))throw new Error('invalidSlot');
   const key=slotKey(id),data=encodeSave(state,name),old=storage.getItem(key);
   // Never overwrite unreadable data; a current-format previous revision is backed up.
   if(old!==null){decodeSave(old);storage.setItem(key+'.backup',old);}
   storage.setItem(key,data);
 }
 export function readSave(storage:StorageLike,id:string):{state:GameState;recovered:boolean}{
-  const key=slotKey(id);for(const[index,k]of[key,key+'.backup'].entries()){const raw=storage.getItem(k);if(!raw)continue;try{return{state:decodeSave(raw).state,recovered:index===1};}catch{/* Try the previous committed revision. */}}throw new Error('invalidSave');
+  const key=slotKey(id);for(const[index,k]of(id===AUTOSAVE_ID?[key]:[key,key+'.backup']).entries()){const raw=storage.getItem(k);if(!raw)continue;try{return{state:decodeSave(raw).state,recovered:index===1};}catch{/* Try the previous committed revision when present. */}}throw new Error('invalidSave');
 }
 export function listSaves(storage:StorageLike):SaveInfo[]{
-  const list:SaveInfo[]=[];
-  for(let i=0;i<storage.length;i++){const k=storage.key(i);if(!k?.startsWith(PREFIX)||k.endsWith('.backup'))continue;const id=k.slice(PREFIX.length);try{const v=decodeSave(storage.getItem(k)!);list.push({id,name:v.name,savedAt:v.savedAt,tick:v.state.tick,leader:v.state.players[0].leader});}catch{list.push({id,name:id,savedAt:'',tick:0,leader:'warden',corrupted:true});}}
+  const list:SaveInfo[]=[], current=storage.getItem(autosaveKey);
+  let previous:SaveInfo|undefined;
+  for(let i=0;i<storage.length;i++){
+    const k=storage.key(i);if(!k?.startsWith(PREFIX)||k.endsWith('.backup'))continue;
+    const id=k.slice(PREFIX.length), perCampaign=id.startsWith('auto-');
+    if((perCampaign&&current!==null)||(id===AUTOSAVE_ID&&current===''))continue;
+    let item:SaveInfo;
+    try{const v=decodeSave(storage.getItem(k)!);item={id,name:v.name,savedAt:v.savedAt,tick:v.state.tick,leader:v.state.players[0].leader};}
+    catch{item={id,name:id,savedAt:'',tick:0,leader:'warden',corrupted:true};}
+    if(!perCampaign)list.push(item);
+    else if(!previous||item.savedAt>previous.savedAt)previous=item;
+  }
+  // Before the first global autosave, offer the latest previous slot without rewriting it.
+  if(previous)list.push(previous);
   return list.sort((a,b)=>b.savedAt.localeCompare(a.savedAt));
 }
-export function deleteSave(storage:StorageLike,id:string){const key=slotKey(id);storage.removeItem(key);storage.removeItem(key+'.backup');}
+export function deleteSave(storage:StorageLike,id:string){
+  const key=slotKey(id);
+  if(isAutosave(id)){
+    // An empty slot intentionally stays empty, rather than reviving per-campaign autosaves.
+    storage.setItem(autosaveKey,'');
+    if(id===AUTOSAVE_ID)return;
+  }
+  storage.removeItem(key);storage.removeItem(key+'.backup');
+}

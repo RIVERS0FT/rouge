@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Engine, createGame } from '../src/game/engine.ts';
 import { MAP, provinceAt, STARTS, pointInProvince } from '../src/game/map.ts';
 import { buildFlow,findRegionRoute } from '../src/game/navigation.ts';
-import { validateState, encodeSave, decodeSave, writeSave, readSave, listSaves, deleteSave, SAVE_PREFIX, checksum } from '../src/game/save.ts';
+import { validateState, encodeSave, decodeSave, writeSave, writeAutosave, readSave, listSaves, deleteSave, AUTOSAVE_ID, isAutosave, SAVE_PREFIX, checksum } from '../src/game/save.ts';
 import {regionCapacity,regionProductionRate} from '../src/game/territoryEconomy.ts';
 import { stats } from '../src/game/content.ts';
 const setups=[{name:'Player',leader:'warden',loadout:['infantry']},{name:'AI',leader:'steward',loadout:['infantry'],ai:true}];
@@ -42,6 +42,38 @@ test('talents can only be selected from the current candidate set',()=>{const e=
 test('save roundtrip retains RNG and pending talent choices; corruption rejected',()=>{const e=fresh();e.state.players[0].choices=['industry','veterans'];e.state.players[0].drafts=1;const raw=encodeSave(e.state,'Test');assert.deepEqual(decodeSave(raw).state,e.state);const envelope=JSON.parse(raw);envelope.hash='bad';assert.throws(()=>decodeSave(JSON.stringify(envelope)));assert.throws(()=>decodeSave('{}'));assert.equal(validateState({...e.state,version:99}),false);});
 test('multi-slot deletion isolation and corrupt-current recovery from backup',()=>{
  const storage=new MemoryStorage(),e=fresh();writeSave(storage,'a',e.state,'A');writeSave(storage,'b',e.state,'B');e.step(10);writeSave(storage,'a',e.state,'A');storage.setItem(SAVE_PREFIX+'a','bad');assert.equal(readSave(storage,'a').recovered,true);assert.equal(readSave(storage,'a').state.tick,0);assert.equal(listSaves(storage).length,2);deleteSave(storage,'a');assert.equal(listSaves(storage).length,1);assert.equal(readSave(storage,'b').state.campaign,'test');
+});
+test('autosaves from different campaigns overwrite one slot without touching manual or imported saves',()=>{
+ const storage=new MemoryStorage(),state=fresh().state,autoKey=SAVE_PREFIX+AUTOSAVE_ID;
+ writeSave(storage,'manual-one',state,'Manual');writeSave(storage,'import-one',state,'Imported');
+ writeAutosave(storage,state,'Auto');writeAutosave(storage,{...state,campaign:'other',tick:1200},'Auto');
+ assert.deepEqual(listSaves(storage).filter(s=>isAutosave(s.id)).map(s=>[s.id,s.tick]),[[AUTOSAVE_ID,1200]]);
+ assert.equal(readSave(storage,AUTOSAVE_ID).state.campaign,'other');
+ assert.equal(storage.getItem(autoKey+'.backup'),null);
+ assert.equal(readSave(storage,'manual-one').state.campaign,'test');
+ assert.equal(readSave(storage,'import-one').state.campaign,'test');
+ const committed=storage.getItem(autoKey);
+ assert.throws(()=>writeAutosave(storage,{...state,version:-1},'Auto'),/invalidSave/);
+ assert.equal(storage.getItem(autoKey),committed);
+ storage.setItem(autoKey,'corrupt');
+ writeAutosave(storage,state,'Auto');
+ assert.equal(readSave(storage,AUTOSAVE_ID).state.campaign,'test');
+});
+test('only the latest existing automatic slot is offered before the first global autosave',()=>{
+ const storage=new MemoryStorage(),state=fresh().state;
+ const put=(id,date)=>{
+  const raw=JSON.parse(encodeSave({...state,campaign:id},'Old auto'));
+  storage.setItem(SAVE_PREFIX+id,JSON.stringify({...raw,savedAt:date}));
+ };
+ put('auto-recent','2026-11-15T02:00:00.000Z');put('auto-old','2026-11-15T01:00:00.000Z');
+ assert.deepEqual(listSaves(storage).map(s=>s.id),['auto-recent']);
+ assert.equal(readSave(storage,'auto-recent').state.campaign,'auto-recent');
+ writeAutosave(storage,state,'Auto');
+ assert.deepEqual(listSaves(storage).map(s=>s.id),[AUTOSAVE_ID]);
+ assert.ok(storage.getItem(SAVE_PREFIX+'auto-old'));
+ deleteSave(storage,AUTOSAVE_ID);
+ assert.deepEqual(listSaves(storage),[]);
+ assert.throws(()=>readSave(storage,AUTOSAVE_ID),/invalidSave/);
 });
 test('save rejects out-of-bounds coordinates and nonexistent unit types',()=>{const e=fresh();e.state.units[0].x=Infinity;assert.equal(validateState(e.state),false);e.state.units[0].x=0;e.state.units[0].kind='tank';assert.equal(validateState(e.state),false);});
 test('victory locks further commands',()=>{const e=fresh();for(const p of e.state.provinces)if(MAP[p.id].playable)p.owner=0;e.state.units=e.state.units.filter(u=>u.owner===0);e.step();assert.equal(e.state.winner,0);assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}).ok,false);});

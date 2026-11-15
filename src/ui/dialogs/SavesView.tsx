@@ -1,5 +1,5 @@
 import {useRef} from 'react';
-import type {SaveInfo} from '../../game/save.ts';
+import {isAutosave, type SaveInfo} from '../../game/save.ts';
 import {Icon} from '../icons.tsx';
 import {t, timeLabel, type Language} from '../i18n.ts';
 
@@ -20,12 +20,12 @@ export function SavesView({saves, language, canSave, canExport, saveName, onSave
   <div className="save-list">{saves.length ? saves.map(save => <article key={save.id} className="save-card" data-corrupt={save.corrupted}>
    <div className="save-icon" aria-hidden="true"><Icon name="archive" size={22}/></div>
    <div className="save-description">
-    <h3>{save.name}</h3>
+    <h3>{isAutosave(save.id) ? text('autosave') : save.name}</h3>
     <small>{save.corrupted ? text('corrupt') : `${text(save.leader)} · ${timeLabel(save.tick)} · ${new Date(save.savedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}`}</small>
    </div>
    <div className="save-actions">
     <button type="button" className="secondary" onClick={() => onLoad(save.id)}>{text('load')}</button>
-    {canSave && <button type="button" className="quiet" onClick={() => onOverwrite(save)}>{text('overwrite')}</button>}
+    {canSave && !isAutosave(save.id) && <button type="button" className="quiet" onClick={() => onOverwrite(save)}>{text('overwrite')}</button>}
     <button type="button" className="quiet danger" onClick={() => onDelete(save.id)}>{text('delete')}</button>
    </div>
   </article>) : <div className="empty-state">{text('emptySaves')}</div>}</div>
