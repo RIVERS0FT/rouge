@@ -20,6 +20,8 @@ import {unitRenderMode,unitGlyph,unitSpritePixels,unitSpriteWorldSize,unitPresen
 import {createUnitSpriteTexture,createUnitSpriteMesh} from './unitSprites.ts';
 import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
 import {unitMotionSegment} from './unitMotionSegment.ts';
+import {InfantryBatch} from './infantryBatch.ts';
+import {InfantryMotion} from './infantryMotion.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {TOWNS,HOUSE_WIDTH,HOUSE_HEIGHT,HOUSE_DEPTH} from '../game/buildings.ts';
 import * as THREE from 'three';
@@ -140,6 +142,8 @@ export class WorldRenderer {
   private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
   private unitMotion=new UnitMotion(unitMotionSegment);private unitsWereMoving=false;
   private visibleUnitIds=new Set<number>();
+  private infantry=new InfantryBatch(this.scene,()=>{this.invalidated=true;});
+  private infantryMotion=new InfantryMotion();
   constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
@@ -305,7 +309,9 @@ export class WorldRenderer {
       if(provinceNamesVisible(this.distance)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
       this.provinceGarrisons=garrisons;
       if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.viewportHeight))this.invalidated=true;
-      this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},performance.now());
+      const now=performance.now();
+      this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},now);
+      if(this.blend>0.5&&this.infantryMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},now,this.visibleUnitIds))this.invalidated=true;
       // The count is authoritative, even when changes to hidden garrisons need no draw.
       if(this.state?.units.length!==state.units.length)this.renderer.domElement.dataset.totalUnits=String(state.units.length);
     }
@@ -837,14 +843,15 @@ export class WorldRenderer {
     // newest state. Finish camera easing and allow resize/artwork refresh frames.
     if(!this.mapInput.active&&!moving&&!this.backgroundFrame&&!this.selectionFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
     const motion=this.unitMotion.activity(time,moving?undefined:this.visibleUnitIds);
+    const infantryActive=this.blend>0.5&&this.infantry.ready&&this.infantryMotion.active(time,this.visibleUnitIds);
     // Continue between snapshots and draw the exact endpoint before sleeping.
     // Camera gestures follow the display refresh rate, including 120/144 Hz.
     // Army interpolation and stationary views retain their independent budgets.
-    if(!moving&&!motion.active&&!this.unitsWereMoving&&!this.invalidated&&!this.dirty.size)return;
+    if(!moving&&!motion.active&&!infantryActive&&!this.unitsWereMoving&&!this.invalidated&&!this.dirty.size)return;
     // Selection feedback renders on the next display frame, including at rest.
     const interval=moving||this.cameraPanning||this.selectionFrame||this.flatMapCache.pending?0:motion.active?unitMotionFrameInterval(motion.speed,this.distance,this.viewportHeight):1000/30;
     if(time-this.lastRender<interval-0.5)return;
-    this.unitsWereMoving=motion.active;
+    this.unitsWereMoving=motion.active||infantryActive;
     this.lastRender=interval?time-(time-this.lastRender)%interval:time;this.cameraPanning=false;this.selectionFrame=false;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;for(const copy of this.selectionRepeats)copy.visible=!this.globalView;
     const elapsed=Math.max(0,(time-this.last)/1000||0.016);this.last=time;
     this.distance=advanceCameraDistance(this.distance,this.desiredDistance,elapsed,this.lastCameraTarget!==this.desiredDistance);this.lastCameraTarget=this.desiredDistance;
@@ -870,8 +877,11 @@ export class WorldRenderer {
     const glyphs=this.unitSprites.geometry.getAttribute('unitGlyph') as THREE.InstancedBufferAttribute;
     const flatSprites=sprites&&this.blend===0;
     if(flatSprites){this.dummy.position.set(0,.55,0);this.dummy.quaternion.copy(this.camera.quaternion);this.dummy.scale.setScalar(unitSpriteWorldSize(this.distance-.55,this.viewportHeight,pixels));this.dummy.updateMatrix();}
+    if(!sprites)this.infantry.request();
+    const batch=!sprites&&this.infantry.ready;
+    this.infantry.begin(batch,this.mapUnits.length);
     this.unitSprites.visible=sprites;this.bodies.visible=this.heads.visible=!sprites;
-    let n=0;this.visibleUnitIds.clear();
+    let n=0,fallback=0;this.visibleUnitIds.clear();
     for(const u of this.mapUnits) {
       const pos=this.unitMotion.position(u,time);
       if(!inRect(pos,BOUNDS))continue;
@@ -889,15 +899,22 @@ export class WorldRenderer {
           this.dummy.position.set(x,y+0.55,z);this.dummy.quaternion.copy(this.camera.quaternion);
           this.dummy.scale.setScalar(unitSpriteWorldSize(depth,this.viewportHeight,pixels));this.dummy.updateMatrix();}
         this.unitSprites.setMatrixAt(n,this.dummy.matrix);this.unitSprites.setColorAt(n,unitColor);glyphs.setX(n,unitGlyph(u.kind,!!u.transport?.embarked));
+      }else if(batch&&!u.transport?.embarked){
+        const t=this.infantryMotion.track(u.id);
+        // The original art faces +Z after conversion. Keep the footprint and height
+        // close to the former markers; the art never changes movement or collision.
+        this.dummy.position.set(x,y+.015,z);this.dummy.rotation.set(0,t?.heading??(u.id%64)*.618,0);
+        this.dummy.scale.setScalar(.39);this.dummy.updateMatrix();
+        this.infantry.add(this.dummy.matrix,unitColor,t&&time<=t.walkUntil?Math.max(1,time-t.walkStart):0,t?time-t.shotAt:Infinity,u.id);
       }else{
-        // One visible field unit remains one 3D model.
+        // Embarked troops keep the vessel marker, which also serves as land fallback during loading.
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(n,this.dummy.matrix);this.bodies.setColorAt(n,unitColor);
-        this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(n,this.dummy.matrix);
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(fallback,this.dummy.matrix);this.bodies.setColorAt(fallback,unitColor);
+        this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(fallback++,this.dummy.matrix);
       }
       n++;
     }
-    this.unitSprites.count=sprites?n:0;this.bodies.count=this.heads.count=sprites?0:n;
+    this.unitSprites.count=sprites?n:0;this.bodies.count=this.heads.count=fallback;this.infantry.end();
     if(sprites){this.unitSprites.instanceMatrix.needsUpdate=true;glyphs.needsUpdate=true;if(this.unitSprites.instanceColor)this.unitSprites.instanceColor.needsUpdate=true;}
     else{this.bodies.instanceMatrix.needsUpdate=this.heads.instanceMatrix.needsUpdate=true;if(this.bodies.instanceColor)this.bodies.instanceColor.needsUpdate=true;}
     this.drawLabels(time);
@@ -909,7 +926,10 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.viewportWidth=String(this.viewportWidth);this.renderer.domElement.dataset.viewportHeight=String(this.viewportHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
-    this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites=String(this.unitSprites.count);this.renderer.domElement.dataset.renderedModels=String(this.bodies.count);this.renderer.domElement.dataset.unitSpritePixels=String(pixels);
+    this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites=String(this.unitSprites.count);this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.infantry.count);this.renderer.domElement.dataset.unitSpritePixels=String(pixels);
+    this.renderer.domElement.dataset.unitModelAsset=sprites?'none':batch?'infantry-v7':this.infantry.failed?'fallback':'loading';
+    this.renderer.domElement.dataset.renderedWalkingModels=String(this.infantry.walking);
+    this.renderer.domElement.dataset.renderedShootingModels=String(this.infantry.shooting);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
@@ -940,7 +960,7 @@ export class WorldRenderer {
     try{this.renderer.render(this.scene,this.camera);}
     finally{this.flatMapCache.surface.visible=false;for(let i=0;i<backgrounds.length;i++)backgrounds[i].visible=visible[i];}
   }
-  dispose(){this.cancelDispatch();this.dispatchPreview.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+  dispose(){this.infantry.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.unitSpriteTexture.dispose();this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
     cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
     for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}
