@@ -4,7 +4,9 @@ blender -b --factory-startup --python-exit-code 1 --python scripts/bake-infantry
 Only asset processing uses Blender; the web app loads the compact binary directly.
 """
 import array
+import json
 import math
+import re
 from pathlib import Path
 import struct
 import sys
@@ -12,6 +14,16 @@ import bpy
 from mathutils import Matrix
 
 _, source, output = sys.argv[sys.argv.index('--'):]
+# A linked Blender Principled Base Color retains Blender's default 0.8 even
+# when the glTF material's (implicit) baseColorFactor is 1. Read the source
+# factors so vertex colors are never darkened by that editor-only default.
+source_bytes = Path(source).read_bytes()
+chunk_size = struct.unpack_from('<I', source_bytes, 12)[0]
+source_model = json.loads(source_bytes[20:20 + chunk_size])
+material_factors = {
+    m['name']: m.get('pbrMetallicRoughness', {}).get('baseColorFactor', (1, 1, 1, 1))
+    for m in source_model['materials']
+}
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=str(Path(source).resolve()))
 scene = bpy.context.scene
@@ -33,11 +45,28 @@ def quantize(value, maximum):
 def color(material):
     if material is None:
         return (.5, .5, .5), 0, 0
-    base = material.node_tree.nodes.get('Principled BSDF')
-    rgb = tuple(base.inputs['Base Color'].default_value)[:3]
+    # The Blender importer may split a material into .001/etc. variants
+    # when it is shared by primitives with and without vertex colors.
     name = material.name
+    source_name = name if name in material_factors else re.sub(r'\.\d{3}$', '', name)
+    rgb = material_factors[source_name][:3]
+    name = source_name.removesuffix(' | painted')
     tint = {'Navy wool': 208, 'Navy facing': 176, 'Blue stripe': 222}.get(name, 0)
     return rgb, tint, 255 if name.startswith('Flash ') else 0
+
+def paint_layer(mesh, material):
+    # Blender links a Color Attribute node only for glTF primitives with
+    # COLOR_0, including unrenamed parts that share a painted mesh.
+    principled = material.node_tree.nodes.get('Principled BSDF')
+    links = principled.inputs['Base Color'].links
+    nodes = [n for l in links for n in (l.from_node, *[e.from_node for i in l.from_node.inputs for e in i.links])]
+    attr = next((n.layer_name or 'Color' for n in nodes if n.type == 'VERTEX_COLOR'), None)
+    if attr is None and ' | painted' not in material.name:
+        return None
+    layer = mesh.color_attributes.get(attr or 'Color')
+    if layer is None or layer.domain not in {'CORNER', 'POINT'}:
+        raise RuntimeError(f'Missing vertex colors on {mesh.name} ({material.name})')
+    return layer
 
 def to_engine(v):
     return (v.x, v.z, -v.y)
@@ -60,8 +89,9 @@ for obj in nodes:
         local = p.matrix_world.inverted_safe() @ obj.matrix_world
         joint = register(rigid, p.name, ('rigid', p.name, None))
     normal_matrix = local.to_3x3().inverted_safe().transposed()
+    materials = [(color(m), paint_layer(mesh, m)) for m in mesh.materials]
     for tri in mesh.loop_triangles:
-        rgb, tint, glow = color(mesh.materials[tri.material_index])
+        (base_rgb, tint, glow), layer = materials[tri.material_index]
         for idx in tri.loops:
             loop = mesh.loops[idx]
             vert = mesh.vertices[loop.vertex_index]
@@ -76,6 +106,11 @@ for obj in nodes:
                 weight = round(255 * groups[0][0] / sum(x[0] for x in groups))
             else:
                 a = b = joint
+            rgb = base_rgb
+            if layer is not None:
+                # .color is linear; .color_srgb would incorrectly brighten the bake.
+                painted = layer.data[idx if layer.domain == 'CORNER' else loop.vertex_index].color
+                rgb = tuple(a*b for a, b in zip(base_rgb, painted))
             v = struct.pack('<3h3bB8B', *(round(x * 4096) for x in to_engine(local @ vert.co)),
                             *(quantize(x, 127) for x in to_engine((normal_matrix @ mesh.corner_normals[idx].vector).normalized())), 0,
                             *(round(255 * max(0, min(1, x))) for x in rgb), tint, a, b, weight, glow)
