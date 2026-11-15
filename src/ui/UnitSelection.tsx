@@ -4,18 +4,24 @@ import {KINDS,UNITS,UNIT_ATTRIBUTES,type UnitStats} from '../game/content.ts';
 import type {Kind} from '../game/types.ts';
 import {t,type Language} from './i18n.ts';
 import {unitTooltipPosition} from './unit-tooltip-position.ts';
+import infantry from '../assets/units/infantry.webp';
+import cavalry from '../assets/units/cavalry.webp';
+import artillery from '../assets/units/artillery.webp';
+import engineer from '../assets/units/engineer.webp';
+import skirmisher from '../assets/units/skirmisher.webp';
+import grenadier from '../assets/units/grenadier.webp';
+import heavyCavalry from '../assets/units/heavyCavalry.webp';
+import horseArtillery from '../assets/units/horseArtillery.webp';
 
 export function UnitAttributes({values,language}:{values:UnitStats;language:Language}){
  return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerSecond')}`:key==='train'?` ${t(language,'gameSeconds')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerSecond')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
 }
 
-/** Local vector insignia stay sharp at any size and do not depend on a symbol font. */
+const unitPortraits:Record<Kind,string>={infantry,cavalry,artillery,engineer,skirmisher,grenadier,heavyCavalry,horseArtillery};
+
+// The adjacent unit name labels the control; the portrait is decorative.
 export function UnitIcon({kind}:{kind:Kind}){
- const cavalry=kind==='cavalry'||kind==='heavyCavalry',cannon=kind==='artillery'||kind==='horseArtillery';
- return <svg className="unit-icon" viewBox="0 0 120 100" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-  <path className="unit-icon-shield" d="M60 8 98 23v33L60 91 22 56V23Z"/>
-  {cavalry?<><path d="m39 72 3-19 14-13-7-12 16 3 8-12 11 24-10 10 1 19H39Z" fill="currentColor" fillOpacity=".16"/><path d="m58 42 15 3m-26 8 10 9m14-26h1"/>{kind==='heavyCavalry'&&<path d="m32 31 9-5m-6 13 9-5m5 39h34M55 23l7 3"/>}</>:cannon?<><circle cx="48" cy="65" r="13"/><path d="m48 52 39-20 5 12-39 18m7 7 22 7M35 76h52m-39-24v26m-13-13h26"/>{kind==='horseArtillery'&&<path d="m30 34 12-8 6 12-8 8H28l3-8"/>}</>:kind==='engineer'?<><path d="m38 75 39-48m-44 1c14-8 28-3 37 11M78 25l10 9m-46 5 39 35m-2-5 5 5-5 5-5-5"/></>:kind==='grenadier'?<><circle cx="58" cy="60" r="20" fill="currentColor" fillOpacity=".16"/><path d="M56 40v-7h10v8m-5-8 5-9 9 2m-1-8 3-5m3 15 6 2m-36 29a9 9 0 0 1 6-9"/></>:<><path d="m38 74 42-49m-47 46 9 8m29-45 8 7m-37 22 8 7"/>{kind==='skirmisher'?<><path d="M35 34c13-14 35-14 50 0M60 29v16"/><path d="m31 44 8-7 8 7"/></>:<><path d="m41 25 42 49m-7 4 9-8m-40-36-7 7"/><path d="M50 23h20l6 7H44Z"/></>}</>}
- </svg>;
+ return <img className="unit-icon" src={unitPortraits[kind]} alt="" decoding="async" draggable={false}/>;
 }
 
 export function UnitSelection({value,onChange,language}:{value:Kind;onChange:(kind:Kind)=>void;language:Language}){

@@ -37,7 +37,7 @@
 #province-panel .province-production{margin-top:2px}
 #province-panel .production-row{display:flex;align-items:center;gap:12px}
 #province-panel .production-icon{display:grid;place-items:center;flex:none;width:60px;height:60px;border-radius:50%;background:radial-gradient(ellipse at 50% 85%,#57684f66,transparent 70%),#0b0f0e;box-shadow:0 0 0 1px var(--ink-0),0 0 0 3px var(--brass-lo),0 0 0 4px var(--ink-0)}
-#province-panel .production-icon .unit-icon{width:46px;height:40px;color:var(--brass-hi);filter:drop-shadow(0 2px 3px #000a)}
+#province-panel .production-icon .unit-icon{width:46px;height:46px;filter:drop-shadow(0 2px 3px #000a)}
 #province-panel .production-control{flex:1;min-width:0;display:grid;gap:8px}
 #province-panel .province-production select{min-height:38px;padding:8px 10px;font-size:13px}
 #province-panel .production-line{display:flex;align-items:center;gap:10px;margin:0;min-height:17px}
@@ -76,7 +76,7 @@
 .upgrade-card{padding:14px 16px 6px;background:linear-gradient(180deg,#1f2824,#151b18);box-shadow:inset 0 0 0 1px #c6a46733,0 3px 10px #0008}
 .upgrade-title{display:flex;align-items:center;gap:12px}
 .unit-mark{display:grid;place-items:center;flex:none;width:56px;height:56px;border-radius:50%;background:radial-gradient(ellipse at 50% 85%,#57684f66,transparent 70%),#0b0f0e;box-shadow:0 0 0 1px var(--ink-0),0 0 0 3px var(--brass-lo),0 0 0 4px var(--ink-0)}
-.unit-mark .unit-icon{width:44px;height:38px;color:var(--brass-hi)}
+.unit-mark .unit-icon{width:44px;height:44px}
 .upgrade-title h3{margin:0;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--parchment)}
 .upgrade-card .section-ribbon{margin:12px -16px 4px}
 .upgrade-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #ffffff0d}

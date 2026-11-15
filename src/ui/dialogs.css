@@ -75,8 +75,7 @@
 .unit-choice .unit-card.chosen{background:radial-gradient(ellipse at 50% 100%,#b0915a4d,transparent 80%),linear-gradient(180deg,#2b2c22,#18190f);box-shadow:inset 0 0 0 2px var(--brass),inset 0 0 0 3px #000a,0 0 16px #efd79f40}
 .unit-choice .unit-card:focus-visible{outline-offset:3px}
 .unit-choice .unit-name{position:absolute;z-index:1;left:6px;top:6px;max-width:calc(100% - 12px);padding:2px 6px;text-align:left;font-size:clamp(11px,1.1vw,13px);font-weight:600;line-height:1.4;color:var(--parchment);background:#3b151bd9;box-shadow:inset 0 0 0 1px #c6a46755;overflow-wrap:anywhere}
-.unit-icon{width:100%;height:95px;color:#d3bb84;filter:drop-shadow(0 3px 5px #0007)}
-.unit-icon-shield{stroke-opacity:.3;stroke-width:1;fill:#c6a46708}
+.unit-icon{display:block;object-fit:contain;width:100%;height:clamp(80px,calc(11vw - 32px),102px);pointer-events:none;filter:drop-shadow(0 3px 5px #0007)}
 .unit-tooltip{max-width:calc(100vw - 24px);padding:12px 14px}
 .unit-tooltip>strong{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--brass-hi)}
 .unit-tooltip>p{margin:6px 0;font-size:12.5px;line-height:1.6;color:var(--text-2)}
