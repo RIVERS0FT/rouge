@@ -114,7 +114,7 @@
  .modal-body p,.modal .muted,.settings-status{font-size:13px;line-height:1.6}
  .setup-modal .unit-grid{gap:6px}
  .unit-choice .unit-card{height:clamp(96px,26vw,124px);padding:24px 4px 4px}
- .unit-icon{height:72px}
+ .unit-choice .unit-icon{height:clamp(68px,calc(26vw - 28px),96px)}
  .unit-tooltip .unit-attributes{grid-template-columns:repeat(3,minmax(0,1fr))}
  .unit-attribute>span{font-size:11.5px}
  .unit-attribute>strong{font-size:13px}

@@ -1,6 +1,7 @@
 import {waitForRuntime} from './readiness.ts';
 import {test,expect} from '@playwright/test';
 const added=['skirmisher','grenadier','heavyCavalry','horseArtillery'];
+const roster=['infantry','cavalry','artillery','engineer',...added];
 test('eight unit cards retain exclusive selection, nine tooltip attributes and scrollable launch',async({page})=>{
  await page.setViewportSize({width:1000,height:720});
  await page.goto('/');
@@ -18,7 +19,30 @@ test('eight unit cards retain exclusive selection, nine tooltip attributes and s
   await expect(card).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('.unit-card[aria-pressed="true"]')).toHaveCount(1);
  }
- await expect(cards.locator('svg')).toHaveCount(8);
+ const icons=cards.locator('img.unit-icon');
+ await expect(icons).toHaveCount(8);
+ const seen=new Set<string>();
+ for(const kind of roster){
+  const icon=page.getByTestId(`choose-unit-${kind}`).locator('img.unit-icon');
+  await expect(icon).toHaveAttribute('alt','');
+  const {src,width,height,transparent,opaque}=await icon.evaluate(async(node)=>{
+   const img=node as HTMLImageElement;
+   await img.decode();
+   const {naturalWidth:w,naturalHeight:h}=img;
+   const canvas=document.createElement('canvas');
+   canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d')!;
+   ctx.drawImage(img,0,0);
+   const alpha=ctx.getImageData(0,0,w,h).data;
+   const corners=[0,w-1,w*(h-1),w*h-1];
+   return {src:img.currentSrc,width:w,height:h,transparent:corners.every(i=>alpha[4*i+3]===0),opaque:alpha.some((v,i)=>i%4===3&&v===255)};
+  });
+  expect({width,height,transparent,opaque},kind).toEqual({width:256,height:256,transparent:true,opaque:true});
+  expect(new URL(src).pathname,kind).toMatch(new RegExp(`/${kind}(?:-[\\w-]+)?\\.webp$`));
+  expect(seen.has(src),kind).toBe(false);
+  seen.add(src);
+ }
+ const selectedArt=await page.getByTestId('choose-unit-horseArtillery').locator('img.unit-icon').getAttribute('src');
  const names=await cards.locator('.unit-name').allTextContents();
  expect(new Set(names).size).toBe(8);
  await expect(page.getByTestId('choose-unit-horseArtillery')).toContainText('骑炮兵');
@@ -35,6 +59,7 @@ test('eight unit cards retain exclusive selection, nine tooltip attributes and s
  await page.getByTestId('open-upgrades').click();
  await expect(page.locator('.upgrade-card')).toHaveCount(1);
  await expect(page.locator('.upgrade-card')).toContainText('Horse artillery');
+ await expect(page.locator('.upgrade-card img.unit-icon')).toHaveAttribute('src',selectedArt!);
  await expect(page.locator('.upgrade-card .unit-attribute')).toHaveCount(9);
  await page.getByTestId('upgrade-horseArtillery-attack').click();
  await expect(page.locator('.upgrade-card [data-stat="attack"] strong')).toHaveText('30');
