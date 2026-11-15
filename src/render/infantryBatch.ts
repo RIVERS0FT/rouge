@@ -82,7 +82,7 @@ export class InfantryBatch {
           .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb *= rougePigment;')
           .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance += rougePigment * rougeEmission * 3.0;');
       };
-      this.material.customProgramCacheKey=()=> 'rouge-baked-infantry-v7';
+      this.material.customProgramCacheKey=()=> 'rouge-baked-infantry-v10';
       this.rebuild();
       this.ready=true;
       this.invalidate();

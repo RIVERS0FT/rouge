@@ -6,9 +6,9 @@ import {InfantryMotion} from '../src/render/infantryMotion.ts';
 
 const url=new URL('../src/render/assets/infantry.bin',import.meta.url);
 const read=()=>Uint8Array.from(readFileSync(url)).buffer;
-test('v7 packs a single indexed infantry model and finite selective colors and transforms for both clips',()=>{
+test('v10 packs a single indexed infantry model and finite selective colors and transforms for both clips',()=>{
  const a=parseInfantryAsset(read());
- assert.equal(a.indices.length/3,7490);assert.ok(a.positions.length/3<7500);
+ assert.equal(a.indices.length/3,6438);assert.ok(a.positions.length/3<6500);
  assert.equal(a.walkFrames,25);assert.equal(a.shootFrames,15);assert.equal(a.fps,24);
  assert.ok(a.palette.length<(a.positions.length*a.walkFrames));
  assert.ok(a.joints<25);
@@ -45,4 +45,33 @@ test('latest movement sets heading, while reused ids/embarked units clear stale 
  assert.equal(motion.track(7),undefined);
  motion.update(state(1,[unit({x:.2})],'new'),250);
  assert.equal(motion.active(260,new Set([7])),false);
+});
+
+test('bake preserves the GLB painted navy colors while retaining the nation tint mask',()=>{
+ const source=readFileSync(new URL('../data/art/rouge-infantry-v10.glb',import.meta.url));
+ const jsonBytes=source.readUInt32LE(12),binOffset=28+jsonBytes;
+ const model=JSON.parse(source.toString('utf8',20,20+jsonBytes));
+ const paint=model.materials.findIndex(m=>m.name==='Navy wool | painted');
+ assert.ok(paint>=0);
+ const points=[];
+ for(const mesh of model.meshes)for(const primitive of mesh.primitives){
+  if(primitive.material!==paint)continue;
+  const a=model.accessors[primitive.attributes.COLOR_0],b=model.bufferViews[a.bufferView];
+  assert.equal(a.type,'VEC3');assert.equal(a.componentType,5126);
+  const offset=binOffset+(a.byteOffset??0)+(b.byteOffset??0),stride=b.byteStride??12;
+  const factor=model.materials[paint].pbrMetallicRoughness?.baseColorFactor??[1,1,1];
+  for(let i=0;i<a.count;i++){
+   points.push([0,1,2].map(c=>Math.round(255*factor[c]*source.readFloatLE(offset+stride*i+c*4))));
+  }
+ }
+ assert.ok(points.length>500);
+ const baked=parseInfantryAsset(read()),tinted=new Set();
+ for(let i=0;i<baked.tint.length;i++)if(baked.tint[i]===208)tinted.add(baked.colors.subarray(i*3,i*3+3).join(','));
+ assert.ok(tinted.size>=8,'paint color varies across the tinted navy fabric');
+ for(const triple of tinted){
+  const rgb=triple.split(',').map(Number);
+  // Blender's BYTE_COLOR color attribute quantizes after import; allow
+  // one byte of linear round-trip rounding, not palette replacement.
+  assert.ok(points.some(p=>p.every((n,c)=>Math.abs(n-rgb[c])<=1)),`unexpected baked navy color: ${triple}`);
+ }
 });
