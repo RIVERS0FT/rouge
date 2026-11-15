@@ -7,15 +7,15 @@ export function dispatchThreshold(pointerType:string){
 }
 
 export function dispatchSources(members:readonly number[],target:number,actor:number,owners:readonly number[],counts:ArrayLike<number>):number[]{
- if(actor<0||target<0||members.includes(target))return [];
- return members.filter(id=>owners[id]===actor&&counts[id]>0);
+ if(actor<0||target<0)return [];
+ return members.filter(id=>id!==target&&owners[id]===actor&&counts[id]>0);
 }
 
 /** One curved silhouette. The shoulder and body are the same fill, not overlaid shapes. */
-export function dispatchRibbon(source:ScreenPoint,cursor:ScreenPoint){
+export function dispatchRibbon(source:ScreenPoint,cursor:ScreenPoint,endGap?:number){
  const dx=cursor.x-source.x,dy=cursor.y-source.y,distance=Math.hypot(dx,dy);
  if(distance<5)return null;
- const ux=dx/distance,uy=dy/distance,reticleGap=Math.min(12,distance*.13);
+ const ux=dx/distance,uy=dy/distance,reticleGap=endGap??Math.min(12,distance*.13);
  const end={x:cursor.x-ux*reticleGap,y:cursor.y-uy*reticleGap};
  const bend=Math.min(24,distance*.055);
  // Keep the bow stable through small pointer movements and aligned with the target.

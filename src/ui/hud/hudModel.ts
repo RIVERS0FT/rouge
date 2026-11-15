@@ -9,7 +9,7 @@ import type {ConstructionKind, GameState} from '../../game/types.ts';
  * (income per owned playable region, garrison definition, victory share) and
  * never feed back into the simulation. */
 export const VICTORY_SHARE = 0.6;
-export const DOMINATION_SECONDS = 30;
+export const DOMINATION_DAYS = 30;
 export const victoryTarget = () => Math.ceil(PLAYABLE_COUNT * VICTORY_SHARE);
 export const CAPTURE_THRESHOLD = 8;
 
@@ -19,7 +19,7 @@ export function territoryCounts(state: GameState): Map<number, number> {
  return counts;
 }
 
-export function incomePerSecond(state: GameState, actor: number): number {
+export function incomePerDay(state: GameState, actor: number): number {
  let rate = 0;
  for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable) rate += fundsIncomeRate(province, regionProductionRate(province.id), state.players[actor]);
  return rate;

@@ -22,10 +22,15 @@ test('flow markers shrink uniformly forward and fade before the triangle endpoin
  assert.equal(ribbon.marker(ribbon.tip).opacity,0);
  assert.equal(ribbon.marker(0).opacity,0);
 });
-test('a dropped dispatch includes every owned, nonempty source member but never marches within the same territory',()=>{
+test('a snapped territory arrow reaches its target anchor without a pointer gap',()=>{
+ const ribbon=dispatchRibbon({x:15,y:35},{x:315,y:135},0),points=ribbon.d.slice(1,-1).split('L').map(point=>point.split(',').map(Number));
+ assert.deepEqual(points[22],[315,135]);assert.equal(ribbon.length,Math.hypot(300,100));
+});
+test('a dropped dispatch targets one administrative region, including inside its source strategic area',()=>{
  const owners=[0,0,0,1,-1,0],counts=new Uint32Array([3,0,7,9,5,8]);
  assert.deepEqual(dispatchSources([0,1,2,3],4,0,owners,counts),[0,2]);
- assert.deepEqual(dispatchSources([0,1,2],2,0,owners,counts),[]);
+ assert.deepEqual(dispatchSources([0,1,2],2,0,owners,counts),[0]);
+ assert.deepEqual(dispatchSources([2],2,0,owners,counts),[]);
  assert.deepEqual(dispatchSources([0,1,2],-1,0,owners,counts),[]);
  assert.deepEqual(dispatchSources([4],5,-1,owners,counts),[]);
  assert.ok(dispatchThreshold('touch')>dispatchThreshold('mouse'));

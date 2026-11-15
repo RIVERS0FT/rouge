@@ -1,6 +1,6 @@
 {
   "name": "rouge",
-  "version": "0.9.15",
+  "version": "0.9.16",
   "private": true,
   "type": "module",
   "engines": {
@@ -16,10 +16,11 @@
     "test:e2e": "playwright test",
     "profile:acceptance": "node --experimental-strip-types scripts/profile-performance-acceptance.mjs",
     "prepare:map": "node --max-old-space-size=2048 scripts/build-world.mjs && node --experimental-strip-types scripts/write-gameplay-map.mjs",
-    "predev": "npm run prepare:map",
-    "prebuild": "npm run prepare:map",
-    "pretest": "npm run prepare:map",
-    "prelan": "npm run prepare:map"
+    "prepare:simulation": "node scripts/build-simulation.mjs",
+    "predev": "npm run prepare:map && npm run prepare:simulation",
+    "prebuild": "npm run prepare:map && npm run prepare:simulation",
+    "pretest": "npm run prepare:map && npm run prepare:simulation",
+    "prelan": "npm run prepare:map && npm run prepare:simulation"
   },
   "dependencies": {
     "react": "18.3.1",
@@ -33,6 +34,7 @@
     "@types/react-dom": "18.3.1",
     "@types/three": "0.180.0",
     "@vitejs/plugin-react": "5.2.0",
+    "assemblyscript": "0.28.20",
     "typescript": "5.8.3",
     "vite": "7.1.12"
   }

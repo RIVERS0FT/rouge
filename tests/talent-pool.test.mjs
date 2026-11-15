@@ -7,7 +7,7 @@ import {MAP} from '../src/game/map.ts';
 import {availableTalentIds} from '../src/game/talentReroll.ts';
 import {decodeSave,encodeSave} from '../src/game/save.ts';
 import {STRINGS} from '../src/ui/i18n.ts';
-import {incomePerSecond} from '../src/ui/hud/hudModel.ts';
+import {incomePerDay} from '../src/ui/hud/hudModel.ts';
 
 const close=(value,want)=>assert.ok(Math.abs(value-want)<1e-8,`${value} != ${want}`);
 function game(kind='infantry') {
@@ -85,7 +85,7 @@ test('recurring funds and construction discounts match engine transactions and H
  assert.equal(constructionCost('market',1,p),66);
  assert.deepEqual(e.command(0,{type:'construct',province:home.id,kind:'market',expectedLevel:1}),{ok:true});
  assert.equal(p.funds,initial-111);
- const income=incomePerSecond(s,0);close(income,2.75*1.15);
+ const income=incomePerDay(s,0);close(income,2.75*1.15);
  e.step();close(p.funds,initial-111+DT*income);
 });
 test('capture talents pay an extra 10 funds and shorten recovery without resetting current recovery progress',()=>{
@@ -98,7 +98,7 @@ test('capture talents pay an extra 10 funds and shorten recovery without resetti
  Object.assign(unit,{x:target.center.x,z:target.center.z,province:target.id,origin:target.id});
  const captured=s.provinces[target.id];
  Object.assign(captured,{capture:7.99,captor:0});
- s.units=[unit];const funds=p.funds,existingIncome=incomePerSecond(s,0);
+ s.units=[unit];const funds=p.funds,existingIncome=incomePerDay(s,0);
  e.step();assert.equal(captured.owner,0);
  close(captured.recovery,11.25-DT);assert.equal(recoveryDuration(p),11.25);
  assert.equal(captureReward(p),40);

@@ -2,7 +2,16 @@ import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs','--marching'],{encoding:'utf8',maxBuffer:16*1024*1024}));
+async function freezeSimulation(page:Page){
+ // These checks compare a fixed renderer fixture across camera modes. GPU
+ // startup must not let production or arriving armies change that fixture.
+ await page.route('**/src/platform/worker.ts*',async route=>{
+  const response=await route.fetch();
+  await route.fulfill({response,body:'const realTimeout = globalThis.setTimeout; globalThis.setTimeout = (fn, delay, ...args) => delay <= 50 ? 0 : realTimeout(fn, delay, ...args);\n'+await response.text()});
+ });
+}
 async function load(page:Page){
+ await freezeSimulation(page);
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Unit model fixture'}).getByRole('button',{name:'载入',exact:true}).click();
@@ -13,7 +22,7 @@ function errorsOn(page:Page){
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});return errors;
 }
-test('2D sprites and 3D models switch repeatedly without changing units or selection',async({page})=>{
+test('2D hides all armies and 3D models return without changing units or selection',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);await load(page);
  const canvas=page.locator('.world canvas');
  await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.regions[0].code);await page.locator('.map-search-results button').first().click();
@@ -24,7 +33,8 @@ test('2D sprites and 3D models switch repeatedly without changing units or selec
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
   await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');
   await expect(canvas).toHaveAttribute('data-rendered-models','0');
-  await expect.poll(async()=>Number(await canvas.getAttribute('data-rendered-sprites'))).toBeGreaterThan(0);
+  await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
+ await expect(canvas).toHaveAttribute('data-rendered-instances','0');
   await expect(canvas).toHaveAttribute('data-total-units',String(fixture.total));
   await expect(canvas).toHaveAttribute('data-selected-region',selected!);
   if(!pass)await page.screenshot({path:'artifacts/units-strategic-2d.png'});
@@ -63,7 +73,8 @@ test('phone pinch switches unit representation and resizing preserves the active
  };
  await pinch(260,40);await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');
  await expect(canvas).toHaveAttribute('data-rendered-models','0');
- await expect.poll(async()=>Number(await canvas.getAttribute('data-rendered-sprites'))).toBeGreaterThan(0);
+ await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
+  await expect(canvas).toHaveAttribute('data-rendered-instances','0');
  await page.screenshot({path:'artifacts/units-phone-2d.png'});
  await pinch(40,260);await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');
  await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
@@ -74,8 +85,9 @@ test('phone pinch switches unit representation and resizing preserves the active
  await expect(canvas).toHaveAttribute('data-selected-region',selected!);
  await page.screenshot({path:'artifacts/units-phone-3d.png'});expect(errors).toEqual([]);
 });
-test('strategic sprites grow past the original 512-unit allocation',async({page})=>{
+test('large strategic armies stay hidden and 3D capacity still grows',async({page})=>{
  test.setTimeout(180000);const errors=errorsOn(page);
+ await freezeSimulation(page);
  const capacity=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-capacity-fixture.mjs','--marching'],{encoding:'utf8',maxBuffer:16*1024*1024}));
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),capacity);
  await page.goto('/');await page.getByTestId('open-saves').click();
@@ -84,7 +96,13 @@ test('strategic sprites grow past the original 512-unit allocation',async({page}
  const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
  await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');
  await expect.poll(async()=>Number(await canvas.getAttribute('data-total-units'))).toBeGreaterThan(512);
+ await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
+ await expect(canvas).toHaveAttribute('data-rendered-instances','0');
+ await expect(canvas).toHaveAttribute('data-rendered-models','0');
+ await page.keyboard.press('End');for(let n=0;n<4;n++)await page.keyboard.press('+');
+ await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
+ await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');
  await expect.poll(async()=>Number(await canvas.getAttribute('data-unit-capacity'))).toBeGreaterThanOrEqual(1024);
- await expect.poll(async()=>Number(await canvas.getAttribute('data-rendered-sprites'))).toBeGreaterThan(0);
- await expect(canvas).toHaveAttribute('data-rendered-models','0');expect(errors).toEqual([]);
+ await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
+ await expect.poll(async()=>Number(await canvas.getAttribute('data-rendered-models'))).toBeGreaterThan(0);expect(errors).toEqual([]);
 });

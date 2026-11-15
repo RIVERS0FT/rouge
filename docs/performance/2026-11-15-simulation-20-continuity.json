@@ -1,0 +1,25 @@
+{
+  "at": "2026-11-15T14:09:50.237Z",
+  "preservedTick": 32402,
+  "startTick": 32534,
+  "endTick": 32616,
+  "units": 24676,
+  "ticksPerSecond": 5.449156709668996,
+  "continued": true,
+  "paused": "false",
+  "camera": {
+    "x": 567.8743869443824,
+    "z": -144.8689531477677,
+    "distance": 2178.5907550892034
+  },
+  "expectedCamera": {
+    "x": 567.8743869443824,
+    "z": -144.8689531477677,
+    "distance": 2178.5907550892034,
+    "globalView": false
+  },
+  "date": "5年6月19日",
+  "sameCampaign": true,
+  "scope": "Restored actual ongoing campaign with normal UI rendering; larger than the isolated 10846-unit acceptance fixture.",
+  "passed": true
+}

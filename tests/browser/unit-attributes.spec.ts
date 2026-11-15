@@ -23,8 +23,8 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  const artilleryTooltip=page.getByTestId('unit-tooltip-artillery');
  await expect(artilleryTooltip).toBeVisible();
  await expect(artilleryTooltip.locator('.unit-attribute')).toHaveCount(9);
- await expect(artilleryTooltip.locator('[data-stat="attackSpeed"] strong')).toHaveText('0.5 hits/game s');
- await expect(artilleryTooltip.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/game s');
+ await expect(artilleryTooltip.locator('[data-stat="attackSpeed"] strong')).toHaveText('0.5 hits/day');
+ await expect(artilleryTooltip.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/day');
  await artillery.click();
  await page.getByTestId('begin-campaign').click();
  await page.getByTestId('open-upgrades').click();
@@ -33,5 +33,5 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  await expect(attributes.locator('[data-stat="attack"] strong')).toHaveText('40');
  await page.getByTestId('upgrade-artillery-attack').click();
  await expect(attributes.locator('[data-stat="attack"] strong')).toHaveText('42');
- await expect(attributes.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/game s');
+ await expect(attributes.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/day');
 });

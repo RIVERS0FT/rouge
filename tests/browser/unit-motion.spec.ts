@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
 
-test('real 2D/3D batches render intermediate snapshot positions, settle, and sleep under a modal',async({page})=>{
+test('2D armies stay hidden while 3D models interpolate, settle, and sleep under a modal',async({page})=>{
  test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/movement-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"><div id="world" style="width:1440px;height:960px"></div></body>'}));
  await page.goto('/movement-harness');
@@ -32,7 +32,7 @@ test('real 2D/3D batches render intermediate snapshot positions, settle, and sle
     const positions=[];let previousRevision=canvas.dataset.renderRevision;
     for(const time of [117,134,151,168,185,202,235]){
      now=time;frame(time);if(canvas.dataset.renderRevision!==previousRevision){
-      const mesh=canvas.dataset.unitRenderMode==='2d'?world.unitSprites:world.bodies;
+      const mesh=world.bodies;
       positions.push({time,x:mesh.instanceMatrix.array[12],count:mesh.count});previousRevision=canvas.dataset.renderRevision;
      }
     }
@@ -42,13 +42,15 @@ test('real 2D/3D batches render intermediate snapshot positions, settle, and sle
     const settled=canvas.dataset.renderRevision;now+=165;frame(now);const idle=canvas.dataset.renderRevision;
     world.setInputContext('blocked');now+=40;frame(now);const covered=canvas.dataset.renderRevision;
     now+=100;world.update({...state,campaign:`motion-${distance}`,tick:4,units:[{...unit,x:unit.x+.8}]},-1,'en');frame(now+50);frame(now+120);
-    passes.push({mode:canvas.dataset.unitRenderMode,start:unit.x,positions,settled,idle,covered,afterCovered:canvas.dataset.renderRevision});
+    passes.push({mode:canvas.dataset.unitRenderMode,tracks:world.unitMotion.tracks.size,instances:Number(canvas.dataset.renderedInstances),total:world.state.units.length,start:unit.x,positions,settled,idle,covered,afterCovered:canvas.dataset.renderRevision});
    }
   }finally{Object.defineProperty(performance,'now',{configurable:true,value:realNow});world.dispose();}
   return passes;
  },fixture.value);
  for(const [index,pass] of result.entries()){
-  expect(pass.mode).toBe(index?'3d':'2d');expect(pass.positions.length).toBeGreaterThanOrEqual(5);
+  expect(pass.mode).toBe(index?'3d':'2d');expect(pass.total).toBe(1);
+  if(!index){expect(pass.tracks).toBe(0);expect(pass.instances).toBe(0);expect(pass.positions.every(p=>p.count===0)).toBe(true);expect(pass.idle).toBe(pass.settled);expect(pass.afterCovered).toBe(pass.covered);continue;}
+  expect(pass.positions.length).toBeGreaterThanOrEqual(5);
   for(const point of pass.positions){expect(point.count).toBe(1);expect(point.x).toBeCloseTo(pass.start+Math.min(1,(point.time-100)/100)*.4,4);}
   expect(pass.positions.at(-1)!.x).toBeCloseTo(pass.start+.4,4);
   expect(pass.idle).toBe(pass.settled);expect(pass.afterCovered).toBe(pass.covered);

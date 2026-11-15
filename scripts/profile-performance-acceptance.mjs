@@ -38,7 +38,7 @@ for(const spec of specs.filter(s=>selected.includes(s.id))){
  const expectedMode=spec.id==='ai2d'?'2d':'3d',allSamples=[...(warm?.stateSamples??[]),...result.stateSamples];
  const conditionsPassed=raw.errors.length===0&&result.elapsedMs>=duration&&result.unitModes.length===1&&result.unitModes[0]===expectedMode&&
   allSamples.every(s=>s.occupied===s.playable&&s.ai===100&&s.activeAI===100&&s.winner===null&&s.renderPixelRatio===raw.environment.devicePixelRatio)&&
-  (spec.mapOnly?result.ticks===0&&allSamples.every(s=>s.mapUnits===0&&s.motionTracks===0):warm?.elapsedMs>=warmup&&warm.ticks>0&&result.ticks>0&&allSamples.every(s=>s.mapUnits===s.fieldUnits));
+  (spec.mapOnly?result.ticks===0&&allSamples.every(s=>s.mapUnits===0&&s.motionTracks===0):warm?.elapsedMs>=warmup&&warm.ticks>0&&result.ticks>0&&allSamples.every(s=>s.mapUnits===s.fieldUnits&&(s.mode!=='2d'||s.visibleUnits===0&&s.motionTracks===0)));
  const entry={scenario:spec.id,targetFps:spec.target,averageFps:result.renderFps,p95EquivalentFps:1000/result.renderGapMs.p95,worstFrameEquivalentFps:1000/result.renderGapMs.max,conditionsPassed,fpsPassed:result.renderFps>=spec.target,accepted:conditionsPassed&&result.renderFps>=spec.target,measurementSeconds:result.elapsedMs/1000,warmupSeconds:(warm?.elapsedMs??0)/1000,warmupTicks:warm?.ticks??0,ticks:result.ticks,simulationTicksPerSecond:result.ticks*1000/result.elapsedMs,first:result.stateSamples[0],last:result.stateSamples.at(-1),calibration:raw.calibration,rawFile:`${spec.id}.json`};
  summary.results.push(entry);summary.complete=specs.every(s=>summary.results.some(r=>r.scenario===s.id));summary.accepted=summary.complete&&summary.results.every(r=>r.accepted);
  await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));

@@ -1,0 +1,153 @@
+{
+  "at": "2026-11-15T14:09:35.665Z",
+  "nativeSourceSha256": "43a1b9d9df0255bdfbf1028b816daeb39c7e9e4ab1902068b23db3ab191a58c1",
+  "generatedKernelSha256": "67507cdb618a5b21fb32f22c8ac8d86a3d3637a6cce131022e3d9dff62cd4a5d",
+  "geometry": {
+    "points": 24904,
+    "checks": 167367,
+    "exact": true
+  },
+  "arenas": {
+    "immutableRanges": [
+      [
+        89893560,
+        94012712
+      ],
+      [
+        96876304,
+        96895912
+      ],
+      [
+        96900728,
+        185555736
+      ],
+      [
+        185555872,
+        190438152
+      ],
+      [
+        213883256,
+        215173016
+      ],
+      [
+        190438208,
+        199075848
+      ]
+    ],
+    "hashes": [
+      "948c4df5226d69dd8c3a319795d3c87d663f93f8e153ca44bac2ef5d025b9817",
+      "92921773e14aabe7d9cb125008ae9ce462f7174b00b26c6898398f7a92f6522c",
+      "511ee9313514357fbd9813ae819b8a31f718b5cab5c8d1a76d81fc85f5253e35",
+      "dbea758c8a51d8ece2249db3e8ef53857aa3d305e1d404aa1c6067bd488932e7",
+      "796f7836f06f340093afabe6213730a2381f8a264248dc0a214f605861d8cac1",
+      "975c99a297f6aedb209c96e97733b8bd1f0ae7349b449d4f0ff011f8d04cd64a"
+    ],
+    "routePointer": 215220224,
+    "routeCapacity": 67108864,
+    "memoryMiB": 415.75,
+    "exact": true
+  },
+  "fullNodeSuite": {
+    "tests": 444,
+    "passed": 444,
+    "failed": 0
+  },
+  "finalWorkerRegression": {
+    "tests": 19,
+    "passed": 19,
+    "failed": 0
+  },
+  "productionBuild": {
+    "typecheck": true,
+    "vite": true
+  },
+  "runtimeSourceHashes": {
+    "src/game/engine.ts": "e06030fe58bb37933b94f3c00084c412562695360384d55112378f23af08f231",
+    "src/game/map.ts": "9fdce585aa609a46c722e1e0e1dcbba5f6c6dd046112dc92aabd0ee7fa5a4311",
+    "src/game/terrain-navigation.ts": "da19836cbeea5aea2b6459a27719e1cae17ed3ab82e1974f09aef13782b71d26",
+    "src/game/buildings.ts": "59df9a31bf3afc052831af7d8051ef5033fcaa5a1371060abeac16a3f4400420",
+    "src/game/collision.ts": "79baa0fc092d2a1e6bf87adbd56c45d431fe6ab8f5dc22bddcfe7bd4813f2666",
+    "src/game/polygonQuery.ts": "bf01e5e27a84b8357d506945a74bcc5b7813cd0ffd626512436bfc18d754ea9f",
+    "src/game/groundKernel.ts": "96370cdc7ac115630fefa96db2d597afbd3efacf20c477faaed093e230279a3c",
+    "src/game/physicsPool.ts": "bdb4b520e35944e105ce519f8c36c2e92a24edc39c375cbb9a424d5d69745b5b",
+    "src/game/unitFallback.ts": "4ebfe6d1367e1d53683d01d65aedea91bdf1ef12c37ac7edf4a4e703c8baa43c",
+    "src/platform/physics.worker.ts": "6aa205cef6a8d4872756d0961b43b99365e767561a5ddad9ec9a3fe298d0ac4a",
+    "scripts/simulation-kernel.as.ts": "43a1b9d9df0255bdfbf1028b816daeb39c7e9e4ab1902068b23db3ab191a58c1",
+    "src/generated/simulationKernel.ts": "67507cdb618a5b21fb32f22c8ac8d86a3d3637a6cce131022e3d9dff62cd4a5d",
+    ".cache/sim-round5-js-reference/atlasTypes.ts": "e2587ae7f153b8e704ebd163d7539c54f77438942b5e6c8b45b216cd51cc7627",
+    ".cache/sim-round5-js-reference/buildings.ts": "2ef706e3a7a30129fc38b853fc7ea6dd52bff346670a62d839e0be1b971a8359",
+    ".cache/sim-round5-js-reference/capacity.ts": "c68d0c6e7d8f0493dfeebec67ba9b4c2c37ed360cbd94aeaba6d5a29183a2f59",
+    ".cache/sim-round5-js-reference/collision.ts": "79baa0fc092d2a1e6bf87adbd56c45d431fe6ab8f5dc22bddcfe7bd4813f2666",
+    ".cache/sim-round5-js-reference/construction.ts": "ce08e2cbfd407423c54ba6dbc1a33a00d5fcc1140d60a7504629b7d1f88073e4",
+    ".cache/sim-round5-js-reference/content.ts": "795fce760321572313eabb5cd0198c6b5d50c8e8e4c7ca3f5a3afd7acbb0273d",
+    ".cache/sim-round5-js-reference/countryActions.ts": "822dfc4fe9f9a4f6dc537963e48c3a476aaf2bcd39c76425808a977d97bf2521",
+    ".cache/sim-round5-js-reference/countryNames.ts": "ec5d3b8563d611f8e206fc190f8ad1d7ad64cf12a5fb1114519043f78b595f7a",
+    ".cache/sim-round5-js-reference/crop.ts": "1721fe38c563ef9b6e968c33db633b92b4775032d6320f8b8db83856565b27a7",
+    ".cache/sim-round5-js-reference/elimination.ts": "c635d81a879e8b8eea8af44ab263181fda1e735c79f24f4eddf3c2a34f5bf8de",
+    ".cache/sim-round5-js-reference/engine.ts": "fbb22ca011ce5cde72bf6055890e94ec727f6247a653e1e03a87b83e28898d16",
+    ".cache/sim-round5-js-reference/factionColors.ts": "82d84844e4ba4425da522292eab52f4a1ffd6ccb0abe8b9c5238bedc35beddca",
+    ".cache/sim-round5-js-reference/factionFlags.ts": "aa723932918384f779903e8543e0fce000337b6359c5ccfad5a7d9411b1ba9fd",
+    ".cache/sim-round5-js-reference/flagCatalog.ts": "02215411982481ffc032d92789a0f6e3f44db956f6ad8f0272da17509e79fe81",
+    ".cache/sim-round5-js-reference/flags.ts": "4ba25c5d2d80ab6699b0ae17038aa92852f301b952817ff9c60119f6906fa717",
+    ".cache/sim-round5-js-reference/geo.ts": "cbf021a069bff8b943ae5b1686249baf2f631dcddfe54b5336c54c68b0c61598",
+    ".cache/sim-round5-js-reference/map.ts": "211fdc81b8bad7885923dd0aa8060398eb1a272c5c2198268bf6ed677940c170",
+    ".cache/sim-round5-js-reference/navigation.ts": "1ad51ad0b1c68aae2ee8e8696309397b40e8136b6b8e990d0e98873e763c8801",
+    ".cache/sim-round5-js-reference/polygonQuery.ts": "bf01e5e27a84b8357d506945a74bcc5b7813cd0ffd626512436bfc18d754ea9f",
+    ".cache/sim-round5-js-reference/save.ts": "91a2f2dfd26e92c8ad8b1a0d66419d98a685884f384ad6f3aede40363629c98e",
+    ".cache/sim-round5-js-reference/sea-geometry.ts": "b6f99ee1b40cc05edf04591c3afcf82a05183e1af7f2bc5747c4113ba0ba6c34",
+    ".cache/sim-round5-js-reference/sea.ts": "83296590336faff5eb03e09876cd7efe3a4012437c76ce7a6f9ce78a8a26533a",
+    ".cache/sim-round5-js-reference/sourceMap.ts": "03ba8c4a6d52d3665e100179e87ee0c22c6d57e505bab989c9e845647c67032d",
+    ".cache/sim-round5-js-reference/spawns.ts": "ff5aa216fadc8db4ac2d9a7cc3cef8814667e90aed3b646b2cf27c3af6f76071",
+    ".cache/sim-round5-js-reference/talentReroll.ts": "98482933027daa3f643b53f4c186f801fa51930453ad579563d5b241ffe6b374",
+    ".cache/sim-round5-js-reference/terrain-navigation.ts": "ca284aa953b9c20b980ebfa5b6d4f4e48536ea9b8970fe9656f30082ebfba6d7",
+    ".cache/sim-round5-js-reference/territoryEconomy.ts": "d41b40391952d20a8249a6d6b122c964b716c24c3253f2540007f6e45833a422",
+    ".cache/sim-round5-js-reference/territoryGrouping.ts": "aaa28f165d03e5aef6837d486d3d20fcfc635d46e6ee0f3b10134437c1b5e8a3",
+    ".cache/sim-round5-js-reference/territoryRuntime.ts": "f39bdcfa508f144e859278ac01af12674eff2e401cb672775973f6c6640b2dd6",
+    ".cache/sim-round5-js-reference/types.ts": "9a4cbd3a9b8dcc88921412f8fd76f3bc88165b531aaa179ccb359de1556f10df"
+  },
+  "finalRuntimeSourceHashes": {
+    "src/game/engine.ts": "740eb3adf47c548a0c329828c89191db34256c95877d9468ad34bf21cb5b212f",
+    "src/game/map.ts": "9fdce585aa609a46c722e1e0e1dcbba5f6c6dd046112dc92aabd0ee7fa5a4311",
+    "src/game/terrain-navigation.ts": "da19836cbeea5aea2b6459a27719e1cae17ed3ab82e1974f09aef13782b71d26",
+    "src/game/buildings.ts": "59df9a31bf3afc052831af7d8051ef5033fcaa5a1371060abeac16a3f4400420",
+    "src/game/collision.ts": "79baa0fc092d2a1e6bf87adbd56c45d431fe6ab8f5dc22bddcfe7bd4813f2666",
+    "src/game/polygonQuery.ts": "bf01e5e27a84b8357d506945a74bcc5b7813cd0ffd626512436bfc18d754ea9f",
+    "src/game/groundKernel.ts": "96370cdc7ac115630fefa96db2d597afbd3efacf20c477faaed093e230279a3c",
+    "src/game/physicsPool.ts": "bdb4b520e35944e105ce519f8c36c2e92a24edc39c375cbb9a424d5d69745b5b",
+    "src/game/unitFallback.ts": "4ebfe6d1367e1d53683d01d65aedea91bdf1ef12c37ac7edf4a4e703c8baa43c",
+    "src/platform/physics.worker.ts": "6aa205cef6a8d4872756d0961b43b99365e767561a5ddad9ec9a3fe298d0ac4a",
+    "scripts/simulation-kernel.as.ts": "43a1b9d9df0255bdfbf1028b816daeb39c7e9e4ab1902068b23db3ab191a58c1",
+    "src/generated/simulationKernel.ts": "67507cdb618a5b21fb32f22c8ac8d86a3d3637a6cce131022e3d9dff62cd4a5d",
+    ".cache/sim-round5-js-reference/atlasTypes.ts": "e2587ae7f153b8e704ebd163d7539c54f77438942b5e6c8b45b216cd51cc7627",
+    ".cache/sim-round5-js-reference/buildings.ts": "2ef706e3a7a30129fc38b853fc7ea6dd52bff346670a62d839e0be1b971a8359",
+    ".cache/sim-round5-js-reference/capacity.ts": "c68d0c6e7d8f0493dfeebec67ba9b4c2c37ed360cbd94aeaba6d5a29183a2f59",
+    ".cache/sim-round5-js-reference/collision.ts": "79baa0fc092d2a1e6bf87adbd56c45d431fe6ab8f5dc22bddcfe7bd4813f2666",
+    ".cache/sim-round5-js-reference/construction.ts": "ce08e2cbfd407423c54ba6dbc1a33a00d5fcc1140d60a7504629b7d1f88073e4",
+    ".cache/sim-round5-js-reference/content.ts": "795fce760321572313eabb5cd0198c6b5d50c8e8e4c7ca3f5a3afd7acbb0273d",
+    ".cache/sim-round5-js-reference/countryActions.ts": "822dfc4fe9f9a4f6dc537963e48c3a476aaf2bcd39c76425808a977d97bf2521",
+    ".cache/sim-round5-js-reference/countryNames.ts": "ec5d3b8563d611f8e206fc190f8ad1d7ad64cf12a5fb1114519043f78b595f7a",
+    ".cache/sim-round5-js-reference/crop.ts": "1721fe38c563ef9b6e968c33db633b92b4775032d6320f8b8db83856565b27a7",
+    ".cache/sim-round5-js-reference/elimination.ts": "c635d81a879e8b8eea8af44ab263181fda1e735c79f24f4eddf3c2a34f5bf8de",
+    ".cache/sim-round5-js-reference/engine.ts": "fbb22ca011ce5cde72bf6055890e94ec727f6247a653e1e03a87b83e28898d16",
+    ".cache/sim-round5-js-reference/factionColors.ts": "82d84844e4ba4425da522292eab52f4a1ffd6ccb0abe8b9c5238bedc35beddca",
+    ".cache/sim-round5-js-reference/factionFlags.ts": "aa723932918384f779903e8543e0fce000337b6359c5ccfad5a7d9411b1ba9fd",
+    ".cache/sim-round5-js-reference/flagCatalog.ts": "02215411982481ffc032d92789a0f6e3f44db956f6ad8f0272da17509e79fe81",
+    ".cache/sim-round5-js-reference/flags.ts": "4ba25c5d2d80ab6699b0ae17038aa92852f301b952817ff9c60119f6906fa717",
+    ".cache/sim-round5-js-reference/geo.ts": "cbf021a069bff8b943ae5b1686249baf2f631dcddfe54b5336c54c68b0c61598",
+    ".cache/sim-round5-js-reference/map.ts": "211fdc81b8bad7885923dd0aa8060398eb1a272c5c2198268bf6ed677940c170",
+    ".cache/sim-round5-js-reference/navigation.ts": "1ad51ad0b1c68aae2ee8e8696309397b40e8136b6b8e990d0e98873e763c8801",
+    ".cache/sim-round5-js-reference/polygonQuery.ts": "bf01e5e27a84b8357d506945a74bcc5b7813cd0ffd626512436bfc18d754ea9f",
+    ".cache/sim-round5-js-reference/save.ts": "91a2f2dfd26e92c8ad8b1a0d66419d98a685884f384ad6f3aede40363629c98e",
+    ".cache/sim-round5-js-reference/sea-geometry.ts": "b6f99ee1b40cc05edf04591c3afcf82a05183e1af7f2bc5747c4113ba0ba6c34",
+    ".cache/sim-round5-js-reference/sea.ts": "83296590336faff5eb03e09876cd7efe3a4012437c76ce7a6f9ce78a8a26533a",
+    ".cache/sim-round5-js-reference/sourceMap.ts": "03ba8c4a6d52d3665e100179e87ee0c22c6d57e505bab989c9e845647c67032d",
+    ".cache/sim-round5-js-reference/spawns.ts": "ff5aa216fadc8db4ac2d9a7cc3cef8814667e90aed3b646b2cf27c3af6f76071",
+    ".cache/sim-round5-js-reference/talentReroll.ts": "98482933027daa3f643b53f4c186f801fa51930453ad579563d5b241ffe6b374",
+    ".cache/sim-round5-js-reference/terrain-navigation.ts": "ca284aa953b9c20b980ebfa5b6d4f4e48536ea9b8970fe9656f30082ebfba6d7",
+    ".cache/sim-round5-js-reference/territoryEconomy.ts": "d41b40391952d20a8249a6d6b122c964b716c24c3253f2540007f6e45833a422",
+    ".cache/sim-round5-js-reference/territoryGrouping.ts": "aaa28f165d03e5aef6837d486d3d20fcfc635d46e6ee0f3b10134437c1b5e8a3",
+    ".cache/sim-round5-js-reference/territoryRuntime.ts": "f39bdcfa508f144e859278ac01af12674eff2e401cb672775973f6c6640b2dd6",
+    ".cache/sim-round5-js-reference/types.ts": "9a4cbd3a9b8dcc88921412f8fd76f3bc88165b531aaa179ccb359de1556f10df"
+  },
+  "finalWorkerSourceSha256": "ad50c47e8ae729da9d944c82c3ec4fd96e0196bcabd43d16417853d46643f4af"
+}

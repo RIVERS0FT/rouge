@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {buildBorderEdges,classifyBorder,borderPositions,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH} from '../src/render/territoryBorders.ts';
+import {buildBorderEdges,classifyBorder,borderPositions,territoryOutline,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH} from '../src/render/territoryBorders.ts';
 import {MAP,BOUNDS,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
 const edge={a:{x:0,z:0},b:{x:0,z:1},atoms:[0,1]};
 test('country borders follow human and AI ownership, not palette or real country',()=>{
@@ -27,6 +27,12 @@ test('capture changes country border even without a management revision',()=>{
 });
 const region=(id,ring,holes=[])=>({id,code:`a${id}`,visible:true,parts:[[ring,...holes]]});
 const rect={left:-10,right:10,top:0,bottom:4};
+test('territory outlines omit internal member boundaries',()=>{
+ const regions=[region(0,[{x:0,z:0},{x:1,z:0},{x:1,z:1},{x:0,z:1}]),region(1,[{x:1,z:0},{x:2,z:0},{x:2,z:1},{x:1,z:1}]),region(2,[{x:2,z:0},{x:3,z:0},{x:3,z:1},{x:2,z:1}])];
+ const edges=buildBorderEdges(regions,rect),outline=territoryOutline(edges,new Set([0,1]));
+ assert.equal(outline.length,6);assert.equal(outline.some(e=>e.atoms.includes(0)&&e.atoms.includes(1)),false);
+ assert.ok(outline.some(e=>e.atoms.includes(1)&&e.atoms.includes(2)));
+});
 test('shared reversed sides draw once and never as both coast and country',()=>{
  const regions=[region(0,[{x:0,z:0},{x:1,z:0},{x:1,z:1},{x:0,z:1}]),region(1,[{x:1,z:0},{x:2,z:0},{x:2,z:1},{x:1,z:1}])];
  const before=JSON.stringify(regions),edges=buildBorderEdges(regions,rect);

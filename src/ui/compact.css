@@ -156,6 +156,12 @@
 /* Phones in portrait: the speed pips and level metric yield to the essentials. */
 @media (max-width:480px){
  .is-game .speed-pips,.is-game .resource.level-resource{display:none}
+ /* Calendar dates need a full line while the controls retain touch targets. */
+ .app.is-game{--band-h:76px}
+ .is-game .hud-clock{display:grid;grid-template-columns:auto auto;gap:2px 4px;padding:4px 8px}
+ .is-game .clock-face{grid-column:1/-1;justify-self:center}
+ .is-game .clock-face time{white-space:nowrap}
+ .is-game .clock-actions{margin-left:0;gap:8px}
 }
 
 /* A slimmer panel title leaves room for the contents in landscape. */

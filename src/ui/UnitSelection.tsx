@@ -14,7 +14,7 @@ import heavyCavalry from '../assets/units/heavyCavalry.webp';
 import horseArtillery from '../assets/units/horseArtillery.webp';
 
 export function UnitAttributes({values,language}:{values:UnitStats;language:Language}){
- return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerSecond')}`:key==='train'?` ${t(language,'gameSeconds')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerSecond')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
+ return <span className="unit-attributes" data-testid="unit-attributes">{UNIT_ATTRIBUTES.map(key=><span className="unit-attribute" key={key} data-stat={key}><span>{t(language,`attribute.${key}`)}</span><strong>{key==='splash'&&values[key]===0?t(language,'singleTarget'):Number(values[key].toFixed(2))}{key==='attackSpeed'?` ${t(language,'attacksPerDay')}`:key==='train'?` ${t(language,'gameDays')}`:key==='speed'||key==='seaSpeed'?` ${t(language,'distancePerDay')}`:key==='splash'&&values[key]>0||key==='range'?` ${t(language,'mapUnits')}`:''}</strong></span>)}</span>;
 }
 
 const unitPortraits:Record<Kind,string>={infantry,cavalry,artillery,engineer,skirmisher,grenadier,heavyCavalry,horseArtillery};

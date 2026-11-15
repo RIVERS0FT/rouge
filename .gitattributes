@@ -1,3 +1,7 @@
 # Keep the exact bytes used by the gameplay partition provenance checks.
 data/gameplay-region-overrides.json text eol=lf
 data/admin1-overlap-audit.json text eol=lf
+
+# Keep simulation compiler fingerprints stable across Windows and Linux checkouts.
+scripts/simulation-kernel.as.ts text eol=lf
+src/generated/simulationKernel.ts text eol=lf

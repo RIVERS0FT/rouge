@@ -4,7 +4,7 @@ import {createGame} from '../src/game/engine.ts';
 import {MAP, PLAYABLE_COUNT} from '../src/game/map.ts';
 import {regionProductionRate} from '../src/game/territoryEconomy.ts';
 import {isRegionGarrison} from '../src/game/capacity.ts';
-import {armyBreakdown, compactNumber, factionFocusRegion, factionSummaries, incomePerSecond, ownedRegions, signed, territoryCounts, victoryTarget} from '../src/ui/hud/hudModel.ts';
+import {armyBreakdown, compactNumber, factionFocusRegion, factionSummaries, incomePerDay, ownedRegions, signed, territoryCounts, victoryTarget} from '../src/ui/hud/hudModel.ts';
 import {placeTip} from '../src/ui/tipPlacement.ts';
 import {clothAmplitude, clothOffset, clothShade, CLOTH_PERIOD, CLOTH_WAVELENGTH, FLAG_WIDTH} from '../src/ui/flagCloth.ts';
 import {politicalRibbonGeometry} from '../src/render/politicalTint.ts';
@@ -18,7 +18,7 @@ test('ledger figures mirror engine rules: playable territory, income per region 
   const owned = state.provinces.filter(p => p.owner === player.id && MAP[p.id].playable);
   assert.equal(counts.get(player.id), owned.length);
   const expected = owned.reduce((sum, p) => sum + .75 * regionProductionRate(p.id), 0);
-  assert.ok(Math.abs(incomePerSecond(state, player.id) - expected) < 1e-9);
+  assert.ok(Math.abs(incomePerDay(state, player.id) - expected) < 1e-9);
  }
  assert.equal(victoryTarget(), Math.ceil(PLAYABLE_COUNT * .6));
 });
