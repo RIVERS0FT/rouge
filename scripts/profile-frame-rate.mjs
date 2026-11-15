@@ -104,7 +104,7 @@ self.onmessage=function(event){
  await page.waitForTimeout(1500);
  if(options.mapOnly){
   if(options.running)throw new Error('--mapOnly pauses simulation; omit --running');
-  await page.evaluate(()=>{const r=window.__frameProbe.instance;r.mapUnits=[];r.renderedUnits=[];r.unitMotion.tracks.clear();r.unitSprites.count=r.bodies.count=r.heads.count=0;r.unitsWereMoving=false;r.invalidated=true;});
+  await page.evaluate(()=>{const r=window.__frameProbe.instance;r.mapUnits=[];r.renderedUnits=[];r.unitMotion.tracks.clear();r.bodies.count=r.heads.count=0;r.unitsWereMoving=false;r.invalidated=true;});
  }
  const cdp=await page.context().newCDPSession(page);await cdp.send('Performance.enable');
  const traceEvents=[];

@@ -6,7 +6,7 @@ import {FieldDispatches} from '../FieldDispatches.tsx';
 import {Icon} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {Tip, TipRow, TipTitle} from '../Tooltip.tsx';
-import {DOMINATION_SECONDS, victoryTarget, type FactionSummary, type RegionSummary} from './hudModel.ts';
+import {DOMINATION_DAYS, victoryTarget, type FactionSummary, type RegionSummary} from './hudModel.ts';
 import {NationRow} from './NationsPanel.tsx';
 
 const NATION_ROWS = 5, REGION_ROWS = 6;
@@ -55,7 +55,7 @@ export function Outliner({state, actor, owned, factions, regions, language, open
       const share = (territory.get(player.id) ?? 0) / PLAYABLE_COUNT * 100;
       return <span key={player.id} title={playerName(language, player)} style={{background: factionColor(player.id), width: `${share}%`}}/>;
      })}</div>
-     {domination > 0 && <b className="objective-domination"><Icon name="crown" size={14}/>{text('domination')} {Math.floor(domination)} / {DOMINATION_SECONDS}{text('seconds')}</b>}
+     {domination > 0 && <b className="objective-domination"><Icon name="crown" size={14}/>{text('domination')} {Math.floor(domination)} / {DOMINATION_DAYS}{text('days')}</b>}
     </div>
    </OutlinerSection>
    <OutlinerSection id="nations" title={text('nations')} aside={state.players.length} open={expanded.nations} onToggle={() => toggle('nations')}>

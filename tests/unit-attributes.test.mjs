@@ -28,7 +28,7 @@ test('upgrades and talents modify health, attack and land speed but not transpor
  }
 });
 test('all nine attributes and their units have Chinese and English labels',()=>{
- for(const key of [...UNIT_ATTRIBUTES.map(k=>`attribute.${k}`),'singleTarget','attacksPerSecond','gameSeconds','distancePerSecond','mapUnits','transportStatsHint']){
+ for(const key of [...UNIT_ATTRIBUTES.map(k=>`attribute.${k}`),'singleTarget','attacksPerDay','gameDays','distancePerDay','mapUnits','transportStatsHint']){
   assert.equal(STRINGS[key].length,2);assert.ok(STRINGS[key].every(v=>typeof v==='string'&&v.length>0));
  }
 });

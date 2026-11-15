@@ -1,0 +1,18 @@
+{
+  "browser": "157.0.8103.78",
+  "initialTick": 16426,
+  "pausedTick": 16433,
+  "endTick": 16437,
+  "units": 10872,
+  "elapsedMs": 5255.200000286102,
+  "localFrames": 8,
+  "commandResults": 2,
+  "errors": [],
+  "assets": {
+    "worker-Bg1q8zod.js": "012b9b83a6e12e518f92210d4a997afb12a56ed4e35c14d2def2d874d08a8123",
+    "world-BsPFKym5.json": "7e234da760a83ff6d2980bdab4853ea2cb67d8ec6125dd7924bf805b4393d1c7",
+    "terrain-navigation-BrxrjK3i.json": "88a92c617109732f07ed794271cb3fa24017d80e430a48ecbefb3c6bb773ba4f",
+    "physics.worker-BXvFb1OA.js": "cc387cf646e2724be39854f052f18d344a549a318a8901bd71b4efbdda9eca65"
+  },
+  "passed": true
+}

@@ -45,3 +45,7 @@ export function classifyBorder(edge:BorderEdge,ownerIds:readonly number[],groupI
 export function borderPositions(edges:readonly BorderEdge[],height:number):number[]{
  const positions:number[]=[];for(const {a,b}of edges)positions.push(a.x,height,a.z,b.x,height,b.z);return positions;
 }
+/** The outline of a whole gameplay territory, with all member seams removed. */
+export function territoryOutline(edges:readonly BorderEdge[],members:ReadonlySet<number>):BorderEdge[]{
+ return edges.filter(edge=>{const inside=edge.atoms.filter(id=>members.has(id)).length;return inside>0&&(edge.atoms.length===1||inside<edge.atoms.length);});
+}

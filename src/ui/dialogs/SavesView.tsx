@@ -21,7 +21,7 @@ export function SavesView({saves, language, canSave, canExport, saveName, onSave
    <div className="save-icon" aria-hidden="true"><Icon name="archive" size={22}/></div>
    <div className="save-description">
     <h3>{isAutosave(save.id) ? text('autosave') : save.name}</h3>
-    <small>{save.corrupted ? text('corrupt') : `${text(save.leader)} · ${timeLabel(save.tick)} · ${new Date(save.savedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}`}</small>
+    <small>{save.corrupted ? text('corrupt') : `${text(save.leader)} · ${timeLabel(save.tick,language)} · ${new Date(save.savedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}`}</small>
    </div>
    <div className="save-actions">
     <button type="button" className="secondary" onClick={() => onLoad(save.id)}>{text('load')}</button>

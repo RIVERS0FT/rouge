@@ -1,3 +1,5 @@
+var geometryReady=false;
+import {kernel,storeData,setupGeometry} from './groundKernel.ts';
 import data from '../generated/terrain-navigation.json' with {type:'json'};
 import type {Vec2} from './types.ts';
 export interface TravelPoint extends Vec2 {sea:boolean}
@@ -12,7 +14,7 @@ export const TERRAIN_REVISION=data.revision;
 const centerData=new Float64Array(triangleCount*2);
 const center=(id:number)=>({x:centerData[id*2],z:centerData[id*2+1]});
 // Packed CSR spatial index avoids millions of JS array/object references on phones.
-const size=8,minX=Math.floor(data.bounds[0]/size),minZ=Math.floor(data.bounds[1]/size),cols=Math.floor(data.bounds[2]/size)-minX+1,rows=Math.floor(data.bounds[3]/size)-minZ+1;
+const size=2,minX=Math.floor(data.bounds[0]/size),minZ=Math.floor(data.bounds[1]/size),cols=Math.floor(data.bounds[2]/size)-minX+1,rows=Math.floor(data.bounds[3]/size)-minZ+1;
 const offsets=new Uint32Array(cols*rows+1),ranges=new Int16Array(triangleCount*4);
 for(let i=0;i<triangleCount;i++){const t=triangle(i),xs=t.map(p=>p[0]),zs=t.map(p=>p[1]);centerData[i*2]=(xs[0]+xs[1]+xs[2])/3;centerData[i*2+1]=(zs[0]+zs[1]+zs[2])/3;
  const a=Math.floor(Math.min(...xs)/size)-minX,b=Math.floor(Math.max(...xs)/size)-minX,c=Math.floor(Math.min(...zs)/size)-minZ,d=Math.floor(Math.max(...zs)/size)-minZ;ranges.set([a,b,c,d],i*4);
@@ -34,46 +36,80 @@ for(let id=0;id<triangleCount;id++)if(surfaces[id]===1)for(let k=0;k<3;k++){
  if(!shared)landBoundary[id]|=1<<k;
 }
 const cross=(a:number[],b:number[],p:Vec2)=>(b[0]-a[0])*(p.z-a[1])-(b[1]-a[1])*(p.x-a[0]);
+// Exact original edge differences, packed once for repeated point tests.
+const planes=new Float64Array(triangleCount*12);
+for(let id=0;id<triangleCount;id++)for(let k=0;k<3;k++){
+ const a=triangleData[id*3+k]*2,b=triangleData[id*3+(k+1)%3]*2,i=id*12+k*4;
+ planes[i]=vertexData[a];planes[i+1]=vertexData[a+1];planes[i+2]=vertexData[b]-vertexData[a];planes[i+3]=vertexData[b+1]-vertexData[a+1];
+}
 function inTriangle(id:number,p:Vec2):boolean {
- let positive=false,negative=false;
- for(let k=0;k<3;k++){
-  const a=triangleData[id*3+k]*2,b=triangleData[id*3+(k+1)%3]*2;
-  const d=(vertexData[b]-vertexData[a])*(p.z-vertexData[a+1])-(vertexData[b+1]-vertexData[a+1])*(p.x-vertexData[a]);
-  positive ||= d>1e-8;negative ||= d< -1e-8;if(positive&&negative)return false;
- }
- return true;
+ const i=id*12,x=p.x,z=p.z;
+ const a=planes[i+2]*(z-planes[i+1])-planes[i+3]*(x-planes[i]);
+ const b=planes[i+6]*(z-planes[i+5])-planes[i+7]*(x-planes[i+4]);
+ let positive=a>1e-8||b>1e-8,negative=a< -1e-8||b< -1e-8;if(positive&&negative)return false;
+ const c=planes[i+10]*(z-planes[i+9])-planes[i+11]*(x-planes[i+8]);
+ return !((positive||c>1e-8)&&(negative||c< -1e-8));
 }
-export function terrainAt(p:Vec2,landOnly=false):number {
+const pointHints=new Map<number,number>(),hintColumns=Math.ceil((data.bounds[2]-data.bounds[0])*2)+4;
+function strictlyInside(id:number,p:Vec2):boolean {
+ const i=id*12,x=p.x,z=p.z;
+ const a=planes[i+2]*(z-planes[i+1])-planes[i+3]*(x-planes[i]);
+ const b=planes[i+6]*(z-planes[i+5])-planes[i+7]*(x-planes[i+4]);
+ const c=planes[i+10]*(z-planes[i+9])-planes[i+11]*(x-planes[i+8]);
+ return a>1e-5&&b>1e-5&&c>1e-5||a< -1e-5&&b< -1e-5&&c< -1e-5;
+}
+function rememberTriangle(key:number,id:number){if(pointHints.size>=65536&&!pointHints.has(key))pointHints.delete(pointHints.keys().next().value!);pointHints.set(key,id);}
+export function terrainAt(p:Vec2,landOnly=false):number {if(Number.isFinite(p.x)&&Number.isFinite(p.z)&&geometryReady)return kernel.kernelTerrainAt(p.x,p.z,landOnly);
  if(!Number.isFinite(p.x)||!Number.isFinite(p.z))return -1;
- let found=-1;
- for(const id of bucket(Math.floor(p.x/size),Math.floor(p.z/size))){if(landOnly&&surfaces[id]!==1)continue;if(inTriangle(id,p)){if(surfaces[id]===1)return id;found=id;}}
- return found;
+ const hintKey=Math.floor(p.z*2)*hintColumns+Math.floor(p.x*2),hint=pointHints.get(hintKey);
+ if(hint!==undefined&&(!landOnly||surfaces[hint]===1)&&strictlyInside(hint,p))return hint;
+ const x=Math.floor(p.x/size)-minX,z=Math.floor(p.z/size)-minZ;if(x<0||z<0||x>=cols||z>=rows)return -1;
+ const cell=z*cols+x;let found=-1;
+ for(let i=offsets[cell];i<offsets[cell+1];i++){const id=bucketIds[i];if(landOnly&&surfaces[id]!==1)continue;if(inTriangle(id,p)){if(surfaces[id]===1){rememberTriangle(hintKey,id);return id;}found=id;}}
+ if(found>=0)rememberTriangle(hintKey,found);return found;
 }
-const wallSize=4,walls:number[][]=[],wallBuckets=new Map<string,number[]>();
-for(let id=0;id<triangleCount;id++)if(landBoundary[id])for(let k=0;k<3;k++)if(landBoundary[id]&(1<<k)){
- const a=vertex(triangleData[id*3+k]),b=vertex(triangleData[id*3+(k+1)%3]),index=walls.length;walls.push([...a,...b]);
- for(let x=Math.floor(Math.min(a[0],b[0])/wallSize);x<=Math.floor(Math.max(a[0],b[0])/wallSize);x++)for(let z=Math.floor(Math.min(a[1],b[1])/wallSize);z<=Math.floor(Math.max(a[1],b[1])/wallSize);z++){
-  const key=`${x}:${z}`,list=wallBuckets.get(key)??[];list.push(index);wallBuckets.set(key,list);
+// Static physical walls share a packed spatial index. Queries can revisit an
+// edge from adjacent cells: boolean rejection and minimum clearance are unchanged.
+const wallSize=4,wallMinX=Math.floor(data.bounds[0]/wallSize),wallMinZ=Math.floor(data.bounds[1]/wallSize),wallCols=Math.floor(data.bounds[2]/wallSize)-wallMinX+1,wallRows=Math.floor(data.bounds[3]/wallSize)-wallMinZ+1;
+let wallCount=0;for(const flags of landBoundary)for(let k=0;k<3;k++)if(flags&(1<<k))wallCount++;
+const walls=new Float64Array(wallCount*7),wallOffsets=new Uint32Array(wallCols*wallRows+1);
+{
+ let index=0;
+ for(let id=0;id<triangleCount;id++)if(landBoundary[id])for(let k=0;k<3;k++)if(landBoundary[id]&(1<<k)){
+  const a=vertex(triangleData[id*3+k]),b=vertex(triangleData[id*3+(k+1)%3]),dx=b[0]-a[0],dz=b[1]-a[1];walls.set([...a,...b,dx,dz,dx*dx+dz*dz],index*7);index++;
+  for(let z=Math.floor(Math.min(a[1],b[1])/wallSize)-wallMinZ;z<=Math.floor(Math.max(a[1],b[1])/wallSize)-wallMinZ;z++)for(let x=Math.floor(Math.min(a[0],b[0])/wallSize)-wallMinX;x<=Math.floor(Math.max(a[0],b[0])/wallSize)-wallMinX;x++)wallOffsets[z*wallCols+x+1]++;
  }
 }
-function nearbyWalls(left:number,top:number,right:number,bottom:number):Set<number> {
- const found=new Set<number>();for(let x=Math.floor(left/wallSize);x<=Math.floor(right/wallSize);x++)for(let z=Math.floor(top/wallSize);z<=Math.floor(bottom/wallSize);z++)for(const id of wallBuckets.get(`${x}:${z}`)??[])found.add(id);return found;
+for(let i=1;i<wallOffsets.length;i++)wallOffsets[i]+=wallOffsets[i-1];
+const wallIds=new Uint32Array(wallOffsets.at(-1)!);
+{
+ const cursor=wallOffsets.slice();
+ for(let id=0;id<wallCount;id++){
+  const i=id*7,ax=walls[i],az=walls[i+1],bx=walls[i+2],bz=walls[i+3];
+  for(let z=Math.floor(Math.min(az,bz)/wallSize)-wallMinZ;z<=Math.floor(Math.max(az,bz)/wallSize)-wallMinZ;z++)for(let x=Math.floor(Math.min(ax,bx)/wallSize)-wallMinX;x<=Math.floor(Math.max(ax,bx)/wallSize)-wallMinX;x++)wallIds[cursor[z*wallCols+x]++]=i;
+ }
+}
+function wallRange(left:number,top:number,right:number,bottom:number):[number,number,number,number] {
+ return[Math.max(0,Math.floor(left/wallSize)-wallMinX),Math.max(0,Math.floor(top/wallSize)-wallMinZ),Math.min(wallCols-1,Math.floor(right/wallSize)-wallMinX),Math.min(wallRows-1,Math.floor(bottom/wallSize)-wallMinZ)];
 }
 /** Exact short land segment check using only physical boundary edges. Endpoints
- * on land plus no interior boundary crossing cannot jump an island or lake. */
-export function terrainLocalSegment(a:Vec2,b:Vec2):boolean {
- const id=terrainAt(a,true);if(id<0)return false;if(inTriangle(id,b))return true;if(terrainAt(b,true)<0)return false;
+ * on land plus no interior boundary crossing cannot jump an island or lake.
+ * A supplied startTriangle must be terrainAt(a,true) for these exact coordinates. */
+export function terrainLocalSegment(a:Vec2,b:Vec2,startTriangle?:number):boolean {if(geometryReady)return Boolean(kernel.kernelLocalSegment(a.x,a.z,b.x,b.z,startTriangle??-2));
+ const id=startTriangle??terrainAt(a,true);if(id<0)return false;if(inTriangle(id,b))return true;if(terrainAt(b,true)<0)return false;
  const dx=b.x-a.x,dz=b.z-a.z;
- for(const id of nearbyWalls(Math.min(a.x,b.x),Math.min(a.z,b.z),Math.max(a.x,b.x),Math.max(a.z,b.z))){
-  const [x,z,ex,ez]=walls[id],wx=ex-x,wz=ez-z,det=dx*wz-dz*wx;if(Math.abs(det)<1e-14)continue;
+ const [left,top,right,bottom]=wallRange(Math.min(a.x,b.x),Math.min(a.z,b.z),Math.max(a.x,b.x),Math.max(a.z,b.z));
+ for(let x=left;x<=right;x++)for(let z=top;z<=bottom;z++){const cell=z*wallCols+x;for(let i=wallOffsets[cell];i<wallOffsets[cell+1];i++){
+  const k=wallIds[i],x=walls[k],z=walls[k+1],wx=walls[k+4],wz=walls[k+5],det=dx*wz-dz*wx;if(Math.abs(det)<1e-14)continue;
   const qx=x-a.x,qz=z-a.z,t=(qx*wz-qz*wx)/det,u=(qx*dz-qz*dx)/det;
   if(t>1e-9&&t<1-1e-9&&u>=-1e-9&&u<=1+1e-9)return false;
- }
+ }}
  return true;
 }
 /** Clip a segment to each candidate triangle and check interval union. Exact
  * convex clipping avoids sampling through thin islands/lakes. No admin borders. */
 export function terrainSegment(a:Vec2,b:Vec2,sea:boolean):boolean {
+ if(geometryReady){const result=kernel.kernelTerrainSegment(a.x,a.z,b.x,b.z,sea);if(result>=0)return Boolean(result);}
  const spans:[number,number][]=[];const seen=new Set<number>();
  for(let x=Math.floor(Math.min(a.x,b.x)/size);x<=Math.floor(Math.max(a.x,b.x)/size);x++)for(let z=Math.floor(Math.min(a.z,b.z)/size);z<=Math.floor(Math.max(a.z,b.z)/size);z++)for(const id of bucket(x,z)){
   if(seen.has(id)||surfaces[id]!== (sea?2:1))continue;seen.add(id);const t=triangle(id),orientation=cross(t[0],t[1],{x:t[2][0],z:t[2][1]})>=0?1:-1;let lo=0,hi=1;
@@ -85,14 +121,15 @@ export function terrainSegment(a:Vec2,b:Vec2,sea:boolean):boolean {
 }
 /** Distance to physical coast/lake/crop edges, capped at the requested radius.
  * Internal triangle and administrative borders do not form walls. */
-export function terrainClearance(p:Vec2,radius:number,knownLand=false):number {
+export function terrainClearance(p:Vec2,radius:number,knownLand=false):number {if(geometryReady)return kernel.kernelClearance(p.x,p.z,radius,knownLand);
  if(!knownLand&&terrainAt(p,true)<0)return 0;
  let best=radius*radius;
- for(const id of nearbyWalls(p.x-radius,p.z-radius,p.x+radius,p.z+radius)){
-  const [x,z,ex,ez]=walls[id],dx=ex-x,dz=ez-z,l=dx*dx+dz*dz;
+ const [left,top,right,bottom]=wallRange(p.x-radius,p.z-radius,p.x+radius,p.z+radius);
+ for(let x=left;x<=right;x++)for(let z=top;z<=bottom;z++){const cell=z*wallCols+x;for(let i=wallOffsets[cell];i<wallOffsets[cell+1];i++){
+  const k=wallIds[i],x=walls[k],z=walls[k+1],dx=walls[k+4],dz=walls[k+5],l=walls[k+6];
   const t=l?Math.max(0,Math.min(1,((p.x-x)*dx+(p.z-z)*dz)/l)):0;
   best=Math.min(best,(p.x-x-t*dx)**2+(p.z-z-t*dz)**2);
- }
+ }}
  return Math.sqrt(best);
 }
 export const TRAVEL_LOCAL_OFFSET=2.5;
@@ -105,12 +142,29 @@ export function distanceToTravelSegment(plan:TravelPlan,p:Vec2):number {
  const q=travelCorridorPoint(plan,p);return Math.hypot(p.x-q.x,p.z-q.z);
 }
 class Heap {
- a:[number,number][]=[];
- less(a:[number,number],b:[number,number]){return a[1]<b[1]||(a[1]===b[1]&&a[0]<b[0]);}
- push(n:number,d:number){const v:[number,number]=[n,d];let i=this.a.length;this.a.push(v);while(i){const p=(i-1)>>1;if(!this.less(v,this.a[p]))break;this.a[i]=this.a[p];i=p;}this.a[i]=v;}
- pop(){const root=this.a[0],last=this.a.pop()!;if(this.a.length){let i=0;while(i*2+1<this.a.length){let c=i*2+1;if(c+1<this.a.length&&this.less(this.a[c+1],this.a[c]))c++;if(!this.less(this.a[c],last))break;this.a[i]=this.a[c];i=c;}this.a[i]=last;}return root;}
+ ids=new Uint32Array(128);costs=new Float64Array(128);length=0;value=0;
+ push(id:number,cost:number){
+  let i=this.length++;if(this.length>this.ids.length){const ids=new Uint32Array(this.ids.length*2),costs=new Float64Array(this.costs.length*2);ids.set(this.ids);costs.set(this.costs);this.ids=ids;this.costs=costs;}
+  const ids=this.ids,costs=this.costs;
+  while(i){const p=(i-1)>>1,pc=costs[p],pi=ids[p];if(!(cost<pc||cost===pc&&id<pi))break;ids[i]=pi;costs[i]=pc;i=p;}ids[i]=id;costs[i]=cost;
+ }
+ pop():number{
+  const ids=this.ids,costs=this.costs,root=ids[0];this.value=costs[0];const length=--this.length,id=ids[length],cost=costs[length];
+  if(length){let i=0;while(i*2+1<length){let c=i*2+1;
+   if(c+1<length&&(costs[c+1]<costs[c]||costs[c+1]===costs[c]&&ids[c+1]<ids[c]))c++;
+   if(!(costs[c]<cost||costs[c]===cost&&ids[c]<id))break;ids[i]=ids[c];costs[i]=costs[c];i=c;
+  }ids[i]=id;costs[i]=cost;}return root;
+ }
 }
-interface Field {distance:Float64Array;next:Int32Array;settled:Uint8Array;queue:Heap}
+interface FieldPage {distance:Float64Array;next:Int32Array;settled:Uint8Array}
+const FIELD_PAGE_BITS=8,FIELD_PAGE_SIZE=1<<FIELD_PAGE_BITS,FIELD_PAGE_MASK=FIELD_PAGE_SIZE-1;
+class Field {
+ pages:Array<FieldPage|undefined>=new Array(Math.ceil(triangleCount/FIELD_PAGE_SIZE));queue=new Heap();allocatedPages=0;
+ page(id:number):FieldPage {
+  const key=id>>>FIELD_PAGE_BITS;let page=this.pages[key];
+  if(!page){const buffer=new ArrayBuffer(FIELD_PAGE_SIZE*13);page={distance:new Float64Array(buffer,0,FIELD_PAGE_SIZE).fill(Infinity),next:new Int32Array(buffer,FIELD_PAGE_SIZE*8,FIELD_PAGE_SIZE).fill(-1),settled:new Uint8Array(buffer,FIELD_PAGE_SIZE*12,FIELD_PAGE_SIZE)};this.pages[key]=page;this.allocatedPages++;}return page;
+ }
+}
 const length=(a:Vec2,b:Vec2)=>Math.hypot(a.x-b.x,a.z-b.z);
 // Physical land connectivity is static. Different islands need a sea route;
 // proving that by exhausting a continent's Dijkstra search on every order is
@@ -124,31 +178,45 @@ const landComponents=new Int32Array(triangleCount).fill(-1);
   component++;
  }
 }
+// Geometry is immutable. Cache the two exact center-to-portal lengths for each
+// directed neighbor slot; speeds remain part of the field's per-query cost.
+let edgeLengths:Float64Array|undefined;
+let navigatorSerial=0;
 export class TerrainNavigator {
+ private nativeOwner=++navigatorSerial;
  private fields=new Map<string,Field>();builds=0;
+ private trimFields(keep:Field){
+  const bytes=(f:Field)=>f.allocatedPages*FIELD_PAGE_SIZE*13+f.pages.length*8+f.queue.ids.byteLength+f.queue.costs.byteLength;
+  let memory=0;for(const field of this.fields.values())memory+=bytes(field);
+  for(const [key,field]of this.fields){if(memory<=16*1024*1024&&this.fields.size<=32)break;if(field!==keep){memory-=bytes(field);this.fields.delete(key);}}
+ }
  private field(goal:number,start:number,allowSea:boolean,landSpeed:number,seaSpeed:number):Field {
   const key=`${goal}:${allowSea}:${landSpeed}:${seaSpeed}`;let f=this.fields.get(key);
   if(!f){
-   const distance=new Float64Array(triangleCount).fill(Infinity),next=new Int32Array(triangleCount).fill(-1),queue=new Heap();distance[goal]=0;next[goal]=goal;queue.push(goal,0);
-   f={distance,next,queue,settled:new Uint8Array(triangleCount)};
-   if(this.fields.size>=4)this.fields.delete(this.fields.keys().next().value!);this.fields.set(key,f);this.builds++;
+   f=new Field();const page=f.page(goal);page.distance[goal&FIELD_PAGE_MASK]=0;page.next[goal&FIELD_PAGE_MASK]=goal;f.queue.push(goal,0);
+   this.fields.set(key,f);this.builds++;
   }else {this.fields.delete(key);this.fields.set(key,f);}
   // Retain the frontier for the next soldier using this destination. Only the
   // requested start must be settled, rather than all 308,000 terrain triangles.
-  if(f.settled[start])return f;
-  const {distance,next,queue:q,settled}=f;
-  while(q.a.length){const [id,d]=q.pop()!;if(d>distance[id]+1e-9)continue;for(const n of neighborData.subarray(id*3,id*3+3)){if(n<0)continue;const edge=portal(id,n);if(!allowSea&&surfaces[n]!==1)continue;const mid={x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2};const nd=d+length(center(id),mid)/(surfaces[id]===2?seaSpeed:landSpeed)+length(center(n),mid)/(surfaces[n]===2?seaSpeed:landSpeed);
-   if(nd<distance[n]-1e-9){distance[n]=nd;next[n]=id;q.push(n,nd);}else if(Math.abs(nd-distance[n])<=1e-9&&id<next[n])next[n]=id;
-  }settled[id]=1;if(id===start)break;}
-  return f;
+  if(f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK]){this.trimFields(f);return f;}
+  const q=f.queue,lengths=edgeLengths??=new Float64Array(triangleCount*6).fill(NaN);
+  while(q.length){const id=q.pop(),d=q.value,current=f.pages[id>>>FIELD_PAGE_BITS]!,currentOffset=id&FIELD_PAGE_MASK;if(d>current.distance[currentOffset]+1e-9)continue;for(let k=0;k<3;k++){const slot=id*3+k,n=neighborData[slot];if(n<0||!allowSea&&surfaces[n]!==1)continue;const offset=slot*2;
+   if(Number.isNaN(lengths[offset])){const edge=portal(id,n),mid={x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2};lengths[offset]=length(center(id),mid);lengths[offset+1]=length(center(n),mid);}
+   const nd=d+lengths[offset]/(surfaces[id]===2?seaSpeed:landSpeed)+lengths[offset+1]/(surfaces[n]===2?seaSpeed:landSpeed);
+   let page=f.pages[n>>>FIELD_PAGE_BITS];const offsetInPage=n&FIELD_PAGE_MASK,old=page?.distance[offsetInPage]??Infinity;
+    if(nd<old-1e-9){page??=f.page(n);page.distance[offsetInPage]=nd;page.next[offsetInPage]=id;q.push(n,nd);}else if(Math.abs(nd-old)<=1e-9&&id<page!.next[offsetInPage])page!.next[offsetInPage]=id;
+  }current.settled[currentOffset]=1;if(id===start)break;}
+  this.trimFields(f);return f;
  }
  plan(from:Vec2,to:Vec2,landSpeed=1,seaSpeed=1):TravelPlan|null {
   if(!Number.isFinite(landSpeed)||landSpeed<=0||!Number.isFinite(seaSpeed)||seaSpeed<=0)return null;
   const start=terrainAt(from,true),goal=terrainAt(to,true);if(start<0||goal<0)return null;
   if(terrainSegment(from,to,false))return{revision:TERRAIN_REVISION,index:1,points:[{...from,sea:false},{...to,sea:false}]};
-  const allowSea=landComponents[start]!==landComponents[goal],f=this.field(goal,start,allowSea,landSpeed,seaSpeed);if(!f.settled[start])return null;
+  const allowSea=landComponents[start]!==landComponents[goal],before=Number(kernel.navigationBuilds.value),native=kernel.navigationField(goal,start,allowSea,landSpeed,seaSpeed,this.nativeOwner);this.builds+=Number(kernel.navigationBuilds.value)-before;if(native===-1)return null;
+  const f=native===-2?this.field(goal,start,allowSea,landSpeed,seaSpeed):undefined;if(f&&!f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK])return null;
+  const next=native>=0?new Int32Array(kernel.memory.buffer,native,triangleCount):undefined;
   const raw:TravelPoint[]=[{...from,sea:false},{...center(start),sea:false}];let id=start,count=0;
-  while(id!==goal){const n=f.next[id];if(n<0||count++>triangleCount)return null;const edge=portal(id,n);raw.push({x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2,sea:surfaces[id]===2},{...center(n),sea:surfaces[n]===2});id=n;}
+  while(id!==goal){const n=next?next[id]:f!.pages[id>>>FIELD_PAGE_BITS]!.next[id&FIELD_PAGE_MASK];if(n<0||count++>triangleCount)return null;const edge=portal(id,n);raw.push({x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2,sea:surfaces[id]===2},{...center(n),sea:surfaces[n]===2});id=n;}
   raw.push({...to,sea:false});
   // String-pull within each continuous physical surface. Never skip coast changes.
   const points:TravelPoint[]=[raw[0]];let i=0;
@@ -158,7 +226,7 @@ export class TerrainNavigator {
   }
   return{revision:TERRAIN_REVISION,points,index:1};
  }
- clear(){this.fields.clear();}
+ clear(){this.fields.clear();this.nativeOwner=++navigatorSerial;}
 }
 export function validateTravel(plan:TravelPlan,position:Vec2,destination:Vec2):boolean {
  if(!plan||plan.revision!==TERRAIN_REVISION||!Array.isArray(plan.points)||plan.points.length<2||plan.points.length>triangleCount*2+2||!Number.isInteger(plan.index)||plan.index<1||plan.index>=plan.points.length)return false;
@@ -171,3 +239,18 @@ export function validateTravel(plan:TravelPlan,position:Vec2,destination:Vec2):b
  if(!b.sea)return distanceToTravelSegment(plan,position)<=TRAVEL_LOCAL_OFFSET+1e-8&&terrainLocalSegment(position,travelCorridorPoint(plan,position));
  return t>=-1e-8&&t<=1+1e-8&&Math.hypot(position.x-a.x-t*dx,position.z-a.z-t*dz)<1e-4;
 }
+
+setupGeometry('setupTerrain',[storeData(planes),storeData(surfaces),storeData(offsets),storeData(bucketIds),storeData(walls),storeData(wallOffsets),storeData(wallIds),size,minX,minZ,cols,rows,wallSize,wallMinX,wallMinZ,wallCols,wallRows]);
+
+const segmentSize=8,segmentMinX=Math.floor(data.bounds[0]/segmentSize),segmentMinZ=Math.floor(data.bounds[1]/segmentSize),segmentCols=Math.floor(data.bounds[2]/segmentSize)-segmentMinX+1,segmentRows=Math.floor(data.bounds[3]/segmentSize)-segmentMinZ+1;
+const segmentOffsets=new Uint32Array(segmentCols*segmentRows+1),segmentRanges=new Int16Array(triangleCount*4);
+for(let id=0;id<triangleCount;id++){
+ const i=id*12,left=Math.floor(Math.min(planes[i],planes[i+4],planes[i+8])/segmentSize)-segmentMinX,right=Math.floor(Math.max(planes[i],planes[i+4],planes[i+8])/segmentSize)-segmentMinX,top=Math.floor(Math.min(planes[i+1],planes[i+5],planes[i+9])/segmentSize)-segmentMinZ,bottom=Math.floor(Math.max(planes[i+1],planes[i+5],planes[i+9])/segmentSize)-segmentMinZ;segmentRanges.set([left,right,top,bottom],id*4);
+ for(let z=top;z<=bottom;z++)for(let x=left;x<=right;x++)segmentOffsets[z*segmentCols+x+1]++;
+}
+for(let i=1;i<segmentOffsets.length;i++)segmentOffsets[i]+=segmentOffsets[i-1];const segmentIds=new Uint32Array(segmentOffsets.at(-1)!),segmentCursor=segmentOffsets.slice();
+for(let id=0;id<triangleCount;id++){const k=id*4;for(let z=segmentRanges[k+2];z<=segmentRanges[k+3];z++)for(let x=segmentRanges[k];x<=segmentRanges[k+1];x++)segmentIds[segmentCursor[z*segmentCols+x]++]=id;}
+setupGeometry('setupSegments',[storeData(segmentOffsets),storeData(segmentIds),segmentSize,segmentMinX,segmentMinZ,segmentCols,segmentRows]);
+
+setupGeometry('setupNavigation',[storeData(neighborData),storeData(centerData),storeData(new Float64Array(triangleCount*6).fill(NaN)),triangleCount]);
+geometryReady=true;

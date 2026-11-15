@@ -3,6 +3,11 @@ import {execFileSync} from 'node:child_process';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-dispatch-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
 
 async function loadFixture(page:Page,language:'zh'|'en'){
+ // This is a fixed notification/date layout fixture. Keep startup time and
+ // software rendering from changing its campaign while the page initializes.
+ await page.route('**/src/platform/worker.ts*',async route=>{
+  const response=await route.fetch();await route.fulfill({response,body:'globalThis.setInterval = () => 0;\n'+await response.text()});
+ });
  await page.addInitScript(({saves,language})=>{
   for(const save of saves)localStorage.setItem(save.key,save.value);
   localStorage.setItem('rouge.language',language);
@@ -17,7 +22,7 @@ async function expectDispatches(page:Page,language:'zh'|'en',mobile=false){
  const section=page.getByRole('region',{name:language==='zh'?'战地简报':'Field dispatches'});
  await expect(section).toBeVisible();
  await expect(section.locator('.dispatch-entry')).toHaveCount(4);
- await expect(section.locator('time')).toHaveText(['100:02','100:01','100:01','100:00']);
+ await expect(section.locator('time')).toHaveText(language==='zh'?['17年6月8日','17年6月7日','17年6月7日','17年6月6日']:['8 Jun 17','7 Jun 17','7 Jun 17','6 Jun 17']);
  await expect(section.locator('.dispatch-player')).toHaveText([fixture.names[0],fixture.names[2],fixture.names[1],fixture.names[0]]);
  await expect(section.locator('.dispatch-region')).toHaveText([fixture.regions[1][language==='zh'?0:1],fixture.regions[0][language==='zh'?0:1]]);
  await expect(section.locator('.dispatch-event').nth(1)).toHaveText(language==='zh'?'取得胜利':'won the campaign');

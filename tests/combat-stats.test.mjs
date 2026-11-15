@@ -55,6 +55,15 @@ test('attack upgrade and unit talents retain multipliers before defender armor',
   const hp=defender.hp;e.step(1);close(hp-defender.hp,(UNITS[kind].attack+2)*1.12*1.25*100/110);
  }
 });
+
+test('combat stats reflect upgrades and talents changed between ticks',()=>{
+ const {e,s,attacker,defender}=battle();e.step();const hp=defender.hp;
+ assert.equal(e.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}).ok,true);
+ s.players[0].talents=['veterans'];
+ attacker.cooldown=0;e.step();
+ // The next shot uses the new attack and talent multiplier.
+ close(hp-defender.hp,(UNITS.infantry.attack+2)*1.12*100/110);
+});
 test('engineers keep 1.5 capture multiplier and existing multiplicative capture talents',()=>{
  function capture(kind,talents=[]){
   const {e,s,unit}=battle(kind),target=MAP.find(p=>p.playable&&s.provinces[p.id].owner===-1).id;

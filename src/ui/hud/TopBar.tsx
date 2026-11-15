@@ -11,7 +11,7 @@ import {leaderProgress} from '../commanderIdentity.ts';
 import {Icon, type IconName} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {Tip, TipNote, TipRow, TipTitle} from '../Tooltip.tsx';
-import {armyBreakdown, DOMINATION_SECONDS, incomePerSecond, signed, victoryTarget} from './hudModel.ts';
+import {armyBreakdown, DOMINATION_DAYS, incomePerDay, signed, victoryTarget} from './hudModel.ts';
 
 function Metric({icon, label, tip, className = '', children}: {icon: IconName; label: string; tip: ReactNode; className?: string; children: ReactNode}) {
  return <Tip as="div" className={`resource ${className}`} content={tip} focusable tapToggle>
@@ -29,7 +29,7 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
  state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; clock: ReactNode;
 }) {
  const player = state.players[actor], text = (key: string) => t(language, key);
- const income = incomePerSecond(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
+ const income = incomePerDay(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
  const progress = leaderProgress(player);
  const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < 8).map(upgradeCost);
  const cheapest = costs.length ? Math.min(...costs) : null;
@@ -41,13 +41,13 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
   <div className="hud-ledger" role="group" aria-label={text('stateLedger')}>
    <Metric icon="coin" label={text('funds')} className="resource-treasury" tip={<>
     <TipTitle aside={Math.floor(player.funds).toLocaleString()}>{text('funds')}</TipTitle>
-    <TipRow label={text('incomePerSecond')} value={`${signed(income)}${text('perSecond')}`} tone={income > 0 ? 'good' : 'muted'}/>
-    <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${income.toFixed(1)}${text('perSecond')}`}/>
+    <TipRow label={text('incomePerDay')} value={`${signed(income)}${text('perDay')}`} tone={income > 0 ? 'good' : 'muted'}/>
+    <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${income.toFixed(1)}${text('perDay')}`}/>
     <TipRow label={text('captureReward')} value={`+${captureReward(player)}`} tone="good"/>
     <TipRow label={text('cheapestUpgrade')} value={cheapest === null ? text('allUpgradesMax') : cheapest} tone={cheapest !== null && player.funds >= cheapest ? 'good' : 'muted'}/>
    </>}>
     <strong>{Math.floor(player.funds).toLocaleString()}</strong>
-    <small className="resource-delta" data-tone={income > 0 ? 'good' : 'muted'}>{signed(income)}{text('perSecond')}</small>
+    <small className="resource-delta" data-tone={income > 0 ? 'good' : 'muted'}>{signed(income)}{text('perDay')}</small>
    </Metric>
    <Metric icon="sabres" label={text('army')} tip={<>
     <TipTitle aside={army.total.toLocaleString()}>{text('army')}</TipTitle>
@@ -84,10 +84,10 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
      <Icon name="laurel" size={22}/><b aria-hidden="true">!</b>
     </button>
    </Tip>}
-   {domination > 0 && <Tip as="div" focusable tapToggle className="hud-alert" content={<><TipTitle aside={`${Math.floor(domination)} / ${DOMINATION_SECONDS}${text('seconds')}`}>{text('dominationAlert')}</TipTitle><TipNote>{text('dominationHint')}</TipNote></>}>
+   {domination > 0 && <Tip as="div" focusable tapToggle className="hud-alert" content={<><TipTitle aside={`${Math.floor(domination)} / ${DOMINATION_DAYS}${text('days')}`}>{text('dominationAlert')}</TipTitle><TipNote>{text('dominationHint')}</TipNote></>}>
      <Icon name="crown" size={22}/><span className="hud-alert-count">{Math.floor(domination)}</span>
    </Tip>}
-   {rival && rival.value > 0 && <Tip as="div" focusable tapToggle className="hud-alert" content={<><TipTitle aside={`${Math.floor(rival.value)} / ${DOMINATION_SECONDS}${text('seconds')}`}>{text('dominationAlert')}</TipTitle><TipRow label={<bdi>{playerName(language, rival.player)}</bdi>} value={`${Math.floor(rival.value)}${text('seconds')}`} tone="bad"/></>}>
+   {rival && rival.value > 0 && <Tip as="div" focusable tapToggle className="hud-alert" content={<><TipTitle aside={`${Math.floor(rival.value)} / ${DOMINATION_DAYS}${text('days')}`}>{text('dominationAlert')}</TipTitle><TipRow label={<bdi>{playerName(language, rival.player)}</bdi>} value={`${Math.floor(rival.value)}${text('days')}`} tone="bad"/></>}>
      <span data-tone="bad"><Icon name="crown" size={22}/></span><span className="hud-alert-count" data-tone="bad">{Math.floor(rival.value)}</span>
    </Tip>}
   </div>

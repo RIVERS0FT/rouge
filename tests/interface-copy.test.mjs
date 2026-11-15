@@ -16,7 +16,7 @@ test('generated names and compact HUD labels follow the selected language',()=>{
  assert.equal(t('en','yourName'),'Commander');
  assert.equal(t('zh','levelShort'),'等级');
  assert.equal(t('zh','experience'),'经验');
- assert.equal(t('zh','seconds'),'秒');
+ assert.equal(t('zh','days'),'天');
  for(const language of ['zh','en'])for(const key of ['error.serverOffline','error.webgl','starting'])assert.doesNotMatch(t(language,key),/npm|WebGL|simulation|模拟|行政区地图/i);
 });
 

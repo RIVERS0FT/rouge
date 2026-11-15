@@ -1,12 +1,14 @@
+import {updateUnitsFallback} from './unitFallback.ts';
+import {initializeBattleMemory,kernel,blockedByBuildings,type UnitCensus,separateGround,updateBattleUnits} from './groundKernel.ts';
 import {countryActions, type CountryAction} from './countryActions.ts';
 import {availableTalentIds,canRerollTalent,talentRerollCost} from './talentReroll.ts';
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
 export { isEliminated } from './elimination.ts';
 import { chooseSpawnRegions, getSpawnCapacity } from './spawns.ts';
-import { MAP, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
+import { MAP, BOUNDS, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
-import {UNIT_RADIUS,separateCircles,type CollisionReport} from './collision.ts';
+import {UNIT_RADIUS,COLLISION_MAX_PUSH,separateCircles,type CollisionReport} from './collision.ts';
 import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
@@ -45,10 +47,10 @@ export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign
   }
   s.grouping=reconcileGrouping(s);return s;
 }
-function spawn(s:GameState,province:number,kind:Kind,initialNearby?:readonly Unit[]):boolean{
+function spawn(s:GameState,province:number,kind:Kind,initialNearby?:readonly Unit[],nearbyHint?:readonly Unit[]):boolean{
   const p=s.provinces[province],id=s.nextId,c=MAP[province].center,radius=UNIT_RADIUS[kind];
   let x=c.x,z=c.z,best=-Infinity;
-  const nearby=initialNearby??s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9);
+  const nearby=initialNearby??nearbyHint??s.units.filter(u=>!u.transport?.embarked&&Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9);
   // Search a deterministic small formation; don't spawn every reinforcement on
   // the same center. Tiny islands may still have less room than a full footprint.
   for(let i=0;i<512;i++){
@@ -81,11 +83,44 @@ function experience(s:GameState,id:number,amount:number):void{
   while(p.level<8&&p.xp>=60+p.level*45){p.xp-=60+p.level*45;p.level++;p.drafts++;s.events.push({tick:s.tick,key:'level',player:id});}draft(s,p);
 }
 export const MARCH_INTERVAL_TICKS=Math.max(1,Math.round(.25/DT));
+// Static land certificates cover the entire cell, all collision displacement,
+// battalion footprints and the optional short corridor connector.
+const openLandCells=new Map<number,Map<number,boolean>>();
+function openLandCell(p:{x:number;z:number},reach:number):boolean {
+ let cells=openLandCells.get(reach);if(!cells){cells=new Map();openLandCells.set(reach,cells);}
+ const x=Math.floor(p.x/4),z=Math.floor(p.z/4),key=z*4096+x,cached=cells.get(key);if(cached!==undefined)return cached;
+ const center={x:(x+.5)*4,z:(z+.5)*4},safety=reach+Math.SQRT2*2+1e-5;
+ const clear=terrainAt(center,true)>=0&&terrainClearance(center,safety,true)===safety;
+ if(cells.size>=32768)cells.delete(cells.keys().next().value!);cells.set(key,clear);return clear;
+}
+function buildUnitCensus(s:GameState,counts:Uint32Array,occupants:Uint32Array,nearOwner:Int32Array,engineers:Uint8Array):void {
+ counts.fill(0);occupants.fill(0);nearOwner.fill(-2);engineers.fill(0);
+ for(const u of s.units){
+  if(u.transport?.embarked)continue;const id=u.province,center=MAP[id].center;occupants[id]++;counts[(u.owner+1)*MAP.length+id]++;
+  if(Math.hypot(u.x-center.x,u.z-center.z)>=3.7)continue;
+  if(nearOwner[id]===-2)nearOwner[id]=u.owner;else if(nearOwner[id]!==u.owner)nearOwner[id]=-3;
+  if(u.kind==='engineer')engineers[id]=1;
+ }
+}
+function addSleepingCensus(units:readonly Unit[],counts:Uint32Array,occupants:Uint32Array,nearOwner:Int32Array,engineers:Uint8Array):void {
+
+ for(const u of units){
+  if(u.transport?.embarked)continue;const id=u.province,center=MAP[id].center;occupants[id]++;counts[(u.owner+1)*MAP.length+id]++;
+  if(Math.hypot(u.x-center.x,u.z-center.z)>=3.7)continue;
+  if(nearOwner[id]===-2)nearOwner[id]=u.owner;else if(nearOwner[id]!==u.owner)nearOwner[id]=-3;
+  if(u.kind==='engineer')engineers[id]=1;
+ }
+}
+const WAKE_SIZE=16,WAKE_MIN_X=Math.floor(BOUNDS.left/WAKE_SIZE)-2,WAKE_MIN_Z=Math.floor(BOUNDS.top/WAKE_SIZE)-2,WAKE_COLS=Math.floor(BOUNDS.right/WAKE_SIZE)-WAKE_MIN_X+3,WAKE_ROWS=Math.floor(BOUNDS.bottom/WAKE_SIZE)-WAKE_MIN_Z+3;
 export class Engine{
+  private censusCounts:Uint32Array=new Uint32Array(0);private censusOccupants:Uint32Array=new Uint32Array(MAP.length);private censusNearOwner:Int32Array=new Int32Array(MAP.length);private censusEngineers:Uint8Array=new Uint8Array(MAP.length);
+  private physicsDirty={all:false,units:new Set<Unit>(),owners:new Set<number>()};
   state:GameState;navigation=new TerrainNavigator();
   collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
-  constructor(state:GameState){this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
+  constructor(state:GameState){initializeBattleMemory();this.state=structuredClone(state);settleEliminations(this.state);this.clearBuildings();}
+  invalidatePhysicsCache():void{this.physicsDirty.all=true;}
   command(actor:number,input:unknown):Result{
+    if(this.awaitingPhysics)throw Error('A simulation step is already running');
     const s=this.state,p=Number.isInteger(actor)&&actor>=0?s.players[actor]:undefined,fail=(error:string):Result=>({ok:false,error});
     if(!p||s.winner!==null)return fail('notPlaying');if(isEliminated(s,actor))return fail('eliminated');if(!input||typeof input!=='object'||Array.isArray(input))return fail('invalidCommand');const c=input as CountryAction;
     switch(c.type){
@@ -132,13 +167,13 @@ export class Engine{
       case 'upgrade':{
         if(!KINDS.includes(c.kind)||!STATS.includes(c.stat)||!p.loadout.includes(c.kind))return fail('invalidCommand');
         const level=p.upgrades[c.kind][c.stat],cost=upgradeCost(level);if(level>=8)return fail('maxLevel');if(p.funds<cost)return fail('noFunds');
-        const oldHp=stats(p,c.kind).hp;p.funds-=cost;p.upgrades[c.kind][c.stat]++;
+        const oldHp=stats(p,c.kind).hp;p.funds-=cost;p.upgrades[c.kind][c.stat]++;this.physicsDirty.owners.add(actor);
         if(c.stat==='health'){const newHp=stats(p,c.kind).hp;for(const u of s.units)if(u.owner===actor&&u.kind===c.kind)u.hp=u.hp/oldHp*newHp;}return{ok:true};
       }
       case 'talent':{
         const talent=typeof c.id==='string'?TALENT_BY_ID.get(c.id):undefined;
         if(!talent||p.drafts<1||!p.choices.includes(talent.id)||p.talents.includes(talent.id)||!talentApplies(talent,p.loadout))return fail('invalidChoice');
-        const stat=talent.unit?.stat;
+        this.physicsDirty.owners.add(actor);const stat=talent.unit?.stat;
         if(stat==='hp'||stat==='attackSpeed'){
           // The selected modifier applies to deployed troops as well as future ones.
           // Keep both the current HP fraction and progress through a running attack cooldown.
@@ -170,15 +205,21 @@ export class Engine{
       default:return fail('invalidCommand');
     }
   }
-  step(count=1):void{for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
-  private activeUnits():Unit[]{
+  prewarmNavigation():void {
+    const s=this.state,units=new Map(s.units.map(u=>[u.id,u]));
+    for(const province of s.provinces){const order=province.march;if(!order||order.owner!==province.owner)continue;
+      for(const id of order.pendingIds){const u=units.get(id);if(!u||!isRegionGarrison(u,order.owner,province.id))continue;const st=stats(s.players[u.owner],u.kind);if(this.navigation.plan(u,MAP[order.to].center,st.speed,st.seaSpeed))break;}
+    }
+  }
+  step(count=1):void{if(this.parallelBusy)throw Error('A simulation step is already running');this.physicsDirty.all=true;for(let n=0;n<count;n++){if(this.state.winner!==null)return;this.tick();}}
+  private activeUnitsLegacy():Unit[]{
     const s=this.state;
     // Preplaced neutral guards never travel on their own. Keep them as actual
     // units for rendering, saves and province accounting, but skip remote idle
     // simulation. A full cell of padding exceeds any attack/splash range plus
     // movement and collision correction budget in a tick. Embarked hostiles
     // also wake nearby guards before a possible same-tick disembarkation.
-    const size=16,key=(x:number,z:number)=>`${x}:${z}`,occupied=new Set<string>(),active=new Set<string>();
+    const size=16,key=(x:number,z:number)=>x>=-32768&&x<32768&&z>=-32768&&z<32768?(z+32768)*65536+x+32768:`${x}:${z}`,occupied=new Set<number|string>(),active=new Set<number|string>();
     for(const u of s.units)if(u.owner>=0){
       const x=Math.floor(u.x/size),z=Math.floor(u.z/size),cell=key(x,z);
       if(occupied.has(cell))continue;occupied.add(cell);
@@ -189,91 +230,56 @@ export class Engine{
     return s.units.filter(u=>u.owner>=0||u.cooldown>0||u.target!==null||u.travel||u.transport||
       active.has(key(Math.floor(u.x/size),Math.floor(u.z/size))));
   }
-  private tick():void{
+  private wakeOwned=new Uint32Array(WAKE_COLS*WAKE_ROWS);private wakeActive=new Uint32Array(WAKE_COLS*WAKE_ROWS);private wakeEpoch=0;private awake:Unit[]=[];private sleeping:Unit[]=[];
+  private activeUnits():Unit[]{
+    let epoch=++this.wakeEpoch;if(epoch>=0xffffffff){this.wakeEpoch=epoch=1;this.wakeOwned.fill(0);this.wakeActive.fill(0);}
+    const owned=this.wakeOwned,active=this.wakeActive,units=this.state.units,result=this.awake;result.length=0;this.sleeping=[];
+    for(let i=0;i<units.length;i++){
+      const u=units[i];if(u.owner<0)continue;const x=Math.floor(u.x/16)-WAKE_MIN_X,z=Math.floor(u.z/16)-WAKE_MIN_Z;
+      if(x<1||z<1||x>=WAKE_COLS-1||z>=WAKE_ROWS-1){const legacy=this.activeUnitsLegacy(),seen=new Set(legacy);this.sleeping=units.filter(u=>!seen.has(u));return legacy;}
+      const cell=z*WAKE_COLS+x;if(owned[cell]===epoch)continue;owned[cell]=epoch;
+      for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)active[cell+dz*WAKE_COLS+dx]=epoch;
+    }
+    for(let i=0;i<units.length;i++){
+      const u=units[i];if(u.owner>=0||u.cooldown>0||u.target!==null||u.travel||u.transport){result.push(u);continue;}
+      const x=Math.floor(u.x/16)-WAKE_MIN_X,z=Math.floor(u.z/16)-WAKE_MIN_Z;
+      if(x>=0&&z>=0&&x<WAKE_COLS&&z<WAKE_ROWS&&active[z*WAKE_COLS+x]===epoch)result.push(u);else this.sleeping.push(u);
+    }
+    return result;
+  }
+  private prepareTick(){
     const s=this.state,topologyBefore=s.topology;s.tick++;
     const active=this.activeUnits();this.clearBuildings(active);
-    const damage=new Map<number,{amount:number;attacker:number}>(),buckets=new Map<string,Unit[]>();
-    // Reservations and production use locked game-region accounts; transit is unconstrained.
-    const popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
-    for(const u of active){if(u.transport?.embarked)continue;const key=`${Math.floor(u.x/8)},${Math.floor(u.z/8)}`,b=buckets.get(key)??[];b.push(u);buckets.set(key,b);}
-    for(const u of active){
-      const st=stats(s.players[u.owner],u.kind);
-      // Carry sub-tick remainder during continuous fire (e.g. 0.65 attacks/s).
-      u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,nearest=st.range*st.range;
-      const bx=Math.floor(u.x/8),bz=Math.floor(u.z/8);
-      for(let x=bx-1;x<=bx+1;x++)for(let z=bz-1;z<=bz+1;z++)for(const v of buckets.get(`${x},${z}`)??[]){if(u.transport?.embarked||v.transport?.embarked||v.owner===u.owner)continue;const d=(u.x-v.x)**2+(u.z-v.z)**2;if(d<nearest||(d===nearest&&enemy&&v.id<enemy.id)){nearest=d;enemy=v;}}
-      if(enemy){
-        if(u.cooldown<=1e-9){
-          const targets=[enemy];
-          if(st.splash>0){
-            const nearby:Unit[]=[];const ex=Math.floor(enemy.x/8),ez=Math.floor(enemy.z/8);
-            for(let x=ex-1;x<=ex+1;x++)for(let z=ez-1;z<=ez+1;z++)nearby.push(...(buckets.get(`${x},${z}`)??[]));
-            const extra=nearby.filter(v=>v.id!==enemy!.id&&v.owner!==u.owner&&!v.transport?.embarked&&
-              Math.hypot(v.x-enemy!.x,v.z-enemy!.z)<=st.splash)
-              .sort((a,b)=>(a.x-enemy!.x)**2+(a.z-enemy!.z)**2-((b.x-enemy!.x)**2+(b.z-enemy!.z)**2)||a.id-b.id);
-            targets.push(...extra.slice(0,2));
-          }
-          for(const [i,target] of targets.entries()){
-            const defender=s.players[target.owner],home=s.provinces[target.province]?.owner===target.owner;
-            const reduction=home&&defender?.talents.includes('entrenchment')?0.15:0;
-            const amount=st.attack*(i===0?1:0.35)*100/(100+stats(defender,target.kind).defense)*(1-reduction),old=damage.get(target.id);
-            damage.set(target.id,{amount:(old?.amount??0)+amount,attacker:u.owner});
-          }
-          u.cooldown+=1/st.attackSpeed;
-        }continue;
-      }
-      u.cooldown=Math.max(0,u.cooldown);
-      // The terrain objective stays at the town anchor. Resting/capturing
-      // troops approach it until houses and neighboring footprints stop them;
-      // no ring slots, angles or cosmetic offsets are assigned.
-      if(!u.travel&&!u.transport?.embarked){
-        const center=MAP[u.province].center,dx=center.x-u.x,dz=center.z-u.z,d=Math.hypot(dx,dz),step=Math.min(d,st.speed*DT);
-        const to=d?{x:u.x+dx/d*step,z:u.z+dz/d*step}:u;
-        let crowded=false;
-        for(let x=bx-1;x<=bx+1&&!crowded;x++)for(let z=bz-1;z<=bz+1&&!crowded;z++)for(const v of buckets.get(`${x},${z}`)??[]){
-          if(v.id===u.id)continue;const gap=UNIT_RADIUS[u.kind]+UNIT_RADIUS[v.kind],after=Math.hypot(to.x-v.x,to.z-v.z);
-          if(after<gap-1e-6&&after<Math.hypot(u.x-v.x,u.z-v.z)-1e-8){crowded=true;break;}
-        }
-        if(!crowded&&pointInProvince(u.province,to.x,to.z)&&terrainLocalSegment(u,to)&&buildingSegment(u,to,UNIT_RADIUS[u.kind])&&terrainClearance(to,UNIT_RADIUS[u.kind])+1e-8>=terrainClearance(u,UNIT_RADIUS[u.kind])){u.x=to.x;u.z=to.z;}
-      }
-      if(u.target===null)continue;
-      const travel=u.travel;
-      if(!travel){if(s.provinces[u.target].owner===u.owner)this.halt(u);continue;}
-      const point=travel.points[travel.index];let steering=point;
-      // Stay near the certified route while allowing lateral local separation.
-      // Short reconnects avoid casting a continent-long ray for every contact.
-      if(!point.sea&&distanceToTravelSegment(travel,u)>1e-6){
-        let next=travelCorridorPoint(travel,u,1.2);if(!terrainLocalSegment(u,next))next=travelCorridorPoint(travel,u);
-        steering={...next,sea:false};
-      }
-      const dx=steering.x-u.x,dz=steering.z-u.z,d=Math.hypot(dx,dz),goalDistance=Math.hypot(point.x-u.x,point.z-u.z),move=Math.min(d,(point.sea?st.seaSpeed:st.speed)*DT);
-      let nx=d?u.x+dx/d*move:steering.x,nz=d?u.z+dz/d*move:steering.z;
-      if(steering!==point&&!terrainLocalSegment({x:nx,z:nz},travelCorridorPoint(travel,{x:nx,z:nz}))){
-        const q=travelCorridorPoint(travel,u),qx=q.x-u.x,qz=q.z-u.z,qd=Math.hypot(qx,qz),step=Math.min(qd,st.speed*DT);
-        nx=qd?u.x+qx/qd*step:u.x;nz=qd?u.z+qz/qd*step:u.z;
-      }
-      const last=travel.index===travel.points.length-1;
-      // A garrison occupies an area, not one exact point. Let arriving troops
-      // settle around the objective instead of forever driving into its center.
-      const aheadScale=goalDistance?Math.min(5/goalDistance,1):0,ahead={x:u.x+(point.x-u.x)*aheadScale,z:u.z+(point.z-u.z)*aheadScale};
-      if(!point.sea&&(!buildingSegment(u,{x:nx,z:nz},UNIT_RADIUS[u.kind])||!buildingSegment(u,ahead,UNIT_RADIUS[u.kind]))){
-        const resolved=buildingStep(u,point,UNIT_RADIUS[u.kind],move,(a,b)=>terrainLocalSegment(a,b)&&distanceToTravelSegment(travel,b)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(b,travelCorridorPoint(travel,b)));nx=resolved.x;nz=resolved.z;
-      }
-      const nearbyArrival=last&&!point.sea&&goalDistance<=2.3&&pointInProvince(u.target,nx,nz);
-      const candidate={x:nx,z:nz},nextPlan={...travel,index:travel.index+1};
-      // Advance only within the next certified land corridor; a house can
-      // occupy the original waypoint, but coast transitions are never skipped.
-      const waypointRadius=buildingSegment(point,point,UNIT_RADIUS[u.kind])?1.2:2.5;
-      const nearbyWaypoint=!last&&!point.sea&&!travel.points[travel.index+1].sea&&goalDistance<=waypointRadius&&distanceToTravelSegment(nextPlan,candidate)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(candidate,travelCorridorPoint(nextPlan,candidate));
-      const arrived=goalDistance<=move+1e-9||nearbyArrival||nearbyWaypoint,final=arrived&&last;
-      // Production budgets do not limit movement or final arrival.
-      u.x=nx;u.z=nz;const region=provinceAt(nx,nz);if(region>=0)u.province=region;
-      if(point.sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};else delete u.transport;
-      if(arrived&&(point.sea||nearbyArrival||nearbyWaypoint||Math.hypot(u.x-point.x,u.z-point.z)<=1e-6)){if(!nearbyArrival&&!nearbyWaypoint){u.x=point.x;u.z=point.z;}travel.index++;if(!final&&travel.points[travel.index].sea)u.transport={from:u.origin,to:u.target,index:travel.index,embarked:true};if(final){u.province=u.target;delete u.travel;delete u.transport;if(s.provinces[u.target].owner===u.owner)this.halt(u);}}
-    }
+    const statCache=new Map<number,Map<Kind,ReturnType<typeof stats>>>();
+    const unitStats=(owner:number,kind:Kind)=>{let values=statCache.get(owner);if(!values){values=new Map();statCache.set(owner,values);}let value=values.get(kind);if(!value){value=stats(s.players[owner],kind);values.set(kind,value);}return value;};
+    return {active,unitStats,topologyBefore};
+  }
+  private updatePrepared(frame:ReturnType<Engine['prepareTick']>):void {
+    const damage=new Map<number,{amount:number;attacker:number}>();
+    try{updateBattleUnits(frame.active,frame.unitStats,this.state,damage);}
+    catch{damage.clear();updateUnitsFallback(frame.active,frame.unitStats,this.state,damage,u=>this.halt(u));}
+    this.finishTick(frame.active,damage,frame.topologyBefore);
+  }
+  private tick():void{this.updatePrepared(this.prepareTick());}
+  private parallelBusy=false;private awaitingPhysics=false;
+  async stepParallel(run:(active:readonly Unit[],statsFor:(owner:number,kind:Kind)=>ReturnType<typeof stats>,state:GameState,dirty:{all:boolean;units:Set<Unit>;owners:Set<number>})=>Promise<{damage:Map<number,{amount:number;attacker:number}>;collision:CollisionReport;census?:UnitCensus}>,count=1):Promise<void>{
+    if(this.parallelBusy)throw Error('A simulation step is already running');this.parallelBusy=true;
+    try{for(let i=0;i<count;i++){
+      if(this.state.winner!==null)return;const frame=this.prepareTick();
+      if(frame.active.length<256){this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
+      let result;
+      try{this.awaitingPhysics=true;result=await run(frame.active,frame.unitStats,this.state,this.physicsDirty);}
+      catch{this.awaitingPhysics=false;this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
+      finally{this.awaitingPhysics=false;}
+      this.physicsDirty={all:false,units:new Set<Unit>(),owners:new Set<number>()};this.finishTick(frame.active,result.damage,frame.topologyBefore,result.collision,result.census);
+    }}finally{this.parallelBusy=false;}
+  }
+  private spawnIndex:Map<number|string,Unit[]>|undefined;private nativeSpawnUnits:readonly Unit[]|undefined;private freshSpawns:Unit[]=[];
+  private finishTick(active:readonly Unit[],damage:Map<number,{amount:number;attacker:number}>,topologyBefore:number,collision?:CollisionReport,census?:UnitCensus):void{
+    this.spawnIndex=undefined;this.nativeSpawnUnits=census?active:undefined;this.freshSpawns=[];const s=this.state,popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
     for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
-    this.separate(active);
+    if(collision)this.collision=collision;else this.separate(active);
     // Incoming orders and physical occupants affect training only, never march orders.
     // Sparse destinations scale with moving armies, not players × the entire map.
     const reservations=new Map<number,number>();
@@ -284,31 +290,30 @@ export class Engine{
       if(!order||!order.reserved||province.owner!==order.owner||s.provinces[order.to].owner!==order.owner)continue;
       const key=popKey(order.owner,order.to);queuedReservations.set(key,(queuedReservations.get(key)??0)+order.pendingIds.length);
     }
-    const byProvince=new Map<number,Unit[]>();
-    for(const u of s.units){if(u.transport?.embarked)continue;const group=byProvince.get(u.province)??[];group.push(u);byProvince.set(u.province,group);}
+    if(census){this.censusCounts=census.counts;this.censusOccupants=census.occupants;this.censusNearOwner=census.nearOwner;this.censusEngineers=census.engineers;addSleepingCensus(this.sleeping,this.censusCounts,this.censusOccupants,this.censusNearOwner,this.censusEngineers);}else{
+    if(this.censusCounts.length!==(s.players.length+1)*MAP.length)this.censusCounts=new Uint32Array((s.players.length+1)*MAP.length);
+    if(this.censusOccupants.length!==MAP.length){this.censusOccupants=new Uint32Array(MAP.length);this.censusNearOwner=new Int32Array(MAP.length);this.censusEngineers=new Uint8Array(MAP.length);}
+    buildUnitCensus(s,this.censusCounts,this.censusOccupants,this.censusNearOwner,this.censusEngineers);
+    }
     for(const province of s.provinces){
-      const occupants=byProvince.get(province.id)??[];
-      if(!MAP[province.id].playable||(province.owner<0&&!occupants.length))continue;
-      const center=MAP[province.id].center,nearby=occupants.filter(u=>Math.hypot(u.x-center.x,u.z-center.z)<3.7),owners=[...new Set(nearby.map(u=>u.owner))];
-      const attacker=owners.length===1&&owners[0]>=0&&owners[0]!==province.owner?owners[0]:-1;
+      if(!MAP[province.id].playable||(province.owner<0&&!this.censusOccupants[province.id]))continue;
+      const nearOwner=this.censusNearOwner[province.id],attacker=nearOwner>=0&&nearOwner!==province.owner?nearOwner:-1;
       if(attacker>=0){
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
-        const player=s.players[attacker],engineers=nearby.some(u=>u.kind==='engineer');
+        const player=s.players[attacker],engineers=Boolean(this.censusEngineers[province.id]);
         province.capture+=DT*captureSpeedMultiplier(province)*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
-        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of nearby)if(u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of s.units)if(!u.transport?.embarked&&u.province===province.id&&Math.hypot(u.x-MAP[province.id].center.x,u.z-MAP[province.id].center.z)<3.7&&u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
       if(province.owner<0)continue;
       const owner=s.players[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery,owner);
       owner.funds=Math.min(MAX_FUNDS,owner.funds+DT*fundsIncomeRate(province,rate,owner));
       province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
-      if(owners.some(id=>id!==province.owner))continue;
-      const garrison=occupants.filter(u=>u.owner===province.owner).length;
+      if(nearOwner!==-2&&nearOwner!==province.owner)continue;
+      const garrison=this.censusCounts[popKey(province.owner,province.id)];
       const key=popKey(province.owner,province.id);
       if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=regionCapacity(province.id))continue;
       province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
-      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind))province.production=UNITS[province.kind].train;
-        else if(province.march&&province.march.owner===province.owner)
-          province.march={...province.march,pendingIds:[...province.march.pendingIds,s.nextId-1]};}
+      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind,undefined,this.spawnNeighbors(province.id)))province.production=UNITS[province.kind].train;else this.indexSpawned(s.units[s.units.length-1]);}
     }
     this.releaseMarches();
     // All captures have settled: losing then gaining a region in this tick is not defeat.
@@ -323,6 +328,23 @@ export class Engine{
       if(s.domination[p.id]>=30||(owned>0&&survivingOwners.size===1)){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
+  }
+  private spawnCell(x:number,z:number):number|string {return x>=0&&x<1024&&z>=0&&z<1024?z*1024+x:x+':'+z;}
+  private indexSpawned(u:Unit):void {
+    if(this.nativeSpawnUnits){this.freshSpawns.push(u);return;}if(u.transport?.embarked)return;const key=this.spawnCell(Math.floor(u.x/8),Math.floor(u.z/8)),list=this.spawnIndex!.get(key);if(list)list.push(u);else this.spawnIndex!.set(key,[u]);
+  }
+  private spawnNeighbors(province:number):Unit[] {
+    if(this.nativeSpawnUnits){
+      const center=MAP[province].center,count=kernel.spawnNeighbors(center.x,center.z,48*1024*1024),indices=new Uint32Array(kernel.memory.buffer,48*1024*1024,count),nearby:Unit[]=[];
+      for(const index of indices)nearby.push(this.nativeSpawnUnits[index]);
+      for(const u of this.sleeping)if(!u.transport?.embarked&&Math.abs(u.x-center.x)<9&&Math.abs(u.z-center.z)<9)nearby.push(u);
+      for(const u of this.freshSpawns)if(!u.transport?.embarked&&Math.abs(u.x-center.x)<9&&Math.abs(u.z-center.z)<9)nearby.push(u);
+      return nearby;
+    }
+    if(!this.spawnIndex){this.spawnIndex=new Map();for(const unit of this.state.units)this.indexSpawned(unit);}
+    const c=MAP[province].center,result:Unit[]=[];
+    for(let x=Math.floor((c.x-9)/8);x<=Math.floor((c.x+9)/8);x++)for(let z=Math.floor((c.z-9)/8);z<=Math.floor((c.z+9)/8);z++)for(const u of this.spawnIndex.get(this.spawnCell(x,z))??[])if(Math.abs(u.x-c.x)<9&&Math.abs(u.z-c.z)<9)result.push(u);
+    return result;
   }
   private releaseMarches():void {
     const s=this.state;
@@ -347,17 +369,19 @@ export class Engine{
   private dispatchOne(units:Unit[],to:number):number|null{
     for(const u of units){
       const st=stats(this.state.players[u.owner],u.kind),travel=this.navigation.plan(u,MAP[to].center,st.speed,st.seaSpeed);if(!travel)continue;
-      u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;
+      u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;this.physicsDirty.units.add(u);
       if(this.state.provinces[to].owner!==u.owner)u.assault=to;else delete u.assault;
       return u.id;
     }
     return null;
   }
-  private halt(unit:Unit):void {delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  private halt(unit:Unit):void {this.physicsDirty.units.add(unit);delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   /** Keep loaded and newly disembarked units clear of houses.
    * Only same-land, same-province (or certified route corridor) candidates count. */
   private clearBuildings(units:readonly Unit[]=this.state.units):void {
-    for(const u of [...units].sort((a,b)=>a.id-b.id)){
+    let ordered=units;for(let i=1;i<units.length;i++)if(units[i].id<units[i-1].id){ordered=[...units].sort((a,b)=>a.id-b.id);break;}
+    const blocked=units.length<=65536?blockedByBuildings(ordered):ordered.filter(u=>!(u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)&&!buildingSegment(u,u,UNIT_RADIUS[u.kind]));
+    for(const u of blocked){
       const radius=UNIT_RADIUS[u.kind];if((u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)||buildingSegment(u,u,radius))continue;
       const neighbors=this.state.units.filter(v=>v.id!==u.id&&!v.transport?.embarked&&Math.abs(v.x-u.x)<4.3&&Math.abs(v.z-u.z)<4.3),beforeClearance=terrainClearance(u,radius);
       let found=false,fallback:{x:number;z:number}|undefined,bestGap=-Infinity;
@@ -368,29 +392,33 @@ export class Engine{
         const gap=Math.min(radius,...neighbors.map(v=>Math.hypot(v.x-to.x,v.z-to.z)-radius-UNIT_RADIUS[v.kind]));
         if(gap>bestGap){bestGap=gap;fallback=to;}
         if(gap<.02)continue;
-        u.x=to.x;u.z=to.z;if(u.travel)u.province=provinceAt(to.x,to.z);found=true;break;
+        u.x=to.x;u.z=to.z;this.physicsDirty.units.add(u);if(u.travel)u.province=provinceAt(to.x,to.z);found=true;break;
       }
       // A physically overcrowded old garrison may have no non-overlapping unit
       // slot. Never leave it inside a solid house: choose the best legal ground
       // and let the bounded unit solver continue resolving the softer crowd.
-      if(!found&&fallback){u.x=fallback.x;u.z=fallback.z;if(u.travel)u.province=provinceAt(u.x,u.z);}
+      if(!found&&fallback){u.x=fallback.x;u.z=fallback.z;this.physicsDirty.units.add(u);if(u.travel)u.province=provinceAt(u.x,u.z);}
     }
   }
   private separate(active:readonly Unit[]):void {
-    const bodies=active.filter(u=>u.hp>0&&!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit}));
-    const clearance=new Map<number,number>();
-    this.collision=separateCircles(bodies,(body,to)=>{
+    const bodies=active.filter(u=>u.hp>0&&!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit,terrainX:NaN,terrainZ:NaN,triangle:-1,freeTerrain:undefined as boolean|undefined}));
+    try{this.collision=separateGround(bodies,this.state.tick);}catch{const clearance=new Map<number,number>();this.collision=separateCircles(bodies,(body,to)=>{
       const u=body.unit,travel=u.travel;if(!buildingSegment(body,to,body.radius))return false;
       if(travel){if(distanceToTravelSegment(travel,to)>TRAVEL_LOCAL_OFFSET)return false;}
       else if(!pointInProvince(u.province,to.x,to.z))return false;
-      if((travel&&provinceAt(to.x,to.z)<0)||!terrainLocalSegment(body,to))return false;
+      if(travel&&provinceAt(to.x,to.z)<0)return false;
+      if(body.freeTerrain===undefined)body.freeTerrain=openLandCell(body,body.radius+COLLISION_MAX_PUSH+(travel?TRAVEL_LOCAL_OFFSET:0));
+      if(body.freeTerrain)return true;
+      // Rejected pushes share a start point; accepted movement invalidates it.
+      if(body.terrainX!==body.x||body.terrainZ!==body.z){body.triangle=terrainAt(body,true);body.terrainX=body.x;body.terrainZ=body.z;}
+      if(!terrainLocalSegment(body,to,body.triangle))return false;
       // Existing narrow-corridor/old-save footprints can be clipped. A push may
       // improve their clearance, never force them farther through a physical wall.
-      let before=clearance.get(body.id);if(before===undefined){before=terrainClearance(body,body.radius);clearance.set(body.id,before);}
+      let before=clearance.get(body.id);if(before===undefined){before=terrainClearance(body,body.radius,true);clearance.set(body.id,before);}
       const after=terrainClearance(to,body.radius,true);if(after+1e-8<before)return false;
       if(travel&&!terrainLocalSegment(to,travelCorridorPoint(travel,to)))return false;
       clearance.set(body.id,after);return true;
-    },this.state.tick);
+    },this.state.tick);}
     for(const b of bodies){const u=b.unit;if(u.x===b.x&&u.z===b.z)continue;u.x=b.x;u.z=b.z;if(u.travel)u.province=provinceAt(u.x,u.z);}
   }
   private advance(unit:Unit):void {this.halt(unit);}

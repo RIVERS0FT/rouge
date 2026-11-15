@@ -299,7 +299,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const modalKicker = modal === 'setupSolo' ? text('single') : modal === 'setupLan' ? text('multiplayer') : modal === 'playerLeader' || modal === 'playerFlag' ? text('playerAppearance')
   : modal === 'talents' && player ? text(player.leader) : modal === 'territories' && game && MAP[selected] ? MAP[selected].name[language === 'zh' ? 0 : 1] : undefined;
  const savesView = <SavesView saves={saves} language={language} canSave={solo && Boolean(game)} canExport={solo && Boolean(game)} saveName={saveName} onSaveName={setSaveName}
-  onCreate={() => game && saveCurrent(`manual-${crypto.randomUUID()}`, saveName || `${text('theatre')} ${timeLabel(game.tick)}`)} onLoad={load}
+  onCreate={() => game && saveCurrent(`manual-${crypto.randomUUID()}`, saveName || `${text('theatre')} ${timeLabel(game.tick,language)}`)} onLoad={load}
   onOverwrite={save => {if(confirm(text('overwriteConfirm'))) saveCurrent(save.id, save.name);}}
   onDelete={id => {if(confirm(text('deleteConfirm'))) {deleteSave(localStorage, id); refreshSaves();}}} onExport={exportCurrent} onImport={importSave}/>;
 

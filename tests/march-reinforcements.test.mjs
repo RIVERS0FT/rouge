@@ -27,17 +27,19 @@ test('dispatch starts exactly one now, and releases each subsequent battalion af
  assert.equal(e.state.units.filter(u=>u.target===to).length,5);assert.ok(validateState(e.state));
 });
 
-test('newly trained battalions join an active queue, but production immediately after its last departure stays home',()=>{
- const {e,from,to}=garrisonFixture({count:2});order(e,from,to);
+test('one march only dispatches the original garrison; production during and after its queue stays home',()=>{
+ const {e,from,to}=garrisonFixture({count:2}),original=e.state.units.map(u=>u.id);order(e,from,to);
  const next=e.state.nextId;trainNext(e,from);e.step();
  const reinforcement=e.state.units.find(u=>u.id===next);assert.ok(reinforcement);
  assert.ok(isRegionGarrison(reinforcement,0,from));
- assert.equal(e.state.provinces[from].march.pendingIds.at(-1),next);
+ assert.deepEqual(e.state.provinces[from].march.pendingIds,original.slice(1));
  e.step(MARCH_INTERVAL_TICKS-1);assert.equal(reinforcement.target,null);
  e.step(MARCH_INTERVAL_TICKS);
- assert.equal(reinforcement.target,to);assert.equal(e.state.provinces[from].march,undefined);
+ assert.ok(isRegionGarrison(reinforcement,0,from));assert.equal(e.state.provinces[from].march,undefined);
+ assert.ok(original.every(id=>e.state.units.find(u=>u.id===id)?.target===to));
  const later=e.state.nextId;trainNext(e,from);e.step();
  assert.ok(isRegionGarrison(e.state.units.find(u=>u.id===later),0,from));assert.ok(validateState(e.state));
+ assert.ok(order(e,from,to).ok);assert.equal(reinforcement.target,to);
 });
 
 test('a single immediate departure closes the order while its original battalion travels',()=>{

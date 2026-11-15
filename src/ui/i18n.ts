@@ -3,11 +3,11 @@ export type Language='zh'|'en';
 export const STRINGS:Record<string,[string,string]>={
  constructionTitle:['建设','Construction'],
  constructionBuild:['建造','Build'],constructionUpgrade:['升级','Upgrade'],constructionLevel:['{level} 级','Level {level}'],
- constructionIncome:['地块收入 +{amount}/秒','Local income +{amount}/s'],
+ constructionIncome:['地块收入 +{amount}/日','Local income +{amount}/day'],
  constructionTarget:['建设地块','Building site'],constructionBuilt:['{built}/{total} 槽已建','{built}/{total} slots built'],
  constructionNext:['下一级：{effect}','Next level: {effect}'],constructionEmpty:['未建造','No building'],
  'construction.market':['集市','Market'],'construction.barracks':['兵营','Barracks'],'construction.fortress':['要塞','Fortress'],
- 'construction.market.benefit':['资金 +{amount}/秒','+{amount} funds/s'],
+ 'construction.market.benefit':['资金 +{amount}/日','+{amount} funds/day'],
  'construction.barracks.benefit':['本地产兵速度 +{amount}%','+{amount}% local production speed'],
  'construction.fortress.benefit':['击败守军后，占领耗时 +{amount}%','+{amount}% capture time after defenders fall'],
  'error.noFunds':['资金不足','Insufficient funds'],'error.slotOccupied':['建设槽已有其他建筑','The slot already has a different building'],
@@ -50,7 +50,7 @@ export const STRINGS:Record<string,[string,string]>={
  'attribute.hp':['生命','Health'],'attribute.attack':['单次攻击','Attack / hit'],'attribute.defense':['防御','Defense'],
  'attribute.attackSpeed':['攻击速度','Attack rate'],'attribute.splash':['溅射半径','Splash radius'],'attribute.range':['攻击距离','Attack range'],
  'attribute.train':['训练时间','Training time'],'attribute.speed':['陆地速度','Land speed'],'attribute.seaSpeed':['海上速度','Sea speed'],
- singleTarget:['0 · 单体','0 · Single target'],attacksPerSecond:['次/游戏秒','hits/game s'],gameSeconds:['游戏秒','game s'],distancePerSecond:['格/游戏秒','units/game s'],mapUnits:['格','units'],
+ singleTarget:['0 · 单体','0 · Single target'],attacksPerDay:['次/日','hits/day'],gameDays:['天','days'],distancePerDay:['格/日','units/day'],mapUnits:['格','units'],
  baseStatsHint:['以下为基础属性（不含升级与天赋）。','Base attributes below exclude upgrade and talent bonuses.'],
  currentStatsHint:['当前属性已包含升级与机动/伤害天赋；训练显示基础时间，实际生产还受恢复和生产加成影响。','Current attributes include upgrades and movement/damage talents. Training is base time; recovery and production bonuses also affect recruitment.'],
  transportStatsHint:['海运统一搭乘运输船，海速不受陆地机动加成影响。','All troops use transport ships at sea; land movement bonuses do not change sea speed.'],
@@ -95,8 +95,8 @@ export const STRINGS:Record<string,[string,string]>={
  paused:['已暂停','Paused'],pause:['暂停','Pause'],resume:['继续','Resume'],save:['保存战役','Save campaign'],menu:['返回主菜单','Main menu'],exitConfirm:['离开战役？单人战役将尝试自动保存。','Leave this campaign? Solo progress will be auto-saved when storage is available.'],
  strategic:['战略地图','Strategic map'],terrain:['三维地形','3D terrain'],zoomIn:['拉近','Zoom in'],zoomOut:['拉远','Zoom out'],focus:['聚焦地块','Focus region'],
  controls:['左键选择 · 拖动平移 · 滚轮缩放 · 右键下令','Click to select · Drag to pan · Scroll to zoom · Right-click to order'],
- objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 块领土并保持 30 秒，或消灭全部对手。','Hold {count} regions for 30 seconds, or eliminate all opponents.'],
- domination:['统治进度','Domination'],seconds:['秒','s'],province:['地块','Province'],owner:['属于者','Owned by'],neutralOwner:['中立','Neutral'],garrison:['驻军','Garrison'],production:['自动生产','Auto-production'],
+ objective:['征服目标','Conquest objective'],objectiveDesc:['控制 {count} 块领土并保持 30 天，或消灭全部对手。','Hold {count} regions for 30 days, or eliminate all opponents.'],
+ domination:['统治进度','Domination'],days:['天',' days'],province:['地块','Province'],owner:['属于者','Owned by'],neutralOwner:['中立','Neutral'],garrison:['驻军','Garrison'],production:['自动生产','Auto-production'],
  garrisonCapacityHint:['驻军不含已派出部队；名额只限制本地训练，不限制调兵或抵达。','Garrisons exclude dispatched troops. Slots limit local training, not dispatch or arrival.'],
  recovering:['正在恢复生产','Production recovering'],contested:['正在被争夺','Contested'],stable:['控制稳定','Stable control'],capture:['占领进度','Capture progress'],
  send:['调兵 / 进攻','March / attack'],sendHint:['从单位实际位置沿可通行地形行军，必要时经海岸换乘海运。预览不代表逐个行政区中心；海上不攻击或占领。满员地块也可接收增援。','March from actual unit positions over passable terrain, embarking at coast transitions when needed. The preview is not an administrative-center route. No attacks or capture at sea. Full destinations can still receive reinforcements.'],
@@ -156,7 +156,7 @@ export const STRINGS:Record<string,[string,string]>={
  // Grand-strategy HUD: rail, outliner, docked panels and live tooltips.
  railRegion:['地块','Region'],railMilitary:['军务','Military'],railNations:['国家','Countries'],railTalents:['天赋','Talents'],railOutliner:['战况','Situation'],
  commandRail:['指挥栏','Command rail'],closePanel:['关闭面板','Close panel'],stateLedger:['国情','State ledger'],
- perSecond:['/秒','/s'],incomePerSecond:['每秒收入','Income per second'],incomeSource:['{count} 块领土的产出','Output of {count} regions'],
+ perDay:['/日','/day'],incomePerDay:['每日收益','Daily income'],incomeSource:['{count} 块领土的产出','Output of {count} regions'],
  captureReward:['每次占领奖励','Reward per capture'],cheapestUpgrade:['最低升级花费','Cheapest upgrade'],allUpgradesMax:['全部升级已满','All upgrades complete'],
  armyGarrison:['驻守','Garrisoned'],armyMarching:['行军或交战','Marching or fighting'],armyEmbarked:['海上运输','At sea'],
  territoryOwned:['控制领土','Regions held'],territoryGoal:['征服目标','Conquest goal'],territoryShare:['全图占比','Share of the world'],
@@ -179,7 +179,7 @@ export const STRINGS:Record<string,[string,string]>={
  talentEntry:['领袖天赋','Leader talents'],
 };
 export function t(language:Language,key:string):string{return STRINGS[key]?.[language==='zh'?0:1]??STRINGS['error.generic'][language==='zh'?0:1];}
-export function timeLabel(ticks:number):string{const total=Math.floor(ticks/20);return`${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
+export {campaignDateLabel as timeLabel} from './campaignCalendar.ts';
 
 /** Localize stable AI identities; never translate player-entered names. */
 export function playerName(language:Language,player:{name:string;ai?:boolean;country?:CountryIdentity}):string{

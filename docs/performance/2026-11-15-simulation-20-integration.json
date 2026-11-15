@@ -1,0 +1,51 @@
+{
+  "at": "2026-11-15T14:27:07.647Z",
+  "release": "0.9.16",
+  "testedImplementationCommit": "b71d7ccfa3ef7f8df0da7b7ecf1a6696fc420c70",
+  "mainBase": "460614355222767848cca8757934b944cf5cb089",
+  "originalChangeCommit": "fcdfcc3e514b2553fb87e2f510dd0cd5dfe256b2",
+  "productionBuild": {
+    "typecheck": true,
+    "vite": true,
+    "kernelUnchangedAfterCleanCheckoutBuild": true
+  },
+  "fullNodeSuite": {
+    "tests": 453,
+    "passed": 453,
+    "failed": 0
+  },
+  "browser": {
+    "campaignCalendar": {
+      "passed": 2
+    },
+    "unitRenderMode": {
+      "passed": 1,
+      "scope": "2D hides armies; 3D v10 asset, counts and selection preserved over repeated switches"
+    },
+    "autosave": {
+      "passed": 1,
+      "scope": "Successive campaigns share one autosave, manual save persists, final autosave reload succeeds",
+      "firstAttempt": {
+        "failed": 1,
+        "reason": "150000 ms total timeout at final reload readiness while full Node suite was also running"
+      },
+      "isolatedRerun": {
+        "passed": 1,
+        "timeoutUnchanged": true
+      }
+    }
+  },
+  "runtimeChangesFromMeasuredOptimization": [
+    "src/game/save.ts"
+  ],
+  "nativeSourceHashes": {
+    "scripts/simulation-kernel.as.ts": "43a1b9d9df0255bdfbf1028b816daeb39c7e9e4ab1902068b23db3ab191a58c1",
+    "src/generated/simulationKernel.ts": "67507cdb618a5b21fb32f22c8ac8d86a3d3637a6cce131022e3d9dff62cd4a5d"
+  },
+  "preservedUpstreamFeatures": [
+    "infantry-v10 and animation",
+    "one shared automatic save slot",
+    "eight unit illustrations"
+  ],
+  "passed": true
+}

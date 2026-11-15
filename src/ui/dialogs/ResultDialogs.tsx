@@ -15,7 +15,7 @@ export function VictoryOverlay({state, actor, owned, language, onLeave}: {state:
     <div className="result-emblem" aria-hidden="true">{flag ? <FlagImage flag={flag} language={language}/> : <Icon name="crown" size={56}/>}</div>
     <div className="eyebrow gold">{text('winner')} / {playerName(language, winner)}</div>
     <dl className="result-stats">
-     <div><dt>{text('campaignTime')}</dt><dd>{timeLabel(state.tick)}</dd></div>
+     <div><dt>{text('campaignTime')}</dt><dd>{timeLabel(state.tick,language)}</dd></div>
      <div><dt>{text('territory')}</dt><dd>{owned}/{PLAYABLE_COUNT}</dd></div>
      <div><dt>{text('talents')}</dt><dd>{state.players[actor].talents.length}</dd></div>
     </dl>

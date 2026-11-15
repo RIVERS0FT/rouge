@@ -35,12 +35,13 @@ export class DispatchPreview {
   host.append(this.element);
  }
  show(source:number){this.clear();this.element.style.display='';this.element.dataset.phase='dragging';this.element.dataset.source=String(source);this.started=performance.now();this.animation=requestAnimationFrame(this.frame);}
- draw(source:ScreenPoint,cursor:ScreenPoint,target:number,targetPath:string){
+ draw(source:ScreenPoint,cursor:ScreenPoint,target:number,targetPath:string,targetOutline=targetPath){
   this.element.dataset.target=String(target);
-  this.active=dispatchRibbon(source,cursor);
+  this.active=dispatchRibbon(source,cursor,target>=0?0:undefined);
   const d=this.active?.d??'';
   attrs(this.ribbon,{d});attrs(this.ribbonMask,{d});
-  if(this.target.getAttribute('d')!==targetPath){attrs(this.target,{d:targetPath});attrs(this.glow,{d:targetPath});attrs(this.targetMask,{d:targetPath});}
+  if(this.target.getAttribute('d')!==targetOutline){attrs(this.target,{d:targetOutline});attrs(this.glow,{d:targetOutline});}
+  if(this.targetMask.getAttribute('d')!==targetPath)attrs(this.targetMask,{d:targetPath});
   attrs(this.reticle,{cx:cursor.x,cy:cursor.y,r:9});
  }
  release(){this.releaseAt=performance.now();this.element.dataset.phase='released';}

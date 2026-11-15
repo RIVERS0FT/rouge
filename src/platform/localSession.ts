@@ -1,3 +1,4 @@
+import {applyLocalFrame} from './localFrames.ts';
 import type {CountryAction} from '../game/countryActions.ts';
 import type {GameState,Result} from '../game/types.ts';
 import type {Session} from './session.ts';
@@ -15,9 +16,9 @@ export function createLocalSession(worker:Pick<Worker,'onmessage'|'onerror'|'onm
   if(closed)return;
   if(data.type==='ready'){
    if(!initializing){initializing=true;worker.postMessage({type:'init',state});}
-  }else if(data.type==='state'||data.type==='delta'){
+  }else if(data.type==='state'||data.type==='delta'||data.type==='local'){
    if(!initializing)return;
-   try{current=data.type==='state'?data.state:applyFrame(current,data);}catch{fail();return;}
+   try{current=data.type==='local'?applyLocalFrame(current,data):data.type==='state'?data.state:applyFrame(current,data);}catch{fail();return;}
    initialized=true;onState(current!);
    while(pending.length&&!closed)worker.postMessage(pending.shift());
   }else if(data.type==='result')onResult(data.result);

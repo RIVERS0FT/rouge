@@ -86,14 +86,14 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
       <div className="progress" role="progressbar" aria-label={text('production')} aria-valuemin={0} aria-valuemax={productionTime} aria-valuenow={Math.min(productionTime, province.production)}>
        <i style={{width: `${Math.min(100, province.production / productionTime * 100)}%`}}/>
       </div>
-      <span>{Math.floor(province.production)} / {productionTime}{text('seconds')}</span>
+      <span>{Math.floor(province.production)} / {productionTime}{text('days')}</span>
      </div>
     </div>
    </div>
   </section>}
   {province.owner >= 0 && <dl className="province-ledger">
-   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`+${income.toFixed(1)}${text('perSecond')}`}>{text('regionIncome')}</TipTitle><TipNote>{text('incomePerSecond')}</TipNote></>}>
-    <dt><Icon name="coin" size={15}/>{text('regionIncome')}</dt><dd data-tone="good">+{income.toFixed(1)}{text('perSecond')}</dd>
+   <Tip as="div" focusable tapToggle content={<><TipTitle aside={`+${income.toFixed(1)}${text('perDay')}`}>{text('regionIncome')}</TipTitle><TipNote>{text('incomePerDay')}</TipNote></>}>
+    <dt><Icon name="coin" size={15}/>{text('regionIncome')}</dt><dd data-tone="good">+{income.toFixed(1)}{text('perDay')}</dd>
    </Tip>
    <Tip as="div" focusable tapToggle content={<><TipTitle aside={`×${production.toFixed(2)}`}>{text('productionRate')}</TipTitle>{province.recovery > 0 && <TipRow label={text('recovering')} value={`×${recovery.toFixed(2)}`} tone="bad"/>}</>}>
     <dt><Icon name="hammer" size={15}/>{text('productionRate')}</dt><dd>×{production.toFixed(2)}</dd>
