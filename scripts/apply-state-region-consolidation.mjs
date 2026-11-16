@@ -24,13 +24,27 @@ export function applyCurrentStateMergers(base, originalGroups, decisions, audit)
 /** Apply reviewed gameplay-only overrides, independent of any historical state reference. */
 export function applyAdministrativeGroupOverrides(base, originalGroups, decisions) {
   const atoms = new Map(base.provinces.map(atom => [atom.id, atom]));
-  return mergeWholeGroups(base, originalGroups, decisions, 'gameplay-administrative-override',
+  const merged = mergeWholeGroups(base, originalGroups, decisions, 'gameplay-administrative-override',
     (core, edge, entry) => entry.authority === 'ROUGE gameplay' && /^[A-Z]{3}$/.test(entry.country)
       && sameMembers(core.sourceIds, entry.primarySourceIds) && sameMembers(edge.sourceIds, entry.fragmentSourceIds)
       && [...core.sourceIds, ...edge.sourceIds].every(id => atoms.get(id)?.country === entry.country)
       && !core.islandAttachments?.length && !edge.islandAttachments?.length
       && Array.isArray(entry.displayName) && entry.displayName.length === 2
       && entry.displayName.every(name => typeof name === 'string' && name.trim()));
+  if (decisions.names === undefined) return merged;
+  if (!Array.isArray(decisions.names)) throw new Error('Invalid administrative region names');
+  const byId = new Map(merged.map(group => [group.id, group])), names = new Map();
+  for (const {id, country, sourceIds, displayName} of decisions.names) {
+    const group = byId.get(id);
+    if (!group || group.displayName || names.has(id) || !sameMembers(group.sourceIds, sourceIds)
+       || !/^[A-Z]{3}$/.test(country) || !group.sourceIds.every(atom => atoms.get(atom)?.country === country)
+       || !Array.isArray(displayName) || displayName.length !== 2
+       || !displayName.every(name => typeof name === 'string' && name.trim())) {
+      throw new Error(`Invalid administrative region display name: ${id}`);
+    }
+    names.set(id, displayName);
+  }
+  return merged.map(group => names.has(group.id) ? {...group, displayName:names.get(group.id)} : group);
 }
 
 const sameMembers = (actual, expected) => Array.isArray(expected) && actual.length === expected.length

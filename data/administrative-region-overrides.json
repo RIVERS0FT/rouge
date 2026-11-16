@@ -19,5 +19,8 @@
       "fragmentSourceIds": ["CHN-1819"],
       "displayName": ["江苏省", "Jiangsu"]
     }
+  ],
+  "names": [
+    {"id": "group:BTN-2433", "country": "BTN", "sourceIds": ["BTN-2433", "BTN-2434", "BTN-2435", "BTN-2436", "BTN-2437", "BTN-2438", "BTN-2439", "BTN-2440", "BTN-2480", "BTN-2481", "BTN-2482", "BTN-2483", "BTN-2484", "BTN-2485", "BTN-2486", "BTN-2487", "BTN-2490", "BTN-2491", "BTN-2492", "BTN-2493"], "displayName": ["不丹", "Bhutan"]}
   ]
 }
