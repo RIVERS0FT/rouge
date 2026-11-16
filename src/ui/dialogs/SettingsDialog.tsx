@@ -1,4 +1,4 @@
-import {VERSION} from '../../game/content.ts';
+import {GameVersion} from '../GameVersion.ts';
 import {Icon} from '../icons.tsx';
 import {t, type Language} from '../i18n.ts';
 
@@ -26,6 +26,6 @@ export function SettingsGeneral({language, inGame, solo, onLanguage, onSaves, on
    </button>
    {inGame && <button type="button" className="quiet settings-leave" onClick={onLeave}>{text('returnMenu')}</button>}
   </div>
-  <small className="settings-version" data-testid="game-version">v{VERSION}</small>
+  <GameVersion className="settings-version" testId="game-version"/>
  </>;
 }

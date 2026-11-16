@@ -38,6 +38,8 @@ try{
  const r=await page.goto(`${site}?release=${info.sourceCommit}`,{waitUntil:'networkidle',timeout:90000});
  assert.equal(r.status(),200);
  await expect(page.getByTestId('single-player')).toBeVisible();
+ await expect(page.getByTestId('start-menu-version')).toHaveText(`v${info.version}`);
+ checks.push('start menu version matches deployed manifest');
  await expect(page.locator('.world canvas')).toHaveAttribute('data-ready','true');
  if(regions){
   await expect(page.locator('.world canvas')).toHaveAttribute('data-region-count',String(atlas.provinces.length));
