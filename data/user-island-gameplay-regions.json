@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "scope": "Five approved gameplay tiles; exact original geographies and country tags are unchanged.",
+  "regions": [
+    {
+      "label": "caribbean",
+      "id": "group:AIA+99?",
+      "groups": {
+        "group:AIA+99?": [
+          "AIA+99?"
+        ],
+        "group:AIA-5114": [
+          "AIA-5114",
+          "AIA-5116",
+          "AIA-5118",
+          "AIA-5120",
+          "AIA-5121",
+          "AIA-5122",
+          "AIA-5124",
+          "AIA-5125",
+          "AIA-5126",
+          "AIA-5127"
+        ],
+        "group:AIA-5115": [
+          "AIA-5115"
+        ],
+        "group:AIA-5117": [
+          "AIA-5117"
+        ],
+        "group:AIA-5119": [
+          "AIA-5119"
+        ],
+        "group:AIA-5123": [
+          "AIA-5123"
+        ],
+        "group:GRD-5069": [
+          "GRD-5069"
+        ],
+        "group:GRD-5070": [
+          "GRD-5070",
+          "GRD-5071",
+          "GRD-5072",
+          "GRD-5073",
+          "GRD-5075"
+        ],
+        "group:GRD-5074": [
+          "GRD-5074"
+        ],
+        "group:LCA-5076": [
+          "LCA-5076",
+          "LCA-5077",
+          "LCA-5078",
+          "LCA-5080",
+          "LCA-5082",
+          "LCA-5083",
+          "LCA-5084",
+          "LCA-5085",
+          "LCA-5086"
+        ],
+        "group:LCA-5079": [
+          "LCA-5079"
+        ],
+        "group:LCA-5081": [
+          "LCA-5081"
+        ]
+      },
+      "displayName": [
+        "东加勒比群岛",
+        "Eastern Caribbean Islands"
+      ],
+      "anchorAtomId": "LCA-5077",
+      "components": [
+        [
+          "AIA+99?"
+        ],
+        [
+          "AIA-5114",
+          "AIA-5115",
+          "AIA-5116",
+          "AIA-5117",
+          "AIA-5118",
+          "AIA-5119",
+          "AIA-5120",
+          "AIA-5121",
+          "AIA-5122",
+          "AIA-5123",
+          "AIA-5124",
+          "AIA-5125",
+          "AIA-5126",
+          "AIA-5127"
+        ],
+        [
+          "GRD-5069"
+        ],
+        [
+          "GRD-5070",
+          "GRD-5071",
+          "GRD-5072",
+          "GRD-5073",
+          "GRD-5074",
+          "GRD-5075"
+        ],
+        [
+          "LCA-5076",
+          "LCA-5077",
+          "LCA-5078",
+          "LCA-5079",
+          "LCA-5080",
+          "LCA-5081",
+          "LCA-5082",
+          "LCA-5083",
+          "LCA-5084",
+          "LCA-5085",
+          "LCA-5086"
+        ]
+      ],
+      "searchAliases": [
+        "安圭拉",
+        "Anguilla",
+        "圣卢西亚",
+        "Saint Lucia",
+        "格林纳达",
+        "Grenada",
+        "卡里亚库",
+        "Carriacou"
+      ]
+    },
+    {
+      "label": "guangdong",
+      "id": "group:CHN-1180",
+      "groups": {
+        "group:CHN-1180": [
+          "CHN-1180"
+        ],
+        "group:HKG-5153": [
+          "HKG-5153",
+          "HKG-5154",
+          "HKG-5155",
+          "HKG-5156"
+        ],
+        "group:HKG-5157": [
+          "HKG-5157",
+          "HKG-5158",
+          "HKG-5159",
+          "HKG-5160",
+          "HKG-5161",
+          "HKG-5162",
+          "HKG-5163",
+          "HKG-5164",
+          "HKG-5165",
+          "HKG-5167",
+          "HKG-5168",
+          "HKG-5169",
+          "HKG-5170"
+        ],
+        "group:HKG-5166": [
+          "HKG-5166"
+        ]
+      },
+      "displayName": [
+        "广东省",
+        "Guangdong"
+      ],
+      "anchorAtomId": "CHN-1180",
+      "components": [
+        [
+          "CHN-1180",
+          "HKG-5157",
+          "HKG-5158",
+          "HKG-5159",
+          "HKG-5160",
+          "HKG-5161",
+          "HKG-5162",
+          "HKG-5163",
+          "HKG-5164",
+          "HKG-5165",
+          "HKG-5166",
+          "HKG-5167",
+          "HKG-5168",
+          "HKG-5169",
+          "HKG-5170"
+        ],
+        [
+          "HKG-5153",
+          "HKG-5154",
+          "HKG-5155",
+          "HKG-5156"
+        ]
+      ],
+      "searchAliases": [
+        "香港",
+        "Hong Kong"
+      ]
+    },
+    {
+      "label": "taiwan",
+      "id": "group:TWN-1156",
+      "groups": {
+        "group:TWN-1156": [
+          "TWN-1156",
+          "TWN-1158",
+          "TWN-1160",
+          "TWN-1162",
+          "TWN-1163",
+          "TWN-1164",
+          "TWN-1165",
+          "TWN-1166",
+          "TWN-1167",
+          "TWN-1168",
+          "TWN-1169",
+          "TWN-1170",
+          "TWN-1171",
+          "TWN-1172",
+          "TWN-1173",
+          "TWN-1174",
+          "TWN-1176",
+          "TWN-1177"
+        ],
+        "group:TWN-1161": [
+          "TWN-1161"
+        ],
+        "group:TWN-3414": [
+          "TWN-3414"
+        ],
+        "group:TWN-3415": [
+          "TWN-3415"
+        ]
+      },
+      "displayName": [
+        "台湾",
+        "Taiwan"
+      ],
+      "anchorAtomId": "TWN-1166",
+      "components": [
+        [
+          "TWN-1156",
+          "TWN-1158",
+          "TWN-1160",
+          "TWN-1161",
+          "TWN-1162",
+          "TWN-1163",
+          "TWN-1164",
+          "TWN-1165",
+          "TWN-1166",
+          "TWN-1167",
+          "TWN-1168",
+          "TWN-1169",
+          "TWN-1170",
+          "TWN-1171",
+          "TWN-1172",
+          "TWN-1173",
+          "TWN-1174",
+          "TWN-1176",
+          "TWN-1177"
+        ],
+        [
+          "TWN-3414"
+        ],
+        [
+          "TWN-3415"
+        ]
+      ]
+    },
+    {
+      "label": "micronesia",
+      "id": "group:FSM-4941",
+      "groups": {
+        "group:FSM-4941": [
+          "FSM-4941"
+        ],
+        "group:FSM-4942": [
+          "FSM-4942"
+        ],
+        "group:FSM-4943": [
+          "FSM-4943"
+        ],
+        "group:FSM-4944": [
+          "FSM-4944"
+        ]
+      },
+      "displayName": [
+        "密克罗尼西亚联邦",
+        "Federated States of Micronesia"
+      ],
+      "anchorAtomId": "FSM-4941",
+      "components": [
+        [
+          "FSM-4941"
+        ],
+        [
+          "FSM-4942"
+        ],
+        [
+          "FSM-4943"
+        ],
+        [
+          "FSM-4944"
+        ]
+      ],
+      "searchAliases": [
+        "密克罗尼西亚",
+        "Micronesia",
+        "帕利基尔",
+        "Palikir"
+      ]
+    },
+    {
+      "label": "turks-caicos",
+      "id": "group:TCA-5003",
+      "groups": {
+        "group:TCA-5003": [
+          "TCA-5003"
+        ],
+        "group:TCA-5004": [
+          "TCA-5004"
+        ],
+        "group:TCA-5005": [
+          "TCA-5005"
+        ],
+        "group:TCA-5006": [
+          "TCA-5006"
+        ],
+        "group:TCA-5007": [
+          "TCA-5007"
+        ],
+        "group:TCA-5008": [
+          "TCA-5008"
+        ]
+      },
+      "displayName": [
+        "特克斯和凯科斯群岛",
+        "Turks and Caicos Islands"
+      ],
+      "anchorAtomId": "TCA-5007",
+      "components": [
+        [
+          "TCA-5003"
+        ],
+        [
+          "TCA-5004"
+        ],
+        [
+          "TCA-5005"
+        ],
+        [
+          "TCA-5006"
+        ],
+        [
+          "TCA-5007"
+        ],
+        [
+          "TCA-5008"
+        ]
+      ],
+      "searchAliases": [
+        "科伯恩城",
+        "Cockburn Town"
+      ]
+    }
+  ]
+}
