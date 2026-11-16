@@ -59,8 +59,8 @@ test('all Thai source areas and city anchors select exactly four locked gameplay
  for(const [i,aliases] of [['Chiang Mai','清迈'],['Bangkok Metropolis','曼谷','Kanchanaburi'],['Nong Khai','廊开府','呵叻'],['Phuket','普吉府','Surat Thani','泰南']].entries()){
   for(const alias of aliases)assert.ok(searchProvinces(alias).some(r=>r.id===regions[i].id),alias);
  }
- assert.equal(MAP_METADATA.count,927);assert.equal(MAP_METADATA.playableCount,923);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v17');assert.equal(STATE_VERSION,18);assert.equal(RULES_ID,'admin1-locked-game-regions-v30');
+ assert.equal(MAP_METADATA.count,902);assert.equal(MAP_METADATA.playableCount,898);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v18');assert.equal(STATE_VERSION,19);assert.equal(RULES_ID,'admin1-locked-game-regions-v31');
 });
 
 test('Phuket keeps its sea crossing while Nong Khai joins physically touching Northeast land',()=>{
@@ -82,7 +82,7 @@ test('Phuket keeps its sea crossing while Nong Khai joins physically touching No
 
 test('the Thai merge leaves all other atlas memberships, original geometry and source topology exactly unchanged',()=>{
  const untouched=prior.filter(g=>!g.sourceIds.some(id=>isThai(id)||isSeaBatch(id)));
- assert.equal(prior.length-untouched.length,6+18+14+41+22+110);
+ assert.equal(prior.length-untouched.length,6+18+14+41+22+110+30);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isThai(id)||isSeaBatch(id))),
   untouched.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
