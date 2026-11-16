@@ -1,0 +1,628 @@
+{
+  "schema": 1,
+  "scope": "Approved Malta, Åland Islands, Latvia, Estonia, Andorra, Liechtenstein and Slovenia gameplay region grouping only. Keep the raw Natural Earth sources and original navigation graph.",
+  "regions": [
+    {
+      "id": "group:MLT-5920",
+      "groups": {
+        "group:MLT-5920": [
+          "MLT-5920",
+          "MLT-5921",
+          "MLT-5922",
+          "MLT-5923",
+          "MLT-5924",
+          "MLT-5926",
+          "MLT-5927",
+          "MLT-5928",
+          "MLT-5929",
+          "MLT-5930",
+          "MLT-5931",
+          "MLT-5932",
+          "MLT-5939",
+          "MLT-5940",
+          "MLT-5941",
+          "MLT-5942",
+          "MLT-5943",
+          "MLT-5944",
+          "MLT-5945",
+          "MLT-5946",
+          "MLT-5947",
+          "MLT-5948",
+          "MLT-5949",
+          "MLT-5950",
+          "MLT-5951",
+          "MLT-5952",
+          "MLT-5953",
+          "MLT-5954",
+          "MLT-5955",
+          "MLT-5956",
+          "MLT-5957",
+          "MLT-5958",
+          "MLT-5959",
+          "MLT-5960",
+          "MLT-5961",
+          "MLT-5963",
+          "MLT-5964",
+          "MLT-5965",
+          "MLT-5966",
+          "MLT-5967",
+          "MLT-5968",
+          "MLT-5969",
+          "MLT-5970",
+          "MLT-5971",
+          "MLT-5972",
+          "MLT-5973"
+        ],
+        "group:MLT-5925": [
+          "MLT-5925"
+        ],
+        "group:MLT-5933": [
+          "MLT-5933"
+        ],
+        "group:MLT-5934": [
+          "MLT-5934"
+        ],
+        "group:MLT-5935": [
+          "MLT-5935"
+        ],
+        "group:MLT-5936": [
+          "MLT-5936"
+        ],
+        "group:MLT-5937": [
+          "MLT-5937"
+        ],
+        "group:MLT-5938": [
+          "MLT-5938"
+        ],
+        "group:MLT-5962": [
+          "MLT-5962"
+        ],
+        "group:MLT-5974": [
+          "MLT-5974",
+          "MLT-5975",
+          "MLT-5976",
+          "MLT-5977",
+          "MLT-5978",
+          "MLT-5979",
+          "MLT-5980",
+          "MLT-5981",
+          "MLT-5982",
+          "MLT-5983",
+          "MLT-5984",
+          "MLT-5985",
+          "MLT-5986",
+          "MLT-5987"
+        ]
+      },
+      "displayName": [
+        "马耳他",
+        "Malta"
+      ],
+      "groupingLinks": [
+        [
+          "MLT-5974",
+          "MLT-5949"
+        ]
+      ],
+      "anchorAtomId": "MLT-5949"
+    },
+    {
+      "id": "group:ALD-4810",
+      "groups": {
+        "group:ALD-4810": [
+          "ALD-4810",
+          "ALD-4817"
+        ],
+        "group:ALD-4812": [
+          "ALD-4812"
+        ],
+        "group:ALD-4814": [
+          "ALD-4814"
+        ],
+        "group:ALD-4818": [
+          "ALD-4818"
+        ],
+        "group:ALD-4819": [
+          "ALD-4819"
+        ],
+        "group:ALD-4820": [
+          "ALD-4820"
+        ],
+        "group:ALD-4821": [
+          "ALD-4821"
+        ],
+        "group:ALD-4822": [
+          "ALD-4822"
+        ],
+        "group:ALD-4823": [
+          "ALD-4823"
+        ],
+        "group:ALD-4824": [
+          "ALD-4824"
+        ]
+      },
+      "displayName": [
+        "奥兰群岛",
+        "Åland Islands"
+      ],
+      "groupingLinks": [
+        [
+          "ALD-4812",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4814",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4818",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4819",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4820",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4821",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4822",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4823",
+          "ALD-4817"
+        ],
+        [
+          "ALD-4824",
+          "ALD-4817"
+        ]
+      ],
+      "anchorAtomId": "ALD-4817"
+    },
+    {
+      "id": "group:LVA-1068",
+      "groups": {
+        "group:LVA-1068": [
+          "LVA-1068",
+          "LVA-1079",
+          "LVA-1082",
+          "LVA-1084",
+          "LVA-1091",
+          "LVA-1092",
+          "LVA-4849",
+          "LVA-5709",
+          "LVA-5710",
+          "LVA-5711",
+          "LVA-5712",
+          "LVA-5713",
+          "LVA-5714",
+          "LVA-5715",
+          "LVA-5716",
+          "LVA-5717",
+          "LVA-5718",
+          "LVA-5719",
+          "LVA-5720",
+          "LVA-5721",
+          "LVA-5724",
+          "LVA-5725",
+          "LVA-5727",
+          "LVA-5733",
+          "LVA-5734",
+          "LVA-5735",
+          "LVA-5736",
+          "LVA-5737",
+          "LVA-5738",
+          "LVA-5739",
+          "LVA-5740",
+          "LVA-5749",
+          "LVA-5759",
+          "LVA-5763",
+          "LVA-5765",
+          "LVA-934"
+        ],
+        "group:LVA-4848": [
+          "LVA-4848"
+        ],
+        "group:LVA-4852": [
+          "LVA-4852"
+        ],
+        "group:LVA-5722": [
+          "LVA-5722"
+        ],
+        "group:LVA-5723": [
+          "LVA-5723"
+        ],
+        "group:LVA-5764": [
+          "LVA-5764"
+        ]
+      },
+      "displayName": [
+        "库尔兰",
+        "Courland"
+      ],
+      "groupingLinks": []
+    },
+    {
+      "id": "group:LVA-1063",
+      "groups": {
+        "group:LVA-1063": [
+          "LVA-1063",
+          "LVA-1064",
+          "LVA-1065",
+          "LVA-1066",
+          "LVA-1076",
+          "LVA-1077",
+          "LVA-1080",
+          "LVA-1081",
+          "LVA-1083",
+          "LVA-1085",
+          "LVA-1086",
+          "LVA-1087",
+          "LVA-1088",
+          "LVA-1089",
+          "LVA-1093",
+          "LVA-1094",
+          "LVA-4850",
+          "LVA-4851",
+          "LVA-5726",
+          "LVA-5728",
+          "LVA-5729",
+          "LVA-5730",
+          "LVA-5731",
+          "LVA-5732",
+          "LVA-5741",
+          "LVA-5742",
+          "LVA-5743",
+          "LVA-5744",
+          "LVA-5745",
+          "LVA-5746",
+          "LVA-5747",
+          "LVA-5748",
+          "LVA-5750",
+          "LVA-5751",
+          "LVA-5752",
+          "LVA-5753",
+          "LVA-5754",
+          "LVA-5755",
+          "LVA-5756",
+          "LVA-5757",
+          "LVA-5760",
+          "LVA-5761",
+          "LVA-5762",
+          "LVA-5766",
+          "LVA-5767",
+          "LVA-5768",
+          "LVA-5769",
+          "LVA-5770",
+          "LVA-5771",
+          "LVA-5772",
+          "LVA-5773",
+          "LVA-5774",
+          "LVA-5775",
+          "LVA-5777",
+          "LVA-5778",
+          "LVA-5780",
+          "LVA-5781",
+          "LVA-5782",
+          "LVA-5783",
+          "LVA-5784",
+          "LVA-5785",
+          "LVA-5786",
+          "LVA-5787",
+          "LVA-5788",
+          "LVA-5789",
+          "LVA-5790",
+          "LVA-5791",
+          "LVA-5792",
+          "LVA-5793",
+          "LVA-5794",
+          "LVA-5795",
+          "LVA-5796",
+          "LVA-5797",
+          "LVA-5798",
+          "LVA-5799",
+          "LVA-5800"
+        ],
+        "group:LVA-5758": [
+          "LVA-5758"
+        ],
+        "group:LVA-5776": [
+          "LVA-5776"
+        ]
+      },
+      "displayName": [
+        "里加",
+        "Riga"
+      ],
+      "groupingLinks": []
+    },
+    {
+      "id": "group:EST-1654",
+      "groups": {
+        "group:EST-1654": [
+          "EST-1654",
+          "EST-1655",
+          "EST-1656",
+          "EST-1658",
+          "EST-1661",
+          "EST-2348"
+        ],
+        "group:EST-1660": [
+          "EST-1660"
+        ],
+        "group:EST-2352": [
+          "EST-2352"
+        ]
+      },
+      "displayName": [
+        "塔林",
+        "Tallinn"
+      ],
+      "groupingLinks": [
+        [
+          "EST-1660",
+          "EST-1661"
+        ],
+        [
+          "EST-2352",
+          "EST-1661"
+        ]
+      ]
+    },
+    {
+      "id": "group:EST-1657",
+      "groups": {
+        "group:EST-1657": [
+          "EST-1657",
+          "EST-1659",
+          "EST-2346",
+          "EST-2347",
+          "EST-2349",
+          "EST-2350",
+          "EST-2351"
+        ]
+      },
+      "displayName": [
+        "塔尔图",
+        "Tartu"
+      ],
+      "groupingLinks": []
+    },
+    {
+      "id": "group:AND-4876",
+      "groups": {
+        "group:AND-4876": [
+          "AND-4876",
+          "AND-4877",
+          "AND-4881",
+          "AND-4882"
+        ],
+        "group:AND-4878": [
+          "AND-4878",
+          "AND-4879",
+          "AND-4880"
+        ]
+      },
+      "displayName": [
+        "安道尔",
+        "Andorra"
+      ],
+      "groupingLinks": [],
+      "anchorAtomId": "AND-4876"
+    },
+    {
+      "id": "group:LIE-4892",
+      "groups": {
+        "group:LIE-4892": [
+          "LIE-4892",
+          "LIE-4893",
+          "LIE-4901"
+        ],
+        "group:LIE-4894": [
+          "LIE-4894",
+          "LIE-4895",
+          "LIE-4896",
+          "LIE-4897",
+          "LIE-4898",
+          "LIE-4899",
+          "LIE-4900",
+          "LIE-4902"
+        ]
+      },
+      "displayName": [
+        "列支敦士登",
+        "Liechtenstein"
+      ],
+      "groupingLinks": [],
+      "anchorAtomId": "LIE-4895"
+    },
+    {
+      "id": "group:SVN-1010",
+      "groups": {
+        "group:SVN-1010": [
+          "SVN-1010",
+          "SVN-1012",
+          "SVN-1018",
+          "SVN-1022",
+          "SVN-1023",
+          "SVN-1024",
+          "SVN-1025",
+          "SVN-1026",
+          "SVN-1028",
+          "SVN-1029",
+          "SVN-1030",
+          "SVN-1031",
+          "SVN-1032",
+          "SVN-1033",
+          "SVN-1034",
+          "SVN-1035",
+          "SVN-260",
+          "SVN-261",
+          "SVN-954",
+          "SVN-977",
+          "SVN-978"
+        ],
+        "group:SVN-1027": [
+          "SVN-1027"
+        ]
+      },
+      "displayName": [
+        "伊利爾斯卡比斯特里察鎮",
+        "Ilirska Bistrica"
+      ],
+      "groupingLinks": []
+    },
+    {
+      "id": "group:SVN-1000",
+      "groups": {
+        "group:SVN-1000": [
+          "SVN-1000",
+          "SVN-1001",
+          "SVN-1002",
+          "SVN-1003",
+          "SVN-1004",
+          "SVN-1006",
+          "SVN-1007",
+          "SVN-1008",
+          "SVN-1009",
+          "SVN-1011",
+          "SVN-1013",
+          "SVN-1015",
+          "SVN-1016",
+          "SVN-1017",
+          "SVN-1020",
+          "SVN-1021",
+          "SVN-1040",
+          "SVN-1041",
+          "SVN-1042",
+          "SVN-1047",
+          "SVN-1048",
+          "SVN-1050",
+          "SVN-198",
+          "SVN-199",
+          "SVN-203",
+          "SVN-204",
+          "SVN-205",
+          "SVN-206",
+          "SVN-207",
+          "SVN-208",
+          "SVN-209",
+          "SVN-210",
+          "SVN-211",
+          "SVN-212",
+          "SVN-213",
+          "SVN-216",
+          "SVN-218",
+          "SVN-219",
+          "SVN-220",
+          "SVN-221",
+          "SVN-222",
+          "SVN-223",
+          "SVN-224",
+          "SVN-225",
+          "SVN-226",
+          "SVN-227",
+          "SVN-228",
+          "SVN-229",
+          "SVN-230",
+          "SVN-231",
+          "SVN-232",
+          "SVN-234",
+          "SVN-235",
+          "SVN-236",
+          "SVN-238",
+          "SVN-239",
+          "SVN-240",
+          "SVN-241",
+          "SVN-242",
+          "SVN-243",
+          "SVN-244",
+          "SVN-245",
+          "SVN-247",
+          "SVN-248",
+          "SVN-249",
+          "SVN-250",
+          "SVN-252",
+          "SVN-253",
+          "SVN-254",
+          "SVN-256",
+          "SVN-257",
+          "SVN-265",
+          "SVN-266",
+          "SVN-268",
+          "SVN-272",
+          "SVN-5885",
+          "SVN-927",
+          "SVN-930",
+          "SVN-937",
+          "SVN-938",
+          "SVN-939",
+          "SVN-940",
+          "SVN-941",
+          "SVN-942",
+          "SVN-943",
+          "SVN-944",
+          "SVN-945",
+          "SVN-946",
+          "SVN-948",
+          "SVN-949",
+          "SVN-950",
+          "SVN-951",
+          "SVN-952",
+          "SVN-953",
+          "SVN-955",
+          "SVN-956",
+          "SVN-957",
+          "SVN-958",
+          "SVN-960",
+          "SVN-961",
+          "SVN-962",
+          "SVN-963",
+          "SVN-964",
+          "SVN-965",
+          "SVN-966",
+          "SVN-967",
+          "SVN-968",
+          "SVN-969",
+          "SVN-971",
+          "SVN-972",
+          "SVN-973",
+          "SVN-975",
+          "SVN-976",
+          "SVN-979",
+          "SVN-980",
+          "SVN-982",
+          "SVN-983",
+          "SVN-984",
+          "SVN-985",
+          "SVN-987",
+          "SVN-988",
+          "SVN-989",
+          "SVN-990",
+          "SVN-991",
+          "SVN-992",
+          "SVN-993",
+          "SVN-994",
+          "SVN-995",
+          "SVN-996",
+          "SVN-997",
+          "SVN-999"
+        ],
+        "group:SVN-255": [
+          "SVN-255"
+        ]
+      },
+      "displayName": [
+        "科切维",
+        "Kocevje"
+      ],
+      "groupingLinks": []
+    }
+  ]
+}

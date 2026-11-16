@@ -5,3 +5,7 @@ import next from '../data/asia-arabia-gameplay-regions.json' with {type:'json'};
 const latest=new Set(next.regions.flatMap(row=>Object.values(row.groups).flat()));
 export const isAsiaArabia=id=>latest.has(id);
 export const isSeaOrAsiaArabia=id=>isSeaBatch(id)||isAsiaArabia(id);
+import europe from '../data/europe-gameplay-regions.json' with {type:'json'};
+const european=new Set(europe.regions.flatMap(row=>Object.values(row.groups).flat()));
+export const isEuropeBatch=id=>european.has(id);
+export const isAnyLatestGrouping=id=>isSeaOrAsiaArabia(id)||isEuropeBatch(id);

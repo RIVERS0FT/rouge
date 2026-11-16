@@ -18,7 +18,7 @@ function ready(e){e.state.grouping=reconcileGrouping(e.state);return e;}
 function invariant(s){for(const u of s.units)assert.ok(u.transport?.embarked||pointInProvince(u.province,u.x,u.z));}
 test('source atlas retains UK and Ireland detail while gameplay uses locked merged regions',()=>{
  for(const code of ['GBR-3409','GBR-2745','GBR-2764','CHN-1807','CHN-1808'])assert.ok(MAP[id(code)].playable);
- assert.equal(MAP.length,1073);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('GBR-')).length>100);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('IRL-')).length>=20);
+ assert.equal(MAP.length,1042);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('GBR-')).length>100);assert.ok(SOURCE_MAP.filter(p=>p.code.startsWith('IRL-')).length>=20);
 });
 test('remote terrain order saves actual waypoints, crosses boundaries without teleporting and restores deterministically',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);
