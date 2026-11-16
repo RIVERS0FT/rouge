@@ -3,7 +3,7 @@ import {kernel,storeData,setupGeometry} from './groundKernel.ts';
 /** The operational map is the locked output of the SAME grouping kernel used
  * for in-game merge/split. Raw Natural Earth shapes and topology are retained
  * separately; no destructive dissolve or historical-boundary fabrication. */
-import {SOURCE_MAP,PREPROCESSED_GROUPING,PREPROCESSED_GROUP_NAMES,PREPROCESSED_GROUP_ANCHORS,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,contains,containsPart,boundsOf} from './sourceMap.ts';
+import {SOURCE_MAP,PREPROCESSED_GROUPING,PREPROCESSED_GROUP_NAMES,PREPROCESSED_GROUP_SEARCH_ALIASES,PREPROCESSED_GROUP_ANCHORS,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,contains,containsPart,boundsOf} from './sourceMap.ts';
 import {createTerritoryGrouping,type TerritoryTopology} from './territoryGrouping.ts';
 import {MAP_ID} from './content.ts';
 import {WORLD_BOUNDS,PROJECTION_ID,CROP_ID,NORTH_LATITUDE,SOUTH_LATITUDE} from './geo.ts';
@@ -32,7 +32,7 @@ export const SOURCE_TO_REGION:Readonly<Record<string,number>>=Object.freeze(Obje
 for(const region of MAP){const neighbors=new Set<number>();for(const code of region.sourceAtoms!)for(const source of sourceByCode.get(code)!.neighbors){const id=SOURCE_TO_REGION[SOURCE_MAP[source].code];if(id!==region.id)neighbors.add(id);}region.neighbors=[...neighbors].sort((a,b)=>a-b);}
 export const VISIBLE_COUNT=MAP.filter(p=>p.visible).length;
 export const PLAYABLE_COUNT=MAP.filter(p=>p.playable).length;
-export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v9',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
+export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions '+MAP_ID.split('-').at(-1),mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
 const queries=MAP.map(p=>p.parts.map(part=>part.map(prepareRing)));
 function partContains(part:ReturnType<typeof prepareRing>[],x:number,z:number):boolean {if(x<part[0].left-1e-7||x>part[0].right+1e-7||!ringContains(part[0],x,z))return false;for(let i=1;i<part.length;i++)if(ringContains(part[i],x,z))return false;return true;}
 const SIZE=5,minX=Math.floor(BOUNDS.left/SIZE),minZ=Math.floor(BOUNDS.top/SIZE),cols=Math.floor(BOUNDS.right/SIZE)-minX+1,rows=Math.floor(BOUNDS.bottom/SIZE)-minZ+1;
@@ -68,7 +68,7 @@ export function provinceAt(x:number,z:number):number{if(Number.isFinite(x)&&Numb
  if(!queryBoundary[cell])queryAnswers[cell]=found;
  return found;
 }
-export function searchProvinces(query:string,limit=8):ProvinceDef[]{const q=query.trim().toLocaleLowerCase();if(!q)return [];return MAP.filter(p=>p.visible&&[...p.name,p.code,...p.sourceAtoms!.flatMap(code=>[code,...sourceByCode.get(code)!.name])].some(v=>v.toLocaleLowerCase().includes(q))).slice(0,limit);}
+export function searchProvinces(query:string,limit=8):ProvinceDef[]{const q=query.trim().toLocaleLowerCase();if(!q)return [];return MAP.filter(p=>p.visible&&[...p.name,p.code,...(PREPROCESSED_GROUP_SEARCH_ALIASES.get(p.code)??[]),...p.sourceAtoms!.flatMap(code=>[code,...sourceByCode.get(code)!.name])].some(v=>v.toLocaleLowerCase().includes(q))).slice(0,limit);}
 /** Source-code lookup is an alias to its whole gameplay region, never a route
  * to select or command that original administrative unit independently. */
 export function provinceByCode(code:string):number{const id=Object.hasOwn(SOURCE_TO_REGION,code)?SOURCE_TO_REGION[code]:undefined;if(id===undefined)throw new Error(`Unknown province ${code}`);return id;}

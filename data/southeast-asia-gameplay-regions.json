@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "regions": [
+    {
+      "id": "group:VNM-429",
+      "groups": {
+        "group:VNM-429": [
+          "VNM-429",
+          "VNM-450",
+          "VNM-451",
+          "VNM-452",
+          "VNM-453",
+          "VNM-454",
+          "VNM-455",
+          "VNM-457",
+          "VNM-458",
+          "VNM-459",
+          "VNM-460",
+          "VNM-4600",
+          "VNM-461",
+          "VNM-462",
+          "VNM-463",
+          "VNM-464",
+          "VNM-466",
+          "VNM-467",
+          "VNM-468",
+          "VNM-469",
+          "VNM-470",
+          "VNM-471",
+          "VNM-511",
+          "VNM-512",
+          "VNM-5483"
+        ]
+      },
+      "displayName": [
+        "北圻",
+        "Tonkin"
+      ],
+      "islandAttachments": [],
+      "anchorAtomId": "VNM-462"
+    },
+    {
+      "id": "group:VNM-456",
+      "groups": {
+        "group:VNM-456": [
+          "VNM-456",
+          "VNM-474",
+          "VNM-475",
+          "VNM-476",
+          "VNM-487",
+          "VNM-488",
+          "VNM-489",
+          "VNM-490",
+          "VNM-491"
+        ]
+      },
+      "displayName": [
+        "安南",
+        "Annam"
+      ],
+      "islandAttachments": [],
+      "anchorAtomId": "VNM-490"
+    },
+    {
+      "id": "group:VNM-444",
+      "groups": {
+        "group:VNM-477": [
+          "VNM-477",
+          "VNM-478",
+          "VNM-479",
+          "VNM-480",
+          "VNM-481",
+          "VNM-482",
+          "VNM-483",
+          "VNM-4834",
+          "VNM-4835",
+          "VNM-485",
+          "VNM-486",
+          "VNM-495",
+          "VNM-496",
+          "VNM-497",
+          "VNM-499",
+          "VNM-501",
+          "VNM-502",
+          "VNM-503",
+          "VNM-504",
+          "VNM-505",
+          "VNM-506",
+          "VNM-507",
+          "VNM-508",
+          "VNM-509",
+          "VNM-510"
+        ],
+        "group:VNM-444": [
+          "VNM-444",
+          "VNM-484"
+        ],
+        "group:VNM-498": [
+          "VNM-498",
+          "VNM-500"
+        ]
+      },
+      "displayName": [
+        "湄公河",
+        "Mekong"
+      ],
+      "islandAttachments": [],
+      "anchorAtomId": "VNM-499"
+    },
+    {
+      "id": "group:KHM-1777",
+      "groups": {
+        "group:KHM-1777": [
+          "KHM-1777",
+          "KHM-1778",
+          "KHM-1779",
+          "KHM-1780",
+          "KHM-1781",
+          "KHM-1783",
+          "KHM-1784",
+          "KHM-1785",
+          "KHM-1786",
+          "KHM-1787",
+          "KHM-1788",
+          "KHM-1789",
+          "KHM-1790",
+          "KHM-1791",
+          "KHM-1792",
+          "KHM-1793",
+          "KHM-1794",
+          "KHM-1795",
+          "KHM-1797",
+          "KHM-1798",
+          "KHM-1800",
+          "KHM-1801",
+          "KHM-1802"
+        ],
+        "group:KHM-1782": [
+          "KHM-1782"
+        ]
+      },
+      "displayName": [
+        "柬埔寨",
+        "Cambodia"
+      ],
+      "islandAttachments": [],
+      "anchorAtomId": "KHM-1789"
+    },
+    {
+      "id": "group:MYS-1186",
+      "groups": {
+        "group:MYS-1186": [
+          "MYS-1186",
+          "MYS-1187"
+        ],
+        "group:MYS-4833": [
+          "MYS-4833"
+        ]
+      },
+      "displayName": [
+        "东马来西亚",
+        "East Malaysia"
+      ],
+      "islandAttachments": [
+        [
+          "MYS-4833",
+          "MYS-1186"
+        ]
+      ]
+    },
+    {
+      "id": "group:TLS-541",
+      "groups": {
+        "group:TLS-541": [
+          "TLS-541"
+        ],
+        "group:TLS-542": [
+          "TLS-542"
+        ],
+        "group:TLS-544": [
+          "TLS-544",
+          "TLS-545",
+          "TLS-546",
+          "TLS-547",
+          "TLS-548",
+          "TLS-549",
+          "TLS-550",
+          "TLS-551",
+          "TLS-552",
+          "TLS-553"
+        ]
+      },
+      "displayName": [
+        "东帝汶本岛",
+        "Timor-Leste Mainland"
+      ],
+      "islandAttachments": [],
+      "anchorAtomId": "TLS-541"
+    },
+    {
+      "id": "group:IDN-538",
+      "groups": {
+        "group:IDN-538": [
+          "IDN-538"
+        ],
+        "group:IDN-554": [
+          "IDN-554"
+        ]
+      },
+      "displayName": [
+        "马鲁古",
+        "Maluku"
+      ],
+      "islandAttachments": [
+        [
+          "IDN-538",
+          "IDN-554"
+        ]
+      ]
+    },
+    {
+      "id": "group:IDN-1235",
+      "groups": {
+        "group:IDN-1235": [
+          "IDN-1235"
+        ],
+        "group:IDN-555": [
+          "IDN-555"
+        ]
+      },
+      "displayName": [
+        "努沙登加拉",
+        "Nusa Tenggara"
+      ],
+      "islandAttachments": [
+        [
+          "IDN-555",
+          "IDN-1235"
+        ]
+      ]
+    },
+    {
+      "id": "group:MYS-1137",
+      "groups": {
+        "group:MYS-1137": [
+          "MYS-1137",
+          "MYS-1139",
+          "MYS-1143",
+          "MYS-1144",
+          "MYS-1145",
+          "MYS-1146",
+          "MYS-1147",
+          "MYS-1148",
+          "MYS-1149",
+          "MYS-4831",
+          "MYS-4832"
+        ],
+        "group:SGP-4871": [
+          "SGP-4871",
+          "SGP-4872",
+          "SGP-4873",
+          "SGP-4874",
+          "SGP-4875"
+        ]
+      },
+      "displayName": [
+        "马来半岛",
+        "Malay Peninsula"
+      ],
+      "islandAttachments": [
+        [
+          "SGP-4871",
+          "MYS-1143"
+        ]
+      ],
+      "searchAliases": [
+        "新加坡",
+        "Singapore"
+      ]
+    }
+  ]
+}

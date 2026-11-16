@@ -86,6 +86,7 @@ export const PREPROCESSED_TOPOLOGY:TerritoryTopology={...SOURCE_TOPOLOGY,atoms:S
 // remaining components, keeping only the explicitly reviewed island memberships.
 const initialParts:string[][]=[];
 export const PREPROCESSED_GROUP_NAMES=new Map<string,[string,string]>();
+export const PREPROCESSED_GROUP_SEARCH_ALIASES=new Map<string,string[]>();
 export const PREPROCESSED_GROUP_ANCHORS=new Map<string,string>();
 for(const g of data.gameplayGroups){
   const remaining=new Set(g.atomIds);
@@ -95,6 +96,7 @@ for(const g of data.gameplayGroups){
     // Use a curated name only for the complete group, never for crop fragments.
     if(part.length===g.atomIds.length){
       if(g.displayName)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
+      if(g.searchAliases?.length)PREPROCESSED_GROUP_SEARCH_ALIASES.set(start,g.searchAliases);
       if(g.anchorAtomId&&part.includes(g.anchorAtomId)&&byCode.get(g.anchorAtomId)?.playable)PREPROCESSED_GROUP_ANCHORS.set(start,g.anchorAtomId);
     }
   }
