@@ -37,8 +37,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('approved Southeast Asian gameplay groups preserve all original atoms, pick points, and search aliases',()=>{
- assert.equal(MAP_METADATA.count,1042);assert.equal(MAP_METADATA.playableCount,1038);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v15');assert.equal(STATE_VERSION,16);assert.equal(RULES_ID,'admin1-locked-game-regions-v28');
+ assert.equal(MAP_METADATA.count,1028);assert.equal(MAP_METADATA.playableCount,1024);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v16');assert.equal(STATE_VERSION,17);assert.equal(RULES_ID,'admin1-locked-game-regions-v29');
  const countries=['BRN','KHM','IDN','LAO','MYS','MMR','PHL','SGP','THA','TLS','VNM'];
  assert.equal(MAP.filter(r=>countries.includes(r.code.slice(0,3))).length,39);
  for(const [country,count] of [['SGP',0],['MYS',2],['VNM',3],['TLS',1],['IDN',15],['KHM',1]]){
@@ -89,7 +89,7 @@ test('four reviewed island links are grouping-only, including Singapore; no rout
 
 test('the batch changes no other group, raw country, geometry, or neighbor data',()=>{
  const original=prior.filter(g=>!g.sourceIds.some(isAnyLatestGrouping));
- assert.equal(prior.length-original.length,18+14+41);
+ assert.equal(prior.length-original.length,18+14+41+22);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isAnyLatestGrouping)),
   original.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);

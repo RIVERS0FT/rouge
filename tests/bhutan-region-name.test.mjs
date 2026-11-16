@@ -13,6 +13,6 @@ test('the 20 locked Bhutan source districts share one bilingual gameplay name',(
  for(const q of ['不丹','Bhutan','加萨宗','Gasa','廷布宗','Thimphu']){
   assert.ok(searchProvinces(q).some(p=>p.id===bhutan.id),q);
  }
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v15');
- assert.equal(STATE_VERSION,16);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v16');
+ assert.equal(STATE_VERSION,17);
 });

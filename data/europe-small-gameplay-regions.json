@@ -1,0 +1,415 @@
+{
+  "schema": 1,
+  "scope": "Fourteen approved adjoining small groups. All targets keep original names and physical anchors. No new edges or sovereign assignment.",
+  "regions": [
+    {
+      "primary": "group:SVN-1000",
+      "members": {
+        "group:SVN-1000": [
+          "SVN-1000",
+          "SVN-1001",
+          "SVN-1002",
+          "SVN-1003",
+          "SVN-1004",
+          "SVN-1006",
+          "SVN-1007",
+          "SVN-1008",
+          "SVN-1009",
+          "SVN-1011",
+          "SVN-1013",
+          "SVN-1015",
+          "SVN-1016",
+          "SVN-1017",
+          "SVN-1020",
+          "SVN-1021",
+          "SVN-1040",
+          "SVN-1041",
+          "SVN-1042",
+          "SVN-1047",
+          "SVN-1048",
+          "SVN-1050",
+          "SVN-198",
+          "SVN-199",
+          "SVN-203",
+          "SVN-204",
+          "SVN-205",
+          "SVN-206",
+          "SVN-207",
+          "SVN-208",
+          "SVN-209",
+          "SVN-210",
+          "SVN-211",
+          "SVN-212",
+          "SVN-213",
+          "SVN-216",
+          "SVN-218",
+          "SVN-219",
+          "SVN-220",
+          "SVN-221",
+          "SVN-222",
+          "SVN-223",
+          "SVN-224",
+          "SVN-225",
+          "SVN-226",
+          "SVN-227",
+          "SVN-228",
+          "SVN-229",
+          "SVN-230",
+          "SVN-231",
+          "SVN-232",
+          "SVN-234",
+          "SVN-235",
+          "SVN-236",
+          "SVN-238",
+          "SVN-239",
+          "SVN-240",
+          "SVN-241",
+          "SVN-242",
+          "SVN-243",
+          "SVN-244",
+          "SVN-245",
+          "SVN-247",
+          "SVN-248",
+          "SVN-249",
+          "SVN-250",
+          "SVN-252",
+          "SVN-253",
+          "SVN-254",
+          "SVN-255",
+          "SVN-256",
+          "SVN-257",
+          "SVN-265",
+          "SVN-266",
+          "SVN-268",
+          "SVN-272",
+          "SVN-5885",
+          "SVN-927",
+          "SVN-930",
+          "SVN-937",
+          "SVN-938",
+          "SVN-939",
+          "SVN-940",
+          "SVN-941",
+          "SVN-942",
+          "SVN-943",
+          "SVN-944",
+          "SVN-945",
+          "SVN-946",
+          "SVN-948",
+          "SVN-949",
+          "SVN-950",
+          "SVN-951",
+          "SVN-952",
+          "SVN-953",
+          "SVN-955",
+          "SVN-956",
+          "SVN-957",
+          "SVN-958",
+          "SVN-960",
+          "SVN-961",
+          "SVN-962",
+          "SVN-963",
+          "SVN-964",
+          "SVN-965",
+          "SVN-966",
+          "SVN-967",
+          "SVN-968",
+          "SVN-969",
+          "SVN-971",
+          "SVN-972",
+          "SVN-973",
+          "SVN-975",
+          "SVN-976",
+          "SVN-979",
+          "SVN-980",
+          "SVN-982",
+          "SVN-983",
+          "SVN-984",
+          "SVN-985",
+          "SVN-987",
+          "SVN-988",
+          "SVN-989",
+          "SVN-990",
+          "SVN-991",
+          "SVN-992",
+          "SVN-993",
+          "SVN-994",
+          "SVN-995",
+          "SVN-996",
+          "SVN-997",
+          "SVN-999"
+        ],
+        "group:SVN-269": [
+          "SVN-269"
+        ],
+        "group:SVN-200": [
+          "SVN-200",
+          "SVN-5884",
+          "SVN-959",
+          "SVN-986"
+        ],
+        "group:SVN-1005": [
+          "SVN-1005",
+          "SVN-214",
+          "SVN-217",
+          "SVN-233",
+          "SVN-947",
+          "SVN-970",
+          "SVN-974",
+          "SVN-981"
+        ],
+        "group:SVN-1014": [
+          "SVN-1014",
+          "SVN-1019",
+          "SVN-215",
+          "SVN-237",
+          "SVN-251",
+          "SVN-258",
+          "SVN-259"
+        ],
+        "group:SVN-1039": [
+          "SVN-1039",
+          "SVN-1043",
+          "SVN-1044",
+          "SVN-1045",
+          "SVN-1046",
+          "SVN-1049",
+          "SVN-196",
+          "SVN-197",
+          "SVN-201",
+          "SVN-202",
+          "SVN-263",
+          "SVN-264",
+          "SVN-267",
+          "SVN-270",
+          "SVN-271",
+          "SVN-926",
+          "SVN-928",
+          "SVN-929",
+          "SVN-931"
+        ]
+      },
+      "displayName": [
+        "科切维",
+        "Kocevje"
+      ],
+      "anchorAtomId": "SVN-207"
+    },
+    {
+      "primary": "group:DEU-1576",
+      "members": {
+        "group:DEU-1576": [
+          "DEU-1576"
+        ],
+        "group:DEU-1575": [
+          "DEU-1575"
+        ]
+      },
+      "displayName": [
+        "下萨克森",
+        "Niedersachsen"
+      ],
+      "anchorAtomId": "DEU-1576"
+    },
+    {
+      "primary": "group:DEU-1579",
+      "members": {
+        "group:DEU-1579": [
+          "DEU-1579"
+        ],
+        "group:DEU-1578": [
+          "DEU-1578"
+        ]
+      },
+      "displayName": [
+        "石勒苏益格-荷尔斯泰因",
+        "Schleswig-Holstein"
+      ],
+      "anchorAtomId": "DEU-1579"
+    },
+    {
+      "primary": "group:KOS-5886",
+      "members": {
+        "group:KOS-5886": [
+          "KOS-5886",
+          "KOS-5887",
+          "KOS-5888",
+          "KOS-5889",
+          "KOS-5890",
+          "KOS-5891",
+          "KOS-5892",
+          "KOS-5893",
+          "KOS-5894",
+          "KOS-5895",
+          "KOS-5896",
+          "KOS-5897",
+          "KOS-5898",
+          "KOS-5899",
+          "KOS-5900",
+          "KOS-5902",
+          "KOS-5903",
+          "KOS-5904",
+          "KOS-5905",
+          "KOS-5906",
+          "KOS-5908",
+          "KOS-5909",
+          "KOS-5910",
+          "KOS-5911",
+          "KOS-5912",
+          "KOS-5913",
+          "KOS-5914",
+          "KOS-5915"
+        ],
+        "group:KOS-5901": [
+          "KOS-5901"
+        ],
+        "group:KOS-5907": [
+          "KOS-5907"
+        ]
+      },
+      "displayName": [
+        "佩奇",
+        "Peć"
+      ],
+      "anchorAtomId": "KOS-5886"
+    },
+    {
+      "primary": "group:HUN-3160",
+      "members": {
+        "group:HUN-3160": [
+          "HUN-3160",
+          "HUN-3161",
+          "HUN-3164",
+          "HUN-3166",
+          "HUN-3168",
+          "HUN-3169",
+          "HUN-3171",
+          "HUN-3172",
+          "HUN-3173",
+          "HUN-3174",
+          "HUN-3175",
+          "HUN-4915",
+          "HUN-4916",
+          "HUN-4917",
+          "HUN-4918",
+          "HUN-4919",
+          "HUN-4920",
+          "HUN-4922",
+          "HUN-4923",
+          "HUN-4924",
+          "HUN-4925"
+        ],
+        "group:HUN-4921": [
+          "HUN-4921"
+        ]
+      },
+      "displayName": [
+        "巴奇-基什孔州",
+        "Bács-Kiskun"
+      ],
+      "anchorAtomId": "HUN-3161"
+    },
+    {
+      "primary": "group:BIH-2224",
+      "members": {
+        "group:BIH-2224": [
+          "BIH-2224",
+          "BIH-2225",
+          "BIH-2226",
+          "BIH-2227",
+          "BIH-2228",
+          "BIH-2887",
+          "BIH-2889",
+          "BIH-2890",
+          "BIH-2891",
+          "BIH-4801",
+          "BIH-4802",
+          "BIH-4804",
+          "BIH-4805",
+          "BIH-4806",
+          "BIH-4807",
+          "BIH-4808"
+        ],
+        "group:BIH-3153": [
+          "BIH-3153",
+          "BIH-4803"
+        ]
+      },
+      "displayName": [
+        "巴尼亚卢卡",
+        "Banja Luka"
+      ],
+      "anchorAtomId": "BIH-4802"
+    },
+    {
+      "primary": "group:ITA-5455",
+      "members": {
+        "group:ITA-5455": [
+          "ITA-5455",
+          "ITA-5456",
+          "ITA-5461",
+          "ITA-5462",
+          "ITA-5463",
+          "ITA-5464",
+          "ITA-5465",
+          "ITA-5466",
+          "ITA-5467"
+        ],
+        "group:ITA-5457": [
+          "ITA-5457",
+          "ITA-5458"
+        ]
+      },
+      "displayName": [
+        "乌迪内省",
+        "Udine"
+      ],
+      "anchorAtomId": "ITA-5455"
+    },
+    {
+      "primary": "group:MDA-1628",
+      "members": {
+        "group:MDA-1628": [
+          "MDA-1628",
+          "MDA-1637",
+          "MDA-1638",
+          "MDA-1645",
+          "MDA-1650"
+        ],
+        "group:MDA-1652": [
+          "MDA-1652"
+        ]
+      },
+      "displayName": [
+        "宾杰里",
+        "Bender"
+      ],
+      "anchorAtomId": "MDA-1650"
+    },
+    {
+      "primary": "group:HRV-1493",
+      "members": {
+        "group:HRV-1493": [
+          "HRV-1493",
+          "HRV-1582",
+          "HRV-1583",
+          "HRV-1584",
+          "HRV-1586",
+          "HRV-1587",
+          "HRV-1588",
+          "HRV-1589",
+          "HRV-1608",
+          "HRV-1610"
+        ],
+        "group:HRV-1609": [
+          "HRV-1609"
+        ]
+      },
+      "displayName": [
+        "扎达尔县",
+        "Zadarska"
+      ],
+      "anchorAtomId": "HRV-1493"
+    }
+  ]
+}
