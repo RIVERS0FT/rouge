@@ -1,3 +1,4 @@
+import {OCEAN_LABEL_WORLD_WIDTH} from './oceanLabels.ts';
 import {DispatchPreview} from './dispatchPreview.ts';
 import {AttackArrows} from './attackArrows.ts';
 import {AttackRouteTracker,type AttackRoute} from './attackRoutes.ts';
@@ -721,7 +722,7 @@ export class WorldRenderer {
       occupied.push({left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
         ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#bfd1d2':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
-      label.sprite.visible=true;label.sprite.position.set(x,0.9+LAND_Y,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
+      label.sprite.visible=true;label.sprite.position.set(x,0.9+LAND_Y,z);const w=ocean?OCEAN_LABEL_WORLD_WIDTH:this.distance*0.15;label.sprite.scale.set(w,w*96/512,1);
     };
     // Region information takes priority over country titles at tactical zoom.
     for(const p of candidates){
