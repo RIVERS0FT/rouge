@@ -1,3 +1,4 @@
+import {isPacificBatch,pacificScopeOf,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -78,9 +79,11 @@ test('all reviewed attachments are grouping-only and all original terrain data a
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
     ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isAdjacentIslandBatch)),
-   prior.filter(g=>!g.sourceIds.some(isAdjacentIslandBatch)).map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isAdjacentIslandBatch(id))),
+   prior.filter(g=>!g.sourceIds.some(isAdjacentIslandBatch)&&!g.sourceIds.some(isPacificBatch)).map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
+ const beforePacific=applyAdjacentIslandMergers(base,prior,plan).filter(g=>!g.sourceIds.some(isPacificBatch));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isPacificBatch)),beforePacific.map(serialize));
 });
 
 test('unreviewed Guangdong additions or missing administrative links are rejected',()=>{
@@ -91,15 +94,20 @@ test('unreviewed Guangdong additions or missing administrative links are rejecte
 });
 
 test('all nine approved scopes are single playable regions and representative routes remain seaborne',()=>{
- assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
+ assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
  assert.equal(plan.regions.length,9);
  const targets=new Set(),nav=new TerrainNavigator();
  for(const row of plan.regions.slice(1)){
   const target=byCode(row.primary.slice(6));targets.add(target.id);
-  assert.deepEqual(target.name,row.displayName);assert.deepEqual(target.center,sourceByCode.get(row.anchorAtomId).center);
+  const members=Object.values(row.members).flat().sort(),pacific=pacificScopeOf(members[0]);
+  assert.deepEqual(target.name,pacific?.displayName??row.displayName);
+  assert.deepEqual(target.center,sourceByCode.get(pacific?.anchorAtomId??row.anchorAtomId).center);
   assert.ok(target.playable&&target.locked&&terrainAt(target.center,true)>=0);
-  assert.deepEqual(target.sourceAtoms,Object.values(row.members).flat().sort());
+  if(pacific){
+   assert.ok(members.every(id=>target.sourceAtoms.includes(id)));
+   for(const q of row.displayName)assert.ok(searchProvinces(q,MAP.length).some(g=>g.id===target.id),q);
+  }else assert.deepEqual(target.sourceAtoms,members);
   for(const id of target.sourceAtoms){
    const s=sourceByCode.get(id);
    assert.equal(provinceAt(s.center.x,s.center.z),target.id,id);
@@ -107,7 +115,7 @@ test('all nine approved scopes are single playable regions and representative ro
    assert.ok(s.parts.every(p=>target.parts.includes(p)));
   }
  }
- assert.equal(targets.size,8);
+ assert.equal(targets.size,new Set(plan.regions.slice(1).map(row=>pacificScopeOf(row.primary.slice(6))?.stateCode??row.primary)).size);
  for(const [island,mainland] of [
   ['MNP-4938','MNP-4939'],['TON-4949','TON-4945'],['NLD-5147','NLD-5148'],['SPM-4866','SPM-4867'],
   ['VIR-4869','VIR-4868'],['VCT-5064','VCT-5063'],['ATG-5092','ATG-5093'],['COM-4934','COM-4935'],

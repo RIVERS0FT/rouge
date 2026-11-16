@@ -1,0 +1,490 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_HAWAIIAN_ISLANDS",
+      "primary": "group:USA-3517",
+      "members": {
+        "group:USA-3517": [
+          "USA-3517"
+        ]
+      },
+      "displayName": [
+        "夏威夷群岛",
+        "Hawaiian Islands"
+      ],
+      "anchorAtomId": "USA-3517",
+      "searchAliases": [
+        "夏威夷",
+        "Hawaii"
+      ]
+    },
+    {
+      "stateCode": "STATE_WEST_MICRONESIA",
+      "primary": "group:MNP-4937",
+      "members": {
+        "group:PLW-5244": [
+          "PLW-5244",
+          "PLW-5245",
+          "PLW-5246",
+          "PLW-5247",
+          "PLW-5248",
+          "PLW-5249",
+          "PLW-5250",
+          "PLW-5251",
+          "PLW-5252",
+          "PLW-5253",
+          "PLW-5254",
+          "PLW-5255",
+          "PLW-5256",
+          "PLW-5257",
+          "PLW-5258",
+          "PLW-5259"
+        ],
+        "group:GUM+00?": [
+          "GUM+00?"
+        ],
+        "group:MNP-4937": [
+          "MNP-4937",
+          "MNP-4938",
+          "MNP-4939",
+          "MNP-4940"
+        ]
+      },
+      "displayName": [
+        "西密克罗尼西亚",
+        "West Micronesia"
+      ],
+      "anchorAtomId": "MNP-4939",
+      "searchAliases": [
+        "帕劳",
+        "关岛",
+        "北马里亚纳群岛",
+        "Palau",
+        "Guam",
+        "Northern Mariana Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_EAST_MICRONESIA",
+      "primary": "group:MHL-4969",
+      "members": {
+        "group:MHL-4968": [
+          "MHL-4968"
+        ],
+        "group:MHL-4969": [
+          "MHL-4969"
+        ],
+        "group:TUV+00?": [
+          "TUV+00?"
+        ],
+        "group:UMI-5179": [
+          "UMI-5179"
+        ]
+      },
+      "displayName": [
+        "东密克罗尼西亚",
+        "East Micronesia"
+      ],
+      "anchorAtomId": "MHL-4969",
+      "searchAliases": [
+        "马绍尔群岛",
+        "图瓦卢",
+        "威克岛",
+        "Marshall Islands",
+        "Tuvalu",
+        "Wake Island",
+        "Wake Atoll"
+      ]
+    },
+    {
+      "stateCode": "STATE_NAURU",
+      "primary": "group:NRU-4970",
+      "members": {
+        "group:NRU-4970": [
+          "NRU-4970",
+          "NRU-4971",
+          "NRU-4972",
+          "NRU-4973",
+          "NRU-4974",
+          "NRU-4975",
+          "NRU-4976",
+          "NRU-4977",
+          "NRU-4978",
+          "NRU-4979",
+          "NRU-4980",
+          "NRU-4981",
+          "NRU-4982",
+          "NRU-4983"
+        ]
+      },
+      "displayName": [
+        "瑙鲁",
+        "Nauru"
+      ],
+      "anchorAtomId": "NRU-4970"
+    },
+    {
+      "stateCode": "STATE_EASTERN_NEW_GUINEA",
+      "primary": "group:PNG-1238",
+      "members": {
+        "group:PNG-1238": [
+          "PNG-1238",
+          "PNG-1239",
+          "PNG-1240",
+          "PNG-1241",
+          "PNG-1242",
+          "PNG-1243",
+          "PNG-1244",
+          "PNG-1246",
+          "PNG-1247",
+          "PNG-1248",
+          "PNG-1249",
+          "PNG-1252",
+          "PNG-1253",
+          "PNG-1254",
+          "PNG-1256"
+        ],
+        "group:PNG-1250": [
+          "PNG-1250",
+          "PNG-1257"
+        ],
+        "group:PNG-1251": [
+          "PNG-1251"
+        ],
+        "group:PNG-1255": [
+          "PNG-1255"
+        ]
+      },
+      "displayName": [
+        "东新几内亚",
+        "Eastern New Guinea"
+      ],
+      "anchorAtomId": "PNG-1238",
+      "searchAliases": [
+        "巴布亚新几内亚",
+        "Papua New Guinea",
+        "新不列颠",
+        "新爱尔兰岛",
+        "马努斯岛",
+        "New Britain",
+        "New Ireland",
+        "Manus"
+      ]
+    },
+    {
+      "stateCode": "STATE_BOUGAINVILLE",
+      "primary": "group:PNG-1245",
+      "members": {
+        "group:PNG-1245": [
+          "PNG-1245"
+        ]
+      },
+      "displayName": [
+        "布干维尔",
+        "Bougainville"
+      ],
+      "anchorAtomId": "PNG-1245"
+    },
+    {
+      "stateCode": "STATE_SOLOMON_ISLANDS",
+      "primary": "group:SLB-1263",
+      "members": {
+        "group:SLB-1260": [
+          "SLB-1260"
+        ],
+        "group:SLB-1261": [
+          "SLB-1261"
+        ],
+        "group:SLB-1262": [
+          "SLB-1262"
+        ],
+        "group:SLB-1263": [
+          "SLB-1263",
+          "SLB-5130"
+        ],
+        "group:SLB-1264": [
+          "SLB-1264"
+        ],
+        "group:SLB-3507": [
+          "SLB-3507"
+        ],
+        "group:SLB-3508": [
+          "SLB-3508"
+        ],
+        "group:SLB-3509": [
+          "SLB-3509"
+        ]
+      },
+      "displayName": [
+        "所罗门群岛",
+        "Solomon Islands"
+      ],
+      "anchorAtomId": "SLB-5130"
+    },
+    {
+      "stateCode": "STATE_VANUATU",
+      "primary": "group:VUT-565",
+      "members": {
+        "group:VUT-560": [
+          "VUT-560"
+        ],
+        "group:VUT-561": [
+          "VUT-561"
+        ],
+        "group:VUT-562": [
+          "VUT-562"
+        ],
+        "group:VUT-563": [
+          "VUT-563"
+        ],
+        "group:VUT-564": [
+          "VUT-564"
+        ],
+        "group:VUT-565": [
+          "VUT-565"
+        ],
+        "group:SLB-1934": [
+          "SLB-1934"
+        ]
+      },
+      "displayName": [
+        "瓦努阿图",
+        "Vanuatu"
+      ],
+      "anchorAtomId": "VUT-565",
+      "searchAliases": [
+        "泰莫图",
+        "圣克鲁斯群岛",
+        "Temotu",
+        "Santa Cruz Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_KANAK",
+      "primary": "group:NCL-1259",
+      "members": {
+        "group:NCL-1258": [
+          "NCL-1258"
+        ],
+        "group:NCL-1259": [
+          "NCL-1259",
+          "NCL-559"
+        ]
+      },
+      "displayName": [
+        "卡纳克",
+        "Kanak"
+      ],
+      "anchorAtomId": "NCL-1259",
+      "searchAliases": [
+        "新喀里多尼亚",
+        "New Caledonia",
+        "洛亚蒂群岛",
+        "Loyalty Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_FIJI",
+      "primary": "group:FJI-2617",
+      "members": {
+        "group:FJI-2617": [
+          "FJI-2617",
+          "FJI-2620"
+        ],
+        "group:FJI-2618": [
+          "FJI-2618"
+        ],
+        "group:FJI-2619": [
+          "FJI-2619"
+        ],
+        "group:FJI-2658": [
+          "FJI-2658"
+        ]
+      },
+      "displayName": [
+        "斐济",
+        "Fiji"
+      ],
+      "anchorAtomId": "FJI-2617"
+    },
+    {
+      "stateCode": "STATE_TONGA",
+      "primary": "group:TON-4945",
+      "members": {
+        "group:TON-4945": [
+          "TON-4945",
+          "TON-4946",
+          "TON-4947",
+          "TON-4948",
+          "TON-4949"
+        ],
+        "group:ASM-4998": [
+          "ASM-4998",
+          "ASM-5002"
+        ],
+        "group:ASM-4999": [
+          "ASM-4999"
+        ],
+        "group:ASM-5000": [
+          "ASM-5000"
+        ],
+        "group:ASM-5001": [
+          "ASM-5001"
+        ],
+        "group:WSM-4984": [
+          "WSM-4984",
+          "WSM-4985",
+          "WSM-4989",
+          "WSM-4990",
+          "WSM-4991",
+          "WSM-4993",
+          "WSM-4994"
+        ],
+        "group:WSM-4986": [
+          "WSM-4986"
+        ],
+        "group:WSM-4987": [
+          "WSM-4987"
+        ],
+        "group:WSM-4988": [
+          "WSM-4988"
+        ],
+        "group:WSM-4992": [
+          "WSM-4992"
+        ],
+        "group:WLF-4995": [
+          "WLF-4995"
+        ],
+        "group:WLF-4996": [
+          "WLF-4996"
+        ],
+        "group:WLF-4997": [
+          "WLF-4997"
+        ],
+        "group:NIU-5481": [
+          "NIU-5481"
+        ],
+        "group:NZL-5472": [
+          "NZL-5472"
+        ]
+      },
+      "displayName": [
+        "汤加",
+        "Tonga"
+      ],
+      "anchorAtomId": "TON-4945",
+      "searchAliases": [
+        "萨摩亚",
+        "美属萨摩亚",
+        "纽埃",
+        "瓦利斯和富图纳",
+        "托克劳",
+        "Samoa",
+        "American Samoa",
+        "Niue",
+        "Wallis and Futuna",
+        "Tokelau"
+      ]
+    },
+    {
+      "stateCode": "STATE_TAHITI",
+      "primary": "group:PYF-4963",
+      "members": {
+        "group:PYF-4963": [
+          "PYF-4963"
+        ],
+        "group:PYF-4964": [
+          "PYF-4964"
+        ],
+        "group:PYF-4965": [
+          "PYF-4965"
+        ],
+        "group:PYF-4966": [
+          "PYF-4966"
+        ],
+        "group:PYF-4967": [
+          "PYF-4967"
+        ],
+        "group:PCN+00?": [
+          "PCN+00?"
+        ]
+      },
+      "displayName": [
+        "塔希提",
+        "Tahiti"
+      ],
+      "anchorAtomId": "PYF-4963",
+      "searchAliases": [
+        "大溪地",
+        "皮特凯恩群岛",
+        "Pitcairn Islands",
+        "法属波利尼西亚",
+        "French Polynesia"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTH_ISLAND",
+      "primary": "group:NZL-3334",
+      "members": {
+        "group:NZL-3334": [
+          "NZL-3334",
+          "NZL-3396",
+          "NZL-3397",
+          "NZL-3398",
+          "NZL-3399",
+          "NZL-3404",
+          "NZL-3405",
+          "NZL-5468",
+          "NZL-5469"
+        ],
+        "group:NZL-5470": [
+          "NZL-5470"
+        ]
+      },
+      "displayName": [
+        "北岛",
+        "North Island"
+      ],
+      "anchorAtomId": "NZL-3334",
+      "searchAliases": [
+        "新西兰北岛",
+        "New Zealand North Island",
+        "查塔姆群岛",
+        "Chatham Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_ISLAND",
+      "primary": "group:NZL-3400",
+      "members": {
+        "group:NZL-3400": [
+          "NZL-3400",
+          "NZL-3401",
+          "NZL-3403",
+          "NZL-3406",
+          "NZL-3407",
+          "NZL-3408"
+        ],
+        "group:NZL-3402": [
+          "NZL-3402"
+        ],
+        "group:NZL-5479": [
+          "NZL-5479"
+        ]
+      },
+      "displayName": [
+        "南岛",
+        "South Island"
+      ],
+      "anchorAtomId": "NZL-3400",
+      "searchAliases": [
+        "新西兰南岛",
+        "New Zealand South Island",
+        "奥克兰群岛",
+        "Auckland Islands"
+      ]
+    }
+  ]
+}
