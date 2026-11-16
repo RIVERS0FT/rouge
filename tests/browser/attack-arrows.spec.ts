@@ -26,7 +26,7 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
    world.distance=world.desiredDistance=world.lastCameraTarget=distance;world.lastRender=-Infinity;world.invalidated=true;
    world.update(structuredClone(state),from,'zh',0);frame(performance.now());
   };
-  (window as any).attackTest={world,state,from,to,draw};draw();
+  (window as any).attackTest={world,state,from,to,draw,centers:{[from]:MAP[from].center,[to]:MAP[to].center}};draw();
   const outline=world.dispatchTargetPath(to),members=world.dispatchBoundaries.get(to).members;
   if(members.length!==1||members[0]!==to)throw Error('Highlight expanded from its administrative target');
   const expected=world.boundaryEdges.filter(edge=>edge.atoms.includes(to)).length;
@@ -44,6 +44,20 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
  // The first and final body edges straddle the exact source anchor.
  expect((tail[0][0]+tail.at(-1)![0])/2).toBeCloseTo(anchor.x,0);
  expect((tail[0][1]+tail.at(-1)![1])/2).toBeCloseTo(anchor.y,0);
+ const scale=await page.evaluate(()=>{
+  const t=(window as any).attackTest,svg=document.querySelector('[data-testid="attack-arrows"]')!;
+  const point=(id:number)=>{const p=t.centers[id],v=t.world.unitPoint.set(p.x,.16,p.z).project(t.world.camera);
+   return {x:v.x*720,y:v.y*480};};
+  const widthAt=(distance:number)=>{
+   t.draw(distance);const d=svg.querySelector('path')!.getAttribute('d')!;
+   const pairs=d.slice(1,-1).split('L').map(p=>p.split(',').map(Number));
+   const [first,last]=[pairs[0],pairs.at(-1)!],a=point(t.from),b=point(t.to);
+   return {tail:Math.hypot(first[0]-last[0],first[1]-last[1]),map:Math.hypot(a.x-b.x,a.y-b.y)};
+  };
+  const near=widthAt(320),far=widthAt(640);return {ribbon:near.tail/far.tail,map:near.map/far.map};
+ });
+ expect(scale.ribbon).toBeCloseTo(scale.map,2);expect(scale.ribbon).toBeGreaterThan(1.9);
+ await page.evaluate(()=>(window as any).attackTest.draw());
  await page.screenshot({path:'artifacts/attack-arrows-2d.png'});
  await page.evaluate(()=>{const t=(window as any).attackTest;t.draw(80);});
  await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');await expect(path).toBeVisible();expect(await path.getAttribute('d')).not.toBe(strategic);

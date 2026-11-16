@@ -5,8 +5,9 @@ import type {BorderEdge} from './territoryBorders.ts';
 import type {CountryLabel} from './countryLabels.ts';
 
 export interface CountryCurve {points:Vec2[];control:Vec2;anchor:Vec2;length:number;clearance:number}
+/** area is the last fitting baseline, not the constantly changing owned area. */
 export interface CountryPlacement {owner:number;area:number;curves:CountryCurve[]}
-export type CountryPlacementCache=Map<number,{members:string;placement:CountryPlacement}>;
+export type CountryPlacementCache=Map<number,{members:string;placement:CountryPlacement;pendingGrowth?:boolean}>;
 interface Grid {left:number;top:number;cell:number;cols:number;rows:number;inside:Uint8Array;distance:Float32Array}
 type Edge={a:Vec2;b:Vec2};
 const GRID_SIZE=112;
@@ -127,15 +128,62 @@ function candidates(grid:Grid,edges:readonly Edge[],bounds:Rect):CountryCurve[]{
  return curves.sort((a,b)=>b.length*Math.sqrt(b.clearance)-a.length*Math.sqrt(a.clearance)).slice(0,4);
 }
 
-export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonly number[],labels:readonly CountryLabel[],borders:readonly BorderEdge[],cache:CountryPlacementCache=new Map(),bounds:Rect=WORLD_BOUNDS):Map<number,CountryPlacement>{
- const members=new Map<number,number[]>(),outlines=new Map<number,BorderEdge[]>(),result=new Map<number,CountryPlacement>();
- for(const province of map){const owner=owners[province.id];if(owner>=0&&province.visible){const ids=members.get(owner)??[];ids.push(province.id);members.set(owner,ids);}}
- for(const edge of borders){const held=[...new Set(edge.atoms.map(id=>owners[id]??-1))];if(edge.atoms.length>1&&held.length===1)continue;
-  for(const owner of held)if(owner>=0){const list=outlines.get(owner)??[];list.push(edge);outlines.set(owner,list);}
+/** A gain cannot invalidate an existing title. Losses must preserve its entire
+ * old clearance corridor, not just its anchor or a few glyph baseline points. */
+function preservesMembers(previous:string,next:readonly number[]):boolean{
+ const current=new Set(next);return previous.split(',').every(id=>current.has(Number(id)));
+}
+function curveStillFits(curve:CountryCurve,edges:readonly Edge[],bounds:Rect,referenceX:number):boolean{
+ let clearance=Infinity,longestStep=0;
+ for(let i=0;i<curve.points.length;i++){
+  const original=curve.points[i],p={x:nearestWorldX(original.x,referenceX),z:original.z};let inside=false,square=Infinity;
+  for(const edge of edges){square=Math.min(square,distanceSquaredToSegment(p,edge));const {a,b}=edge;
+   if((a.z>p.z)!==(b.z>p.z)&&p.x<a.x+(b.x-a.x)*(p.z-a.z)/(b.z-a.z))inside=!inside;
+  }
+  if(!inside)return false;
+  clearance=Math.min(clearance,p.z-bounds.top,bounds.bottom-p.z,Math.sqrt(square));
+  if(i)longestStep=Math.max(longestStep,Math.hypot(original.x-curve.points[i-1].x,original.z-curve.points[i-1].z));
  }
+ // Use the same conservative between-sample bound as curveFromRidge.
+ return clearance-longestStep/2>=curve.clearance-1e-7;
+}
+
+/** Keep old legal candidates first: gains never force a smaller/narrower title.
+ * Strictly dominated paths can be discarded; refits happen only after doubling,
+ * so the remaining trade-off candidates grow logarithmically with the realm. */
+export function growthCountryCurves(previous:readonly CountryCurve[],next:readonly CountryCurve[]):CountryCurve[]{
+ const unique:CountryCurve[]=[],seen=new Set<string>();
+ for(const curve of [...previous,...next]){const key=JSON.stringify([curve.points[0],curve.control,curve.points[curve.points.length-1],curve.length,curve.clearance]);if(!seen.has(key)){seen.add(key);unique.push(curve);}}
+ return unique.filter(curve=>!unique.some(other=>other!==curve&&other.length>curve.length*1.02&&other.clearance>curve.clearance*1.02));
+}
+
+export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonly number[],labels:readonly CountryLabel[],borders:readonly BorderEdge[],cache:CountryPlacementCache=new Map(),bounds:Rect=WORLD_BOUNDS,options:{deferGrowth?:boolean}={}):Map<number,CountryPlacement>{
+ const members=new Map<number,number[]>(),outlines=new Map<number,BorderEdge[]>(),result=new Map<number,CountryPlacement>(),changed:CountryLabel[]=[],growth=new Set<number>();
+ for(const province of map){const owner=owners[province.id];if(owner>=0&&province.visible){const ids=members.get(owner)??[];ids.push(province.id);members.set(owner,ids);}}
  for(const label of labels){
-  const signature=(members.get(label.owner)??[]).join(','),old=cache.get(label.owner);if(old?.members===signature){result.set(label.owner,old.placement);continue;}
+  const ids=members.get(label.owner)??[],signature=ids.join(','),old=cache.get(label.owner);
+  const gained=!!old?.placement.curves.length&&preservesMembers(old.members,ids);
+  const materialGrowth=gained&&label.area>=old!.placement.area*2;
+  if(old&&(old.members===signature||gained)&&(!materialGrowth||options.deferGrowth)){
+   // Small gains retain exact geometry; do not reset the cumulative baseline.
+   // The foreground keeps this legal title until a matching worker refit arrives.
+   old.members=signature;old.pendingGrowth=materialGrowth||undefined;result.set(label.owner,old.placement);
+  }else{changed.push(label);if(materialGrowth)growth.add(label.owner);}
+ }
+ const needsLayout=new Set(changed.map(label=>label.owner));
+ if(needsLayout.size)for(const edge of borders){const held=[...new Set(edge.atoms.map(id=>owners[id]??-1))];if(edge.atoms.length>1&&held.length===1)continue;
+  for(const owner of held)if(needsLayout.has(owner)){const list=outlines.get(owner)??[];list.push(edge);outlines.set(owner,list);}
+ }
+ for(const label of changed){
+  const signature=(members.get(label.owner)??[]).join(','),old=cache.get(label.owner);
   const edges=(outlines.get(label.owner)??[]).map(({a,b})=>({a:{x:nearestWorldX(a.x,label.anchor.x),z:a.z},b:{x:nearestWorldX(b.x,label.anchor.x),z:b.z}}));
+  if(old&&!growth.has(label.owner)){
+   const valid=old.placement.curves.filter(curve=>curveStillFits(curve,edges,bounds,label.anchor.x));
+   if(valid.length){
+    const placement=valid.length===old.placement.curves.length?old.placement:{...old.placement,curves:valid};
+    cache.set(label.owner,{members:signature,placement});result.set(label.owner,placement);continue;
+   }
+  }
   let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;for(const {a,b} of edges)for(const p of [a,b]){left=Math.min(left,p.x);right=Math.max(right,p.x);top=Math.min(top,p.z);bottom=Math.max(bottom,p.z);}
   let curves:CountryCurve[]=[];
   if(edges.length&&right>left&&bottom>top){
@@ -146,6 +194,7 @@ export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonl
    for(let y=0;y<grid.rows;y++)for(let x=0;x<grid.cols;x++)if(grid.inside[y*grid.cols+x]){x0=Math.min(x0,x);x1=Math.max(x1,x+1);y0=Math.min(y0,y);y1=Math.max(y1,y+1);}
    if(x1>x0&&y1>y0){grid=raster(edges,{left:grid.left+x0*grid.cell,right:grid.left+x1*grid.cell,top:grid.top+y0*grid.cell,bottom:grid.top+y1*grid.cell});curves=candidates(grid,edges,bounds);}
   }
+  if(old&&growth.has(label.owner))curves=growthCountryCurves(old.placement.curves,curves);
   const placement={owner:label.owner,area:label.area,curves};cache.set(label.owner,{members:signature,placement});result.set(label.owner,placement);
  }
  for(const owner of cache.keys())if(!result.has(owner))cache.delete(owner);

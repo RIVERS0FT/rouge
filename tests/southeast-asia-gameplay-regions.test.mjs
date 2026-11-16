@@ -38,7 +38,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('approved Southeast Asian gameplay groups preserve all original atoms, pick points, and search aliases',()=>{
  assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
  const countries=['BRN','KHM','IDN','LAO','MYS','MMR','PHL','SGP','THA','TLS','VNM'];
  assert.equal(MAP.filter(r=>countries.includes(r.code.slice(0,3))).length,39);
  for(const [country,count] of [['SGP',0],['MYS',2],['VNM',3],['TLS',1],['IDN',15],['KHM',1]]){

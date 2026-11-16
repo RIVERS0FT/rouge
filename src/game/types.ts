@@ -2,6 +2,7 @@ import type {CountryIdentity} from './countryNames.ts';
 import type { TerritoryGrouping } from './territoryGrouping.ts';
 import type {TravelPlan} from './terrain-navigation.ts';
 import type { Flag } from './flags.ts';
+import type { MarchFraction } from './countryActions.ts';
 export type Vec2 = { x:number; z:number };
 export type Kind = 'infantry' | 'cavalry' | 'artillery' | 'engineer' | 'skirmisher' | 'grenadier' | 'heavyCavalry' | 'horseArtillery';
 export type Leader = 'warden' | 'vanguard' | 'steward';
@@ -11,7 +12,7 @@ export interface ProvinceDef { id:number; code:string; name:[string,string]; sou
 export type ConstructionKind = 'market' | 'barracks' | 'fortress';
 export interface TerritoryConstruction {kind:ConstructionKind;level:1|2}
 /** Friendly queued arrivals count toward local training, not march capacity. */
-export type MarchOrder={to:number;owner:number;pendingIds:number[];reserved?:true};
+export type MarchOrder={to:number;owner:number;pendingIds:number[];reserved?:true;fraction?:MarchFraction};
 export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number; construction?:TerritoryConstruction; march?:MarchOrder; lastMarchTick?:number }
 /** An assault destination marks where a unit was sent while it was hostile. */
 export interface Unit { travel?:TravelPlan; assault?:number; id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; origin:number; destination:number|null; route:number[]; transport?:{from:number;to:number;index:number;embarked:boolean}; cooldown:number }

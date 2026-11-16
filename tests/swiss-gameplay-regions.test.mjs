@@ -58,7 +58,7 @@ test('all 26 cantons are retained exactly once in two locked playable Swiss terr
  assert.equal(byCode('CHE-171').id,east.id);assert.equal(byCode('CHE-3425').id,east.id);
  assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
 });
 
 test('Swiss merge does not change any other memberships, names, geometry or source topology',()=>{

@@ -81,7 +81,7 @@ test('AI sends the same full march command as the player and sends all troops to
  for(const [subject,before] of [[playerEngine,saved],[engine,aiState]]){
   assert.deepEqual(subject.command(-1,action),{ok:false,error:'notPlaying'});
   assert.deepEqual(subject.command(0,action),{ok:false,error:'notOwner'});
-  assert.deepEqual(subject.command(1,{...action,fraction:.5}),{ok:false,error:'invalidCommand'});
+  assert.deepEqual(subject.command(1,{...action,fraction:.6}),{ok:false,error:'invalidCommand'});
   assert.deepEqual(subject.state,before);
  }
  assert.equal(observed.actor,1);
