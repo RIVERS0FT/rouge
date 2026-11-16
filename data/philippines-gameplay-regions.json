@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "reference": "MapChart Victoria 3 v1.7",
+  "referenceUrl": "https://www.mapchart.net/victoria-3.html",
+  "mappingNotes": "Whole existing gameplay groups matched with the pinned 1.13.7 overlap audit. Batanes and Las Piñas follow Luzon; Tawi-Tawi follows Mindanao. Use Natural Earth 5.1.1 original geometry and land adjacency.",
+  "regions": [
+    {
+      "stateCode": "STATE_LUZON",
+      "displayName": [
+        "吕宋",
+        "Luzon"
+      ],
+      "anchorAtomId": "PHL-5543",
+      "currentGroups": [
+        "group:PHL-2534",
+        "group:PHL-2536",
+        "group:PHL-2539",
+        "group:PHL-2543",
+        "group:PHL-2561",
+        "group:PHL-2569",
+        "group:PHL-2570",
+        "group:PHL-5541",
+        "group:PHL-5554",
+        "group:PHL-5556"
+      ],
+      "components": [
+        [
+          "PHL-2536",
+          "PHL-2537",
+          "PHL-2538",
+          "PHL-2541",
+          "PHL-2542",
+          "PHL-2545",
+          "PHL-2546",
+          "PHL-2547",
+          "PHL-2548",
+          "PHL-2549",
+          "PHL-2550",
+          "PHL-2551",
+          "PHL-2552",
+          "PHL-2553",
+          "PHL-2554",
+          "PHL-2555",
+          "PHL-2556",
+          "PHL-2557",
+          "PHL-2558",
+          "PHL-2559",
+          "PHL-2560",
+          "PHL-2561",
+          "PHL-2562",
+          "PHL-2563",
+          "PHL-2564",
+          "PHL-2565",
+          "PHL-2566",
+          "PHL-2567",
+          "PHL-2572",
+          "PHL-4931",
+          "PHL-5536",
+          "PHL-5537",
+          "PHL-5538",
+          "PHL-5539",
+          "PHL-5540",
+          "PHL-5541",
+          "PHL-5542",
+          "PHL-5543",
+          "PHL-5544",
+          "PHL-5545",
+          "PHL-5546",
+          "PHL-5547",
+          "PHL-5549",
+          "PHL-5550",
+          "PHL-5551",
+          "PHL-5552",
+          "PHL-5553",
+          "PHL-5554",
+          "PHL-5555",
+          "PHL-5556",
+          "PHL-5557",
+          "PHL-5558",
+          "PHL-5559",
+          "PHL-5560"
+        ],
+        [
+          "PHL-2534",
+          "PHL-5533"
+        ],
+        [
+          "PHL-2570",
+          "PHL-2571"
+        ],
+        [
+          "PHL-2539"
+        ],
+        [
+          "PHL-2543"
+        ],
+        [
+          "PHL-2569"
+        ]
+      ]
+    },
+    {
+      "stateCode": "STATE_VISAYAS",
+      "displayName": [
+        "维萨亚斯",
+        "Visayas"
+      ],
+      "anchorAtomId": "PHL-5522",
+      "currentGroups": [
+        "group:PHL-2513",
+        "group:PHL-2514",
+        "group:PHL-2516",
+        "group:PHL-2517",
+        "group:PHL-2525",
+        "group:PHL-2530",
+        "group:PHL-2535",
+        "group:PHL-2540",
+        "group:PHL-2581",
+        "group:PHL-2582",
+        "group:PHL-2583",
+        "group:PHL-5524",
+        "group:PHL-5525"
+      ],
+      "components": [
+        [
+          "PHL-2525",
+          "PHL-2526",
+          "PHL-2528",
+          "PHL-2529",
+          "PHL-5526"
+        ],
+        [
+          "PHL-2583",
+          "PHL-2585",
+          "PHL-5534",
+          "PHL-5535"
+        ],
+        [
+          "PHL-2514",
+          "PHL-5522",
+          "PHL-5523"
+        ],
+        [
+          "PHL-2516",
+          "PHL-2518",
+          "PHL-5525"
+        ],
+        [
+          "PHL-2582",
+          "PHL-2584",
+          "PHL-2586"
+        ],
+        [
+          "PHL-2513"
+        ],
+        [
+          "PHL-2517"
+        ],
+        [
+          "PHL-2530"
+        ],
+        [
+          "PHL-2535"
+        ],
+        [
+          "PHL-2540"
+        ],
+        [
+          "PHL-2581"
+        ],
+        [
+          "PHL-5524"
+        ]
+      ]
+    },
+    {
+      "stateCode": "STATE_MINDANAO",
+      "displayName": [
+        "棉兰老",
+        "Mindanao"
+      ],
+      "anchorAtomId": "PHL-5528",
+      "currentGroups": [
+        "group:PHL-2511",
+        "group:PHL-2519",
+        "group:PHL-2520",
+        "group:PHL-2524",
+        "group:PHL-2590",
+        "group:PHL-5527"
+      ],
+      "components": [
+        [
+          "PHL-2520",
+          "PHL-2521",
+          "PHL-2522",
+          "PHL-2523",
+          "PHL-2573",
+          "PHL-2574",
+          "PHL-2576",
+          "PHL-2579",
+          "PHL-2580",
+          "PHL-2587",
+          "PHL-2588",
+          "PHL-2589",
+          "PHL-2591",
+          "PHL-2592",
+          "PHL-2593",
+          "PHL-2594",
+          "PHL-2595",
+          "PHL-2596",
+          "PHL-2597",
+          "PHL-2598",
+          "PHL-2599",
+          "PHL-4932",
+          "PHL-5527",
+          "PHL-5528",
+          "PHL-5529",
+          "PHL-5530",
+          "PHL-5531",
+          "PHL-5532"
+        ],
+        [
+          "PHL-2511"
+        ],
+        [
+          "PHL-2519"
+        ],
+        [
+          "PHL-2524"
+        ],
+        [
+          "PHL-2590"
+        ]
+      ]
+    }
+  ]
+}
