@@ -46,17 +46,17 @@ test('modern metropolitan France has 13 bilingual locked regions and all 96 depa
       assert.equal(provinceAt(x,z),region.id);
     }
   }
-  assert.equal(MAP.length,1117);
-  assert.equal(MAP_METADATA.playableCount,1113);
+  assert.equal(MAP.length,1115);
+  assert.equal(MAP_METADATA.playableCount,1111);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
-  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v9');
+  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v10');
 });
 
 test('the French repartition preserves original geometry and unrelated locked groups',()=>{
   const otherReviewedChanges=new Set(['CHN-1155','CHN-1811','CHN-1816','CHN-1818','CHN-1819']);
-  const reviewed=id=>metro.has(id)||id.startsWith('GBR-')||id.startsWith('MDV-')||otherReviewedChanges.has(id);
+  const reviewed=id=>metro.has(id)||id.startsWith('GBR-')||id.startsWith('MDV-')||id.startsWith('CHE-')||otherReviewedChanges.has(id);
   const remaining=applyAdministrativeGroupOverrides(base,prior,{...adminOverrides,merges:[]}).filter(g=>!g.sourceIds.some(reviewed));
-  assert.equal(prior.length-remaining.length,21+17+4+21);
+  assert.equal(prior.length-remaining.length,21+17+4+21+4);
   assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(reviewed)),
     remaining.map(({id,sourceIds,legacyHint,reason,displayName})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{})})));
   assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
@@ -102,9 +102,9 @@ test('French partition rejects duplicate, foreign, missing and disconnected depa
 test('the modern map rejects prior saves and LAN snapshots without overwriting old storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'france-admin-regions');
-  assert.equal(STATE_VERSION,10);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v22');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v10.');
+  assert.equal(STATE_VERSION,11);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v23');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v11.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:6,map:'earth-natural-earth-admin1-511-regions-v5'};
