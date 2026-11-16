@@ -69,18 +69,30 @@ export const SOURCE_MAP_METADATA={source:data.source,revision:data.sourceRevisio
 // Procedural relief is only a visual placeholder, not measured elevation or a movement obstacle.
 export function heightAt(x:number,z:number):number {return 0.16+0.32*(1+Math.sin(x*0.18)*Math.cos(z*0.22));}
 export const SOURCE_TOPOLOGY:TerritoryTopology={mapId:data.mapId,atoms:SOURCE_MAP.map(p=>({id:p.code,neighbors:p.neighbors.map(id=>SOURCE_MAP[id].code),playable:p.playable}))};
-// Cropping can remove a real border. Split the initial reference group into its
-// remaining connected components rather than inventing a cropped-edge bridge.
+// Administrative memberships may include reviewed off-shore islands. Add
+// those links ONLY to the topology used to build and validate the source
+// partition. SOURCE_MAP, SOURCE_TOPOLOGY, MAP's land adjacency and the
+// terrain navigator never consume these non-physical membership links.
 const byCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
+const groupingNeighbors=new Map(SOURCE_TOPOLOGY.atoms.map(atom=>[atom.id,new Set(atom.neighbors)]));
+for(const group of data.gameplayGroups)for(const [island,mainland] of group.islandAttachments??[]){
+  const a=byCode.get(island),b=byCode.get(mainland);
+  if(!a?.visible||!b?.visible)continue;
+  groupingNeighbors.get(island)!.add(mainland);
+  groupingNeighbors.get(mainland)!.add(island);
+}
+export const PREPROCESSED_TOPOLOGY:TerritoryTopology={...SOURCE_TOPOLOGY,atoms:SOURCE_TOPOLOGY.atoms.map(atom=>({...atom,neighbors:[...groupingNeighbors.get(atom.id)!]}))};
+// Cropping can remove a real border. Split the initial reference group into
+// remaining components, keeping only the explicitly reviewed island memberships.
 const initialParts:string[][]=[];
 export const PREPROCESSED_GROUP_NAMES=new Map<string,[string,string]>();
 for(const g of data.gameplayGroups){
   const remaining=new Set(g.atomIds);
   for(const start of [...remaining].sort())if(remaining.delete(start)){
-    const part=[start];for(let i=0;i<part.length;i++)for(const n of byCode.get(part[i])!.neighbors){const code=SOURCE_MAP[n].code;if(remaining.delete(code))part.push(code);}
+    const part=[start];for(let i=0;i<part.length;i++)for(const code of groupingNeighbors.get(part[i])!){if(remaining.delete(code))part.push(code);}
     initialParts.push(part);
     // Use a curated name only for the complete group, never for crop fragments.
     if(g.displayName&&part.length===g.atomIds.length)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
   }
 }
-export const PREPROCESSED_GROUPING=createTerritoryGrouping(SOURCE_TOPOLOGY,initialParts,{locked:true});
+export const PREPROCESSED_GROUPING=createTerritoryGrouping(PREPROCESSED_TOPOLOGY,initialParts,{locked:true});

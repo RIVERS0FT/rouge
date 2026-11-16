@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "reference": "https://www.data.gov.uk/dataset/6037bf4f-fae6-4ca4-8ced-67e09e280f46/international-territorial-level-1-january-2025-boundaries-uk-bgc",
+  "referenceRelease": "2025-01",
+  "referenceGeoJsonSHA256": "d654bb7e05516b709c73b97c9cc2d1a6b297c46bfd8e76a029bfd362e9197095",
+  "gameplayMerge": {"primary":"TLJ","annex":"TLI","displayName":["伦敦周边","London and Surrounding Areas"]},
+  "regions": [
+    {"code":"TLC","displayName":["东北英格兰","North East England"],"atomIds":["GBR-2028","GBR-2029","GBR-2030","GBR-2031","GBR-2032","GBR-2033","GBR-2034","GBR-5661","GBR-5662","GBR-5663","GBR-5664","GBR-5665"],"islandComponents":[]},
+    {"code":"TLD","displayName":["西北英格兰","North West England"],"atomIds":["GBR-2108","GBR-2122","GBR-2123","GBR-2139","GBR-2774","GBR-5666","GBR-5667","GBR-5668","GBR-5669","GBR-5670","GBR-5676","GBR-5677","GBR-5678","GBR-5679","GBR-5680","GBR-5681","GBR-5682","GBR-5683","GBR-5684","GBR-5685","GBR-5706","GBR-5707","GBR-5708"],"islandComponents":[]},
+    {"code":"TLE","displayName":["约克郡与亨伯","Yorkshire and The Humber"],"atomIds":["GBR-2055","GBR-2056","GBR-2057","GBR-2120","GBR-2124","GBR-2140","GBR-5671","GBR-5672","GBR-5673","GBR-5674","GBR-5675","GBR-5686","GBR-5687","GBR-5688","GBR-5689"],"islandComponents":[]},
+    {"code":"TLF","displayName":["东米德兰兹","East Midlands"],"atomIds":["GBR-2054","GBR-2058","GBR-2059","GBR-2081","GBR-2749","GBR-2761","GBR-2762","GBR-2763","GBR-2764"],"islandComponents":[]},
+    {"code":"TLG","displayName":["西米德兰兹","West Midlands"],"atomIds":["GBR-2121","GBR-2750","GBR-2775","GBR-2776","GBR-2777","GBR-2778","GBR-2779","GBR-5690","GBR-5691","GBR-5692","GBR-5693","GBR-5694","GBR-5695","GBR-5696"],"islandComponents":[]},
+    {"code":"TLH","displayName":["东英格兰","East of England"],"atomIds":["GBR-2042","GBR-2053","GBR-2317","GBR-2318","GBR-2319","GBR-2676","GBR-2679","GBR-2752","GBR-2760","GBR-5697","GBR-5698"],"islandComponents":[]},
+    {"code":"TLI","displayName":["伦敦","London"],"atomIds":["GBR-2060","GBR-2061","GBR-2062","GBR-2063","GBR-2064","GBR-2065","GBR-2066","GBR-2067","GBR-2068","GBR-2069","GBR-2070","GBR-2071","GBR-2072","GBR-2073","GBR-2074","GBR-2075","GBR-2076","GBR-2077","GBR-2078","GBR-2079","GBR-2080","GBR-2675","GBR-2753","GBR-2754","GBR-2765","GBR-2766","GBR-2767","GBR-2768","GBR-2769","GBR-2770","GBR-2771","GBR-4809","GBR-5705"],"islandComponents":[]},
+    {"code":"TLJ","displayName":["东南英格兰","South East England"],"atomIds":["GBR-2035","GBR-2036","GBR-2038","GBR-2040","GBR-2674","GBR-2677","GBR-2678","GBR-2748","GBR-2751","GBR-2755","GBR-2758","GBR-2759","GBR-3409","GBR-5699","GBR-5700","GBR-5701","GBR-5702","GBR-5703","GBR-5704"],"islandComponents":[["GBR-2758"]]},
+    {"code":"TLK","displayName":["西南英格兰","South West England"],"atomIds":["GBR-2039","GBR-2043","GBR-2044","GBR-2045","GBR-2046","GBR-2047","GBR-2048","GBR-2050","GBR-2051","GBR-2052","GBR-2110","GBR-2141","GBR-2142","GBR-2756","GBR-2757","GBR-5988"],"islandComponents":[["GBR-5988"]]},
+    {"code":"TLL","displayName":["威尔士","Wales"],"atomIds":["GBR-2104","GBR-2105","GBR-2106","GBR-2111","GBR-2112","GBR-2113","GBR-2114","GBR-2115","GBR-2116","GBR-2117","GBR-2118","GBR-2119","GBR-2125","GBR-2126","GBR-2127","GBR-2128","GBR-2129","GBR-2130","GBR-2131","GBR-2132","GBR-2133","GBR-2134"],"islandComponents":[["GBR-2128"]]},
+    {"code":"TLM","displayName":["苏格兰","Scotland"],"atomIds":["GBR-2001","GBR-2002","GBR-2003","GBR-2004","GBR-2005","GBR-2006","GBR-2007","GBR-2008","GBR-2009","GBR-2010","GBR-2011","GBR-2012","GBR-2013","GBR-2014","GBR-2015","GBR-2016","GBR-2017","GBR-2018","GBR-2019","GBR-2020","GBR-2021","GBR-2022","GBR-2023","GBR-2024","GBR-2025","GBR-2026","GBR-2138","GBR-2744","GBR-2745","GBR-2746","GBR-2747","GBR-2772"],"islandComponents":[["GBR-2744"],["GBR-2747"],["GBR-2772"]]},
+    {"code":"TLN","displayName":["北爱尔兰","Northern Ireland"],"atomIds":["GBR-2082","GBR-2083","GBR-2084","GBR-2085","GBR-2086","GBR-2087","GBR-2088","GBR-2089","GBR-2090","GBR-2091","GBR-2092","GBR-2093","GBR-2094","GBR-2095","GBR-2096","GBR-2097","GBR-2098","GBR-2099","GBR-2100","GBR-2101","GBR-2102","GBR-2103","GBR-2135","GBR-2136","GBR-2137","GBR-2773"],"islandComponents":[]}
+  ]
+}
