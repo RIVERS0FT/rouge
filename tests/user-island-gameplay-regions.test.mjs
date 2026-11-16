@@ -1,3 +1,4 @@
+import {isPacificBatch,pacificScopeOf,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -47,13 +48,15 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('83 original source areas select five playable groups with exact names, anchors and multilingual aliases',()=>{
- assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
+ assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
  const selected=new Set();
  for(const {id,groups,displayName,anchorAtomId,searchAliases} of plan.regions){
   const r=byCode(id.slice(6));selected.add(r.id);
-  assert.deepEqual(r.name,displayName);assert.deepEqual(r.center,sourceByCode.get(anchorAtomId).center);
-  assert.deepEqual(r.sourceAtoms,[...Object.values(groups).flat(),...(id==='group:CHN-1180'?['MAC+00?']:[])].sort());
+  const members=[...Object.values(groups).flat(),...(id==='group:CHN-1180'?['MAC+00?']:[])].sort(),pacific=pacificScopeOf(members[0]);
+  assert.deepEqual(r.name,pacific?.displayName??displayName);assert.deepEqual(r.center,sourceByCode.get(pacific?.anchorAtomId??anchorAtomId).center);
+  if(pacific)assert.ok(members.every(code=>r.sourceAtoms.includes(code)));
+  else assert.deepEqual(r.sourceAtoms,members);
   assert.ok(r.playable&&r.locked&&terrainAt(r.center,true)>=0,id);
   for(const code of r.sourceAtoms){
    const s=sourceByCode.get(code);
@@ -79,7 +82,8 @@ test('83 original source areas select five playable groups with exact names, anc
 
 test('all reviewed disconnected components stay outside the original physical graph and real sea routes still work',()=>{
  const raw=new Map(SOURCE_TOPOLOGY.atoms.map(a=>[a.id,a])),grouping=new Map(PREPROCESSED_TOPOLOGY.atoms.map(a=>[a.id,a]));
- const links=atlas.gameplayGroups.filter(g=>g.atomIds.some(isUserIslands)).flatMap(g=>g.islandAttachments??[]);
+ const links=repartitionUserIslands(base,prior,plan).filter(g=>g.sourceIds.some(isUserIslands)).flatMap(g=>g.islandAttachments??[]);
+ links.push(['MAC+00?','CHN-1180']);
  assert.equal(links.length,16);
  for(const [a,b] of links){
   assert.ok(grouping.get(a).neighbors.includes(b)&&!raw.get(a).neighbors.includes(b));
@@ -104,7 +108,7 @@ test('outside the reviewed scope all game groups, raw country fields, source geo
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isUserIslands(id)||isAdjacentIslandBatch(id))),unaffected.map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isUserIslands(id)||isAdjacentIslandBatch(id))),unaffected.filter(g=>!g.sourceIds.some(isPacificBatch)).map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 

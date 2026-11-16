@@ -1,3 +1,4 @@
+import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -43,8 +44,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('fourteen fragments merge into nine named destinations while old lookup and anchor coordinates remain exact',()=>{
- assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
+ assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
  assert.equal(MAP.filter(p=>p.code.startsWith('SVN-')).length,2);
  for(const {primary,members,displayName,anchorAtomId} of plan.regions){
   const r=byCode(primary.slice(6));
@@ -78,10 +79,10 @@ test('real source edges and grouping-only topology are unchanged; all unrelated 
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSmallEuropeBatch(id)||isAllIslands(id))),untouched.map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isSmallEuropeBatch(id)||isAllIslands(id))),untouched.filter(g=>!g.sourceIds.some(isPacificBatch)).map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
  const attached=g=>(g.islandAttachments??[]).map(x=>x.join(':'));
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isAllIslands)).flatMap(attached).sort(),prior.flatMap(attached).sort());
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isAllIslands(id))).flatMap(attached).sort(),prior.filter(g=>!g.sourceIds.some(isPacificBatch)).flatMap(attached).sort());
 });
 
 test('stale membership and an unproven land attachment fail before atlas generation',()=>{
