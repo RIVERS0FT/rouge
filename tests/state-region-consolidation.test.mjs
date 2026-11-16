@@ -63,7 +63,7 @@ test('1.15.1 reunites whole adjacent Chukotka and Kamchatka only, preserving all
  assert.deepEqual(complete.sourceIds,expectedAtoms);
  assert.deepEqual(complete.displayName,['堪察加','Kamchatka']);
  assert.equal(after.has('group:RUS-3468'),false);
- assert.equal(PLAYABLE_COUNT,1135);
+ assert.equal(PLAYABLE_COUNT,1133);
  const id = provinceByCode('RUS-3468');
  const region = MAP[id];
  assert.deepEqual(region.sourceAtoms,expectedAtoms);

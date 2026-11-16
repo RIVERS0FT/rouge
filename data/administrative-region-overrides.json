@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "merges": [
+    {
+      "authority": "ROUGE gameplay",
+      "country": "CHN",
+      "primary": "group:CHN-1155",
+      "fragment": "group:CHN-1816",
+      "primarySourceIds": ["CHN-1155", "CHN-1811"],
+      "fragmentSourceIds": ["CHN-1816"],
+      "displayName": ["河北省", "Hebei"]
+    },
+    {
+      "authority": "ROUGE gameplay",
+      "country": "CHN",
+      "primary": "group:CHN-1818",
+      "fragment": "group:CHN-1819",
+      "primarySourceIds": ["CHN-1818"],
+      "fragmentSourceIds": ["CHN-1819"],
+      "displayName": ["江苏省", "Jiangsu"]
+    }
+  ]
+}

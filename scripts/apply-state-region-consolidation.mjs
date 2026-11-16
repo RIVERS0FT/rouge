@@ -11,8 +11,6 @@ export function applyCurrentStateMergers(base, originalGroups, decisions, audit)
     throw new Error('Current state mergers require the reviewed reference versions');
   }
   const states = new Map(audit.states.map(s => [s.id, s.code]));
-  const sameMembers = (actual, expected) => Array.isArray(expected) && actual.length === expected.length
-    && actual.every((id, i) => id === expected[i]);
   return mergeWholeGroups(base, originalGroups, decisions, 'confirmed-state-region-merger-1.15.1',
     (core, edge, entry) => core.legacyHint !== edge.legacyHint && states.get(core.legacyHint) !== undefined
       && states.get(edge.legacyHint) !== undefined
@@ -22,6 +20,21 @@ export function applyCurrentStateMergers(base, originalGroups, decisions, audit)
       && Array.isArray(entry.displayName) && entry.displayName.length === 2
       && entry.displayName.every(name => typeof name === 'string' && name.trim()));
 }
+
+/** Apply reviewed gameplay-only overrides, independent of any historical state reference. */
+export function applyAdministrativeGroupOverrides(base, originalGroups, decisions) {
+  const atoms = new Map(base.provinces.map(atom => [atom.id, atom]));
+  return mergeWholeGroups(base, originalGroups, decisions, 'gameplay-administrative-override',
+    (core, edge, entry) => entry.authority === 'ROUGE gameplay' && /^[A-Z]{3}$/.test(entry.country)
+      && sameMembers(core.sourceIds, entry.primarySourceIds) && sameMembers(edge.sourceIds, entry.fragmentSourceIds)
+      && [...core.sourceIds, ...edge.sourceIds].every(id => atoms.get(id)?.country === entry.country)
+      && !core.islandAttachments?.length && !edge.islandAttachments?.length
+      && Array.isArray(entry.displayName) && entry.displayName.length === 2
+      && entry.displayName.every(name => typeof name === 'string' && name.trim()));
+}
+
+const sameMembers = (actual, expected) => Array.isArray(expected) && actual.length === expected.length
+  && actual.every((id, i) => id === expected[i]);
 
 function mergeWholeGroups(base, originalGroups, decisions, reason, validReference) {
   if (decisions.schema !== 1 || !Array.isArray(decisions.merges)) throw new Error('Invalid state-region consolidation');
