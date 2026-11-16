@@ -1,6 +1,11 @@
+import {MARCH_FRACTIONS,marchDispatchCount,type MarchFraction} from '../game/countryActions.ts';
+import {acceptCountryLayouts} from './countryLayoutState.ts';
+import {BattleBadges} from './battleBadges.ts';
+import {battleContacts,type BattleContact} from './battleContacts.ts';
 import {OCEAN_LABEL_WORLD_WIDTH} from './oceanLabels.ts';
 import {DispatchPreview} from './dispatchPreview.ts';
 import {AttackArrows} from './attackArrows.ts';
+import {groundArrowProjection} from './groundArrowProjection.ts';
 import {AttackRouteTracker,type AttackRoute} from './attackRoutes.ts';
 import {dispatchSources,dispatchThreshold,type ScreenPoint} from './dispatchRibbon.ts';
 import {plaqueGarrisons,plaqueTerritories,type PlaqueTerritory} from './provincePlaques.ts';
@@ -102,10 +107,13 @@ export class WorldRenderer {
   private provinceLayer:HTMLDivElement;
   private dispatchPreview:DispatchPreview;
   private attackArrows:AttackArrows;
+  private battleBadges:BattleBadges;
+  private battles:BattleContact[]=[];
+  private battleTimer:number|null=null;private battleLast=0;
   private attacks:AttackRoute[]=[];private attackKey='';
   private attackTracker=new AttackRouteTracker();
   private actor=-1;
-  private dispatchDrag:{id:number;type:string;source:number;members:number[];start:ScreenPoint;cursor:ScreenPoint;dragging:boolean}|null=null;
+  private dispatchDrag:{id:number;type:string;source:number;members:number[];start:ScreenPoint;cursor:ScreenPoint;dragging:boolean;fraction:MarchFraction}|null=null;
   private dispatchTarget:{id:number;camera:string;path:string;outline:string}|null=null;
   private dispatchBoundaries=new Map<number,{members:number[];edges:BorderEdge[]}>();
   private provinceLabels=new Map<number,Plaque>();
@@ -148,7 +156,7 @@ export class WorldRenderer {
   private visibleUnitIds=new Set<number>();
   private infantry=new InfantryBatch(this.scene,()=>{this.invalidated=true;});
   private infantryMotion=new InfantryMotion();
-  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number)=>void) {
+  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number,fraction:MarchFraction)=>void) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
     this.camera.up.set(0,0,-1);
@@ -157,6 +165,7 @@ export class WorldRenderer {
     this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
     this.attackArrows=new AttackArrows(host);
+    this.battleBadges=new BattleBadges(host);
     this.dispatchPreview=new DispatchPreview(host);host.append(this.provinceLayer);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
@@ -306,6 +315,7 @@ export class WorldRenderer {
   update(state:GameState,selected:number,lang:'zh'|'en',actor:number) {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
     // movements accumulate from the last rendered state, never the previous tick.
+    const battleChange=this.state?.units!==state.units||this.state?.players!==state.players||this.actor!==actor;
     if(this.state!==state){
       this.attacks=this.attackTracker.read(state);
       const attackKey=this.attacks.map(route=>`${route.owner}:${route.from}:${route.to}`).join('|');
@@ -326,6 +336,7 @@ export class WorldRenderer {
     if(this.actor!==actor||this.state?.campaign!==state.campaign||this.state?.grouping.revision!==state.grouping.revision){this.cancelDispatch();this.invalidated=true;}
     this.actor=actor;
     this.state=state;
+    if(battleChange)this.scheduleBattleContacts();
     if(this.dispatchDrag&&state.provinces[this.dispatchDrag.source].owner!==actor)this.cancelDispatch();
     const grouping=state.grouping,stamp=`${state.campaign}:${grouping.revision}`;
     let ownershipChanged=false;
@@ -337,6 +348,10 @@ export class WorldRenderer {
     }
     const countryStamp=JSON.stringify([state.campaign,state.players.map(p=>[p.name,p.ai,p.country,p.flag])]);
     if(ownershipChanged||state.campaign!==this.countryCampaign){
+      if(state.campaign!==this.countryCampaign){
+        this.countryPlacements.clear();this.countryPlacementCache.clear();this.countryCurves.clear();
+        for(const label of this.countryLabels.values()){this.countryText.remove(label);label.remove();}this.countryLabels.clear();
+      }
       this.countryCampaign=state.campaign;this.countryComponents=buildCountryLabels(MAP,this.ownerIds,this.countryGeometry);this.lastLabels=0;this.invalidated=true;
       this.requestCountryLayout();
       this.renderer.domElement.dataset.countryAnchorRevision=String(++this.countryAnchorRevision);
@@ -380,9 +395,20 @@ export class WorldRenderer {
     const members=new Map<number,number[]>();
     for(let id=0;id<this.ownerIds.length;id++){const owner=this.ownerIds[id];if(owner<0||!MAP[id].visible)continue;const ids=members.get(owner)??[];ids.push(id);members.set(owner,ids);}
     this.countryMembers=new Map([...members].map(([owner,ids])=>[owner,ids.join(',')]));
-    // A changed country may no longer contain its old text. Hide only that
-    // country's stale layout while the worker fits its replacement.
-    for(const [owner,entry] of this.countryPlacementCache)if(entry.members!==this.countryMembers.get(owner)){this.countryPlacements.delete(owner);this.countryPlacementCache.delete(owner);}
+    for(const owner of this.countryPlacementCache.keys())if(!this.countryMembers.has(owner)){
+      this.countryPlacements.delete(owner);this.countryPlacementCache.delete(owner);this.countryCurves.delete(owner);
+    }
+    // Never blank an existing title while waiting for a worker. Gains keep the
+    // exact old path; losses refit only if invalid. Material growth stays visible
+    // here while the worker prepares a larger title against its last-fit baseline.
+    // This synchronous safety pass is bounded to changed, already-visible owners,
+    // never the initial full-country layout and never a camera/render frame.
+    const changed=this.countryComponents.filter(label=>{const old=this.countryPlacementCache.get(label.owner);return old&&old.members!==this.countryMembers.get(label.owner);});
+    if(changed.length){
+      const cache:CountryPlacementCache=new Map(changed.map(label=>[label.owner,this.countryPlacementCache.get(label.owner)!]));
+      const ready=buildCountryPlacements(MAP,this.ownerIds,changed,this.boundaryEdges,cache,BOUNDS,{deferGrowth:true});
+      for(const [owner,placement] of ready){this.countryPlacementCache.set(owner,cache.get(owner)!);this.countryPlacements.set(owner,placement);}
+    }
     this.countryLayoutPending={campaign:this.countryCampaign,owners:[...this.ownerIds],labels:this.countryComponents};
     if(!this.countryLayoutWorker){
       try{
@@ -392,9 +418,7 @@ export class WorldRenderer {
           if(this.countryLayoutWorker!==worker)return;
           if(data.type==='ready'){this.countryLayoutReady=true;this.flushCountryLayout();return;}
           this.countryLayoutBusy=false;
-          if(data.campaign===this.countryCampaign)for(const [owner,entry] of data.entries)if(entry.members===this.countryMembers.get(owner)){
-            this.countryPlacementCache.set(owner,entry);this.countryPlacements.set(owner,entry.placement);
-          }
+          acceptCountryLayouts(this.countryCampaign,this.countryMembers,this.countryPlacementCache,this.countryPlacements,data);
           this.invalidated=true;this.backgroundFrame=true;this.flushCountryLayout();
         };
         worker.onerror=()=>{if(this.countryLayoutWorker===worker){worker.terminate();this.countryLayoutWorker=null;this.countryLayoutReady=false;this.countryLayoutBusy=false;this.renderer.domElement.dataset.countryLayoutState='failed';}};
@@ -535,9 +559,18 @@ export class WorldRenderer {
   private dispatchOutsidePointer=(event:PointerEvent)=>{
     if(this.dispatchDrag&&event.pointerId!==this.dispatchDrag.id&&(event.pointerType==='touch'||event.pointerType==='pen')&&!this.host.contains(event.target as Node))this.cancelDispatch();
   };
+  private cycleDispatchFraction(){
+    const gesture=this.dispatchDrag;if(!gesture?.dragging)return;
+    gesture.fraction=MARCH_FRACTIONS[(MARCH_FRACTIONS.indexOf(gesture.fraction)+1)%MARCH_FRACTIONS.length];
+    this.drawDispatch();
+  }
   private dispatchKey=(event:KeyboardEvent)=>{
-    if(event.key!=='Escape'||!this.dispatchDrag)return;
-    this.cancelDispatch();event.preventDefault();event.stopImmediatePropagation();
+    if(!this.dispatchDrag||!this.mapInput.active)return;
+    if(event.key==='Escape')this.cancelDispatch();
+    else if(event.key==='Tab'&&this.dispatchDrag.dragging&&!event.shiftKey&&!event.altKey&&!event.ctrlKey&&!event.metaKey){
+      if(!event.repeat)this.cycleDispatchFraction();
+    }else return;
+    event.preventDefault();event.stopImmediatePropagation();
   };
   private plaqueWheel=(event:WheelEvent)=>{if(this.plaqueAt(event.target as Element))this.wheel(event);};
   private plaquePointerDown=(e:PointerEvent)=>{
@@ -545,6 +578,9 @@ export class WorldRenderer {
     const touch=e.pointerType==='touch'||e.pointerType==='pen',gesture=this.dispatchDrag,plaque=this.plaqueAt(e.target as Element);
     if(gesture){
       if(e.pointerId===gesture.id||!touch)return;
+      if(gesture.dragging&&gesture.type!=='mouse'&&this.dispatchPreview.isTierControl(e.target)){
+        this.cycleDispatchFraction();e.preventDefault();e.stopImmediatePropagation();return;
+      }
       this.cancelDispatch();
       // Promote the first contact to the ordinary pinch recognizer. It was
       // captured by the canvas from the start, so neither touch is lost.
@@ -558,7 +594,7 @@ export class WorldRenderer {
     const source=Number(plaque.dataset.region),territory=this.plaqueTerritories.find(group=>group.id===source);
     if(!territory||this.ownerIds[source]!==this.actor)return;
     const point={x:e.clientX,y:e.clientY};
-    this.dispatchDrag={id:e.pointerId,type:e.pointerType,source,members:territory.members,start:point,cursor:point,dragging:false};
+    this.dispatchDrag={id:e.pointerId,type:e.pointerType,source,members:territory.members,start:point,cursor:point,dragging:false,fraction:1};
     // Hover can pick across overlays via elementFromPoint, but releases must
     // reach this renderer even outside the canvas.
     try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{/* Synthetic pointer events. */}
@@ -604,9 +640,24 @@ export class WorldRenderer {
     const {x:clientX,y:clientY}=gesture.cursor,host=this.host.getBoundingClientRect(),plaque=this.provinceLabels.get(gesture.source);
     if(!plaque||plaque.element.hidden){this.cancelDispatch();return;}
     const id=this.dispatchRegion(clientX,clientY);
-    const anchor=(region:number):ScreenPoint=>{const point=MAP[region].center,p=this.unitPoint.set(nearestWorldX(point.x,this.focus.x),LAND_Y+.16,point.z).project(this.camera);return{x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};};
+    const anchor=(region:number,nearX:number):ScreenPoint=>{const point=MAP[region].center;return{x:nearestWorldX(point.x,nearX),y:point.z};};
+    const source=anchor(gesture.source,this.focus.x),cursor={x:clientX-host.x,y:clientY-host.y};
+    const projection=groundArrowProjection(this.camera,this.viewportWidth,this.viewportHeight,LAND_Y);
+    const hit=new THREE.Vector3();let ground:ScreenPoint|null=null;
+    if(id>=0){ground=anchor(id,source.x);}
+    else {
+      this.pointer.set(cursor.x/this.viewportWidth*2-1,1-cursor.y/this.viewportHeight*2);this.ray.setFromCamera(this.pointer,this.camera);
+      if(this.ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),-LAND_Y),hit))ground={x:hit.x,y:hit.z};
+    }
     const target=this.dispatchTargetPath(id);
-    this.dispatchPreview.draw(anchor(gesture.source),id>=0?anchor(id):{x:clientX-host.x,y:clientY-host.y},id,target.path,target.outline);
+    this.dispatchPreview.draw(source,ground,projection,ground&&id>=0?projection.point(ground)??cursor:cursor,id,target.path,target.outline);
+    const sources=id>=0?dispatchSources(gesture.members,id,this.actor,this.ownerIds,this.provinceGarrisons):gesture.members.filter(member=>this.ownerIds[member]===this.actor);
+    const count=sources.reduce((sum,member)=>{
+      const queued=this.state?.provinces[member]?.march;
+      if(queued&&queued.owner===this.actor&&queued.to===id&&(queued.fraction??1)===gesture.fraction)return sum+queued.pendingIds.length;
+      return sum+marchDispatchCount(this.provinceGarrisons[member]??0,gesture.fraction);
+    },0);
+    this.dispatchPreview.showTier(gesture.fraction,count,this.lang,gesture.type!=='mouse');
   }
   private pointerDown=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
@@ -676,7 +727,7 @@ export class WorldRenderer {
       const target=this.dispatchRegion(e.clientX,e.clientY),sources=dispatchSources(gesture.members,target,this.actor,this.ownerIds,this.provinceGarrisons);
       if(!sources.length){this.cancelDispatch();return;}
       this.dispatchDrag=null;this.provinceLabels.get(gesture.source)?.element.removeAttribute('data-dispatching');
-      this.dispatchPreview.release();this.onDispatch(sources,target);return;
+      this.dispatchPreview.release();this.onDispatch(sources,target,gesture.fraction);return;
     }
     if(e.pointerType==='touch'||e.pointerType==='pen'){
       if(!this.touches.has(e.pointerId))return;
@@ -944,23 +995,44 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
     this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites='0';this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.infantry.count);this.renderer.domElement.dataset.unitSpritePixels='0';
     this.renderer.domElement.dataset.unitModelAsset=!models?'none':batch?'infantry-v10':this.infantry.failed?'fallback':'loading';
+    this.drawBattleBadges();
     this.renderer.domElement.dataset.renderedWalkingModels=String(this.infantry.walking);
     this.renderer.domElement.dataset.renderedShootingModels=String(this.infantry.shooting);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
+  private scheduleBattleContacts(){
+    if(this.actor<0){
+      if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleTimer=null;
+      if(this.battles.length){this.battles=[];this.invalidated=true;}return;
+    }
+    if(this.battleTimer!==null)return;
+    const update=()=>{
+      this.battleTimer=null;this.battleLast=performance.now();if(!this.state||this.actor<0)return;
+      const battles=battleContacts(this.state);
+      if(battles.length||this.battles.length)this.invalidated=true;
+      this.battles=battles;
+    };
+    // Coalesce accelerated/remote simulation frames (and still consume a last,
+    // paused snapshot), but project existing badges on every camera frame.
+    const delay=100-(performance.now()-this.battleLast);
+    if(delay>0)this.battleTimer=window.setTimeout(update,delay);else update();
+  }
+  private drawBattleBadges(){
+    if(!this.state)return;
+    this.battleBadges.draw(this.actor>=0?this.battles:[],this.state.players,this.actor,battle=>{
+      const p=this.unitPoint.set(nearestWorldX(battle.x,this.focus.x),LAND_Y+1.3,battle.z).project(this.camera);
+      if(p.z<-1||p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;
+      return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};
+    },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner));
+  }
   private drawAttackArrows(){
+    const projection=groundArrowProjection(this.camera,this.viewportWidth,this.viewportHeight,LAND_Y);
     this.attackArrows.draw(this.attacks,(route,copy)=>{
       const from=MAP[route.from]?.center,to=MAP[route.to]?.center;if(!from||!to)return null;
       const sourceX=nearestWorldX(from.x,this.focus.x)+copy*WORLD_WIDTH,targetX=nearestWorldX(to.x,sourceX);
-      const project=(point:Vec2,x:number):ScreenPoint|null=>{
-        const p=this.unitPoint.set(x,LAND_Y+.16,point.z).project(this.camera);
-        return p.z>=-1&&p.z<=1?{x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2}:null;
-      };
-      const a=project(from,sourceX),b=project(to,targetX);if(!a||!b)return null;
-      if(Math.max(a.x,b.x)<-48||Math.min(a.x,b.x)>this.viewportWidth+48||Math.max(a.y,b.y)<-48||Math.min(a.y,b.y)>this.viewportHeight+48)return null;
-      return [a,b];
-    },factionColor);
+      return [{x:sourceX,y:from.z},{x:targetX,y:to.z}];
+    },projection,this.viewportWidth,this.viewportHeight,factionColor);
   }
   private drawWorld(){
     if(this.blend>0){this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.renderer.render(this.scene,this.camera);return;}
@@ -989,7 +1061,9 @@ export class WorldRenderer {
     try{this.renderer.render(this.scene,this.camera);}
     finally{this.flatMapCache.surface.visible=false;for(let i=0;i<backgrounds.length;i++)backgrounds[i].visible=visible[i];}
   }
-  dispose(){this.infantry.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+  dispose(){
+    if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleBadges.dispose();
+    this.infantry.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
     cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
     for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}

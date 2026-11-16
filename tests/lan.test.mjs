@@ -25,7 +25,7 @@ test('real HTTP LAN: two online seats, host-only start, token-bound commands and
  }finally{await host.close();}
 });
 
-test('real HTTP LAN uses the full march contract and rejects payload ownership and partial orders',async()=>{
+test('real HTTP LAN accepts percentage march orders and rejects forged ownership and unsupported ratios',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`;
  const post=async(path,body,token)=>{
@@ -38,16 +38,16 @@ test('real HTTP LAN uses the full march contract and rejects payload ownership a
   const b=(await post(path+'/join',{setup})).data;
   assert.equal((await post(path+'/start',{},a.token)).status,200);
   // Use the same deterministic friendly route as the local worker test.
-  const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to);
+  const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to,.5);
   host.rooms.get(a.code).engine=e;
-  for(const command of [{...action,fraction:.5},{type:'march',from,to},{...action,fraction:'1'}]){
+  for(const command of [{...action,fraction:.6},{type:'march',from,to},{...action,fraction:'1'}]){
    assert.deepEqual(await post(path+'/command',{command},a.token),{status:400,data:{ok:false,error:'invalidCommand'}});
    assert.equal(e.state.provinces[from].march,undefined);
    assert.equal(e.state.units.filter(u=>u.origin===from&&u.target!==null).length,0);
   }
   assert.deepEqual(await post(path+'/command',{actor:0,command:action},b.token),{status:400,data:{ok:false,error:'notOwner'}});
   assert.deepEqual(await post(path+'/command',{command:action},a.token),{status:200,data:{ok:true}});
-  assert.equal(e.state.provinces[from].march.pendingIds.length,11);
+  assert.equal(e.state.provinces[from].march.pendingIds.length,5);
   assert.equal(e.state.units.filter(u=>u.origin===from&&u.target===to).length,1);
  }finally{await host.close();}
 });

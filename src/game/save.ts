@@ -1,3 +1,4 @@
+import {isMarchFraction} from './countryActions.ts';
 import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
@@ -43,7 +44,7 @@ export function validateState(value:unknown):value is GameState{
     if(p.march===undefined)continue;
     const order=p.march;
     if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable)return false;
-    if(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)||Object.hasOwn(order,'unitIds'))return false;
+    if(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)||(order.fraction!==undefined&&!isMarchFraction(order.fraction))||Object.hasOwn(order,'unitIds'))return false;
     const orderIds=order.pendingIds;
     if(!Array.isArray(orderIds)||orderIds.length<1||orderIds.length>s.units.length||new Set(orderIds).size!==orderIds.length||!orderIds.every(id=>integer(id,1,s.nextId-1)))return false;
   }

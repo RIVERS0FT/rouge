@@ -1,6 +1,6 @@
 import {updateUnitsFallback} from './unitFallback.ts';
 import {initializeBattleMemory,kernel,blockedByBuildings,type UnitCensus,separateGround,updateBattleUnits} from './groundKernel.ts';
-import {countryActions, type CountryAction} from './countryActions.ts';
+import {countryActions,isMarchFraction,marchDispatchCount,type CountryAction} from './countryActions.ts';
 import {availableTalentIds,canRerollTalent,talentRerollCost} from './talentReroll.ts';
 import {assignCountryNames} from './countryNames.ts';
 import { isEliminated, settleEliminations } from './elimination.ts';
@@ -129,18 +129,26 @@ export class Engine{
         const result=applyGroupingCommand(s,actor,input);if(!result.ok)return fail(result.error);s.grouping=result.state;return{ok:true};
       }
       case 'march':{
-        if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||c.fraction!==1)return fail('invalidCommand');
+        if(!Number.isInteger(c.from)||!Number.isInteger(c.to)||!isMarchFraction(c.fraction))return fail('invalidCommand');
         const from=s.provinces[c.from],to=s.provinces[c.to];if(!from||!to||from.owner!==actor)return fail('notOwner');
         if(!MAP[c.from].playable||!MAP[c.to].playable||c.from===c.to)return fail('invalidCommand');
-        const available=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
+        const queued=from.march?.owner===actor?from.march:undefined;
+        if(queued?.to===c.to&&(queued.fraction??1)===c.fraction)return{ok:true};
+        // A new order chooses from troops still at the source. Marchers have
+        // their own routes and must not be changed, even while near the source.
+        const garrison=s.units.filter(u=>isRegionGarrison(u,actor,c.from));
+        const available=garrison.slice(0,marchDispatchCount(garrison.length,c.fraction));
         if(!available.length)return fail('noTroops');
         const friendly=to.owner===actor;
         const startsNow=from.lastMarchTick===undefined||s.tick-from.lastMarchTick>=MARCH_INTERVAL_TICKS;
+        // Check reachability before replacing a valid order even when the
+        // current departure interval prevents us from sending anyone now.
+        if(!startsNow&&!available.some(u=>this.planMarch(u,c.to)))return fail('unreachable');
         const first=startsNow?this.dispatchOne(available,c.to):null;
         if(startsNow&&!first)return fail('unreachable');
         if(first)from.lastMarchTick=s.tick;
         const pendingIds=available.filter(u=>u.id!==first).map(u=>u.id);
-        if(pendingIds.length)from.march={to:c.to,owner:actor,pendingIds,...(friendly?{reserved:true}:{})};else delete from.march;
+        if(pendingIds.length)from.march={to:c.to,owner:actor,pendingIds,fraction:c.fraction,...(friendly?{reserved:true}:{})};else delete from.march;
         return{ok:true};
       }
       case 'construct':{
@@ -313,7 +321,17 @@ export class Engine{
       const key=popKey(province.owner,province.id);
       if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=regionCapacity(province.id))continue;
       province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
-      if(province.production>=UNITS[province.kind].train){province.production-=UNITS[province.kind].train;if(!spawn(s,province.id,province.kind,undefined,this.spawnNeighbors(province.id)))province.production=UNITS[province.kind].train;else this.indexSpawned(s.units[s.units.length-1]);}
+      if(province.production>=UNITS[province.kind].train){
+        province.production-=UNITS[province.kind].train;
+        if(!spawn(s,province.id,province.kind,undefined,this.spawnNeighbors(province.id)))province.production=UNITS[province.kind].train;
+        else{
+          const fresh=s.units[s.units.length-1];this.indexSpawned(fresh);
+          // Full departures pull in fresh recruits only until the queue closes.
+          // Replace the order object so LAN/broadcast deltas see the new ID.
+          const order=province.march;
+          if(order?.fraction===1&&order.owner===province.owner)province.march={...order,pendingIds:[...order.pendingIds,fresh.id]};
+        }
+      }
     }
     this.releaseMarches();
     // All captures have settled: losing then gaining a region in this tick is not defeat.
@@ -366,9 +384,13 @@ export class Engine{
       if(pending.length)province.march={...order,pendingIds:pending};else delete province.march;
     }
   }
+  private planMarch(unit:Unit,to:number){
+    const st=stats(this.state.players[unit.owner],unit.kind);
+    return this.navigation.plan(unit,MAP[to].center,st.speed,st.seaSpeed);
+  }
   private dispatchOne(units:Unit[],to:number):number|null{
     for(const u of units){
-      const st=stats(this.state.players[u.owner],u.kind),travel=this.navigation.plan(u,MAP[to].center,st.speed,st.seaSpeed);if(!travel)continue;
+      const travel=this.planMarch(u,to);if(!travel)continue;
       u.target=to;u.origin=u.province;u.destination=to;u.route=[];u.travel=travel;delete u.transport;this.physicsDirty.units.add(u);
       if(this.state.provinces[to].owner!==u.owner)u.assault=to;else delete u.assault;
       return u.id;

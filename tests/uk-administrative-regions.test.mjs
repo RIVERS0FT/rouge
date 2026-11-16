@@ -133,7 +133,7 @@ test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 stora
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
   assert.equal(STATE_VERSION,20);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
   assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v20.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);

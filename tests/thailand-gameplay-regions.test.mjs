@@ -60,7 +60,7 @@ test('all Thai source areas and city anchors select exactly four locked gameplay
   for(const alias of aliases)assert.ok(searchProvinces(alias).some(r=>r.id===regions[i].id),alias);
  }
  assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v33');
 });
 
 test('Phuket keeps its sea crossing while Nong Khai joins physically touching Northeast land',()=>{

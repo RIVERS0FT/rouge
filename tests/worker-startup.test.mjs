@@ -25,11 +25,11 @@ test('actual worker advertises readiness, initializes, applies upgrades and adva
  assert.deepEqual(messages.at(-2),{type:'result',result:{ok:true}});assert.equal(current.players[0].upgrades.infantry.attack,1);assert.equal(messages.at(-1).full,false);
  await advance();await advance();assert.equal(messages.at(-1).state.tick,2);
 });
-test('actual worker uses the authoritative full march contract and ignores a payload actor',async()=>{
- const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to);
+test('actual worker uses the authoritative percentage march contract and ignores a payload actor',async()=>{
+ const {e,from,to}=garrisonFixture(),action=countryActions.march(from,to,.5);
  await receive({type:'init',state:e.state});
  const before=current;
- for(const invalid of [{...action,fraction:.5},{type:'march',from,to},{...action,fraction:'1'}]){
+ for(const invalid of [{...action,fraction:.6},{type:'march',from,to},{...action,fraction:'1'}]){
   await receive({type:'command',command:invalid});
   assert.deepEqual(messages.at(-2),{type:'result',result:{ok:false,error:'invalidCommand'}});
   assert.deepEqual(current,before);
@@ -40,7 +40,7 @@ test('actual worker uses the authoritative full march contract and ignores a pay
  assert.deepEqual(current,before);
  await receive({type:'command',command:action});
  assert.deepEqual(messages.at(-2),{type:'result',result:{ok:true}});
- assert.equal(current.provinces[from].march.pendingIds.length,11);
+ assert.equal(current.provinces[from].march.pendingIds.length,5);
 });
 test('actual worker explicitly rejects invalid initialization instead of appearing inert',async()=>{
  await receive({type:'init',state:{}});assert.deepEqual(messages.at(-1),{type:'error',error:'invalidSave'});

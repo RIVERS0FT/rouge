@@ -52,7 +52,9 @@ export class CountryLabelText {
   let entry=this.entries.get(key);
   if(!entry){entry={texture:null,users:new Set(),pending:true};this.entries.set(key,entry);this.generate(key,svg,width,height);}
   entry.users.add(mesh);mesh.visible=!!entry.texture;mesh.material.uniforms.uText.value=entry.texture;
-  if(entry.texture&&label.dataset.textRenderer!=='distance-field'){svg.style.display='none';label.dataset.textRenderer='distance-field';}
+  // A same-key texture can have been evicted while its label was offscreen.
+  // Restore the SVG too, otherwise both visual layers stay hidden until ready.
+  svg.style.display=entry.texture?'none':'block';label.dataset.textRenderer=entry.texture?'distance-field':'svg';
  }
  private generate(key:string,svg:SVGSVGElement,width:number,height:number){
   try{
