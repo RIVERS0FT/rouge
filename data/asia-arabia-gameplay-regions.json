@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "regions": [
+    {
+      "id": "group:TLS-541",
+      "groups": {
+        "group:TLS-541": [
+          "TLS-541",
+          "TLS-542",
+          "TLS-544",
+          "TLS-545",
+          "TLS-546",
+          "TLS-547",
+          "TLS-548",
+          "TLS-549",
+          "TLS-550",
+          "TLS-551",
+          "TLS-552",
+          "TLS-553"
+        ],
+        "group:TLS-543": [
+          "TLS-543"
+        ]
+      },
+      "displayName": [
+        "东帝汶",
+        "Timor-Leste"
+      ],
+      "addedGroupingLinks": [
+        [
+          "TLS-543",
+          "TLS-542"
+        ]
+      ],
+      "anchorAtomId": "TLS-541"
+    },
+    {
+      "id": "group:MYS-1137",
+      "groups": {
+        "group:MYS-1137": [
+          "MYS-1137",
+          "MYS-1139",
+          "MYS-1143",
+          "MYS-1144",
+          "MYS-1145",
+          "MYS-1146",
+          "MYS-1147",
+          "MYS-1148",
+          "MYS-1149",
+          "MYS-4831",
+          "MYS-4832",
+          "SGP-4871",
+          "SGP-4872",
+          "SGP-4873",
+          "SGP-4874",
+          "SGP-4875"
+        ],
+        "group:MYS-1140": [
+          "MYS-1140",
+          "MYS-1141"
+        ]
+      },
+      "displayName": [
+        "马来半岛",
+        "Malay Peninsula"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:KWT-1663",
+      "groups": {
+        "group:KWT-1663": [
+          "KWT-1663"
+        ],
+        "group:KWT-1664": [
+          "KWT-1664",
+          "KWT-1665",
+          "KWT-1666",
+          "KWT-1667"
+        ],
+        "group:KWT-3506": [
+          "KWT-3506"
+        ]
+      },
+      "displayName": [
+        "科威特",
+        "Kuwait"
+      ],
+      "addedGroupingLinks": [],
+      "anchorAtomId": "KWT-1663"
+    },
+    {
+      "id": "group:BHR-4926",
+      "groups": {
+        "group:BHR-4926": [
+          "BHR-4926",
+          "BHR-4927",
+          "BHR-4928",
+          "BHR-4929"
+        ],
+        "group:BHR-4930": [
+          "BHR-4930"
+        ]
+      },
+      "displayName": [
+        "巴林",
+        "Bahrain"
+      ],
+      "addedGroupingLinks": [
+        [
+          "BHR-4930",
+          "BHR-4929"
+        ]
+      ],
+      "anchorAtomId": "BHR-4929"
+    },
+    {
+      "id": "group:SAU-1096",
+      "groups": {
+        "group:SAU-1096": [
+          "SAU-1096",
+          "SAU-1097",
+          "SAU-1098"
+        ]
+      },
+      "displayName": [
+        "内志",
+        "Nejd"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:SAU-845",
+      "groups": {
+        "group:SAU-845": [
+          "SAU-845",
+          "SAU-848",
+          "SAU-885",
+          "SAU-886",
+          "SAU-887",
+          "SAU-888"
+        ]
+      },
+      "displayName": [
+        "汉志",
+        "Hedjaz"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:SAU-846",
+      "groups": {
+        "group:SAU-846": [
+          "SAU-846",
+          "SAU-847",
+          "SAU-861",
+          "SAU-862"
+        ]
+      },
+      "displayName": [
+        "哈伊勒",
+        "Ha'il"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:OMN-2404",
+      "groups": {
+        "group:OMN-2404": [
+          "OMN-2404",
+          "OMN-2405",
+          "OMN-2406",
+          "OMN-2411",
+          "OMN-2414",
+          "OMN-2424",
+          "OMN-2426",
+          "OMN-4836",
+          "OMN-5496",
+          "OMN-5497"
+        ]
+      },
+      "displayName": [
+        "阿曼本土",
+        "Mainland Oman"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:YEM-150",
+      "groups": {
+        "group:YEM-150": [
+          "YEM-150",
+          "YEM-151",
+          "YEM-152",
+          "YEM-153",
+          "YEM-154",
+          "YEM-155",
+          "YEM-156",
+          "YEM-157",
+          "YEM-158",
+          "YEM-332",
+          "YEM-333",
+          "YEM-334",
+          "YEM-335",
+          "YEM-336",
+          "YEM-337",
+          "YEM-3496",
+          "YEM-3497",
+          "YEM-3498",
+          "YEM-3499",
+          "YEM-3510",
+          "YEM-3511"
+        ]
+      },
+      "displayName": [
+        "也门",
+        "Yemen"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:ARE-338",
+      "groups": {
+        "group:ARE-338": [
+          "ARE-338",
+          "ARE-339",
+          "ARE-341",
+          "ARE-344",
+          "ARE-346",
+          "ARE-347",
+          "ARE-348",
+          "ARE-349",
+          "ARE-350"
+        ]
+      },
+      "displayName": [
+        "阿联酋",
+        "United Arab Emirates"
+      ],
+      "addedGroupingLinks": []
+    },
+    {
+      "id": "group:QAT-1099",
+      "groups": {
+        "group:QAT-1099": [
+          "QAT-1099",
+          "QAT-1100",
+          "QAT-1101",
+          "QAT-1105",
+          "QAT-1106",
+          "QAT-1107",
+          "QAT-5487"
+        ]
+      },
+      "displayName": [
+        "卡塔尔",
+        "Qatar"
+      ],
+      "addedGroupingLinks": []
+    }
+  ]
+}
