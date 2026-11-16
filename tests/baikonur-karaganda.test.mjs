@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {MAP,SOURCE_MAP,SOURCE_TOPOLOGY,PREPROCESSED_GROUPING,BOUNDS,provinceByCode,provinceAt,searchProvinces} from '../src/game/map.ts';
+import {MAP,SOURCE_MAP,PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING,BOUNDS,provinceByCode,provinceAt,searchProvinces} from '../src/game/map.ts';
 import {createTerritoryGrouping,applyTerritoryGrouping,validateTerritoryGrouping} from '../src/game/territoryGrouping.ts';
 import {buildBorderEdges} from '../src/render/territoryBorders.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
@@ -27,7 +27,7 @@ test('explicit Baikonur merge changes only the two requested groups, preserving 
  assert.deepEqual(baikonur.neighbors.map(id=>SOURCE_MAP[id].code),['KAZ-3197'],'Baikonur touches Qyzylorda, not the original Qaraghandy atom');
  const expectedNeighbors=new Set(members.flatMap(code=>SOURCE_MAP.find(p=>p.code===code).neighbors).map(id=>provinceByCode(SOURCE_MAP[id].code)));expectedNeighbors.delete(region.id);
  assert.deepEqual(region.neighbors,[...expectedNeighbors].sort((a,b)=>a-b));
- assert.ok(validateTerritoryGrouping(SOURCE_TOPOLOGY,PREPROCESSED_GROUPING));
+ assert.ok(validateTerritoryGrouping(PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING));
  for(const code of members){const source=SOURCE_MAP.find(p=>p.code===code);assert.equal(provinceByCode(code),region.id);assert.equal(provinceAt(source.center.x,source.center.z),region.id);for(const part of source.parts)assert.ok(region.parts.includes(part));}
  for(const query of ['拜科努尔','Baykonur','KAB+00?','卡拉干达','Qaraghandy','KAZ-3203'])assert.deepEqual(searchProvinces(query).map(p=>p.id),[region.id]);
 });
@@ -39,9 +39,9 @@ test('Baikonur border disappears as an internal source seam without editing the 
  for(const edge of sourceEdges)assert.equal(runtimeKeys.has(segmentKey(edge)),false,'No leftover coastline, country or selection seam at the enclave');
  assert.equal(MAP.reduce((n,p)=>n+p.parts.length,0),SOURCE_MAP.reduce((n,p)=>n+p.parts.length,0));
  // A future explicit unlock can still separate this entire original atom.
- const unlocked=createTerritoryGrouping(SOURCE_TOPOLOGY,PREPROCESSED_GROUPING.groups.map(g=>g.atoms));
+ const unlocked=createTerritoryGrouping(PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING.groups.map(g=>g.atoms));
  const ledger=Object.fromEntries(SOURCE_MAP.map(p=>[p.code,{owner:0,troops:0,production:0,productionRate:1,capacity:12}]));
- const result=applyTerritoryGrouping(SOURCE_TOPOLOGY,unlocked,ledger,0,{type:'split',mapId:unlocked.mapId,expectedRevision:0,group:unlocked.atomToGroup['KAB+00?'],atoms:['KAB+00?']});
+ const result=applyTerritoryGrouping(PREPROCESSED_TOPOLOGY,unlocked,ledger,0,{type:'split',mapId:unlocked.mapId,expectedRevision:0,group:unlocked.atomToGroup['KAB+00?'],atoms:['KAB+00?']});
  assert.equal(result.ok,true);assert.equal(result.state.groups.length,MAP.length+1);assert.deepEqual(result.state.groups.find(g=>g.atoms.includes('KAB+00?')).atoms,['KAB+00?']);
 });
 
@@ -59,7 +59,7 @@ test('Baikonur and Karaganda have one queue, garrison, capture, ownership count 
 
 test('pre-merge v4 saves and LAN snapshots reject explicitly and old storage remains untouched',()=>{
  const s=game(),old={...s,map:'earth-natural-earth-admin1-511-regions-v4'},body=JSON.stringify(old),raw=JSON.stringify({version:1,name:'Before merge',savedAt:new Date().toISOString(),hash:checksum(body),body});
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v6');assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v7.');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v7');assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v8.');
  assert.throws(()=>decodeSave(raw),/incompatibleMap/);assert.throws(()=>applyFrame(null,{type:'state',state:old}),/incompatibleMap/);
  const oldKey='rouge.save.natural-earth-admin1.regions.v4.same',records=new Map([[oldKey,raw]]),storage={get length(){return records.size},key:i=>[...records.keys()][i]??null,getItem:k=>records.get(k)??null,setItem:(k,v)=>records.set(k,v),removeItem:k=>records.delete(k)};
  writeSave(storage,'same',s,'After merge');assert.equal(listSaves(storage).length,1);deleteSave(storage,'same');assert.equal(records.get(oldKey),raw);
