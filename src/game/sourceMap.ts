@@ -75,24 +75,28 @@ export const SOURCE_TOPOLOGY:TerritoryTopology={mapId:data.mapId,atoms:SOURCE_MA
 // terrain navigator never consume these non-physical membership links.
 const byCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 const groupingNeighbors=new Map(SOURCE_TOPOLOGY.atoms.map(atom=>[atom.id,new Set(atom.neighbors)]));
-for(const group of data.gameplayGroups)for(const [island,mainland] of group.islandAttachments??[]){
-  const a=byCode.get(island),b=byCode.get(mainland);
+for(const group of data.gameplayGroups)for(const [island,hub] of group.islandAttachments??[]){
+  const a=byCode.get(island),b=byCode.get(hub);
   if(!a?.visible||!b?.visible)continue;
-  groupingNeighbors.get(island)!.add(mainland);
-  groupingNeighbors.get(mainland)!.add(island);
+  groupingNeighbors.get(island)!.add(hub);
+  groupingNeighbors.get(hub)!.add(island);
 }
 export const PREPROCESSED_TOPOLOGY:TerritoryTopology={...SOURCE_TOPOLOGY,atoms:SOURCE_TOPOLOGY.atoms.map(atom=>({...atom,neighbors:[...groupingNeighbors.get(atom.id)!]}))};
 // Cropping can remove a real border. Split the initial reference group into
 // remaining components, keeping only the explicitly reviewed island memberships.
 const initialParts:string[][]=[];
 export const PREPROCESSED_GROUP_NAMES=new Map<string,[string,string]>();
+export const PREPROCESSED_GROUP_ANCHORS=new Map<string,string>();
 for(const g of data.gameplayGroups){
   const remaining=new Set(g.atomIds);
   for(const start of [...remaining].sort())if(remaining.delete(start)){
     const part=[start];for(let i=0;i<part.length;i++)for(const code of groupingNeighbors.get(part[i])!){if(remaining.delete(code))part.push(code);}
     initialParts.push(part);
     // Use a curated name only for the complete group, never for crop fragments.
-    if(g.displayName&&part.length===g.atomIds.length)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
+    if(part.length===g.atomIds.length){
+      if(g.displayName)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
+      if(g.anchorAtomId&&part.includes(g.anchorAtomId)&&byCode.get(g.anchorAtomId)?.playable)PREPROCESSED_GROUP_ANCHORS.set(start,g.anchorAtomId);
+    }
   }
 }
 export const PREPROCESSED_GROUPING=createTerritoryGrouping(PREPROCESSED_TOPOLOGY,initialParts,{locked:true});
