@@ -10,9 +10,9 @@ const site=process.env.SITE_URL?.replace(/\/?$/,'/');
 assert.ok(site?.startsWith('https://'),'HTTPS Pages URL required');
 const pkg=JSON.parse(fs.readFileSync('game/package.json','utf8'));
 const atlas=JSON.parse(fs.readFileSync('game/src/generated/gameplay-map.json','utf8'));
-const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v16';
+const regions=atlas.mapId==='earth-natural-earth-admin1-511-regions-v17';
 assert.ok(regions,'Expected preprocessed gameplay-region map');
-const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{cwd:'game',encoding:'utf8',maxBuffer:16*1024*1024}));
+const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{cwd:'game',encoding:'utf8',maxBuffer:16*923*923}));
 
 fs.mkdirSync('artifacts',{recursive:true});
 let info;

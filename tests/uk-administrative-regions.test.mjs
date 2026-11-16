@@ -59,8 +59,8 @@ test('all 232 UK source areas resolve into 11 playable regions derived from the 
   assert.deepEqual([...members].sort(),SOURCE_MAP.map(a=>a.code).filter(isUk).sort());
   assert.equal(members.size,232);
   assert.equal(MAP.filter(p=>isUk(p.code)).length,11);
-  assert.equal(MAP_METADATA.count,1028);
-  assert.equal(MAP_METADATA.playableCount,1024);
+  assert.equal(MAP_METADATA.count,927);
+  assert.equal(MAP_METADATA.playableCount,923);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
   for(const [code,query,name] of [['GBR-4809','Westminster','London and Surrounding Areas'],['GBR-3409','Kent','London and Surrounding Areas'],['GBR-2082','Belfast','Northern Ireland'],['GBR-2764','Nottinghamshire','East Midlands']]){
     const region=byCode(code);
@@ -76,7 +76,7 @@ test('all 232 UK source areas resolve into 11 playable regions derived from the 
 test('non-UK groups including modern France, Crown dependencies and overseas areas are unchanged',()=>{
   const afterOverrides=repartitionSwissRegions(base,repartitionMaldives(base,applyAdministrativeGroupOverrides(base,prior,adminOverrides),maldives),swiss);
   const remaining=afterOverrides.filter(g=>!g.sourceIds.some(id=>isUk(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id)));
-  assert.equal(afterOverrides.length-remaining.length,17+29+6+18+14+41+22);
+  assert.equal(afterOverrides.length-remaining.length,17+29+6+18+14+41+22+110);
   assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isUk(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
     remaining.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
   assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
@@ -132,9 +132,9 @@ test('UK preprocessing rejects missing island reviews and duplicate or foreign m
 test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
-  assert.equal(STATE_VERSION,17);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v29');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v17.');
+  assert.equal(STATE_VERSION,18);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v30');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v18.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:7,map:'earth-natural-earth-admin1-511-regions-v6'};

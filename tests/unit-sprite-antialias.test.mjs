@@ -21,7 +21,7 @@ test('sprite texture uses a bounded padded POT atlas and trilinear minification'
 });
 
 test('batched sprite shader maps canvas rows upright and preserves fractional alpha',()=>{
- const texture=new THREE.Texture(),mesh=createUnitSpriteMesh(texture,1024);
+ const texture=new THREE.Texture(),mesh=createUnitSpriteMesh(texture,923);
  assert.equal(mesh.material.alphaTest,0);assert.equal(mesh.material.transparent,true);
  const shader={vertexShader:'#include <uv_vertex>'};mesh.material.onBeforeCompile(shader);
  assert.match(shader.vertexShader,/mod\(unitGlyph, 4\.0\)/);

@@ -1,0 +1,806 @@
+{
+  "schema": 1,
+  "scope": "Nine reviewed island-country or territory gameplay mergers. Country and geography data remain as provided by Natural Earth.",
+  "regions": [
+    {
+      "country": "SYC",
+      "id": "group:SYC-5197",
+      "groups": {
+        "group:SYC-5197": [
+          "SYC-5197"
+        ],
+        "group:SYC-5198": [
+          "SYC-5198",
+          "SYC-5199",
+          "SYC-5201",
+          "SYC-5202",
+          "SYC-5203",
+          "SYC-5208",
+          "SYC-5210",
+          "SYC-5217",
+          "SYC-5218",
+          "SYC-5220"
+        ],
+        "group:SYC-5200": [
+          "SYC-5200"
+        ],
+        "group:SYC-5204": [
+          "SYC-5204",
+          "SYC-5211"
+        ],
+        "group:SYC-5205": [
+          "SYC-5205"
+        ],
+        "group:SYC-5206": [
+          "SYC-5206"
+        ],
+        "group:SYC-5207": [
+          "SYC-5207"
+        ],
+        "group:SYC-5209": [
+          "SYC-5209"
+        ],
+        "group:SYC-5212": [
+          "SYC-5212"
+        ],
+        "group:SYC-5213": [
+          "SYC-5213"
+        ],
+        "group:SYC-5214": [
+          "SYC-5214"
+        ],
+        "group:SYC-5215": [
+          "SYC-5215"
+        ],
+        "group:SYC-5216": [
+          "SYC-5216"
+        ],
+        "group:SYC-5219": [
+          "SYC-5219"
+        ],
+        "group:SYC-5221": [
+          "SYC-5221"
+        ],
+        "group:SYC-5222": [
+          "SYC-5222"
+        ]
+      },
+      "displayName": [
+        "塞舌尔",
+        "Seychelles"
+      ],
+      "anchorAtomId": "SYC-5213",
+      "components": [
+        [
+          "SYC-5197"
+        ],
+        [
+          "SYC-5198",
+          "SYC-5199",
+          "SYC-5200",
+          "SYC-5201",
+          "SYC-5202",
+          "SYC-5203",
+          "SYC-5205",
+          "SYC-5206",
+          "SYC-5207",
+          "SYC-5208",
+          "SYC-5209",
+          "SYC-5210",
+          "SYC-5213",
+          "SYC-5214",
+          "SYC-5215",
+          "SYC-5216",
+          "SYC-5217",
+          "SYC-5218",
+          "SYC-5219",
+          "SYC-5220",
+          "SYC-5221",
+          "SYC-5222"
+        ],
+        [
+          "SYC-5204",
+          "SYC-5211"
+        ],
+        [
+          "SYC-5212"
+        ]
+      ],
+      "searchAliases": [
+        "维多利亚",
+        "Victoria"
+      ]
+    },
+    {
+      "country": "BMU",
+      "id": "group:BMU-5134",
+      "groups": {
+        "group:BMU-5134": [
+          "BMU-5134"
+        ],
+        "group:BMU-5135": [
+          "BMU-5135"
+        ],
+        "group:BMU-5136": [
+          "BMU-5136"
+        ],
+        "group:BMU-5137": [
+          "BMU-5137"
+        ],
+        "group:BMU-5138": [
+          "BMU-5138"
+        ],
+        "group:BMU-5139": [
+          "BMU-5139"
+        ],
+        "group:BMU-5140": [
+          "BMU-5140"
+        ],
+        "group:BMU-5141": [
+          "BMU-5141"
+        ],
+        "group:BMU-5142": [
+          "BMU-5142"
+        ],
+        "group:BMU-5143": [
+          "BMU-5143"
+        ],
+        "group:BMU-5144": [
+          "BMU-5144"
+        ]
+      },
+      "displayName": [
+        "百慕大",
+        "Bermuda"
+      ],
+      "anchorAtomId": "BMU-5134",
+      "components": [
+        [
+          "BMU-5134",
+          "BMU-5135",
+          "BMU-5136",
+          "BMU-5137",
+          "BMU-5138",
+          "BMU-5139",
+          "BMU-5140",
+          "BMU-5141",
+          "BMU-5142",
+          "BMU-5143",
+          "BMU-5144"
+        ]
+      ]
+    },
+    {
+      "country": "BRB",
+      "id": "group:BRB-1989",
+      "groups": {
+        "group:BRB-1989": [
+          "BRB-1989",
+          "BRB-1991",
+          "BRB-1992",
+          "BRB-1996",
+          "BRB-1999"
+        ],
+        "group:BRB-1990": [
+          "BRB-1990"
+        ],
+        "group:BRB-1993": [
+          "BRB-1993"
+        ],
+        "group:BRB-1994": [
+          "BRB-1994"
+        ],
+        "group:BRB-1995": [
+          "BRB-1995"
+        ],
+        "group:BRB-1997": [
+          "BRB-1997"
+        ],
+        "group:BRB-1998": [
+          "BRB-1998"
+        ]
+      },
+      "displayName": [
+        "巴巴多斯",
+        "Barbados"
+      ],
+      "anchorAtomId": "BRB-1996",
+      "components": [
+        [
+          "BRB-1989",
+          "BRB-1990",
+          "BRB-1991",
+          "BRB-1992",
+          "BRB-1993",
+          "BRB-1994",
+          "BRB-1995",
+          "BRB-1996",
+          "BRB-1997",
+          "BRB-1998",
+          "BRB-1999"
+        ]
+      ],
+      "searchAliases": [
+        "布里奇敦",
+        "Bridgetown"
+      ]
+    },
+    {
+      "country": "KNA",
+      "id": "group:KNA-5099",
+      "groups": {
+        "group:KNA-5099": [
+          "KNA-5099"
+        ],
+        "group:KNA-5100": [
+          "KNA-5100",
+          "KNA-5111"
+        ],
+        "group:KNA-5101": [
+          "KNA-5101"
+        ],
+        "group:KNA-5102": [
+          "KNA-5102"
+        ],
+        "group:KNA-5103": [
+          "KNA-5103",
+          "KNA-5105",
+          "KNA-5108",
+          "KNA-5110"
+        ],
+        "group:KNA-5104": [
+          "KNA-5104"
+        ],
+        "group:KNA-5106": [
+          "KNA-5106"
+        ],
+        "group:KNA-5107": [
+          "KNA-5107"
+        ],
+        "group:KNA-5109": [
+          "KNA-5109"
+        ],
+        "group:KNA-5112": [
+          "KNA-5112"
+        ]
+      },
+      "displayName": [
+        "圣基茨和尼维斯",
+        "Saint Kitts and Nevis"
+      ],
+      "anchorAtomId": "KNA-5101",
+      "components": [
+        [
+          "KNA-5099",
+          "KNA-5100",
+          "KNA-5101",
+          "KNA-5104",
+          "KNA-5106",
+          "KNA-5107",
+          "KNA-5109",
+          "KNA-5111",
+          "KNA-5112"
+        ],
+        [
+          "KNA-5102",
+          "KNA-5103",
+          "KNA-5105",
+          "KNA-5108",
+          "KNA-5110"
+        ]
+      ],
+      "searchAliases": [
+        "圣基茨",
+        "尼维斯",
+        "St Kitts and Nevis",
+        "Nevis"
+      ]
+    },
+    {
+      "country": "PLW",
+      "id": "group:PLW-5244",
+      "groups": {
+        "group:PLW-5244": [
+          "PLW-5244",
+          "PLW-5245",
+          "PLW-5255"
+        ],
+        "group:PLW-5246": [
+          "PLW-5246"
+        ],
+        "group:PLW-5247": [
+          "PLW-5247"
+        ],
+        "group:PLW-5248": [
+          "PLW-5248"
+        ],
+        "group:PLW-5249": [
+          "PLW-5249"
+        ],
+        "group:PLW-5250": [
+          "PLW-5250"
+        ],
+        "group:PLW-5251": [
+          "PLW-5251",
+          "PLW-5252"
+        ],
+        "group:PLW-5253": [
+          "PLW-5253"
+        ],
+        "group:PLW-5254": [
+          "PLW-5254"
+        ],
+        "group:PLW-5256": [
+          "PLW-5256"
+        ],
+        "group:PLW-5257": [
+          "PLW-5257"
+        ],
+        "group:PLW-5258": [
+          "PLW-5258"
+        ],
+        "group:PLW-5259": [
+          "PLW-5259"
+        ]
+      },
+      "displayName": [
+        "帕劳",
+        "Palau"
+      ],
+      "anchorAtomId": "PLW-5250",
+      "components": [
+        [
+          "PLW-5244",
+          "PLW-5245",
+          "PLW-5250",
+          "PLW-5251",
+          "PLW-5252",
+          "PLW-5253",
+          "PLW-5254",
+          "PLW-5255",
+          "PLW-5256",
+          "PLW-5257"
+        ],
+        [
+          "PLW-5246"
+        ],
+        [
+          "PLW-5247"
+        ],
+        [
+          "PLW-5248"
+        ],
+        [
+          "PLW-5249"
+        ],
+        [
+          "PLW-5258"
+        ],
+        [
+          "PLW-5259"
+        ]
+      ],
+      "searchAliases": [
+        "恩吉鲁穆德",
+        "Ngerulmud"
+      ]
+    },
+    {
+      "country": "MUS",
+      "id": "group:MUS-5180",
+      "groups": {
+        "group:MUS-5180": [
+          "MUS-5180"
+        ],
+        "group:MUS-5181": [
+          "MUS-5181"
+        ],
+        "group:MUS-5183": [
+          "MUS-5183",
+          "MUS-5184",
+          "MUS-5185",
+          "MUS-5186",
+          "MUS-5188",
+          "MUS-5193",
+          "MUS-5195"
+        ],
+        "group:MUS-5187": [
+          "MUS-5187",
+          "MUS-5192"
+        ],
+        "group:MUS-5189": [
+          "MUS-5189"
+        ],
+        "group:MUS-5190": [
+          "MUS-5190"
+        ],
+        "group:MUS-5191": [
+          "MUS-5191"
+        ],
+        "group:MUS-5194": [
+          "MUS-5194"
+        ],
+        "group:MUS-5196": [
+          "MUS-5196"
+        ]
+      },
+      "displayName": [
+        "毛里求斯",
+        "Mauritius"
+      ],
+      "anchorAtomId": "MUS-5190",
+      "components": [
+        [
+          "MUS-5180"
+        ],
+        [
+          "MUS-5181",
+          "MUS-5183",
+          "MUS-5184",
+          "MUS-5185",
+          "MUS-5186",
+          "MUS-5187",
+          "MUS-5188",
+          "MUS-5189",
+          "MUS-5190",
+          "MUS-5191",
+          "MUS-5192",
+          "MUS-5193",
+          "MUS-5195",
+          "MUS-5196"
+        ],
+        [
+          "MUS-5194"
+        ]
+      ]
+    },
+    {
+      "country": "BHS",
+      "id": "group:BHS-5009",
+      "groups": {
+        "group:BHS-5009": [
+          "BHS-5009"
+        ],
+        "group:BHS-5010": [
+          "BHS-5010",
+          "BHS-5011",
+          "BHS-5012"
+        ],
+        "group:BHS-5014": [
+          "BHS-5014",
+          "BHS-5015",
+          "BHS-5016"
+        ],
+        "group:BHS-5017": [
+          "BHS-5017"
+        ],
+        "group:BHS-5018": [
+          "BHS-5018"
+        ],
+        "group:BHS-5019": [
+          "BHS-5019",
+          "BHS-5020"
+        ],
+        "group:BHS-5021": [
+          "BHS-5021",
+          "BHS-5022"
+        ],
+        "group:BHS-5023": [
+          "BHS-5023"
+        ],
+        "group:BHS-5024": [
+          "BHS-5024"
+        ],
+        "group:BHS-5025": [
+          "BHS-5025"
+        ],
+        "group:BHS-5026": [
+          "BHS-5026"
+        ],
+        "group:BHS-5027": [
+          "BHS-5027"
+        ],
+        "group:BHS-5028": [
+          "BHS-5028"
+        ],
+        "group:BHS-5029": [
+          "BHS-5029"
+        ],
+        "group:BHS-5030": [
+          "BHS-5030"
+        ],
+        "group:BHS-5031": [
+          "BHS-5031"
+        ],
+        "group:BHS-5032": [
+          "BHS-5032"
+        ],
+        "group:BHS-5033": [
+          "BHS-5033"
+        ],
+        "group:BHS-5034": [
+          "BHS-5034"
+        ],
+        "group:BHS-5035": [
+          "BHS-5035"
+        ],
+        "group:BHS-5036": [
+          "BHS-5036"
+        ],
+        "group:BHS-5037": [
+          "BHS-5037"
+        ],
+        "group:BHS-5038": [
+          "BHS-5038"
+        ],
+        "group:BHS-5039": [
+          "BHS-5039"
+        ]
+      },
+      "displayName": [
+        "巴哈马",
+        "Bahamas"
+      ],
+      "anchorAtomId": "BHS-5009",
+      "components": [
+        [
+          "BHS-5009"
+        ],
+        [
+          "BHS-5010",
+          "BHS-5011",
+          "BHS-5012"
+        ],
+        [
+          "BHS-5014",
+          "BHS-5015",
+          "BHS-5016"
+        ],
+        [
+          "BHS-5017"
+        ],
+        [
+          "BHS-5018"
+        ],
+        [
+          "BHS-5019",
+          "BHS-5020"
+        ],
+        [
+          "BHS-5021",
+          "BHS-5022"
+        ],
+        [
+          "BHS-5023"
+        ],
+        [
+          "BHS-5024"
+        ],
+        [
+          "BHS-5025"
+        ],
+        [
+          "BHS-5026"
+        ],
+        [
+          "BHS-5027",
+          "BHS-5028",
+          "BHS-5029"
+        ],
+        [
+          "BHS-5030"
+        ],
+        [
+          "BHS-5031"
+        ],
+        [
+          "BHS-5032"
+        ],
+        [
+          "BHS-5033"
+        ],
+        [
+          "BHS-5034"
+        ],
+        [
+          "BHS-5035"
+        ],
+        [
+          "BHS-5036"
+        ],
+        [
+          "BHS-5037"
+        ],
+        [
+          "BHS-5038"
+        ],
+        [
+          "BHS-5039"
+        ]
+      ],
+      "searchAliases": [
+        "拿骚",
+        "Nassau"
+      ]
+    },
+    {
+      "country": "COK",
+      "id": "group:COK-4950",
+      "groups": {
+        "group:COK-4950": [
+          "COK-4950"
+        ],
+        "group:COK-4951": [
+          "COK-4951"
+        ],
+        "group:COK-4952": [
+          "COK-4952"
+        ],
+        "group:COK-4953": [
+          "COK-4953"
+        ],
+        "group:COK-4954": [
+          "COK-4954"
+        ],
+        "group:COK-4955": [
+          "COK-4955"
+        ],
+        "group:COK-4956": [
+          "COK-4956"
+        ],
+        "group:COK-4959": [
+          "COK-4959"
+        ],
+        "group:COK-4960": [
+          "COK-4960"
+        ],
+        "group:COK-4961": [
+          "COK-4961"
+        ],
+        "group:COK-4962": [
+          "COK-4962"
+        ]
+      },
+      "displayName": [
+        "库克群岛",
+        "Cook Islands"
+      ],
+      "anchorAtomId": "COK-4953",
+      "components": [
+        [
+          "COK-4950"
+        ],
+        [
+          "COK-4951"
+        ],
+        [
+          "COK-4952"
+        ],
+        [
+          "COK-4953"
+        ],
+        [
+          "COK-4954"
+        ],
+        [
+          "COK-4955"
+        ],
+        [
+          "COK-4956"
+        ],
+        [
+          "COK-4959"
+        ],
+        [
+          "COK-4960"
+        ],
+        [
+          "COK-4961"
+        ],
+        [
+          "COK-4962"
+        ]
+      ],
+      "searchAliases": [
+        "阿瓦鲁阿",
+        "Avarua"
+      ]
+    },
+    {
+      "country": "CPV",
+      "id": "group:CPV-5041",
+      "groups": {
+        "group:CPV-5041": [
+          "CPV-5041"
+        ],
+        "group:CPV-5042": [
+          "CPV-5042",
+          "CPV-5043",
+          "CPV-5044"
+        ],
+        "group:CPV-5045": [
+          "CPV-5045",
+          "CPV-5046",
+          "CPV-5047",
+          "CPV-5048",
+          "CPV-5049",
+          "CPV-5050",
+          "CPV-5051",
+          "CPV-5052",
+          "CPV-5053"
+        ],
+        "group:CPV-5054": [
+          "CPV-5054"
+        ],
+        "group:CPV-5055": [
+          "CPV-5055"
+        ],
+        "group:CPV-5056": [
+          "CPV-5056"
+        ],
+        "group:CPV-5057": [
+          "CPV-5057",
+          "CPV-5058"
+        ],
+        "group:CPV-5059": [
+          "CPV-5059"
+        ],
+        "group:CPV-5060": [
+          "CPV-5060",
+          "CPV-5061",
+          "CPV-5062"
+        ]
+      },
+      "displayName": [
+        "佛得角",
+        "Cabo Verde"
+      ],
+      "anchorAtomId": "CPV-5053",
+      "components": [
+        [
+          "CPV-5041"
+        ],
+        [
+          "CPV-5042",
+          "CPV-5043",
+          "CPV-5044"
+        ],
+        [
+          "CPV-5045",
+          "CPV-5046",
+          "CPV-5047",
+          "CPV-5048",
+          "CPV-5049",
+          "CPV-5050",
+          "CPV-5051",
+          "CPV-5052",
+          "CPV-5053"
+        ],
+        [
+          "CPV-5054"
+        ],
+        [
+          "CPV-5055"
+        ],
+        [
+          "CPV-5056"
+        ],
+        [
+          "CPV-5057",
+          "CPV-5058"
+        ],
+        [
+          "CPV-5059"
+        ],
+        [
+          "CPV-5060",
+          "CPV-5061",
+          "CPV-5062"
+        ]
+      ],
+      "searchAliases": [
+        "Cape Verde"
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ import thailand from '../data/thailand-gameplay-regions.json' with {type:'json'}
 import sea from '../data/southeast-asia-gameplay-regions.json' with {type:'json'};
 import plan from '../data/asia-arabia-gameplay-regions.json' with {type:'json'};
 
-import {isAsiaArabia,isAnyEuropeBatch} from './southeast-asia-fixtures.mjs';
+import {isAsiaArabia,isEuropeOrGlobalIslands} from './southeast-asia-fixtures.mjs';
 import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regions.mjs';
 import {repartitionSoutheastAsia} from '../scripts/apply-southeast-asia-gameplay-regions.mjs';
 
@@ -39,8 +39,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('the approved Asia and Arabia membership, names and anchor locations are playable',()=>{
- assert.equal(MAP_METADATA.count,1028);assert.equal(MAP_METADATA.playableCount,1024);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v16');assert.equal(STATE_VERSION,17);assert.equal(RULES_ID,'admin1-locked-game-regions-v29');
+ assert.equal(MAP_METADATA.count,927);assert.equal(MAP_METADATA.playableCount,923);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v17');assert.equal(STATE_VERSION,18);assert.equal(RULES_ID,'admin1-locked-game-regions-v30');
  assert.equal(MAP.filter(r=>/^(SAU|OMN|YEM|ARE|QAT|KWT|BHR)-/.test(r.code)).length,10);
  assert.equal(MAP.filter(r=>/^(BRN|KHM|IDN|LAO|MYS|MMR|PHL|SGP|THA|TLS|VNM)-/.test(r.code)).length,39);
  for(const row of plan.regions){
@@ -88,9 +88,9 @@ test('Bahrain and the Timor-Leste exclave keep false land edges out and real sea
 });
 
 test('all unrelated records including raw country and physical topology are unchanged',()=>{
- const unaffected=prior.filter(g=>!g.sourceIds.some(id=>isAsiaArabia(id)||isAnyEuropeBatch(id)));
- assert.equal(prior.length-unaffected.length,16+41+22);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isAsiaArabia(id)||isAnyEuropeBatch(id))),unaffected.map(
+ const unaffected=prior.filter(g=>!g.sourceIds.some(id=>isAsiaArabia(id)||isEuropeOrGlobalIslands(id)));
+ assert.equal(prior.length-unaffected.length,16+41+22+110);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isAsiaArabia(id)||isEuropeOrGlobalIslands(id))),unaffected.map(
   ({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
     ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})})));

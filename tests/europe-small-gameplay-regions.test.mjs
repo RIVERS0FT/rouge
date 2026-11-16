@@ -28,7 +28,7 @@ import asiaArabia from '../data/asia-arabia-gameplay-regions.json' with {type:'j
 import europe from '../data/europe-gameplay-regions.json' with {type:'json'};
 import plan from '../data/europe-small-gameplay-regions.json' with {type:'json'};
 
-import {isSmallEuropeBatch} from './southeast-asia-fixtures.mjs';
+import {isSmallEuropeBatch,isGlobalIslands} from './southeast-asia-fixtures.mjs';
 import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regions.mjs';
 import {applyEuropeSmallMergers} from '../scripts/apply-europe-small-gameplay-regions.mjs';
 import {repartitionEurope} from '../scripts/apply-europe-gameplay-regions.mjs';
@@ -43,8 +43,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('fourteen fragments merge into nine named destinations while old lookup and anchor coordinates remain exact',()=>{
- assert.equal(MAP_METADATA.count,1028);assert.equal(MAP_METADATA.playableCount,1024);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v16');assert.equal(STATE_VERSION,17);assert.equal(RULES_ID,'admin1-locked-game-regions-v29');
+ assert.equal(MAP_METADATA.count,927);assert.equal(MAP_METADATA.playableCount,923);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v17');assert.equal(STATE_VERSION,18);assert.equal(RULES_ID,'admin1-locked-game-regions-v30');
  assert.equal(MAP.filter(p=>p.code.startsWith('SVN-')).length,2);
  for(const {primary,members,displayName,anchorAtomId} of plan.regions){
   const r=byCode(primary.slice(6));
@@ -73,15 +73,15 @@ test('fourteen fragments merge into nine named destinations while old lookup and
 });
 
 test('real source edges and grouping-only topology are unchanged; all unrelated gameplay regions are exact',()=>{
- const untouched=prior.filter(g=>!g.sourceIds.some(isSmallEuropeBatch));
- assert.equal(prior.length-untouched.length,23);
+ const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSmallEuropeBatch(id)||isGlobalIslands(id)));
+ assert.equal(prior.length-untouched.length,23+110);
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isSmallEuropeBatch)),untouched.map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSmallEuropeBatch(id)||isGlobalIslands(id))),untouched.map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
  const attached=g=>(g.islandAttachments??[]).map(x=>x.join(':'));
- assert.deepEqual(atlas.gameplayGroups.flatMap(attached).sort(),prior.flatMap(attached).sort());
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isGlobalIslands)).flatMap(attached).sort(),prior.flatMap(attached).sort());
 });
 
 test('stale membership and an unproven land attachment fail before atlas generation',()=>{

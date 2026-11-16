@@ -23,7 +23,7 @@ test('strategic sprites keep bounded CSS-pixel sizes at desktop and phone height
 });
 test('sprite batches support large armies with one shared material and one glyph per instance',()=>{
  const texture=new THREE.Texture();
- for(const capacity of [512,1024,16384]){
+ for(const capacity of [512,923,16384]){
   const mesh=createUnitSpriteMesh(texture,capacity);
   assert.equal(mesh.count,0);assert.equal(mesh.instanceMatrix.count,capacity);
   assert.equal(mesh.geometry.getAttribute('unitGlyph').count,capacity);

@@ -6,7 +6,7 @@ import {prepareRing,ringContains} from '../src/game/polygonQuery.ts';
 
 test('indexed scanlines preserve ray-crossing decisions at vertices, thin edges and band boundaries',()=>{
  const rings=[[],[{x:1,z:1}], [{x:-3,z:-9},{x:12,z:-9},{x:12,z:900},{x:-3,z:900}],
-  [{x:1e8,z:-2},{x:1e8+1e-6,z:1024},{x:1e8+3,z:8}],
+  [{x:1e8,z:-2},{x:1e8+1e-6,z:923},{x:1e8+3,z:8}],
   [{x:0,z:0},{x:2,z:0},{x:2,z:1},{x:1,z:1},{x:1,z:4},{x:0,z:4}]];
  for(const points of rings){const query=prepareRing(points);for(const p of [...points,{x:0,z:0}])for(const dx of [0,-1e-12,1e-12])for(const dz of [0,-1e-12,1e-12])assert.equal(ringContains(query,p.x+dx,p.z+dz),contains(points,p.x+dx,p.z+dz));
   if(points.length)for(let band=0;band<query.offsets.length;band++){const z=query.top+band*query.step;for(const x of [query.left,query.right,(query.left+query.right)/2])assert.equal(ringContains(query,x,z),contains(points,x,z));}

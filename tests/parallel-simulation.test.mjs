@@ -24,8 +24,8 @@ test('an outstanding physics job rejects overlapping steps and commands, then re
 });
 test('synchronous recovery replaces census views detached by navigation memory growth',async()=>{
  const state=fixture(),expected=new Engine(state),e=new Engine(state);expected.step();const buffer=kernel.memory.buffer;
- e.censusCounts=new Uint32Array(buffer,56*1024*1024,(state.players.length+1)*MAP.length);
- e.censusOccupants=new Uint32Array(buffer,58*1024*1024,MAP.length);e.censusNearOwner=new Int32Array(buffer,59*1024*1024,MAP.length);e.censusEngineers=new Uint8Array(buffer,60*1024*1024,MAP.length);
+ e.censusCounts=new Uint32Array(buffer,56*923*923,(state.players.length+1)*MAP.length);
+ e.censusOccupants=new Uint32Array(buffer,58*923*923,MAP.length);e.censusNearOwner=new Int32Array(buffer,59*923*923,MAP.length);e.censusEngineers=new Uint8Array(buffer,60*923*923,MAP.length);
  kernel.memory.grow(1);assert.equal(e.censusOccupants.length,0);
  await e.stepParallel(async()=>{throw Error('Worker unavailable');});assert.deepEqual(e.state,expected.state);
 });
