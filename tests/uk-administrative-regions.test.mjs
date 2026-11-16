@@ -1,4 +1,4 @@
-import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -78,8 +78,8 @@ test('non-UK groups including modern France, Crown dependencies and overseas are
   const afterOverrides=repartitionSwissRegions(base,repartitionMaldives(base,applyAdministrativeGroupOverrides(base,prior,adminOverrides),maldives),swiss);
   const remaining=afterOverrides.filter(g=>!g.sourceIds.some(id=>isUk(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id)));
   assert.equal(afterOverrides.length-remaining.length,17+29+6+18+14+41+22+110+30+26);
-  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isUk(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
-    remaining.filter(g=>!g.sourceIds.some(isPacificBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
+  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isUk(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
+    remaining.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
   assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
   for(const id of ['GGY','JEY','IMN','GIB','FLK']){
     const original=atlas.provinces.filter(p=>p.country===id);
@@ -133,9 +133,9 @@ test('UK preprocessing rejects missing island reviews and duplicate or foreign m
 test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
-  assert.equal(STATE_VERSION,21);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v21.');
+  assert.equal(STATE_VERSION,22);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v22.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:7,map:'earth-natural-earth-admin1-511-regions-v6'};

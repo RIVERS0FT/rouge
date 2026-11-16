@@ -1,4 +1,4 @@
-import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -52,7 +52,7 @@ test('modern metropolitan France has 13 bilingual locked regions and all 96 depa
   assert.equal(MAP.length,finalRegionCount);
   assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
-  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v20');
+  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v21');
 });
 
 test('the French repartition preserves original geometry and unrelated locked groups',()=>{
@@ -60,11 +60,13 @@ test('the French repartition preserves original geometry and unrelated locked gr
   const reviewed=id=>metro.has(id)||id.startsWith('GBR-')||id.startsWith('MDV-')||id.startsWith('CHE-')||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id)||otherReviewedChanges.has(id);
   const remaining=applyAdministrativeGroupOverrides(base,prior,{...adminOverrides,merges:[]}).filter(g=>!g.sourceIds.some(reviewed));
   assert.equal(prior.length-remaining.length,21+17+4+21+4+29+6+18+14+41+22+110+30+26);
-  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||reviewed(id))),
-    remaining.filter(g=>!g.sourceIds.some(isPacificBatch)).map(({id,sourceIds,legacyHint,reason,displayName})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{})})));
+  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||reviewed(id))),
+    remaining.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(({id,sourceIds,legacyHint,reason,displayName})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{})})));
   assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
   for(const id of ['FRA-1442','FRA-2000','FRA-4601','FRA-4602','FRA-4603']){
-    assert.deepEqual(byCode(id).sourceAtoms,[id]);
+    const updated=isReviewedOceanBatch(id);
+    if(updated)assert.ok(!byCode(id).sourceAtoms.some(member=>metro.has(member)));
+    else assert.deepEqual(byCode(id).sourceAtoms,[id]);
     assert.ok(!metro.has(id));
   }
 });
@@ -105,9 +107,9 @@ test('French partition rejects duplicate, foreign, missing and disconnected depa
 test('the modern map rejects prior saves and LAN snapshots without overwriting old storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'france-admin-regions');
-  assert.equal(STATE_VERSION,21);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v21.');
+  assert.equal(STATE_VERSION,22);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v22.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:6,map:'earth-natural-earth-admin1-511-regions-v5'};

@@ -1,4 +1,4 @@
-import {finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MAP,TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING} from '../src/game/map.ts';
@@ -6,7 +6,7 @@ import {ATOM_BUDGETS,regionCapacity,regionProductionRate,applyGroupingCommand,re
 const index=new Map(MAP.map(p=>[p.code,p.id]));
 function state(){return{grouping:structuredClone(INITIAL_TERRITORY_GROUPING),provinces:MAP.map(p=>({owner:p.playable?0:-1,production:0})),units:[]};}
 test('NE initial groups receive fixed max(12, playable atoms) capacity and exactly one production rate',()=>{
- assert.equal(TERRITORY_TOPOLOGY.mapId,'earth-natural-earth-admin1-511-regions-v20');assert.equal(MAP.length,finalRegionCount);
+ assert.equal(TERRITORY_TOPOLOGY.mapId,'earth-natural-earth-admin1-511-regions-v21');assert.equal(MAP.length,finalRegionCount);
  let expected=0;
  for(const group of INITIAL_TERRITORY_GROUPING.groups){
   const active=group.atoms.filter(a=>MAP[index.get(a)].playable),cap=active.length?Math.max(12,active.length):0;

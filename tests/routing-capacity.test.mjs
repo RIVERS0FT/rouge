@@ -1,4 +1,4 @@
-import {finalRegionCount} from './pacific-fixtures.mjs';
+import {finalRegionCount} from './reviewed-ocean-fixtures.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';

@@ -1,4 +1,4 @@
-import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -43,7 +43,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('seven approved European areas use only their existing source geometry and exact gameplay memberships',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');assert.equal(STATE_VERSION,22);assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
  for(const [country,count] of [['MLT',1],['ALD',1],['LVA',2],['EST',2],['AND',1],['LIE',1],['SVN',2]]){
   assert.equal(MAP.filter(r=>r.code.startsWith(country+'-')).length,count,country);
  }
@@ -88,7 +88,7 @@ test('Malta, Åland and Estonian island connections are only virtual administrat
 test('every untouched country and all original country tags, shapes and real land edges are identical',()=>{
  const unaffected=prior.filter(g=>!g.sourceIds.some(isEuropeOrGlobalIslands));
  assert.equal(prior.length-unaffected.length,41+22+110+30+26);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isEuropeOrGlobalIslands(id))),unaffected.filter(g=>!g.sourceIds.some(isPacificBatch)).map(
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isEuropeOrGlobalIslands(id))),unaffected.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(
   ({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
     ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})})));

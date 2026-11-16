@@ -1,4 +1,4 @@
-import {isPacificBatch,pacificScopeOf,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,oceanScopeOf,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -47,12 +47,12 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('each of the nine island labels has one selectable playable region and all 157 original areas survive',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');assert.equal(STATE_VERSION,22);assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
  const picks=new Set();
  for(const {country,id,groups,displayName,anchorAtomId,searchAliases} of plan.regions){
   const r=byCode(id.slice(6));
   picks.add(r.id);
-  const members=Object.values(groups).flat().sort(),pacific=pacificScopeOf(members[0]);
+  const members=Object.values(groups).flat().sort(),pacific=oceanScopeOf(members[0]);
   assert.deepEqual(MAP.filter(p=>p.sourceAtoms.some(a=>a.startsWith(country+'-'))),[r]);
   if(pacific)assert.ok(members.every(code=>r.sourceAtoms.includes(code)));
   else assert.deepEqual(r.sourceAtoms,members);
@@ -69,7 +69,7 @@ test('each of the nine island labels has one selectable playable region and all 
    assert.ok(searchProvinces(q).some(p=>p.id===r.id),q);
   }
  }
- assert.equal(picks.size,new Set(plan.regions.map(row=>pacificScopeOf(row.id.slice(6))?.stateCode??row.id)).size);assert.equal(plan.regions.flatMap(r=>r.components.flat()).length,157);
+ assert.equal(picks.size,new Set(plan.regions.map(row=>oceanScopeOf(row.id.slice(6))?.stateCode??row.id)).size);assert.equal(plan.regions.flatMap(r=>r.components.flat()).length,157);
 });
 
 test('administrative links do not create land routes; representative archipelago journeys remain seaborne',()=>{
@@ -95,7 +95,7 @@ test('every other region and every original shape, country and real edge are unc
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isAllIslands(id))),untouched.filter(g=>!g.sourceIds.some(isPacificBatch)).map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isAllIslands(id))),untouched.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 

@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_NORTH_MADAGASCAR",
+      "primary": "group:MDG-5860",
+      "members": {
+        "group:MDG-5860": [
+          "MDG-5860",
+          "MDG-5862",
+          "MDG-5863",
+          "MDG-5868",
+          "MDG-5869",
+          "MDG-5870",
+          "MDG-5871",
+          "MDG-5872",
+          "MDG-5875",
+          "MDG-5879",
+          "MDG-5880",
+          "MDG-5881"
+        ]
+      },
+      "displayName": [
+        "北马达加斯加",
+        "North Madagascar"
+      ],
+      "anchorAtomId": "MDG-5862",
+      "searchAliases": [
+        "马达加斯加北部",
+        "塔那那利佛",
+        "Antananarivo"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_MADAGASCAR",
+      "primary": "group:MDG-5861",
+      "members": {
+        "group:MDG-5861": [
+          "MDG-5861",
+          "MDG-5864",
+          "MDG-5865",
+          "MDG-5866",
+          "MDG-5867",
+          "MDG-5873",
+          "MDG-5874",
+          "MDG-5876",
+          "MDG-5878",
+          "MDG-5882"
+        ],
+        "group:COM-4934": [
+          "COM-4934",
+          "COM-4935",
+          "COM-4936"
+        ],
+        "group:FRA-4602": [
+          "FRA-4602"
+        ]
+      },
+      "displayName": [
+        "南马达加斯加",
+        "South Madagascar"
+      ],
+      "anchorAtomId": "MDG-5861",
+      "searchAliases": [
+        "马达加斯加南部",
+        "科摩罗",
+        "马约特",
+        "Comoros",
+        "Mayotte"
+      ]
+    },
+    {
+      "stateCode": "STATE_INDIAN_OCEAN_TERRITORY",
+      "primary": "group:MUS-5180",
+      "members": {
+        "group:MUS-5180": [
+          "MUS-5180",
+          "MUS-5181",
+          "MUS-5183",
+          "MUS-5184",
+          "MUS-5185",
+          "MUS-5186",
+          "MUS-5187",
+          "MUS-5188",
+          "MUS-5189",
+          "MUS-5190",
+          "MUS-5191",
+          "MUS-5192",
+          "MUS-5193",
+          "MUS-5194",
+          "MUS-5195",
+          "MUS-5196"
+        ],
+        "group:FRA-4601": [
+          "FRA-4601"
+        ]
+      },
+      "displayName": [
+        "印度洋领地",
+        "Indian Ocean Territory"
+      ],
+      "anchorAtomId": "MUS-5190",
+      "searchAliases": [
+        "毛里求斯",
+        "留尼汪",
+        "罗德里格斯岛",
+        "Mauritius",
+        "Réunion",
+        "Reunion",
+        "Rodrigues"
+      ]
+    },
+    {
+      "stateCode": "STATE_CEYLON",
+      "primary": "group:LKA-2448",
+      "members": {
+        "group:LKA-2448": [
+          "LKA-2448",
+          "LKA-2449",
+          "LKA-2450",
+          "LKA-2451",
+          "LKA-2452",
+          "LKA-2453",
+          "LKA-2454",
+          "LKA-2455",
+          "LKA-2456",
+          "LKA-2457",
+          "LKA-2458",
+          "LKA-2459",
+          "LKA-2460",
+          "LKA-2461",
+          "LKA-2462",
+          "LKA-2463",
+          "LKA-2464",
+          "LKA-2465",
+          "LKA-2466",
+          "LKA-2467",
+          "LKA-2468",
+          "LKA-2469",
+          "LKA-2470",
+          "LKA-2471",
+          "LKA-2472"
+        ],
+        "group:MDV-5223": [
+          "MDV-5223",
+          "MDV-5224",
+          "MDV-5225",
+          "MDV-5226",
+          "MDV-5227",
+          "MDV-5228",
+          "MDV-5229",
+          "MDV-5230",
+          "MDV-5231",
+          "MDV-5232",
+          "MDV-5233",
+          "MDV-5234",
+          "MDV-5235",
+          "MDV-5236",
+          "MDV-5237",
+          "MDV-5238",
+          "MDV-5239",
+          "MDV-5240",
+          "MDV-5241",
+          "MDV-5242",
+          "MDV-5243"
+        ],
+        "group:IOT+00?": [
+          "IOT+00?"
+        ]
+      },
+      "displayName": [
+        "锡兰",
+        "Ceylon"
+      ],
+      "anchorAtomId": "LKA-2470",
+      "searchAliases": [
+        "斯里兰卡",
+        "马尔代夫",
+        "查戈斯群岛",
+        "迪戈加西亚",
+        "Sri Lanka",
+        "Maldives",
+        "Chagos Archipelago",
+        "Diego Garcia"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZANZIBAR",
+      "primary": "group:TZA-3337",
+      "members": {
+        "group:TZA-3337": [
+          "TZA-3337",
+          "TZA-3383",
+          "TZA-3384"
+        ],
+        "group:TZA-3380": [
+          "TZA-3380",
+          "TZA-3381"
+        ]
+      },
+      "displayName": [
+        "桑给巴尔",
+        "Zanzibar"
+      ],
+      "anchorAtomId": "TZA-3337",
+      "searchAliases": [
+        "温古贾岛",
+        "奔巴岛",
+        "Unguja",
+        "Pemba Island"
+      ]
+    },
+    {
+      "stateCode": "STATE_PEGU",
+      "primary": "group:MMR-3268",
+      "members": {
+        "group:MMR-3268": [
+          "MMR-3268",
+          "MMR-3269",
+          "MMR-3270",
+          "MMR-3275"
+        ],
+        "group:IND-2474": [
+          "IND-2474"
+        ]
+      },
+      "displayName": [
+        "勃固",
+        "Pegu"
+      ],
+      "anchorAtomId": "MMR-3269",
+      "searchAliases": [
+        "安达曼和尼科巴群岛",
+        "仰光",
+        "Andaman and Nicobar Islands",
+        "Yangon",
+        "Bago"
+      ]
+    }
+  ]
+}
