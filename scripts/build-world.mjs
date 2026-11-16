@@ -2,6 +2,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {repartitionGlobalIslands} from './apply-global-island-gameplay-regions.mjs';
 import {applyEuropeSmallMergers} from './apply-europe-small-gameplay-regions.mjs';
 import {repartitionEurope} from './apply-europe-gameplay-regions.mjs';
 import {repartitionAsiaArabia} from './apply-asia-arabia-gameplay-regions.mjs';
@@ -55,7 +56,9 @@ const asiaArabianGroups=repartitionAsiaArabia(source,southeastAsianGroups,asiaAr
 const europeanRegions=JSON.parse(await readFile(new URL('data/europe-gameplay-regions.json',root)));
 const largerEuropeanGroups=repartitionEurope(source,asiaArabianGroups,europeanRegions);
 const smallEuropeanMergers=JSON.parse(await readFile(new URL('data/europe-small-gameplay-regions.json',root)));
-const finalGroups=applyEuropeSmallMergers(source,largerEuropeanGroups,smallEuropeanMergers);
+const europeGroups=applyEuropeSmallMergers(source,largerEuropeanGroups,smallEuropeanMergers);
+const islandRegions=JSON.parse(await readFile(new URL('data/global-island-gameplay-regions.json',root)));
+const finalGroups=repartitionGlobalIslands(source,europeGroups,islandRegions);
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
 const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:finalGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{}),...(g.searchAliases?{searchAliases:g.searchAliases}:{})}))};
