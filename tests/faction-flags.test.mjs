@@ -5,19 +5,27 @@ import {FLAG_BY_ISO3, FLAG_CATALOG, FLAG_PRESET_IDS} from '../src/game/flagCatal
 import {validFlag} from '../src/game/flags.ts';
 import {createGame} from '../src/game/engine.ts';
 import {getSpawnCapacity, makeAISetups} from '../src/game/spawns.ts';
-import {MAP} from '../src/game/map.ts';
+import {MAP,provinceByCode} from '../src/game/map.ts';
+import atlas from '../src/generated/world.js';
 
 const ai = (id, origin) => ({id, ai: true, country: {origin, name: [`AI ${id}`, `AI ${id}`]}});
 const ARIZONA = 'USA-3520', AISNE = 'FRA-5263', SAO_PAULO = 'BRA-1311', KYOTO = 'JPN-1850', ONTARIO = 'CAN-682';
 
-test('the flag catalog holds real, uniquely keyed national flags that all exist on the map', () => {
+test('the flag catalog holds real, uniquely keyed flags represented by original source areas', () => {
  assert.equal(new Set(FLAG_PRESET_IDS).size, FLAG_PRESET_IDS.length);
  assert.ok(FLAG_PRESET_IDS.length >= 120);
  // The original presets keep their ids, so saved preferences and saves keep their meaning.
  assert.deepEqual(FLAG_PRESET_IDS.slice(0, 8), ['cn', 'fr', 'de', 'it', 'jp', 'gb', 'us', 'ch']);
- const codes = FLAG_PRESET_IDS.flatMap(id => FLAG_CATALOG[id].iso3), prefixes = new Set(MAP.map(region => region.code.slice(0, 3)));
+ const codes = FLAG_PRESET_IDS.flatMap(id => FLAG_CATALOG[id].iso3), sources = new Set(atlas.provinces.map(region => region.country));
  assert.equal(new Set(codes).size, codes.length);
- for(const code of codes) assert.ok(prefixes.has(code), `${code} is a map country`);
+ for(const code of codes) assert.ok(sources.has(code), `${code} has original atlas land`);
+ // Grouping changes gameplay IDs, not the source labels or flag catalog.
+ const singapore = atlas.provinces.filter(region => region.country === 'SGP');
+ assert.equal(singapore.length, 5);
+ assert.ok(singapore.every(region => provinceByCode(region.id) === provinceByCode('MYS-1137')));
+ assert.ok(!MAP.some(region => region.code.startsWith('SGP-')));
+ assert.equal(FLAG_BY_ISO3.get('SGP'), 'sg');
+ assert.ok(validFlag({type: 'preset', id: 'sg'}));
  for(const id of FLAG_PRESET_IDS) {
   assert.ok(validFlag({type: 'preset', id}));
   assert.ok(FLAG_CATALOG[id].names.every(name => name.trim().length > 0));

@@ -23,9 +23,14 @@ test('an outstanding physics job rejects overlapping steps and commands, then re
  assert.doesNotThrow(()=>e.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}));
 });
 test('synchronous recovery replaces census views detached by navigation memory growth',async()=>{
- const state=fixture(),expected=new Engine(state),e=new Engine(state);expected.step();const buffer=kernel.memory.buffer;
- e.censusCounts=new Uint32Array(buffer,56*923*923,(state.players.length+1)*MAP.length);
- e.censusOccupants=new Uint32Array(buffer,58*923*923,MAP.length);e.censusNearOwner=new Int32Array(buffer,59*923*923,MAP.length);e.censusEngineers=new Uint8Array(buffer,60*923*923,MAP.length);
+ const state=fixture(),expected=new Engine(state),e=new Engine(state);expected.step();
+ const n=MAP.length,counts=(state.players.length+1)*n,bytes=(counts+2*n)*4+n,pageBytes=65536;
+ // Use isolated tail pages rather than release-sensitive offsets inside kernel arenas.
+ const start=kernel.memory.grow(Math.ceil(bytes/pageBytes))*pageBytes,buffer=kernel.memory.buffer;
+ e.censusCounts=new Uint32Array(buffer,start,counts);
+ e.censusOccupants=new Uint32Array(buffer,start+4*counts,n);
+ e.censusNearOwner=new Int32Array(buffer,start+4*(counts+n),n);
+ e.censusEngineers=new Uint8Array(buffer,start+4*(counts+2*n),n);
  kernel.memory.grow(1);assert.equal(e.censusOccupants.length,0);
  await e.stepParallel(async()=>{throw Error('Worker unavailable');});assert.deepEqual(e.state,expected.state);
 });
