@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "reference": "Natural Earth 1:10m Admin 1 v5.1.1",
+  "displayName": ["马尔代夫", "Maldives"],
+  "anchorAtomId": "MDV-5234",
+  "atomIds": [
+    "MDV-5223", "MDV-5224", "MDV-5225", "MDV-5226", "MDV-5227", "MDV-5228", "MDV-5229",
+    "MDV-5230", "MDV-5231", "MDV-5232", "MDV-5233", "MDV-5234", "MDV-5235", "MDV-5236", "MDV-5237",
+    "MDV-5238", "MDV-5239", "MDV-5240", "MDV-5241", "MDV-5242", "MDV-5243"
+  ]
+}

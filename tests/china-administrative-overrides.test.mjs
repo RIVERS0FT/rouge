@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {applyAdministrativeGroupOverrides,applyCurrentStateMergers,consolidateStateRegions} from '../scripts/apply-state-region-consolidation.mjs';
+import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mjs';
 import {repartitionFrenchRegions} from '../scripts/apply-france-administrative-regions.mjs';
 import {repartitionUkRegions} from '../scripts/apply-uk-administrative-regions.mjs';
 import {BOUNDS,MAP,MAP_METADATA,SOURCE_MAP,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
@@ -19,6 +20,7 @@ import uk from '../data/uk-administrative-regions.json' with {type:'json'};
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
+import maldives from '../data/maldives-gameplay-regions.json' with {type:'json'};
 
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
@@ -53,8 +55,8 @@ test('Beijing and Tianjin resolve to Hebei, and Shanghai resolves to Jiangsu',()
   }
   for(const query of aliases)assert.ok(searchProvinces(query).some(p=>p.id===region.id),query);
  }
- assert.equal(MAP_METADATA.count,1137);
- assert.equal(MAP_METADATA.playableCount,1133);
+ assert.equal(MAP_METADATA.count,1117);
+ assert.equal(MAP_METADATA.playableCount,1113);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
  const chinaAtoms=new Set(atlas.provinces.filter(p=>p.country==='CHN').map(p=>p.id));
  assert.equal(MAP.filter(p=>p.sourceAtoms.some(id=>chinaAtoms.has(id))).length,29);
@@ -62,9 +64,9 @@ test('Beijing and Tianjin resolve to Hebei, and Shanghai resolves to Jiangsu',()
 });
 
 test('gameplay-only overrides keep all unrelated groups, geometry, and real external adjacency',()=>{
- const untouched=prior.filter(g=>!g.sourceIds.some(a=>changedSourceIds.has(a)));
+ const untouched=repartitionMaldives(base,applyAdministrativeGroupOverrides(base,prior,{...overrides,merges:[]}),maldives).filter(g=>!g.sourceIds.some(a=>changedSourceIds.has(a)));
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(a=>changedSourceIds.has(a))),
-  untouched.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{})})));
+  untouched.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
  const runtimeKeys=new Set(buildBorderEdges(MAP,BOUNDS).map(segmentKey));
  const allSourceEdges=buildBorderEdges(SOURCE_MAP,BOUNDS);
@@ -88,13 +90,13 @@ test('gameplay-only overrides refuse stale memberships and detached or cross-cou
  assert.throws(()=>applyAdministrativeGroupOverrides(base,prior,wrongCountry),/invalid primary, fragment, or state/);
 });
 
-test('map v8 and save v9 reject the prior map and LAN snapshot and leave prior slots untouched',()=>{
+test('current map and save catalogue reject the prior map and LAN snapshot and leave prior slots untouched',()=>{
  const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
  const current=createGame(players,42,'china-administrative-overrides');
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v8');
- assert.equal(STATE_VERSION,9);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v21');
- assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v9.');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v9');
+ assert.equal(STATE_VERSION,10);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v22');
+ assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v10.');
  const currentSave=encodeSave(current,'Current campaign');
  assert.deepEqual(decodeSave(currentSave).state,current);
  const old={...current,version:8,map:'earth-natural-earth-admin1-511-regions-v7'};

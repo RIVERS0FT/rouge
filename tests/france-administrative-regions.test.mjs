@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {repartitionFrenchRegions} from '../scripts/apply-france-administrative-regions.mjs';
-import {consolidateStateRegions,applyCurrentStateMergers} from '../scripts/apply-state-region-consolidation.mjs';
+import {consolidateStateRegions,applyCurrentStateMergers,applyAdministrativeGroupOverrides} from '../scripts/apply-state-region-consolidation.mjs';
 import {MAP,MAP_METADATA,SOURCE_MAP,provinceByCode,provinceAt,searchProvinces} from '../src/game/map.ts';
 import {createGame} from '../src/game/engine.ts';
 import {RULES_ID,STATE_VERSION} from '../src/game/content.ts';
@@ -14,6 +14,7 @@ import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
+import adminOverrides from '../data/administrative-region-overrides.json' with {type:'json'};
 
 const rows=plan.regions;
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
@@ -45,17 +46,17 @@ test('modern metropolitan France has 13 bilingual locked regions and all 96 depa
       assert.equal(provinceAt(x,z),region.id);
     }
   }
-  assert.equal(MAP.length,1137);
-  assert.equal(MAP_METADATA.playableCount,1133);
+  assert.equal(MAP.length,1117);
+  assert.equal(MAP_METADATA.playableCount,1113);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
-  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v8');
+  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v9');
 });
 
 test('the French repartition preserves original geometry and unrelated locked groups',()=>{
   const otherReviewedChanges=new Set(['CHN-1155','CHN-1811','CHN-1816','CHN-1818','CHN-1819']);
-  const reviewed=id=>metro.has(id)||id.startsWith('GBR-')||otherReviewedChanges.has(id);
-  const remaining=prior.filter(g=>!g.sourceIds.some(reviewed));
-  assert.equal(prior.length-remaining.length,21+17+4);
+  const reviewed=id=>metro.has(id)||id.startsWith('GBR-')||id.startsWith('MDV-')||otherReviewedChanges.has(id);
+  const remaining=applyAdministrativeGroupOverrides(base,prior,{...adminOverrides,merges:[]}).filter(g=>!g.sourceIds.some(reviewed));
+  assert.equal(prior.length-remaining.length,21+17+4+21);
   assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(reviewed)),
     remaining.map(({id,sourceIds,legacyHint,reason,displayName})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{})})));
   assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
@@ -101,9 +102,9 @@ test('French partition rejects duplicate, foreign, missing and disconnected depa
 test('the modern map rejects prior saves and LAN snapshots without overwriting old storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'france-admin-regions');
-  assert.equal(STATE_VERSION,9);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v21');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v9.');
+  assert.equal(STATE_VERSION,10);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v22');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v10.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:6,map:'earth-natural-earth-admin1-511-regions-v5'};
