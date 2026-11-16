@@ -1,4 +1,4 @@
-import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -36,12 +36,14 @@ const isMdv=id=>id.startsWith('MDV-');
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 const byCode=id=>MAP[provinceByCode(id)];
 
-test('all 21 Maldives source areas share one playable region without losing their aliases',()=>{
+test('all 21 Maldives source areas share Ceylon without losing their aliases',()=>{
  const ids=plan.atomIds,region=byCode('MDV-5223');
  assert.equal(ids.length,21);
- assert.equal(region.code,ids[0]);
- assert.deepEqual(region.sourceAtoms,ids);
- assert.deepEqual(region.name,['马尔代夫','Maldives']);
+ const previous=repartitionMaldives(base,prior,plan).find(g=>g.id==='group:MDV-5223');
+ assert.deepEqual(previous.sourceIds,ids);
+ assert.equal(previous.anchorAtomId,plan.anchorAtomId);
+ assert.ok(ids.every(id=>region.sourceAtoms.includes(id)));
+ assert.deepEqual(region.name,['锡兰','Ceylon']);
  assert.ok(region.playable&&region.locked);
  for(const id of ids){
   const {center,parts}=sourceByCode.get(id);
@@ -49,7 +51,7 @@ test('all 21 Maldives source areas share one playable region without losing thei
   assert.equal(provinceByCode(id),region.id);
   for(const part of parts)assert.ok(region.parts.includes(part));
  }
- assert.equal(MAP.filter(r=>isMdv(r.code)).length,1);
+ assert.equal(MAP.filter(r=>r.sourceAtoms.some(isMdv)).length,1);
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
@@ -67,11 +69,11 @@ test('administrative links to Malé do not create land bridges or land-linked sp
  for(const id of plan.atomIds){
   assert.deepEqual(sourceByCode.get(id).neighbors,[]);
   assert.deepEqual(physical.get(id).neighbors,[]);
-  if(id===hub)assert.deepEqual([...grouped.get(id).neighbors].sort(),plan.atomIds.filter(x=>x!==hub));
-  else assert.deepEqual(grouped.get(id).neighbors,[hub]);
+  if(id===hub)assert.ok(plan.atomIds.filter(x=>x!==hub).every(atom=>grouped.get(id).neighbors.includes(atom)));
+  else assert.ok(grouped.get(id).neighbors.includes(hub));
  }
  const male=sourceByCode.get(hub).center;
- assert.deepEqual(region.center,male);
+ assert.deepEqual(region.center,sourceByCode.get('LKA-2470').center);
  assert.ok(terrainAt(region.center,true)>=0);
  assert.equal(provinceAt(male.x,male.z),region.id);
  // Coordinate-level terrain routes remain seaborne even when both endpoints
@@ -80,7 +82,7 @@ test('administrative links to Malé do not create land bridges or land-linked sp
  for(const source of ['MDV-5223','MDV-5228','MDV-5238','MDV-5243']){
   const origin=sourceByCode.get(source).center;
   assert.equal(terrainSegment(origin,male,false),false);
-  const route=nav.plan(origin,region.center);
+  const route=nav.plan(origin,male);
   assert.ok(route?.points.some(p=>p.sea),source);
   assert.ok(validateTravel(route,origin,male));
  }
@@ -90,8 +92,8 @@ test('Maldives grouping changes no unrelated groups or original geometry',()=>{
  const unaffected=prior.filter(g=>!g.sourceIds.some(isMdv));
  const expected=repartitionSwissRegions(base,repartitionMaldives(base,prior,plan),swiss).filter(g=>!g.sourceIds.some(id=>isMdv(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id)));
  assert.equal(prior.length-unaffected.length,21);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isMdv(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
-  expected.filter(g=>!g.sourceIds.some(isPacificBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{})})));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isMdv(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
+  expected.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 
@@ -104,20 +106,20 @@ test('Maldives grouping rejects duplicated or noneligible members and a wrong an
  assert.throws(()=>repartitionMaldives(base,prior,wrongAnchor),/Expected one reviewed Maldives/);
 });
 
-test('map v20 and save v21 reject the previous map and LAN data without changing old slots',()=>{
+test('map v21 and save v22 reject the previous map and LAN data without changing old slots',()=>{
  const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
  const current=createGame(players,42,'maldives-gameplay-regions');
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');
- assert.equal(STATE_VERSION,21);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
- assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v21.');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');
+ assert.equal(STATE_VERSION,22);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
+ assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v22.');
  const currentSave=encodeSave(current,'Current campaign');
  assert.deepEqual(decodeSave(currentSave).state,current);
- const old={...current,version:20,map:'earth-natural-earth-admin1-511-regions-v19'};
+ const old={...current,version:21,map:'earth-natural-earth-admin1-511-regions-v20'};
  const body=JSON.stringify(old),previousSave=JSON.stringify({...JSON.parse(currentSave),body,hash:checksum(body)});
  assert.throws(()=>decodeSave(previousSave),/incompatibleMap/);
  assert.throws(()=>applyFrame(null,{type:'state',state:old}),/incompatibleMap/);
- const oldKey='rouge.save.natural-earth-admin1.regions.v20.same';
+ const oldKey='rouge.save.natural-earth-admin1.regions.v21.same';
  const records=new Map([[oldKey,previousSave],[oldKey+'.backup',previousSave]]);
  const storage={get length(){return records.size;},key:i=>[...records.keys()][i]??null,getItem:k=>records.get(k)??null,setItem:(k,v)=>records.set(k,v),removeItem:k=>records.delete(k)};
  assert.deepEqual(listSaves(storage),[]);

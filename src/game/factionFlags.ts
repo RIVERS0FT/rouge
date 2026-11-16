@@ -1,4 +1,5 @@
 import {MAP, SOURCE_TO_REGION} from './map.ts';
+import {PREPROCESSED_GROUP_ANCHORS} from './sourceMap.ts';
 import {FLAG_BY_ISO3, FLAG_PRESET_IDS, type FlagPresetId} from './flagCatalog.ts';
 import type {Flag} from './flags.ts';
 import type {Player, Vec2} from './types.ts';
@@ -11,13 +12,16 @@ import type {Player, Vec2} from './types.ts';
  * without anything new being stored or sent over the network. */
 type FlagOwner = Pick<Player, 'id' | 'flag' | 'country'>;
 
+// A region's stable code is its lexical-first atom, not necessarily the
+// origin's geographic country. Use the same curated land anchor as spawning.
+const flagAtRegionAnchor=(regionCode:string)=>FLAG_BY_ISO3.get((PREPROCESSED_GROUP_ANCHORS.get(regionCode)??regionCode).slice(0,3));
 let regionPoints: Map<FlagPresetId, Vec2[]> | undefined;
-/** Region centres of each catalog country, by the region's source prefix. */
+/** Region centres of each catalog country, by the chosen land anchor. */
 function flagRegions(): Map<FlagPresetId, Vec2[]> {
  if(regionPoints) return regionPoints;
  regionPoints = new Map();
  for(const region of MAP) {
-  const id = FLAG_BY_ISO3.get(region.code.slice(0, 3));
+  const id = flagAtRegionAnchor(region.code);
   if(!id) continue;
   const points = regionPoints.get(id) ?? [];
   points.push(region.center);
@@ -30,7 +34,8 @@ function spawnOf(player: FlagOwner): {home?: FlagPresetId; at?: Vec2} {
  const origin = player.country?.origin;
  if(!origin) return {};
  const region = Object.hasOwn(SOURCE_TO_REGION, origin) ? MAP[SOURCE_TO_REGION[origin]] : undefined;
- return {home: FLAG_BY_ISO3.get(origin.slice(0, 3)), at: region?.center};
+ const home=region?.code===origin?flagAtRegionAnchor(origin):FLAG_BY_ISO3.get(origin.slice(0,3));
+ return {home, at: region?.center};
 }
 
 function nearest(at: Vec2 | undefined, allowed: (id: FlagPresetId) => boolean): FlagPresetId | undefined {

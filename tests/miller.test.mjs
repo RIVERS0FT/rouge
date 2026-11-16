@@ -1,4 +1,4 @@
-import {finalRegionCount} from './pacific-fixtures.mjs';
+import {finalRegionCount} from './reviewed-ocean-fixtures.mjs';
 import {gunzipSync} from 'node:zlib';
 import {validateTravel,terrainSegment} from '../src/game/terrain-navigation.ts';
 import {readFileSync} from 'node:fs';

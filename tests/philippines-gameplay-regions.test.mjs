@@ -1,4 +1,4 @@
-import {isPacificBatch,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -57,8 +57,8 @@ test('118 Philippines source areas all resolve to three locked playable territor
  assert.equal(MAP.filter(g=>isPhilippines(g.code)).length,3);
  assert.equal(new Set(regions.flatMap(g=>g.sourceAtoms)).size,118);
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');assert.equal(STATE_VERSION,22);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
  for(const [queries,region] of [
   [['Manila','Batanes','Las Pinas','Palawan','达古潘'],regions[0]],
   [['Cebu','Lapu-Lapu','Bacolod','保和省'],regions[1]],
@@ -90,8 +90,8 @@ test('administrative grouping links only allow grouping and do not replace any l
 test('all other memberships, names, original geometry and source topology stay exactly the same',()=>{
  const untouched=prior.filter(g=>!g.sourceIds.some(id=>isPhilippines(id)||id.startsWith('THA-')||isSeaBatch(id)));
  assert.equal(prior.length-untouched.length,29+6+18+14+41+22+110+30+26);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isPhilippines(id)||id.startsWith('THA-')||isSeaBatch(id))),
-  untouched.filter(g=>!g.sourceIds.some(isPacificBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isPhilippines(id)||id.startsWith('THA-')||isSeaBatch(id))),
+  untouched.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 

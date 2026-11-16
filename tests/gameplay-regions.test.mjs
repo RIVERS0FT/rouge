@@ -1,4 +1,4 @@
-import {finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {MAP,SOURCE_MAP,SOURCE_TO_REGION,PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING,PLAYABLE_COUNT,provinceAt,provinceByCode,pointInProvince,searchProvinces} from '../src/game/map.ts';
 import {createGame,Engine} from '../src/game/engine.ts';

@@ -43,6 +43,13 @@ test('computer factions fly the flag of the country they spawned in; players kee
  assert.ok(['kr', 'kp', 'cn', 'ru'].includes(flags[3].id), flags[3].id);
 });
 
+test('Pegu derives its AI flag from the actual Myanmar spawn, not from the canonical Andaman atom',()=>{
+ const pegu=MAP[provinceByCode('MMR-3269')];
+ assert.equal(pegu.code,'IND-2474');
+ assert.deepEqual(assignFactionFlags([ai(0,pegu.code)]),[{type:'preset',id:'mm'}]);
+ assert.deepEqual(assignFactionFlags([{...ai(0,pegu.code),flag:{type:'preset',id:'in'}}]),[{type:'preset',id:'in'}]);
+});
+
 test('later factions from an already-flown country take the nearest unused flag', () => {
  const flags = assignFactionFlags([ai(0, ARIZONA), ai(1, ARIZONA), ai(2, ONTARIO), ai(3, AISNE), ai(4, AISNE)]).map(flag => flag.id);
  assert.equal(flags[0], 'us');
@@ -64,7 +71,9 @@ test('every faction of a full campaign gets a valid flag, unique until the catal
  // The first computer faction from each catalog country flies that country's flag.
  const seen = new Set(['cn']);
  for(const player of state.players.slice(1)) {
-  const home = FLAG_BY_ISO3.get(player.country.origin.slice(0, 3));
+  const origin=player.country.origin;
+  const visualAnchor=atlas.gameplayGroups.find(g=>g.id==='group:'+origin)?.anchorAtomId??origin;
+  const home = FLAG_BY_ISO3.get(visualAnchor.slice(0,3));
   if(home && !seen.has(home)) {assert.equal(flags[player.id].id, home); seen.add(home);}
  }
  // Derived from shared state only: memoized locally and identical for a network copy.

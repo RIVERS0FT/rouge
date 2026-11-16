@@ -1,4 +1,4 @@
-import {isPacificBatch,pacificScopeOf,finalRegionCount,finalPlayableCount} from './pacific-fixtures.mjs';
+import {isReviewedOceanBatch,oceanScopeOf,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -49,11 +49,11 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('83 original source areas select five playable groups with exact names, anchors and multilingual aliases',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');assert.equal(STATE_VERSION,21);assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');assert.equal(STATE_VERSION,22);assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
  const selected=new Set();
  for(const {id,groups,displayName,anchorAtomId,searchAliases} of plan.regions){
   const r=byCode(id.slice(6));selected.add(r.id);
-  const members=[...Object.values(groups).flat(),...(id==='group:CHN-1180'?['MAC+00?']:[])].sort(),pacific=pacificScopeOf(members[0]);
+  const members=[...Object.values(groups).flat(),...(id==='group:CHN-1180'?['MAC+00?']:[])].sort(),pacific=oceanScopeOf(members[0]);
   assert.deepEqual(r.name,pacific?.displayName??displayName);assert.deepEqual(r.center,sourceByCode.get(pacific?.anchorAtomId??anchorAtomId).center);
   if(pacific)assert.ok(members.every(code=>r.sourceAtoms.includes(code)));
   else assert.deepEqual(r.sourceAtoms,members);
@@ -108,7 +108,7 @@ test('outside the reviewed scope all game groups, raw country fields, source geo
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isPacificBatch(id)||isUserIslands(id)||isAdjacentIslandBatch(id))),unaffected.filter(g=>!g.sourceIds.some(isPacificBatch)).map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isReviewedOceanBatch(id)||isUserIslands(id)||isAdjacentIslandBatch(id))),unaffected.filter(g=>!g.sourceIds.some(isReviewedOceanBatch)).map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 

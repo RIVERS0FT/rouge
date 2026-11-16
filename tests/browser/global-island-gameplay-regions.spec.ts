@@ -16,12 +16,12 @@ test('Island place aliases select each merged playable region in either language
  };
  const bahamas=await select('拿骚','巴哈马');
  const seychelles=await select('维多利亚','塞舌尔');
- const palau=await select('科罗尔州','帕劳');
+ const palau=await select('科罗尔州','西密克罗尼西亚');
  expect(new Set([bahamas,seychelles,palau]).size).toBe(3);
  await page.getByTestId('open-settings').click();
  await page.getByRole('button',{name:'English',exact:true}).click();
  await page.getByTestId('settings-resume').click();
  expect(await select('Bimini','Bahamas')).toBe(bahamas);
  expect(await select('Outer Islands','Seychelles')).toBe(seychelles);
- expect(await select('Kayangel','Palau')).toBe(palau);
+ expect(await select('Kayangel','West Micronesia')).toBe(palau);
 });

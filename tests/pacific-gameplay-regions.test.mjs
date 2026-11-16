@@ -9,6 +9,7 @@ import {SAVE_PREFIX} from '../src/game/save.ts';
 import {terrainAt,terrainSegment} from '../src/game/terrain-navigation.ts';
 import atlas from '../src/generated/world.js';
 import plan from '../data/pacific-gameplay-regions.json' with {type:'json'};
+import {finalRegionCount} from './reviewed-ocean-fixtures.mjs';
 
 const base=JSON.parse(gunzipSync(readFileSync(new URL('../data/natural-earth-admin1-base.json.gz',import.meta.url))));
 const reference=JSON.parse(gunzipSync(readFileSync(new URL('../data/state-regions-1.13.7.json.gz',import.meta.url))));
@@ -31,11 +32,11 @@ test('Pacific plan collapses complete source groups into named locked gameplay r
   }
   for(const q of [...row.displayName,...row.searchAliases??[]])assert.ok(searchProvinces(q,MAP.length).some(p=>p.id===r.id),q);
  }
- assert.equal(MAP_METADATA.count,884-plan.regions.reduce((n,row)=>n+Object.keys(row.members).length-1,0));
+ assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,MAP_METADATA.count-4);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v20');
- assert.equal(STATE_VERSION,21);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v21.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v34');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');
+ assert.equal(STATE_VERSION,22);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v22.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
 });
 
 test('Pacific grouping links never widen physical land; original coastlines and source country tags survive byte-for-byte',()=>{
