@@ -31,7 +31,7 @@ export const SOURCE_TO_REGION:Readonly<Record<string,number>>=Object.freeze(Obje
 for(const region of MAP){const neighbors=new Set<number>();for(const code of region.sourceAtoms!)for(const source of sourceByCode.get(code)!.neighbors){const id=SOURCE_TO_REGION[SOURCE_MAP[source].code];if(id!==region.id)neighbors.add(id);}region.neighbors=[...neighbors].sort((a,b)=>a-b);}
 export const VISIBLE_COUNT=MAP.filter(p=>p.visible).length;
 export const PLAYABLE_COUNT=MAP.filter(p=>p.playable).length;
-export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v5',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
+export const MAP_METADATA={source:'Natural Earth 1:10m Admin 1 v5.1.1',revision:'Natural Earth 5.1.1 / locked gameplay regions v6',mapId:MAP_ID,projection:PROJECTION_ID,crop:CROP_ID,north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT,sourceAtomCount:SOURCE_MAP.length,preprocessedLocked:true};
 const queries=MAP.map(p=>p.parts.map(part=>part.map(prepareRing)));
 function partContains(part:ReturnType<typeof prepareRing>[],x:number,z:number):boolean {if(x<part[0].left-1e-7||x>part[0].right+1e-7||!ringContains(part[0],x,z))return false;for(let i=1;i<part.length;i++)if(ringContains(part[i],x,z))return false;return true;}
 const SIZE=5,minX=Math.floor(BOUNDS.left/SIZE),minZ=Math.floor(BOUNDS.top/SIZE),cols=Math.floor(BOUNDS.right/SIZE)-minX+1,rows=Math.floor(BOUNDS.bottom/SIZE)-minZ+1;

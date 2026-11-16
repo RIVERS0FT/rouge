@@ -13,4 +13,4 @@ for(const [region,owner] of [[source,0],[enemy,1]]){
 }
 for(let i=0;i<12;i++)state.units.push({id:state.nextId++,owner:0,kind:'infantry',...MAP[source].center,hp:stats(state.players[0],'infantry').hp,province:source,origin:source,target:null,destination:null,route:[],cooldown:0});
 state.grouping=reconcileGrouping(state);
-console.log(JSON.stringify({key:SAVE_PREFIX+'map-order-qa',value:encodeSave(state,'Map order fixture'),source,target,enemy,country:state.players[1].country,centers:{source:MAP[source].center,target:MAP[target].center}}));
+console.log(JSON.stringify({key:SAVE_PREFIX+'map-order-qa',savePrefix:SAVE_PREFIX,value:encodeSave(state,'Map order fixture'),source,target,enemy,country:state.players[1].country,centers:{source:MAP[source].center,target:MAP[target].center}}));
