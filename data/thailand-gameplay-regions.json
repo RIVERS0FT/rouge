@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "notes": "Reviewed gameplay group consolidation. Phuket shares southern administration with Phang Nga as a grouping-only attachment, not a land edge.",
+  "regions": [
+    {
+      "primary": "group:THA-374",
+      "members": {
+        "group:THA-374": [
+          "THA-374",
+          "THA-389",
+          "THA-390",
+          "THA-391",
+          "THA-392",
+          "THA-393",
+          "THA-394",
+          "THA-395",
+          "THA-396",
+          "THA-397",
+          "THA-398",
+          "THA-404"
+        ]
+      },
+      "displayName": [
+        "清迈",
+        "Chiang Mai"
+      ],
+      "anchorAtomId": "THA-390",
+      "islandAttachments": []
+    },
+    {
+      "primary": "group:THA-399",
+      "members": {
+        "group:THA-399": [
+          "THA-399",
+          "THA-400",
+          "THA-401",
+          "THA-402",
+          "THA-403",
+          "THA-405",
+          "THA-406",
+          "THA-407",
+          "THA-408",
+          "THA-411",
+          "THA-412",
+          "THA-413",
+          "THA-414",
+          "THA-415",
+          "THA-416",
+          "THA-417",
+          "THA-418",
+          "THA-419",
+          "THA-421",
+          "THA-422",
+          "THA-423",
+          "THA-424"
+        ]
+      },
+      "displayName": [
+        "曼谷",
+        "Bangkok"
+      ],
+      "anchorAtomId": "THA-416",
+      "islandAttachments": []
+    },
+    {
+      "primary": "group:THA-409",
+      "members": {
+        "group:THA-409": [
+          "THA-409",
+          "THA-410",
+          "THA-425",
+          "THA-426",
+          "THA-427",
+          "THA-428",
+          "THA-430",
+          "THA-431",
+          "THA-432",
+          "THA-433",
+          "THA-434",
+          "THA-435",
+          "THA-436",
+          "THA-437",
+          "THA-438",
+          "THA-439",
+          "THA-440",
+          "THA-441",
+          "THA-442",
+          "THA-443",
+          "THA-445",
+          "THA-447",
+          "THA-448",
+          "THA-449",
+          "THA-472",
+          "THA-473",
+          "THA-5499"
+        ],
+        "group:THA-446": [
+          "THA-446"
+        ]
+      },
+      "displayName": [
+        "呵叻",
+        "Nakhon Ratchasima"
+      ],
+      "anchorAtomId": "THA-441",
+      "islandAttachments": []
+    },
+    {
+      "primary": "group:THA-375",
+      "members": {
+        "group:THA-375": [
+          "THA-375",
+          "THA-376",
+          "THA-378",
+          "THA-379",
+          "THA-380",
+          "THA-382",
+          "THA-383",
+          "THA-385",
+          "THA-386",
+          "THA-387",
+          "THA-388",
+          "THA-420",
+          "THA-493",
+          "THA-494"
+        ],
+        "group:THA-377": [
+          "THA-377"
+        ]
+      },
+      "displayName": [
+        "泰南",
+        "Southern Thailand"
+      ],
+      "anchorAtomId": "THA-380",
+      "islandAttachments": [
+        [
+          "THA-377",
+          "THA-378"
+        ]
+      ]
+    }
+  ]
+}

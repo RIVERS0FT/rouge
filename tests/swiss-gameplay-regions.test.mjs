@@ -54,15 +54,15 @@ test('all 26 cantons are retained exactly once in two locked playable Swiss terr
   assert.ok(searchProvinces(query).some(g=>g.id===region.id),query);
  }
  assert.equal(byCode('CHE-171').id,east.id);assert.equal(byCode('CHE-3425').id,east.id);
- assert.equal(MAP_METADATA.count,1089);assert.equal(MAP_METADATA.playableCount,1085);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v11');assert.equal(STATE_VERSION,12);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v24');
+ assert.equal(MAP_METADATA.count,1087);assert.equal(MAP_METADATA.playableCount,1083);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v12');assert.equal(STATE_VERSION,13);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v25');
 });
 
 test('Swiss merge does not change any other memberships, names, geometry or source topology',()=>{
- const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSwiss(id)||id.startsWith('PHL-')));
- assert.equal(prior.length-untouched.length,4+29);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSwiss(id)||id.startsWith('PHL-'))),
+ const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-')));
+ assert.equal(prior.length-untouched.length,4+29+6);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-'))),
   untouched.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
