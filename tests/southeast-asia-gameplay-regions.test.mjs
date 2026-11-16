@@ -25,7 +25,7 @@ import philippines from '../data/philippines-gameplay-regions.json' with {type:'
 import thailand from '../data/thailand-gameplay-regions.json' with {type:'json'};
 import plan from '../data/southeast-asia-gameplay-regions.json' with {type:'json'};
 
-import {isSeaBatch} from './southeast-asia-fixtures.mjs';
+import {isAsiaArabia,isSeaOrAsiaArabia} from './southeast-asia-fixtures.mjs';
 import {repartitionSoutheastAsia} from '../scripts/apply-southeast-asia-gameplay-regions.mjs';
 
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
@@ -37,14 +37,14 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('approved Southeast Asian gameplay groups preserve all original atoms, pick points, and search aliases',()=>{
- assert.equal(MAP_METADATA.count,1078);assert.equal(MAP_METADATA.playableCount,1074);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v13');assert.equal(STATE_VERSION,14);assert.equal(RULES_ID,'admin1-locked-game-regions-v26');
+ assert.equal(MAP_METADATA.count,1073);assert.equal(MAP_METADATA.playableCount,1069);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v14');assert.equal(STATE_VERSION,15);assert.equal(RULES_ID,'admin1-locked-game-regions-v27');
  const countries=['BRN','KHM','IDN','LAO','MYS','MMR','PHL','SGP','THA','TLS','VNM'];
- assert.equal(MAP.filter(r=>countries.includes(r.code.slice(0,3))).length,41);
- for(const [country,count] of [['SGP',0],['MYS',3],['VNM',3],['TLS',2],['IDN',15],['KHM',1]]){
+ assert.equal(MAP.filter(r=>countries.includes(r.code.slice(0,3))).length,39);
+ for(const [country,count] of [['SGP',0],['MYS',2],['VNM',3],['TLS',1],['IDN',15],['KHM',1]]){
   assert.equal(MAP.filter(r=>r.code.startsWith(country+'-')).length,count);
  }
- for(const row of plan.regions){
+ for(const row of plan.regions.filter(row=>!Object.values(row.groups).flat().some(isAsiaArabia))){
   const r=byCode(row.id.slice(6));
   assert.ok(r.playable&&r.locked&&terrainAt(r.center,true)>=0);
   assert.equal('group:'+r.code,row.id);
@@ -66,7 +66,7 @@ test('approved Southeast Asian gameplay groups preserve all original atoms, pick
  ]){
   assert.ok(searchProvinces(query).some(p=>p.id===byCode(target).id),query);
  }
- assert.notEqual(byCode('TLS-543').id,byCode('TLS-541').id);
+ assert.equal(byCode('TLS-543').id,byCode('TLS-541').id);
  const bali=atlas.provinces.find(p=>p.country==='IDN'&&p.name[1]==='Bali');
  assert.notEqual(byCode(bali.id).id,byCode('IDN-1235').id);
 });
@@ -88,9 +88,9 @@ test('four reviewed island links are grouping-only, including Singapore; no rout
 });
 
 test('the batch changes no other group, raw country, geometry, or neighbor data',()=>{
- const original=prior.filter(g=>!g.sourceIds.some(isSeaBatch));
- assert.equal(prior.length-original.length,18);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isSeaBatch)),
+ const original=prior.filter(g=>!g.sourceIds.some(isSeaOrAsiaArabia));
+ assert.equal(prior.length-original.length,18+14);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isSeaOrAsiaArabia)),
   original.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
