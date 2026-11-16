@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "reference": "https://www.mapchart.net/victoria-3.html",
+  "referenceVersion": "1.7",
+  "names": [
+    {"id": "group:FRA-5262", "atomIds": ["FRA-5262", "FRA-5267", "FRA-5288", "FRA-5304", "FRA-5311", "FRA-5315", "FRA-5338"], "displayName": ["罗讷", "Rhône"]},
+    {"id": "group:FRA-5263", "atomIds": ["FRA-5263", "FRA-5331", "FRA-5345"], "displayName": ["皮卡第", "Picardy"]},
+    {"id": "group:FRA-5264", "atomIds": ["FRA-5264", "FRA-5276", "FRA-5280", "FRA-5284", "FRA-5299", "FRA-5303", "FRA-5335"], "displayName": ["奥弗涅-利穆赞", "Auvergne-Limousin"]},
+    {"id": "group:FRA-5265", "atomIds": ["FRA-5265", "FRA-5266", "FRA-5274", "FRA-5351", "FRA-5352"], "displayName": ["普罗旺斯", "Provence"]},
+    {"id": "group:FRA-5268", "atomIds": ["FRA-5268", "FRA-5270", "FRA-5300", "FRA-5323"], "displayName": ["香槟", "Champagne"]},
+    {"id": "group:FRA-5269", "atomIds": ["FRA-5269", "FRA-5271", "FRA-5293", "FRA-5298", "FRA-5307", "FRA-5320", "FRA-5337", "FRA-5346"], "displayName": ["朗格多克", "Languedoc"]},
+    {"id": "group:FRA-5272", "atomIds": ["FRA-5272", "FRA-5286", "FRA-5318", "FRA-5319", "FRA-5347"], "displayName": ["吉耶讷", "Guyenne"]},
+    {"id": "group:FRA-5273", "atomIds": ["FRA-5273", "FRA-5296", "FRA-5328"], "displayName": ["阿尔萨斯-洛林", "Alsace-Lorraine"]},
+    {"id": "group:FRA-5275", "atomIds": ["FRA-5275", "FRA-5290", "FRA-5322", "FRA-5332", "FRA-5343"], "displayName": ["诺曼底", "Normandy"]},
+    {"id": "group:FRA-5277", "atomIds": ["FRA-5277", "FRA-5278", "FRA-5285", "FRA-5353", "FRA-5354"], "displayName": ["普瓦图", "Poitou"]},
+    {"id": "group:FRA-5279", "atomIds": ["FRA-5279", "FRA-5291", "FRA-5309", "FRA-5314", "FRA-5317"], "displayName": ["奥尔良", "Orléans"]},
+    {"id": "group:FRA-5281", "atomIds": ["FRA-5281", "FRA-5297"], "displayName": ["科西嘉", "Corsica"]},
+    {"id": "group:FRA-5282", "atomIds": ["FRA-5282", "FRA-5329", "FRA-5339", "FRA-5356"], "displayName": ["勃艮第", "Burgundy"]},
+    {"id": "group:FRA-5283", "atomIds": ["FRA-5283", "FRA-5292", "FRA-5308", "FRA-5316", "FRA-5327"], "displayName": ["布列塔尼", "Brittany"]},
+    {"id": "group:FRA-5287", "atomIds": ["FRA-5287", "FRA-5301", "FRA-5312", "FRA-5348"], "displayName": ["弗朗什-孔泰", "Franche-Comté"]},
+    {"id": "group:FRA-5289", "atomIds": ["FRA-5289", "FRA-5306", "FRA-5333", "FRA-5342", "FRA-5344", "FRA-5349", "FRA-5350", "FRA-5357"], "displayName": ["法兰西岛", "Île-de-France"]},
+    {"id": "group:FRA-5294", "atomIds": ["FRA-5294", "FRA-5295", "FRA-5305", "FRA-5313", "FRA-5336"], "displayName": ["阿基坦", "Aquitaine"]},
+    {"id": "group:FRA-5302", "atomIds": ["FRA-5302", "FRA-5341"], "displayName": ["萨瓦", "Savoy"]},
+    {"id": "group:FRA-5310", "atomIds": ["FRA-5310", "FRA-5321", "FRA-5324", "FRA-5340"], "displayName": ["曼恩-安茹", "Maine-Anjou"]},
+    {"id": "group:FRA-5325", "atomIds": ["FRA-5325", "FRA-5326", "FRA-5355"], "displayName": ["洛林", "Lorraine"]},
+    {"id": "group:FRA-5330", "atomIds": ["FRA-5330", "FRA-5334"], "displayName": ["法国低地", "French Low Countries"]}
+  ]
+}

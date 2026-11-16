@@ -27,6 +27,8 @@ GitHub Pages 不包含 Node.js 联机服务器；局域网入口不能直接在�
 
 几何采用 Natural Earth 5.1.1、1:10m Admin1 公共领域数据的完整行政单元，共享边统一简化但不切割行政单元。旧州区仅作初始分组重叠提示，不使用其像素几何。完整 NE 行政单元与 Vic3 州区粒度不兼容，因此分组明确标为近似，不声称精确重建旧 675 块。见 `docs/ADMIN1_OVERLAY_AUDIT.md`。
 
+法国大陆与科西嘉的 21 个游戏州区采用经 [MapChart《维多利亚 3》1.7](https://www.mapchart.net/victoria-3.html) 校对的中英州区名称，例如法兰西岛、诺曼底和科西嘉；原省名仍可用来搜索对应州区。
+
 ## 发布与验证
 
 版本使用 `X.Y.Z` 三位独立计数，不因其他位增加而归零。发布版本以 `package.json` 为准，修改版本时同步更新锁文件的版本（可运行 `npm version --no-git-tag-version X.Y.Z`）。游戏设置和 Pages 的 `build-info.json` 从同一来源读取。

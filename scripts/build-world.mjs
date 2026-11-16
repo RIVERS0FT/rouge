@@ -24,9 +24,25 @@ if(decisions.basePartitionSha256!==createHash('sha256').update(partitionBytes).d
 const historicalGroups=consolidateStateRegions(source,partition.groups,decisions);
 const currentDecisions=JSON.parse(await readFile(new URL('data/state-region-1.15.1-overrides.json',root)));
 const mergedGroups=applyCurrentStateMergers(source,historicalGroups,currentDecisions,JSON.parse(overlapAudit));
+// Label existing groups by reviewed stable ID; the exact members are a guard
+// against a later partition change silently reusing the same first-atom ID.
+const franceNames=JSON.parse(await readFile(new URL('data/france-state-region-names.json',root)));
+if(franceNames.schema!==1 || !Array.isArray(franceNames.names))throw new Error('Invalid French state region name reference');
+const mergedById=new Map(mergedGroups.map(g=>[g.id,g])), reviewedNames=new Map();
+for(const entry of franceNames.names){
+  const group=mergedById.get(entry.id), name=entry.displayName;
+  if(!group || group.displayName || reviewedNames.has(entry.id)
+     || !Array.isArray(entry.atomIds) || group.sourceIds.length!==entry.atomIds.length
+     || !group.sourceIds.every((id,i)=>id===entry.atomIds[i])
+     || !Array.isArray(name) || name.length!==2 || !name.every(v=>typeof v==='string'&&v.trim())){
+    throw new Error(`Invalid French state region display name: ${entry.id}`);
+  }
+  reviewedNames.set(entry.id,name);
+}
+const namedGroups=mergedGroups.map(g=>reviewedNames.has(g.id)?{...g,displayName:reviewedNames.get(g.id)}:g);
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
-const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:mergedGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{})}))};
+const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:namedGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{})}))};
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);
