@@ -3,11 +3,11 @@ import {test,expect,type Page} from '@playwright/test';
 
 async function hoverVisibleLand(page:Page){
  const position=await page.evaluate(async()=>{
-  const {MAP,heightAt}=await import('/src/game/map.ts'),THREE=await import('/node_modules/three/build/three.module.js');
+  const {MAP,LAND_Y}=await import('/src/game/map.ts'),THREE=await import('/node_modules/three/build/three.module.js');
   const canvas=document.querySelector<HTMLCanvasElement>('.world canvas')!,d=canvas.dataset,w=canvas.clientWidth,h=canvas.clientHeight,distance=Number(d.distance),t=Math.max(0,Math.min(1,(distance-90)/230)),blend=1-t*t*(3-2*t);
   const camera=new THREE.PerspectiveCamera(40,w/h,.05,20000);camera.up.set(0,0,-1);camera.position.set(Number(d.focusX),distance*Math.cos(blend*.6),Number(d.focusZ)+distance*Math.sin(blend*.6));camera.lookAt(Number(d.focusX),0,Number(d.focusZ));camera.updateMatrixWorld();
   const selected=Number(d.selectedRegion),candidates=[MAP[selected],...MAP].filter(Boolean);
-  for(const p of candidates){if(!p.visible)continue;const point=new THREE.Vector3(p.center.x,.16+(heightAt(p.center.x,p.center.z)-.16)*blend,p.center.z).project(camera),x=(point.x+1)*w/2,y=(1-point.y)*h/2;
+  for(const p of candidates){if(!p.visible)continue;const point=new THREE.Vector3(p.center.x,LAND_Y,p.center.z).project(camera),x=(point.x+1)*w/2,y=(1-point.y)*h/2;
    if(point.z>=-1&&point.z<=1&&document.elementFromPoint(x,y)===canvas)return{x,y};
   }
   throw Error('no unobscured land to hover');

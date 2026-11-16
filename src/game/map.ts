@@ -11,7 +11,7 @@ import {inRect,intersectBounds,signedArea} from './crop.ts';
 import type {ProvinceDef,Vec2} from './types.ts';
 import {prepareRing,ringContains} from './polygonQuery.ts';
 export {contains,containsPart,boundsOf,SOURCE_MAP,SOURCE_TOPOLOGY,PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING};
-export {heightAt} from './sourceMap.ts';
+export {LAND_Y,heightAt} from './mapHeight.ts';
 export const BOUNDS=WORLD_BOUNDS;
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 const area=(p:ProvinceDef)=>p.parts.reduce((total,part)=>total+Math.abs(signedArea(part[0]))-part.slice(1).reduce((n,hole)=>n+Math.abs(signedArea(hole)),0),0);

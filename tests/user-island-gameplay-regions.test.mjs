@@ -30,7 +30,7 @@ import smallEurope from '../data/europe-small-gameplay-regions.json' with {type:
 import globalIslands from '../data/global-island-gameplay-regions.json' with {type:'json'};
 import plan from '../data/user-island-gameplay-regions.json' with {type:'json'};
 
-import {isUserIslands} from './southeast-asia-fixtures.mjs';
+import {isUserIslands,isAdjacentIslandBatch} from './southeast-asia-fixtures.mjs';
 import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regions.mjs';
 import {applyEuropeSmallMergers} from '../scripts/apply-europe-small-gameplay-regions.mjs';
 import {repartitionUserIslands} from '../scripts/apply-user-island-gameplay-regions.mjs';
@@ -47,13 +47,13 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('83 original source areas select five playable groups with exact names, anchors and multilingual aliases',()=>{
- assert.equal(MAP_METADATA.count,902);assert.equal(MAP_METADATA.playableCount,898);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v18');assert.equal(STATE_VERSION,19);assert.equal(RULES_ID,'admin1-locked-game-regions-v31');
+ assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
  const selected=new Set();
  for(const {id,groups,displayName,anchorAtomId,searchAliases} of plan.regions){
   const r=byCode(id.slice(6));selected.add(r.id);
   assert.deepEqual(r.name,displayName);assert.deepEqual(r.center,sourceByCode.get(anchorAtomId).center);
-  assert.deepEqual(r.sourceAtoms,Object.values(groups).flat().sort());
+  assert.deepEqual(r.sourceAtoms,[...Object.values(groups).flat(),...(id==='group:CHN-1180'?['MAC+00?']:[])].sort());
   assert.ok(r.playable&&r.locked&&terrainAt(r.center,true)>=0,id);
   for(const code of r.sourceAtoms){
    const s=sourceByCode.get(code);
@@ -70,17 +70,17 @@ test('83 original source areas select five playable groups with exact names, anc
  }
  assert.deepEqual(caribbean.neighbors,[]);
  const guangdong=byCode('CHN-1180');
- assert.equal(guangdong.sourceAtoms.length,19);
+ assert.equal(guangdong.sourceAtoms.length,20);
  const hk=atlas.provinces.filter(p=>p.country==='HKG');
  assert.equal(hk.length,18);assert.ok(hk.every(p=>byCode(p.id).id===guangdong.id));
  const macau=atlas.provinces.filter(p=>p.country==='MAC');assert.ok(macau.length>0);
- assert.ok(macau.every(p=>byCode(p.id).id!==guangdong.id));
+ assert.ok(macau.every(p=>byCode(p.id).id===guangdong.id));
 });
 
 test('all reviewed disconnected components stay outside the original physical graph and real sea routes still work',()=>{
  const raw=new Map(SOURCE_TOPOLOGY.atoms.map(a=>[a.id,a])),grouping=new Map(PREPROCESSED_TOPOLOGY.atoms.map(a=>[a.id,a]));
  const links=atlas.gameplayGroups.filter(g=>g.atomIds.some(isUserIslands)).flatMap(g=>g.islandAttachments??[]);
- assert.equal(links.length,15);
+ assert.equal(links.length,16);
  for(const [a,b] of links){
   assert.ok(grouping.get(a).neighbors.includes(b)&&!raw.get(a).neighbors.includes(b));
   assert.ok(grouping.get(b).neighbors.includes(a)&&!raw.get(b).neighbors.includes(a));
@@ -99,12 +99,12 @@ test('all reviewed disconnected components stay outside the original physical gr
 });
 
 test('outside the reviewed scope all game groups, raw country fields, source geometry and land edges are exact',()=>{
- const unaffected=prior.filter(g=>!g.sourceIds.some(isUserIslands));
- assert.equal(prior.length-unaffected.length,30);
+ const unaffected=prior.filter(g=>!g.sourceIds.some(id=>isUserIslands(id)||isAdjacentIslandBatch(id)));
+ assert.equal(prior.length-unaffected.length,30+26);
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isUserIslands)),unaffected.map(serialize));
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isUserIslands(id)||isAdjacentIslandBatch(id))),unaffected.map(serialize));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
 

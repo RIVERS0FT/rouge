@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {LAND_Y} from '../game/mapHeight.ts';
 import {WORLD_BOUNDS,WORLD_WIDTH} from '../game/geo.ts';
 import {compactSurface,RELIEF_MIDPOINT,RELIEF_STRENGTH} from './mapSurfaceConfig.ts';
 import {installOceanSurface} from './oceanSurface.ts';
@@ -22,7 +23,7 @@ export class MapSurface {
  private pending:string[]=[];private queue:{key:string;pixels:Uint8Array}[]=[];
  private offsets:number[]=[];private slots:number;private width:number;private level:number;
  private ready={value:0};private lod={value:0};private baseUniform={value:null as THREE.Texture|null};
- private ray=new THREE.Raycaster();private point=new THREE.Vector3();private plane=new THREE.Plane(new THREE.Vector3(0,1,0),-.16);
+ private ray=new THREE.Raycaster();private point=new THREE.Vector3();private plane=new THREE.Plane(new THREE.Vector3(0,1,0),-LAND_Y);
  constructor(land:THREE.Material,sea:THREE.Material,private renderer:THREE.WebGLRenderer,private invalidate:()=>void,nearView:{value:number}){
   const canvas=renderer.domElement,compact=compactSurface(Math.min(innerWidth,innerHeight),matchMedia('(pointer:coarse)').matches,renderer.capabilities.maxTextureSize,(navigator as Navigator&{deviceMemory?:number}).deviceMemory);
   this.width=compact?1024:2048;this.level=this.width;this.slots=compact?24:48;

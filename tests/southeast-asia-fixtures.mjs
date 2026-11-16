@@ -20,4 +20,7 @@ export const isEuropeOrGlobalIslands=id=>isAnyEuropeBatch(id)||isAllIslands(id);
 import selectedIslands from '../data/user-island-gameplay-regions.json' with {type:'json'};
 const userIslandTouched=new Set(selectedIslands.regions.flatMap(row=>Object.values(row.groups).flat()));
 export const isUserIslands=id=>userIslandTouched.has(id);
-export const isAllIslands=id=>isGlobalIslands(id)||isUserIslands(id);
+export const isAllIslands=id=>isGlobalIslands(id)||isUserIslands(id)||isAdjacentIslandBatch(id);
+import adjacentIslands from '../data/adjacent-island-gameplay-regions.json' with {type:'json'};
+const adjacentIslandTouched=new Set(adjacentIslands.regions.flatMap(row=>Object.values(row.members).flat()));
+export const isAdjacentIslandBatch=id=>adjacentIslandTouched.has(id);

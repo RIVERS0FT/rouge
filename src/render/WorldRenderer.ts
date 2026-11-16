@@ -32,7 +32,7 @@ import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {buildBorderEdges,classifyBorder,borderPositions,territoryOutline,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH,COUNTRY_BORDER_COLOR,type BorderEdge} from './territoryBorders.ts';
 import {MapInputController,type MapInputContext} from './mapInput.ts';
 import {advanceCameraDistance} from './cameraMotion.ts';
-import { MAP, BOUNDS, heightAt, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
+import { MAP, BOUNDS, LAND_Y, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
 import { clipTriangle, inRect } from '../game/crop.ts';
 import type { GameState, Vec2 } from '../game/types.ts';
@@ -182,7 +182,7 @@ export class WorldRenderer {
         for(const tri of triangles) {
           const clipped=clipTriangle([tri[0],tri[2],tri[1]].map(i=>({x:points[i].x,z:points[i].y})),BOUNDS);
           for(let j=1;j+1<clipped.length;j++)for(const p of [clipped[0],clipped[j],clipped[j+1]]) {
-            positions.push(p.x,0.16,p.z);colors.push(base.r,base.g,base.b);
+            positions.push(p.x,LAND_Y,p.z);colors.push(base.r,base.g,base.b);
           }
         }
 
@@ -201,14 +201,14 @@ export class WorldRenderer {
     this.captureTint=new THREE.BufferAttribute(new Uint8Array(positions.length/3*4),4,true);this.captureTint.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute('captureTint',this.captureTint);
     const normals=new Float32Array(positions.length);for(let i=1;i<normals.length;i+=3)normals[i]=1;geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));
     const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide});
-    this.relief(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;this.mapRevision++;},this.blendUniform);
+    this.flatSurface(material);this.mapSurface=new MapSurface(material,sea.material,this.renderer,()=>{this.invalidated=true;this.backgroundFrame=true;this.mapRevision++;},this.blendUniform);
     // Owned countries deepen toward their borders and coasts (GPU-only; vertex colours stay exact).
     const tintWidth=this.renderer.domElement.dataset.surfaceResolution==='compact'?2048:Math.min(4096,this.renderer.capabilities.maxTextureSize);
     this.politicalTint=new PoliticalTint(BOUNDS,{width:tintWidth,height:Math.round(tintWidth*(BOUNDS.bottom-BOUNDS.top)/(BOUNDS.right-BOUNDS.left))});
     this.politicalTint.attach(material);this.politicalTint.stripePeriod.value=11*this.renderer.getPixelRatio();this.renderer.domElement.dataset.politicalTint='painted-edges';
     this.land=new THREE.Mesh(geometry,material);this.atlas.add(mapGeometryTiles(this.land,3));
-    this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.relief(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
-    const outlines=this.lines(coasts,0x35433f,0.7);this.relief(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(mapGeometryTiles(outlines,2));
+    this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.flatSurface(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
+    const outlines=this.lines(coasts,0x35433f,0.7);this.flatSurface(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(mapGeometryTiles(outlines,2));
     this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
     this.renderer.domElement.dataset.boundaryMode='ownership-and-management';
     this.renderer.domElement.dataset.neutralBorders='independent-territories';
@@ -219,17 +219,16 @@ export class WorldRenderer {
     this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.selectionOverlay.add(this.selection);
     const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:SELECTION_GLOW_OPACITY,depthWrite:false,side:THREE.DoubleSide});
     glowMaterial.onBeforeCompile=shader=>{
-      // Subdivision follows the original land triangle plane, not a differently
-      // tessellated relief wave that could dip below the terrain and create gaps.
-      shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;
+      // The glow shares the flat land datum, with only a subpixel depth lift.
+      shader.uniforms.uOverlayLift=this.overlayLiftUniform;
       shader.uniforms.uGlowWidth={value:SELECTION_GLOW_WIDTH};
-      shader.vertexShader='uniform float uRelief; uniform float uOverlayLift; attribute float landRelief; attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
-      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance; transformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift; transformed.y += uRelief * landRelief;');
+      shader.vertexShader='uniform float uOverlayLift; attribute float edgeDistance; varying float vEdgeDistance;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdgeDistance = edgeDistance; transformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift;');
       shader.fragmentShader='uniform float uGlowWidth; varying float vEdgeDistance;\n'+shader.fragmentShader;
       shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fade = 1.0 - smoothstep(0.0, uGlowWidth, vEdgeDistance);\ndiffuseColor.a *= fade * fade;');
     };
-    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v4-subpixel-lift';
-    const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));initialGlow.setAttribute('landRelief',new THREE.Float32BufferAttribute([],1));
+    glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v5-flat';
+    const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));
     this.emptyGlow=initialGlow;
     this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.selectionOverlay.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
@@ -280,10 +279,10 @@ export class WorldRenderer {
     const geometry=new LineSegmentsGeometry().setPositions(points);
     const material=new LineMaterial({color,linewidth:width,worldUnits:false,transparent:true,depthWrite:false,alphaToCoverage:true});
     material.onBeforeCompile=shader=>{
-      shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uRelief; uniform float uOverlayLift;\n'+shader.vertexShader;
-      for(const endpoint of ['instanceStart','instanceEnd'])shader.vertexShader=shader.vertexShader.replace(`vec4( ${endpoint}, 1.0 )`,`vec4( vec3(${endpoint}.x, 0.16 + (${endpoint}.y - 0.16) * uOverlayLift, ${endpoint}.z) + vec3(0.0, uRelief * (0.32 * (1.0 + sin(${endpoint}.x * 0.18) * cos(${endpoint}.z * 0.22))), 0.0), 1.0 )`);
+      shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uOverlayLift;\n'+shader.vertexShader;
+      for(const endpoint of ['instanceStart','instanceEnd'])shader.vertexShader=shader.vertexShader.replace(`vec4( ${endpoint}, 1.0 )`,`vec4( vec3(${endpoint}.x, 0.16 + (${endpoint}.y - 0.16) * uOverlayLift, ${endpoint}.z), 1.0 )`);
     };
-    material.customProgramCacheKey=()=> 'earth-wide-border-relief-v2-subpixel-lift';
+    material.customProgramCacheKey=()=> 'earth-wide-border-v3-flat';
     const lines=new LineSegments2(geometry,material);lines.visible=points.length>0;return lines;
   }
   private replaceWideGeometry(lines:LineSegments2,points:number[]) {
@@ -297,10 +296,11 @@ export class WorldRenderer {
     for(const copy of this.repeats){const repeat=copy.getObjectByName(source.name)!;repeat.clear();repeat.add(tiles.clone(true));}
     for(const root of [this.atlas,...this.repeats])root.updateMatrixWorld(true);
   }
-  private relief(material:THREE.Material) {
-    material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uRelief; uniform float uOverlayLift;\n'+shader.vertexShader;
-      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift; transformed.y += uRelief * (0.32 * (1.0 + sin(position.x * 0.18) * cos(position.z * 0.22)));');};
-    material.customProgramCacheKey=()=> 'earth-relief-v2-subpixel-lift';
+  private flatSurface(material:THREE.Material) {
+    // uRelief remains the political tint's near-view color strength, not elevation.
+    material.onBeforeCompile=shader=>{shader.uniforms.uRelief=this.blendUniform;shader.uniforms.uOverlayLift=this.overlayLiftUniform;shader.vertexShader='uniform float uOverlayLift;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y = 0.16 + (transformed.y - 0.16) * uOverlayLift;');};
+    material.customProgramCacheKey=()=> 'earth-flat-surface-v3-subpixel-lift';
   }
   update(state:GameState,selected:number,lang:'zh'|'en',actor:number) {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
@@ -449,9 +449,9 @@ export class WorldRenderer {
     try{
       const worker=new Worker(new URL('./selectionGlow.worker.ts',import.meta.url),{type:'module'});this.selectionGlowWorker=worker;
       this.renderer.domElement.dataset.selectionGlowPending='true';
-      worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;relief:Float32Array;elapsed:number}})=>{
+      worker.onmessage=({data}:{data:{positions:Float32Array;distance:Float32Array;elapsed:number}})=>{
         if(this.selectionGlowWorker!==worker)return;
-        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));geometry.setAttribute('landRelief',new THREE.BufferAttribute(data.relief,1));
+        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.positions,3));geometry.setAttribute('edgeDistance',new THREE.BufferAttribute(data.distance,1));
         this.hoverGlows.set(this.hover,geometry);let vertices=0;for(const entry of this.hoverGlows.values())vertices+=entry.getAttribute('position').count;
         while(this.hoverGlows.size>1&&(this.hoverGlows.size>8||vertices>1_000_000)){const id=this.hoverGlows.keys().next().value!,old=this.hoverGlows.get(id)!;vertices-=old.getAttribute('position').count;this.hoverGlows.delete(id);old.dispose();}
         this.replaceGlow(geometry);
@@ -478,11 +478,8 @@ export class WorldRenderer {
   private resize=()=>{this.cancelDispatch();this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.viewportWidth=w;this.viewportHeight=h;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:Pick<PointerEvent,'clientX'|'clientY'>):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
-    const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.16);
-    for(let i=0;i<4;i++){
-      if(!this.ray.ray.intersectPlane(plane,point))return -1;
-      plane.constant=-(0.16+(heightAt(wrapX(point.x),point.z)-0.16)*this.blend);
-    }
+    const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-LAND_Y);
+    if(!this.ray.ray.intersectPlane(plane,point))return -1;
     return provinceAt(viewPickX(point.x,this.globalView),point.z);
   }
   private mapInput=new MapInputController(action=>{
@@ -589,14 +586,14 @@ export class WorldRenderer {
     const path=geometry.members.flatMap(member=>MAP[member].parts).flatMap(polygon=>{
       const anchor=polygon[0][0].x,shift=nearestWorldX(anchor,this.focus.x)-anchor;
       return polygon.map(ring=>`M${ring.map(v=>{
-        projected.set(v.x+shift,heightAt(v.x,v.z)*this.blend+.35,v.z).project(this.camera);
+        projected.set(v.x+shift,LAND_Y,v.z).project(this.camera);
         return `${((projected.x+1)*w).toFixed(1)},${((1-projected.y)*h).toFixed(1)}`;
       }).join('L')}Z`);
     }).join('');
     const outline=geometry.edges.map(({a,b})=>{
       const ax=nearestWorldX(a.x,this.focus.x),bx=nearestWorldX(b.x,ax);
-      const p=projected.set(ax,heightAt(a.x,a.z)*this.blend+.35,a.z).project(this.camera),start=`${((p.x+1)*w).toFixed(1)},${((1-p.y)*h).toFixed(1)}`;
-      projected.set(bx,heightAt(b.x,b.z)*this.blend+.35,b.z).project(this.camera);
+      const p=projected.set(ax,LAND_Y,a.z).project(this.camera),start=`${((p.x+1)*w).toFixed(1)},${((1-p.y)*h).toFixed(1)}`;
+      projected.set(bx,LAND_Y,b.z).project(this.camera);
       return `M${start}L${((projected.x+1)*w).toFixed(1)},${((1-projected.y)*h).toFixed(1)}`;
     }).join('');
     this.dispatchTarget={id,camera,path,outline};return this.dispatchTarget;
@@ -606,7 +603,7 @@ export class WorldRenderer {
     const {x:clientX,y:clientY}=gesture.cursor,host=this.host.getBoundingClientRect(),plaque=this.provinceLabels.get(gesture.source);
     if(!plaque||plaque.element.hidden){this.cancelDispatch();return;}
     const id=this.dispatchRegion(clientX,clientY);
-    const anchor=(region:number):ScreenPoint=>{const point=MAP[region].center,p=this.unitPoint.set(nearestWorldX(point.x,this.focus.x),heightAt(point.x,point.z)*this.blend+.16,point.z).project(this.camera);return{x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};};
+    const anchor=(region:number):ScreenPoint=>{const point=MAP[region].center,p=this.unitPoint.set(nearestWorldX(point.x,this.focus.x),LAND_Y+.16,point.z).project(this.camera);return{x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};};
     const target=this.dispatchTargetPath(id);
     this.dispatchPreview.draw(anchor(gesture.source),id>=0?anchor(id):{x:clientX-host.x,y:clientY-host.y},id,target.path,target.outline);
   }
@@ -718,18 +715,18 @@ export class WorldRenderer {
     const candidates=near?MAP.filter(p=>p.visible&&Math.abs(nearestWorldX(p.center.x,this.focus.x)-this.focus.x)<this.distance*this.camera.aspect*0.45&&Math.abs(p.center.z-this.focus.z)<this.distance*0.5).sort((a,b)=>(a.id===this.selected?-1:b.id===this.selected?1:(a.center.x-this.focus.x)**2+(a.center.z-this.focus.z)**2-(b.center.x-this.focus.x)**2-(b.center.z-this.focus.z)**2)):[];
     const occupied:LabelRect[]=[];let n=0,townCount=0;
     const paint=(name:string,x:number,z:number,ocean=false)=>{
-      if(!inRect({x,z},BOUNDS))return;const canonicalX=x;x=nearestWorldX(x,this.focus.x);
+      if(!inRect({x,z},BOUNDS))return;x=nearestWorldX(x,this.focus.x);
       const screen=new THREE.Vector3(x,0.6,z).project(this.camera),sx=(screen.x+1)*this.viewportWidth/2,sy=(1-screen.y)*this.viewportHeight/2;
       if(Math.abs(screen.x)>0.95||Math.abs(screen.y)>0.88||occupied.some(p=>overlaps(p,{left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5}))||n>=48)return;
       occupied.push({left:sx-65,right:sx+65,top:sy-13.5,bottom:sy+13.5});const label=this.labels[n++],key=`${name}:${ocean}`;
       if(label.key!==key){const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,512,96);ctx.textAlign='center';ctx.font=`${ocean?'italic 400':'600'} 30px "Noto Serif CJK SC", Georgia, serif`;
         ctx.strokeStyle=ocean?'#14333e':'#d0cdb5';ctx.lineWidth=ocean?0:4;if(!ocean)ctx.strokeText(name,256,58,490);ctx.fillStyle=ocean?'#bfd1d2':'#1e332e';ctx.fillText(name,256,58,490);label.texture.needsUpdate=true;label.key=key;}
-      label.sprite.visible=true;label.sprite.position.set(x,0.9+heightAt(canonicalX,z)*this.blend,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
+      label.sprite.visible=true;label.sprite.position.set(x,0.9+LAND_Y,z);const w=this.distance*(ocean?0.27:0.15);label.sprite.scale.set(w,w*96/512,1);
     };
     // Region information takes priority over country titles at tactical zoom.
     for(const p of candidates){
       if(this.blend>0.1&&townCount<188){for(const {x,z,rotation} of TOWNS[p.id]){
-        this.dummy.position.set(nearestWorldX(x,this.focus.x),heightAt(x,z)*this.blend+0.3,z);this.dummy.rotation.set(0,rotation,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
+        this.dummy.position.set(nearestWorldX(x,this.focus.x),LAND_Y+0.3,z);this.dummy.rotation.set(0,rotation,0);this.dummy.scale.setScalar(1);this.dummy.updateMatrix();this.towns.setMatrixAt(townCount++,this.dummy.matrix);}}
     }
     if(!near){for(const [zh,en,lon,lat] of [['北太平洋','NORTH PACIFIC',-145,22],['南太平洋','SOUTH PACIFIC',-122,-34],['大西洋','ATLANTIC',-37,20],['印度洋','INDIAN OCEAN',77,-27],['北冰洋','ARCTIC OCEAN',5,72]] as const){const p=project(lon,lat);paint(this.lang==='zh'?zh:en,p.x,p.z,true);}}
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;this.towns.count=townCount;this.towns.instanceMatrix.needsUpdate=true;
@@ -743,7 +740,7 @@ export class WorldRenderer {
       for(const territory of this.plaqueTerritories){
         const {anchor,id,members}=territory,baseX=nearestWorldX(anchor.x,this.focus.x);
         // Province range is narrow; avoid measuring/layout for offscreen anchors.
-        const p=point.set(baseX,heightAt(anchor.x,anchor.z)*this.blend+.8,anchor.z).project(this.camera);
+        const p=point.set(baseX,LAND_Y+.8,anchor.z).project(this.camera);
         if(p.z<-1||p.z>1||Math.abs(p.x)>1+190/width||Math.abs(p.y)>1+24/height)continue;
         const name=territory.name[this.lang==='zh'?0:1],key=`plaque:${name}`;
         let nameWidth=this.labelWidths.get(key);
@@ -810,7 +807,7 @@ export class WorldRenderer {
       if(!cached||cached.placement!==placement||cached.name!==name){cached={placement,name,curve:countryTextCurve(placement,advanceEm)};this.countryCurves.set(component.owner,cached);}
       if(!cached.curve)continue;const {fit,curve,pathPoints,fontWorld,units,left,top,w,h,pathData}=cached.curve;
       const referenceX=nearestWorldX(curve.anchor.x,this.focus.x),copy=Math.round((referenceX-curve.anchor.x)/WORLD_WIDTH);
-      const elevation=.18+(heightAt(curve.anchor.x,curve.anchor.z)-.16)*this.blend;
+      const elevation=LAND_Y+.02;
       const center=new THREE.Vector3(referenceX,elevation,curve.anchor.z).project(this.camera);
       const probe=new THREE.Vector3(referenceX+1,elevation,curve.anchor.z).project(this.camera);
       const northProbe=new THREE.Vector3(referenceX,elevation,curve.anchor.z+1).project(this.camera);
@@ -912,7 +909,7 @@ export class WorldRenderer {
       if(!inRect(pos,BOUNDS))continue;
       // A mode switch only changes rendering; simulation units retain their
       // canonical position, ownership and orders.
-      const x=nearestWorldX(pos.x,this.focus.x),z=pos.z,y=this.blend?heightAt(pos.x,z)*this.blend:0;
+      const x=nearestWorldX(pos.x,this.focus.x),z=pos.z,y=LAND_Y;
       const screen=this.unitPoint.set(x,y+0.55,z).project(this.camera);
       const marginX=16/Math.max(1,this.viewportWidth),marginY=16/Math.max(1,this.viewportHeight);
       if(screen.z<-1||screen.z>1||Math.abs(screen.x)>1+marginX||Math.abs(screen.y)>1+marginY)continue;
@@ -956,7 +953,7 @@ export class WorldRenderer {
       const from=MAP[route.from]?.center,to=MAP[route.to]?.center;if(!from||!to)return null;
       const sourceX=nearestWorldX(from.x,this.focus.x)+copy*WORLD_WIDTH,targetX=nearestWorldX(to.x,sourceX);
       const project=(point:Vec2,x:number):ScreenPoint|null=>{
-        const p=this.unitPoint.set(x,heightAt(point.x,point.z)*this.blend+.16,point.z).project(this.camera);
+        const p=this.unitPoint.set(x,LAND_Y+.16,point.z).project(this.camera);
         return p.z>=-1&&p.z<=1?{x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2}:null;
       };
       const a=project(from,sourceX),b=project(to,targetX);if(!a||!b)return null;
