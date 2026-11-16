@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "reference": "https://www.mapchart.net/victoria-3.html",
+  "referenceVersion": "Victoria 3 v1.7 state-region shapes; West Switzerland and East Switzerland. Schaffhausen and Basel-Stadt assigned by Natural Earth land adjacency.",
+  "regions": [
+    {
+      "primary": "group:CHE-159",
+      "members": {
+        "group:CHE-159": [
+          "CHE-159",
+          "CHE-160",
+          "CHE-161",
+          "CHE-165",
+          "CHE-3421",
+          "CHE-3422",
+          "CHE-3424"
+        ]
+      },
+      "displayName": [
+        "西瑞士",
+        "West Switzerland"
+      ]
+    },
+    {
+      "primary": "group:CHE-162",
+      "members": {
+        "group:CHE-162": [
+          "CHE-162",
+          "CHE-163",
+          "CHE-164",
+          "CHE-166",
+          "CHE-167",
+          "CHE-168",
+          "CHE-169",
+          "CHE-170",
+          "CHE-173",
+          "CHE-174",
+          "CHE-175",
+          "CHE-176",
+          "CHE-177",
+          "CHE-3423",
+          "CHE-3426",
+          "CHE-3427",
+          "CHE-3473"
+        ],
+        "group:CHE-171": [
+          "CHE-171"
+        ],
+        "group:CHE-3425": [
+          "CHE-3425"
+        ]
+      },
+      "displayName": [
+        "东瑞士",
+        "East Switzerland"
+      ]
+    }
+  ]
+}

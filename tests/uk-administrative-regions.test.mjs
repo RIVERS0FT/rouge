@@ -3,6 +3,8 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {repartitionUkRegions} from '../scripts/apply-uk-administrative-regions.mjs';
+import swiss from '../data/swiss-gameplay-regions.json' with {type:'json'};
+import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.mjs';
 import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mjs';
 import {repartitionFrenchRegions} from '../scripts/apply-france-administrative-regions.mjs';
 import {consolidateStateRegions,applyCurrentStateMergers,applyAdministrativeGroupOverrides} from '../scripts/apply-state-region-consolidation.mjs';
@@ -55,8 +57,8 @@ test('all 232 UK source areas resolve into 11 playable regions derived from the 
   assert.deepEqual([...members].sort(),SOURCE_MAP.map(a=>a.code).filter(isUk).sort());
   assert.equal(members.size,232);
   assert.equal(MAP.filter(p=>isUk(p.code)).length,11);
-  assert.equal(MAP_METADATA.count,1117);
-  assert.equal(MAP_METADATA.playableCount,1113);
+  assert.equal(MAP_METADATA.count,1115);
+  assert.equal(MAP_METADATA.playableCount,1111);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
   for(const [code,query,name] of [['GBR-4809','Westminster','London and Surrounding Areas'],['GBR-3409','Kent','London and Surrounding Areas'],['GBR-2082','Belfast','Northern Ireland'],['GBR-2764','Nottinghamshire','East Midlands']]){
     const region=byCode(code);
@@ -70,7 +72,7 @@ test('all 232 UK source areas resolve into 11 playable regions derived from the 
 });
 
 test('non-UK groups including modern France, Crown dependencies and overseas areas are unchanged',()=>{
-  const afterOverrides=repartitionMaldives(base,applyAdministrativeGroupOverrides(base,prior,adminOverrides),maldives);
+  const afterOverrides=repartitionSwissRegions(base,repartitionMaldives(base,applyAdministrativeGroupOverrides(base,prior,adminOverrides),maldives),swiss);
   const remaining=afterOverrides.filter(g=>!g.sourceIds.some(isUk));
   assert.equal(afterOverrides.length-remaining.length,17);
   assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isUk)),
@@ -128,9 +130,9 @@ test('UK preprocessing rejects missing island reviews and duplicate or foreign m
 test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
-  assert.equal(STATE_VERSION,10);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v22');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v10.');
+  assert.equal(STATE_VERSION,11);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v23');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v11.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:7,map:'earth-natural-earth-admin1-511-regions-v6'};
