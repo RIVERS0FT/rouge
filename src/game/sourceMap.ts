@@ -66,8 +66,7 @@ export const VISIBLE_COUNT=SOURCE_MAP.filter(p=>p.visible).length;
 export const PLAYABLE_COUNT=SOURCE_MAP.filter(p=>p.playable).length;
 export const SOURCE_MAP_METADATA={source:data.source,revision:data.sourceRevision,projection:PROJECTION_ID,crop:CROP_ID,
   north:NORTH_LATITUDE,south:SOUTH_LATITUDE,count:SOURCE_MAP.length,visibleCount:VISIBLE_COUNT,playableCount:PLAYABLE_COUNT};
-// Procedural relief is only a visual placeholder, not measured elevation or a movement obstacle.
-export function heightAt(x:number,z:number):number {return 0.16+0.32*(1+Math.sin(x*0.18)*Math.cos(z*0.22));}
+export {LAND_Y,heightAt} from './mapHeight.ts';
 export const SOURCE_TOPOLOGY:TerritoryTopology={mapId:data.mapId,atoms:SOURCE_MAP.map(p=>({id:p.code,neighbors:p.neighbors.map(id=>SOURCE_MAP[id].code),playable:p.playable}))};
 // Administrative memberships may include reviewed off-shore islands. Add
 // those links ONLY to the topology used to build and validate the source

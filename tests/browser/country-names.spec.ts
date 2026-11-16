@@ -6,7 +6,7 @@ const owners=JSON.parse(JSON.parse(fixture.value).body).provinces.map((p:{owner:
 async function assertInside(page:Page,allowEmpty=false){
  const result=await page.evaluate(async owners=>{
   // @ts-expect-error browser module URL
-  const {MAP,pointInProvince,heightAt}=await import('/src/game/map.ts');
+  const {MAP,pointInProvince,LAND_Y}=await import('/src/game/map.ts');
   // @ts-expect-error browser module URL
   const {wrapX}=await import('/src/game/geo.ts');
   // @ts-expect-error browser module URL
@@ -14,7 +14,7 @@ async function assertInside(page:Page,allowEmpty=false){
   const canvas=document.querySelector('.world canvas')!,d=canvas.dataset,width=canvas.clientWidth,height=canvas.clientHeight,scale=2*(Number(d.distance)-.8)*Math.tan(Math.PI/9)/height;
   const distance=Number(d.distance),t=Math.max(0,Math.min(1,(distance-90)/230)),blend=1-t*t*(3-2*t),camera=new THREE.PerspectiveCamera(40,width/height,.05,20000);
   camera.up.set(0,0,-1);camera.position.set(Number(d.focusX),distance*Math.cos(blend*.6),Number(d.focusZ)+distance*Math.sin(blend*.6));camera.lookAt(Number(d.focusX),0,Number(d.focusZ));camera.updateMatrixWorld();
-  const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-.16),hit=new THREE.Vector3();
+  const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-LAND_Y),hit=new THREE.Vector3();
   const failures:unknown[]=[],labels=[...document.querySelectorAll<HTMLElement>('.country-label:not([hidden])')];let checked=0,curved=false;
   for(const label of labels){
    label.querySelector<SVGSVGElement>('svg')!.style.display='block';
@@ -25,7 +25,7 @@ async function assertInside(page:Page,allowEmpty=false){
     if(angle < -90.01||angle > 90.01)failures.push({name:label.textContent,character:i,angle,reason:'upside-down character'});
     for(const [x,y] of [[box.x,box.y],[box.x+box.width,box.y],[box.x,box.y+box.height],[box.x+box.width,box.y+box.height],[box.x+box.width/2,box.y+box.height/2]]){
      const screen=project(x,y),world={x:wrapX(Number(d.focusX)+(screen.x-width/2)*scale),z:Number(d.focusZ)+(screen.y-height/2)*scale};checked++;
-     if(blend>0){ray.setFromCamera(new THREE.Vector2(screen.x/width*2-1,1-screen.y/height*2),camera);plane.constant=-.16;for(let k=0;k<5;k++){ray.ray.intersectPlane(plane,hit);plane.constant=-(.16+heightAt(wrapX(hit.x),hit.z)*blend);}world.x=wrapX(hit.x);world.z=hit.z;}
+     ray.setFromCamera(new THREE.Vector2(screen.x/width*2-1,1-screen.y/height*2),camera);ray.ray.intersectPlane(plane,hit);world.x=wrapX(hit.x);world.z=hit.z;
      if(!held.some((p:any)=>pointInProvince(p.id,world.x,world.z)))failures.push({name:label.textContent,character:i,world});
     }
    }

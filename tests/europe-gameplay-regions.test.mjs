@@ -41,8 +41,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('seven approved European areas use only their existing source geometry and exact gameplay memberships',()=>{
- assert.equal(MAP_METADATA.count,902);assert.equal(MAP_METADATA.playableCount,898);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v18');assert.equal(STATE_VERSION,19);assert.equal(RULES_ID,'admin1-locked-game-regions-v31');
+ assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
  for(const [country,count] of [['MLT',1],['ALD',1],['LVA',2],['EST',2],['AND',1],['LIE',1],['SVN',2]]){
   assert.equal(MAP.filter(r=>r.code.startsWith(country+'-')).length,count,country);
  }
@@ -86,7 +86,7 @@ test('Malta, Åland and Estonian island connections are only virtual administrat
 
 test('every untouched country and all original country tags, shapes and real land edges are identical',()=>{
  const unaffected=prior.filter(g=>!g.sourceIds.some(isEuropeOrGlobalIslands));
- assert.equal(prior.length-unaffected.length,41+22+110+30);
+ assert.equal(prior.length-unaffected.length,41+22+110+30+26);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isEuropeOrGlobalIslands)),unaffected.map(
   ({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),

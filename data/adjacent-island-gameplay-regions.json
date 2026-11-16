@@ -1,0 +1,324 @@
+{
+  "schema": 1,
+  "scope": "Each of the nine reviewed scopes is represented by one gameplay tile. Preserve original geometry and physical navigation; Caribbean Netherlands covers only Bonaire, Sint Eustatius and Saba.",
+  "regions": [
+    {
+      "primary": "group:CHN-1180",
+      "members": {
+        "group:CHN-1180": [
+          "CHN-1180",
+          "HKG-5153",
+          "HKG-5154",
+          "HKG-5155",
+          "HKG-5156",
+          "HKG-5157",
+          "HKG-5158",
+          "HKG-5159",
+          "HKG-5160",
+          "HKG-5161",
+          "HKG-5162",
+          "HKG-5163",
+          "HKG-5164",
+          "HKG-5165",
+          "HKG-5166",
+          "HKG-5167",
+          "HKG-5168",
+          "HKG-5169",
+          "HKG-5170"
+        ],
+        "group:MAC+00?": [
+          "MAC+00?"
+        ]
+      },
+      "displayName": [
+        "广东省",
+        "Guangdong"
+      ],
+      "searchAliases": [
+        "香港",
+        "Hong Kong",
+        "澳门",
+        "Macau",
+        "Macao",
+        "澳門"
+      ],
+      "addedGroupingLinks": [
+        [
+          "MAC+00?",
+          "CHN-1180"
+        ]
+      ],
+      "anchorAtomId": "CHN-1180"
+    },
+    {
+      "primary": "group:MNP-4939",
+      "members": {
+        "group:MNP-4937": [
+          "MNP-4937"
+        ],
+        "group:MNP-4938": [
+          "MNP-4938"
+        ],
+        "group:MNP-4939": [
+          "MNP-4939"
+        ],
+        "group:MNP-4940": [
+          "MNP-4940"
+        ]
+      },
+      "displayName": [
+        "北马里亚纳群岛",
+        "Northern Mariana Islands"
+      ],
+      "anchorAtomId": "MNP-4939",
+      "addedGroupingLinks": [
+        [
+          "MNP-4937",
+          "MNP-4939"
+        ],
+        [
+          "MNP-4938",
+          "MNP-4939"
+        ],
+        [
+          "MNP-4940",
+          "MNP-4939"
+        ]
+      ]
+    },
+    {
+      "primary": "group:TON-4945",
+      "members": {
+        "group:TON-4945": [
+          "TON-4945"
+        ],
+        "group:TON-4946": [
+          "TON-4946"
+        ],
+        "group:TON-4947": [
+          "TON-4947"
+        ],
+        "group:TON-4948": [
+          "TON-4948"
+        ],
+        "group:TON-4949": [
+          "TON-4949"
+        ]
+      },
+      "displayName": [
+        "汤加",
+        "Tonga"
+      ],
+      "anchorAtomId": "TON-4945",
+      "addedGroupingLinks": [
+        [
+          "TON-4946",
+          "TON-4945"
+        ],
+        [
+          "TON-4947",
+          "TON-4945"
+        ],
+        [
+          "TON-4948",
+          "TON-4945"
+        ],
+        [
+          "TON-4949",
+          "TON-4945"
+        ]
+      ]
+    },
+    {
+      "primary": "group:NLD-5148",
+      "members": {
+        "group:NLD-5147": [
+          "NLD-5147"
+        ],
+        "group:NLD-5148": [
+          "NLD-5148"
+        ],
+        "group:NLD-5149": [
+          "NLD-5149"
+        ]
+      },
+      "displayName": [
+        "荷兰加勒比区",
+        "Caribbean Netherlands"
+      ],
+      "anchorAtomId": "NLD-5148",
+      "addedGroupingLinks": [
+        [
+          "NLD-5147",
+          "NLD-5148"
+        ],
+        [
+          "NLD-5149",
+          "NLD-5148"
+        ]
+      ],
+      "searchAliases": [
+        "荷兰加勒比区",
+        "BES Islands",
+        "Sint Eustatius"
+      ]
+    },
+    {
+      "primary": "group:SPM-4867",
+      "members": {
+        "group:SPM-4866": [
+          "SPM-4866"
+        ],
+        "group:SPM-4867": [
+          "SPM-4867"
+        ]
+      },
+      "displayName": [
+        "圣皮埃尔和密克隆",
+        "Saint Pierre and Miquelon"
+      ],
+      "anchorAtomId": "SPM-4867",
+      "addedGroupingLinks": [
+        [
+          "SPM-4866",
+          "SPM-4867"
+        ]
+      ],
+      "searchAliases": [
+        "Saint-Pierre and Miquelon"
+      ]
+    },
+    {
+      "primary": "group:VIR-4868",
+      "members": {
+        "group:VIR-4868": [
+          "VIR-4868"
+        ],
+        "group:VIR-4869": [
+          "VIR-4869"
+        ],
+        "group:VIR-4870": [
+          "VIR-4870"
+        ]
+      },
+      "displayName": [
+        "美属维尔京群岛",
+        "US Virgin Islands"
+      ],
+      "anchorAtomId": "VIR-4868",
+      "addedGroupingLinks": [
+        [
+          "VIR-4869",
+          "VIR-4868"
+        ],
+        [
+          "VIR-4870",
+          "VIR-4868"
+        ]
+      ],
+      "searchAliases": [
+        "United States Virgin Islands"
+      ]
+    },
+    {
+      "primary": "group:VCT-5063",
+      "members": {
+        "group:VCT-5063": [
+          "VCT-5063",
+          "VCT-5065",
+          "VCT-5066",
+          "VCT-5067",
+          "VCT-5068"
+        ],
+        "group:VCT-5064": [
+          "VCT-5064"
+        ]
+      },
+      "displayName": [
+        "圣文森特和格林纳丁斯",
+        "Saint Vincent and the Grenadines"
+      ],
+      "anchorAtomId": "VCT-5063",
+      "addedGroupingLinks": [
+        [
+          "VCT-5064",
+          "VCT-5063"
+        ]
+      ]
+    },
+    {
+      "primary": "group:ATG-5093",
+      "members": {
+        "group:ATG-5091": [
+          "ATG-5091"
+        ],
+        "group:ATG-5092": [
+          "ATG-5092"
+        ],
+        "group:ATG-5093": [
+          "ATG-5093",
+          "ATG-5094",
+          "ATG-5095",
+          "ATG-5096",
+          "ATG-5097",
+          "ATG-5098"
+        ]
+      },
+      "displayName": [
+        "安提瓜和巴布达",
+        "Antigua and Barbuda"
+      ],
+      "anchorAtomId": "ATG-5098",
+      "addedGroupingLinks": [
+        [
+          "ATG-5091",
+          "ATG-5098"
+        ],
+        [
+          "ATG-5092",
+          "ATG-5098"
+        ]
+      ],
+      "searchAliases": [
+        "Antigua"
+      ]
+    },
+    {
+      "primary": "group:COM-4935",
+      "members": {
+        "group:COM-4934": [
+          "COM-4934"
+        ],
+        "group:COM-4935": [
+          "COM-4935"
+        ],
+        "group:COM-4936": [
+          "COM-4936"
+        ]
+      },
+      "displayName": [
+        "科摩罗",
+        "Comoros"
+      ],
+      "anchorAtomId": "COM-4935",
+      "addedGroupingLinks": [
+        [
+          "COM-4934",
+          "COM-4935"
+        ],
+        [
+          "COM-4936",
+          "COM-4935"
+        ]
+      ],
+      "searchAliases": [
+        "大科摩罗",
+        "Grande Comore",
+        "莫埃利",
+        "Mohéli",
+        "昂儒昂",
+        "Anjouan"
+      ]
+    }
+  ]
+}

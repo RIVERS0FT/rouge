@@ -43,8 +43,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('fourteen fragments merge into nine named destinations while old lookup and anchor coordinates remain exact',()=>{
- assert.equal(MAP_METADATA.count,902);assert.equal(MAP_METADATA.playableCount,898);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v18');assert.equal(STATE_VERSION,19);assert.equal(RULES_ID,'admin1-locked-game-regions-v31');
+ assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
  assert.equal(MAP.filter(p=>p.code.startsWith('SVN-')).length,2);
  for(const {primary,members,displayName,anchorAtomId} of plan.regions){
   const r=byCode(primary.slice(6));
@@ -74,7 +74,7 @@ test('fourteen fragments merge into nine named destinations while old lookup and
 
 test('real source edges and grouping-only topology are unchanged; all unrelated gameplay regions are exact',()=>{
  const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSmallEuropeBatch(id)||isAllIslands(id)));
- assert.equal(prior.length-untouched.length,23+110+30);
+ assert.equal(prior.length-untouched.length,23+110+30+26);
  const serialize=({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),
    ...(anchorAtomId?{anchorAtomId}:{}),...(searchAliases?{searchAliases}:{})});

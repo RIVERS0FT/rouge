@@ -1,6 +1,6 @@
 import type {Vec2} from '../game/types.ts';
 export const SELECTION_GLOW_WIDTH=2;
-export type GlowPoint=Vec2&{relief?:number};
+export type GlowPoint=Vec2;
 export const SELECTION_GLOW_OPACITY=.24;
 /** Keep depth separation, but cap its apparent displacement below one CSS pixel
  * at the steepest terrain angle. Fixed world-space lifts visibly float above
@@ -11,7 +11,7 @@ export function selectionOverlayLift(distance:number,viewportHeight:number):numb
 const cross=(a:Vec2,b:Vec2,p:Vec2)=>(b.x-a.x)*(p.z-a.z)-(b.z-a.z)*(p.x-a.x);
 const bounds=(points:readonly Vec2[])=>({left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),top:Math.min(...points.map(p=>p.z)),bottom:Math.max(...points.map(p=>p.z))});
 const overlaps=(a:ReturnType<typeof bounds>,b:ReturnType<typeof bounds>,padding=0)=>a.left<=b.right+padding&&a.right>=b.left-padding&&a.top<=b.bottom+padding&&a.bottom>=b.top-padding;
-const midpoint=(a:GlowPoint,b:GlowPoint):GlowPoint=>({x:(a.x+b.x)/2,z:(a.z+b.z)/2,relief:((a.relief??0)+(b.relief??0))/2});
+const midpoint=(a:GlowPoint,b:GlowPoint):GlowPoint=>({x:(a.x+b.x)/2,z:(a.z+b.z)/2});
 /** Tessellate the land once, sampling the nearest finite boundary segment.
  * The old per-segment transparent strips overlapped at every bend: that changed
  * the brightness and exposed their triangular joins. A single distance field
@@ -36,7 +36,7 @@ export function innerGlowMesh(triangles:readonly (readonly GlowPoint[])[],segmen
   for(let i=0;i<3;i++){
    const j=(i+1)%3,p=points[i],q=points[j],d=distance[i],e=distance[j];
    if(d<width)clipped.push({p,d});
-   if((d<width)!==(e<width)){const t=(width-d)/(e-d);clipped.push({p:{x:p.x+(q.x-p.x)*t,z:p.z+(q.z-p.z)*t,relief:(p.relief??0)+((q.relief??0)-(p.relief??0))*t},d:width});}
+   if((d<width)!==(e<width)){const t=(width-d)/(e-d);clipped.push({p:{x:p.x+(q.x-p.x)*t,z:p.z+(q.z-p.z)*t},d:width});}
   }
   for(let i=1;i+1<clipped.length;i++){
    const tri=[clipped[0],clipped[i],clipped[i+1]];if(Math.abs(cross(tri[0].p,tri[1].p,tri[2].p))<1e-10)continue;

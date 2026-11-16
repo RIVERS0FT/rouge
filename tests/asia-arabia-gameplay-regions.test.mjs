@@ -39,8 +39,8 @@ const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('the approved Asia and Arabia membership, names and anchor locations are playable',()=>{
- assert.equal(MAP_METADATA.count,902);assert.equal(MAP_METADATA.playableCount,898);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v18');assert.equal(STATE_VERSION,19);assert.equal(RULES_ID,'admin1-locked-game-regions-v31');
+ assert.equal(MAP_METADATA.count,884);assert.equal(MAP_METADATA.playableCount,880);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v19');assert.equal(STATE_VERSION,20);assert.equal(RULES_ID,'admin1-locked-game-regions-v32');
  assert.equal(MAP.filter(r=>/^(SAU|OMN|YEM|ARE|QAT|KWT|BHR)-/.test(r.code)).length,10);
  assert.equal(MAP.filter(r=>/^(BRN|KHM|IDN|LAO|MYS|MMR|PHL|SGP|THA|TLS|VNM)-/.test(r.code)).length,39);
  for(const row of plan.regions){
@@ -89,7 +89,7 @@ test('Bahrain and the Timor-Leste exclave keep false land edges out and real sea
 
 test('all unrelated records including raw country and physical topology are unchanged',()=>{
  const unaffected=prior.filter(g=>!g.sourceIds.some(id=>isAsiaArabia(id)||isEuropeOrGlobalIslands(id)));
- assert.equal(prior.length-unaffected.length,16+41+22+110+30);
+ assert.equal(prior.length-unaffected.length,16+41+22+110+30+26);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isAsiaArabia(id)||isEuropeOrGlobalIslands(id))),unaffected.map(
   ({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId,searchAliases})=>
   ({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),

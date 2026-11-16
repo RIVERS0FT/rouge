@@ -122,12 +122,16 @@ test('acute and shallow zigzag corners stay single-sided and smoothly faded',()=
  }
 });
 
-test('subdivided glow stays on the original terrain plane instead of dipping under it',()=>{
- const triangle=[{x:0,z:0,relief:.2},{x:20,z:0,relief:.6},{x:0,z:20,relief:.4}],mesh=innerGlowMesh([triangle],segments([triangle]));
- assert.ok(mesh.points.length>0);
- for(const p of mesh.points)assert.ok(Math.abs((p.relief??0)-(.2+.02*p.x+.01*p.z))<1e-9,'Barycentric relief remains continuous through subdivision and fade clipping');
- const source=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
- assert.match(source,/transformed\.y \+= uRelief \* landRelief/);
+test('glow worker creates a single flat overlay without a relief buffer',async()=>{
+ const previous=globalThis.self;let result;
+ globalThis.self={postMessage:data=>{result=data;}};
+ try{
+  await import('../src/render/selectionGlow.worker.ts');
+  globalThis.self.onmessage({data:{land:new Float32Array([0,.16,0,20,.16,0,0,.16,20]),edges:new Float64Array([0,0,20,0,20,0,0,20,0,20,0,0]),width:2}});
+  assert.ok(result.positions.length>0);assert.equal(result.distance.length,result.positions.length/3);
+  for(let i=1;i<result.positions.length;i+=3)assert.ok(Math.abs(result.positions[i]-.29)<1e-7,'Only the fixed overlay lift remains');
+  assert.equal('relief' in result,false,'No procedural elevation reaches the GPU');
+ }finally{globalThis.self=previous;}
 });
 
 test('edge depth lifts stay subpixel at close zoom on desktop and phones',async()=>{
