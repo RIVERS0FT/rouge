@@ -21,6 +21,8 @@ import maldives from '../data/maldives-gameplay-regions.json' with {type:'json'}
 import plan from '../data/swiss-gameplay-regions.json' with {type:'json'};
 import spawns from '../data/spawn-sites.json' with {type:'json'};
 
+import {isSeaBatch} from './southeast-asia-fixtures.mjs';
+
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
 const historical=consolidateStateRegions(base,readGzip('gameplay-region-partition').groups,decisions);
@@ -54,15 +56,15 @@ test('all 26 cantons are retained exactly once in two locked playable Swiss terr
   assert.ok(searchProvinces(query).some(g=>g.id===region.id),query);
  }
  assert.equal(byCode('CHE-171').id,east.id);assert.equal(byCode('CHE-3425').id,east.id);
- assert.equal(MAP_METADATA.count,1087);assert.equal(MAP_METADATA.playableCount,1083);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v12');assert.equal(STATE_VERSION,13);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v25');
+ assert.equal(MAP_METADATA.count,1078);assert.equal(MAP_METADATA.playableCount,1074);assert.equal(MAP_METADATA.sourceAtomCount,4596);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v13');assert.equal(STATE_VERSION,14);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v26');
 });
 
 test('Swiss merge does not change any other memberships, names, geometry or source topology',()=>{
- const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-')));
- assert.equal(prior.length-untouched.length,4+29+6);
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-'))),
+ const untouched=prior.filter(g=>!g.sourceIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id)));
+ assert.equal(prior.length-untouched.length,4+29+6+18);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(id=>isSwiss(id)||id.startsWith('PHL-')||id.startsWith('THA-')||isSeaBatch(id))),
   untouched.map(({id,sourceIds,legacyHint,reason,displayName,islandAttachments,anchorAtomId})=>({id,atomIds:sourceIds,legacyHint,reason,...(displayName?{displayName}:{}),...(islandAttachments?{islandAttachments}:{}),...(anchorAtomId?{anchorAtomId}:{})})));
  assert.deepEqual(atlas.provinces.map(({code,sourceId,...p})=>p),base.provinces);
 });
