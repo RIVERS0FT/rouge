@@ -55,3 +55,39 @@ test('ocean labels are italic in both languages while land labels stay upright',
  }
  expect(errors).toEqual([]);
 });
+
+for(const viewport of [{width:1440,height:960},{width:390,height:844}])test(`ocean text scales with map zoom rather than screen pixels at ${viewport.width}px`,async({page})=>{
+ test.setTimeout(120000);await page.setViewportSize(viewport);
+ await page.route('**/ocean-scale-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"><div id="world" style="width:100vw;height:100vh"></div></body>'}));
+ await page.goto('/ocean-scale-harness');
+ const result=await page.evaluate(async()=>{
+  const {default:refresh}=await import('/@react-refresh');refresh.injectIntoGlobalHook(window);
+  (window as any).$RefreshReg$=()=>{};(window as any).$RefreshSig$=()=>((type:any)=>type);
+  const {WorldRenderer}=await import('/src/render/WorldRenderer.ts');
+  const {project,WORLD_WIDTH}=await import('/src/game/geo.ts');
+  const THREE=await import('/node_modules/three/build/three.module.js');
+  const world:any=new WorldRenderer(document.querySelector('#world')!,()=>{},()=>{});
+  cancelAnimationFrame(world.animation);world.frame=()=>{};
+  const point=project(-37,20),snapshots=[];let time=performance.now()+1000;
+  for(const lang of ['en','zh'])for(const wrapped of [false,true])for(const distance of [2000,1000]){
+   const x=point.x+(wrapped?WORLD_WIDTH:0);world.lang=lang;world.distance=distance;world.focus.set(x,0,point.z);
+   world.camera.position.set(x,distance,point.z);world.camera.lookAt(x,0,point.z);world.camera.updateMatrixWorld();world.drawLabels(time+=200);
+   const label=world.labels.find((label:any)=>label.sprite.visible&&label.key===`${lang==='en'?'ATLANTIC':'大西洋'}:true`);
+   if(!label)throw Error(`Atlantic label missing: ${lang} ${wrapped} ${distance}`);
+   const sprite=label.sprite,y=sprite.position.y;
+   const screenWidth=(width:number)=>{const a=new THREE.Vector3(x-width/2,y,point.z).project(world.camera),b=new THREE.Vector3(x+width/2,y,point.z).project(world.camera);return (b.x-a.x)*world.viewportWidth/2;};
+   world.renderer.render(world.scene,world.camera);
+   snapshots.push({lang,wrapped,distance,worldWidth:sprite.scale.x,screenWidth:screenWidth(sprite.scale.x),mapIntervalWidth:screenWidth(100),x:sprite.position.x,expectedX:x,font:label.canvas.getContext('2d').font});
+  }
+  world.distance=499;world.drawLabels(time+=200);const nearOceanCount=world.labels.filter((label:any)=>label.sprite.visible&&label.key.endsWith(':true')).length;
+  world.dispose();return {snapshots,nearOceanCount};
+ });
+ for(let i=0;i<result.snapshots.length;i+=2){
+  const far=result.snapshots[i],near=result.snapshots[i+1];
+  expect(far.worldWidth).toBe(near.worldWidth);
+  const textRatio=near.screenWidth/far.screenWidth,mapRatio=near.mapIntervalWidth/far.mapIntervalWidth;
+  expect(textRatio).toBeGreaterThan(1.99);expect(textRatio).toBeLessThan(2.01);expect(textRatio).toBeCloseTo(mapRatio,8);
+  expect(far.x).toBe(far.expectedX);expect(near.x).toBe(near.expectedX);expect(far.font).toMatch(/^italic /);expect(near.font).toMatch(/^italic /);
+ }
+ expect(result.nearOceanCount).toBe(0);
+});
