@@ -35,7 +35,7 @@ test('audited state-region consolidation merges eight whole adjacent groups with
   assert.equal(primary.locked,true);
   const historical=[...members].sort();
   assert.deepEqual(after.get('group:'+historical[0]).sourceIds,historical);
-  if(historical[0].startsWith('PHL-'))assert.ok(historical.every(id=>primary.sourceAtoms.includes(id)));
+  if(/^(PHL|LVA)-/.test(historical[0]))assert.ok(historical.every(id=>primary.sourceAtoms.includes(id)));
   else assert.deepEqual(primary.sourceAtoms,historical);
   for(const id of members){const atom=source.get(id);assert.equal(provinceByCode(id),primary.id);if(atom.playable)assert.equal(provinceAt(atom.center.x,atom.center.z),primary.id);}
  }
@@ -66,7 +66,7 @@ test('1.15.1 reunites whole adjacent Chukotka and Kamchatka only, preserving all
  assert.deepEqual(complete.sourceIds,expectedAtoms);
  assert.deepEqual(complete.displayName,['堪察加','Kamchatka']);
  assert.equal(after.has('group:RUS-3468'),false);
- assert.equal(PLAYABLE_COUNT,1069);
+ assert.equal(PLAYABLE_COUNT,1038);
  const id = provinceByCode('RUS-3468');
  const region = MAP[id];
  assert.deepEqual(region.sourceAtoms,expectedAtoms);
