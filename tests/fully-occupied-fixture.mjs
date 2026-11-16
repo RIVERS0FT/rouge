@@ -1,9 +1,11 @@
 // Synthetic acceptance load, not evidence of an organically played campaign.
-import {createGame} from '../src/game/engine.ts';
+import {Engine,createGame} from '../src/game/engine.ts';
 import {makeAISetups} from '../src/game/spawns.ts';
 import {BOUNDS,MAP,provinceByCode} from '../src/game/map.ts';
-import {stats} from '../src/game/content.ts';
+import {stats,UNITS} from '../src/game/content.ts';
 import {reconcileGrouping} from '../src/game/territoryEconomy.ts';
+
+export const FULLY_OCCUPIED_UNIT_TARGET=5200;
 
 export function createFullyOccupiedFixture(seed=77){
  const state=createGame([{name:'Performance Commander',leader:'warden',loadout:['infantry']},...makeAISetups(100,seed)],seed,`full-map-100-ai-${seed}`);
@@ -28,5 +30,14 @@ export function createFullyOccupiedFixture(seed=77){
   unit.owner=province.owner;unit.kind=province.kind;unit.hp=stats(state.players[unit.owner],unit.kind).hp;
  }
  state.topology++;state.grouping=reconcileGrouping(state);
- return {state,canvas:{selectedRegion:provinceByCode('DEU-3487')}};
+ // Keep the synthetic performance workload independent of map-region count.
+ // Use actual production for legal, collision-aware positions and unit IDs.
+ const engine=new Engine(state),prepared=engine.state;
+ for(let pass=0;pass<4&&prepared.units.length<FULLY_OCCUPIED_UNIT_TARGET;pass++){
+  for(const p of prepared.provinces)if(p.owner>=0)p.production=UNITS[p.kind].train;
+  engine.step();
+ }
+ if(prepared.units.length<FULLY_OCCUPIED_UNIT_TARGET)throw new Error('Could not construct the full synthetic performance workload');
+ prepared.units.length=FULLY_OCCUPIED_UNIT_TARGET;
+ return {state:prepared,canvas:{selectedRegion:provinceByCode('DEU-3487')}};
 }
