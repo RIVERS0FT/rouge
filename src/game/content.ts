@@ -4,9 +4,9 @@ import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION=pkg.version;
 // Bump the LAN protocol identity when shared simulation rules, commands, or state shape change.
-export const RULES_ID='admin1-locked-game-regions-v18';
-export const STATE_VERSION=6;
-export const MAP_ID='earth-natural-earth-admin1-511-regions-v5' as const;
+export const RULES_ID='admin1-locked-game-regions-v19';
+export const STATE_VERSION=7;
+export const MAP_ID='earth-natural-earth-admin1-511-regions-v6' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
 export const PROVINCE_CAP=12;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];

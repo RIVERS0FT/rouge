@@ -47,7 +47,7 @@ test('owned tiles, markets and captures pay into the same capped balance',()=>{
  assert.ok(fundsIncomeRate(home,regionProductionRate(home.id))>0);
 });
 
-test('current saves and LAN use v6 funds while isolating v5 storage',()=>{
+test('current saves and LAN use unified funds while isolating v5 storage',()=>{
  const s=fresh().state;
  const legacy=structuredClone(s);
  legacy.version=5;

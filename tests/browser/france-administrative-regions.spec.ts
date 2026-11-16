@@ -2,7 +2,7 @@ import {expect,test} from '@playwright/test';
 import {loadMapOrderFixture} from './map-orders.ts';
 import {openMapSearch} from './map-search.ts';
 
-test('Paris searches lead to the bilingual Île-de-France region',async({page})=>{
+test('French department searches resolve to the new bilingual administrative regions',async({page})=>{
  test.setTimeout(150000);
  await loadMapOrderFixture(page);
  const panelTitle=page.locator('#province-panel h2');
@@ -14,8 +14,11 @@ test('Paris searches lead to the bilingual Île-de-France region',async({page})=
  };
  await openResult('巴黎','法兰西岛');
  await openResult('塞纳-马恩省','法兰西岛');
+ await openResult('FRA-5316','卢瓦尔河地区');
+ await openResult('FRA-5281','科西嘉');
  await page.getByTestId('open-settings').click();
  await page.getByRole('button',{name:'English',exact:true}).click();
  await page.getByTestId('settings-resume').click();
  await openResult('Paris','Île-de-France');
+ await openResult('FRA-5316','Pays de la Loire');
 });
