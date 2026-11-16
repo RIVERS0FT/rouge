@@ -1,3 +1,4 @@
+import {GameVersion} from './GameVersion.ts';
 import {t, type Language} from './i18n.ts';
 
 export type StartAction = 'setupSolo' | 'setupLan' | 'saves' | 'settings' | 'settingsSaves' | 'resumeLan';
@@ -17,5 +18,6 @@ export function StartMenu({language, onAction, resumeCode}: {language: Language;
    <button type="button" className="menu-button" data-testid="home-settings" onClick={() => onAction('settings')} aria-haspopup="dialog"><span>04</span>{text('settings')}<b>⚙</b></button>
    {resumeCode && <button type="button" className="quiet" data-testid="resume-lan" onClick={() => onAction('resumeLan')}>{text('resumeLan')} · {resumeCode}</button>}
   </nav>
+  <GameVersion className="menu-version" testId="start-menu-version"/>
  </section></main>;
 }
