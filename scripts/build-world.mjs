@@ -2,6 +2,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {repartitionPhilippines} from './apply-philippines-gameplay-regions.mjs';
 import {repartitionSwissRegions} from './apply-swiss-gameplay-regions.mjs';
 import {repartitionMaldives} from './apply-maldives-gameplay-regions.mjs';
 import {repartitionUkRegions} from './apply-uk-administrative-regions.mjs';
@@ -37,7 +38,9 @@ const gameplayGroups=applyAdministrativeGroupOverrides(source,ukGroups,adminOver
 const maldivesRegions=JSON.parse(await readFile(new URL('data/maldives-gameplay-regions.json',root)));
 const groupedMaldives=repartitionMaldives(source,gameplayGroups,maldivesRegions);
 const swissRegions=JSON.parse(await readFile(new URL('data/swiss-gameplay-regions.json',root)));
-const finalGroups=repartitionSwissRegions(source,groupedMaldives,swissRegions);
+const swissGroups=repartitionSwissRegions(source,groupedMaldives,swissRegions);
+const philippineRegions=JSON.parse(await readFile(new URL('data/philippines-gameplay-regions.json',root)));
+const finalGroups=repartitionPhilippines(source,swissGroups,philippineRegions);
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
 const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:finalGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{})}))};
