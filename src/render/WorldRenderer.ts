@@ -792,8 +792,8 @@ export class WorldRenderer {
     for(let i=n;i<this.labels.length;i++)this.labels[i].sprite.visible=false;
   }
   private drawBuildings(near:boolean){
-    const modelState=this.towns.assetState;
-    const stamp=near?`${this.focus.x}:${this.focus.z}:${this.distance}:${this.camera.aspect}:${this.selected}:${this.townRevision}:${modelState}`:'far';
+    const modelState=this.towns.assetState,modelIssue=this.towns.assetIssue;
+    const stamp=near?`${this.focus.x}:${this.focus.z}:${this.distance}:${this.camera.aspect}:${this.selected}:${this.townRevision}:${modelState}:${modelIssue}`:'far';
     if(stamp===this.townStamp)return;
     this.townStamp=stamp;this.towns.begin(near);
     const view=this.renderer.domElement.dataset;
@@ -813,6 +813,7 @@ export class WorldRenderer {
     }
     this.towns.end();
     view.buildingModelAsset=count?modelState:'none';
+    view.buildingModelIssue=count?modelIssue:'';
     view.renderedBuildingHouses=String(this.towns.count('house'));
     view.renderedBuildingMarkets=String(this.towns.count('market'));
     view.renderedBuildingBarracks=String(this.towns.count('barracks'));
