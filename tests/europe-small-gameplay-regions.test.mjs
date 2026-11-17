@@ -45,7 +45,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('fourteen fragments merge into nine named destinations while old lookup and anchor coordinates remain exact',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');assert.equal(STATE_VERSION,24);assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
  assert.equal(MAP.filter(p=>p.code.startsWith('SVN-')).length,2);
  for(const {primary,members,displayName,anchorAtomId} of plan.regions){
   const r=byCode(primary.slice(6));

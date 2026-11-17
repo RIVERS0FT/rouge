@@ -75,7 +75,11 @@ const indianGroups=applyReviewedStateIslands(source,pacificGroups,indianPlan,sta
 const atlanticPlan=JSON.parse(await readFile(new URL('data/atlantic-gameplay-regions.json',root)));
 const atlanticGroups=applyReviewedStateIslands(source,indianGroups,atlanticPlan,stateReference,{label:'Atlantic',reason:'victoria-3-reviewed-atlantic-region'});
 const africaPlan=JSON.parse(await readFile(new URL('data/africa-gameplay-regions.json',root)));
-const finalGroups=applyReviewedStateIslands(source,atlanticGroups,africaPlan,stateReference,{label:'Africa',reason:'victoria-3-reviewed-africa-region',allowNewAttachments:false});
+const africaGroups=applyReviewedStateIslands(source,atlanticGroups,africaPlan,stateReference,{label:'Africa',reason:'victoria-3-reviewed-africa-region',allowNewAttachments:false});
+const southAmericaPlan=JSON.parse(await readFile(new URL('data/south-america-gameplay-regions.json',root)));
+const southAmericaGroups=applyReviewedStateIslands(source,africaGroups,southAmericaPlan,stateReference,{label:'South America',reason:'victoria-3-reviewed-south-america-region',allowNewAttachments:false});
+const northAmericaPlan=JSON.parse(await readFile(new URL('data/north-america-gameplay-regions.json',root)));
+const finalGroups=applyReviewedStateIslands(source,southAmericaGroups,northAmericaPlan,stateReference,{label:'North America',reason:'victoria-3-reviewed-north-america-region',allowNewAttachments:false});
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
 const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:finalGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{}),...(g.searchAliases?{searchAliases:g.searchAliases}:{})}))};

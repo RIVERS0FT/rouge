@@ -1,0 +1,1133 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_ACRE",
+      "primary": "group:BRA-576",
+      "members": {
+        "group:BRA-576": [
+          "BRA-576"
+        ]
+      },
+      "displayName": [
+        "阿克里",
+        "Acre"
+      ],
+      "anchorAtomId": "BRA-576",
+      "searchAliases": [
+        "阿克里州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ALTO_PARAGUAY",
+      "primary": "group:PRY-4837",
+      "members": {
+        "group:ARG-1307": [
+          "ARG-1307"
+        ],
+        "group:PRY-4837": [
+          "PRY-4837",
+          "PRY-597",
+          "PRY-598",
+          "PRY-605"
+        ]
+      },
+      "displayName": [
+        "上巴拉圭",
+        "Alto Paraguay"
+      ],
+      "anchorAtomId": "PRY-598",
+      "searchAliases": [
+        "Boquerón",
+        "Formosa",
+        "博克龙省",
+        "福尔摩沙省"
+      ]
+    },
+    {
+      "stateCode": "STATE_AMAZONAS",
+      "primary": "group:BRA-592",
+      "members": {
+        "group:BRA-592": [
+          "BRA-592",
+          "BRA-670"
+        ]
+      },
+      "displayName": [
+        "亚马逊",
+        "Amazonas"
+      ],
+      "anchorAtomId": "BRA-592",
+      "searchAliases": [
+        "亚马孙州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ANTIOQUIA",
+      "primary": "group:COL-1314",
+      "members": {
+        "group:COL-1314": [
+          "COL-1314",
+          "COL-1316",
+          "COL-1317",
+          "COL-1318",
+          "COL-1412",
+          "COL-1413",
+          "COL-1414",
+          "COL-1415",
+          "COL-1416",
+          "COL-1417",
+          "COL-1421"
+        ]
+      },
+      "displayName": [
+        "安蒂奥基亚",
+        "Antioquia"
+      ],
+      "anchorAtomId": "COL-1314",
+      "searchAliases": [
+        "安蒂奥基亚省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ANTOFAGASTA",
+      "primary": "group:CHL-2695",
+      "members": {
+        "group:CHL-2695": [
+          "CHL-2695"
+        ]
+      },
+      "displayName": [
+        "安托法加斯塔",
+        "Antofagasta"
+      ],
+      "anchorAtomId": "CHL-2695",
+      "searchAliases": [
+        "安托法加斯塔大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_ARAUCANIA",
+      "primary": "group:CHL-2691",
+      "members": {
+        "group:ARG-1272": [
+          "ARG-1272"
+        ],
+        "group:CHL-2691": [
+          "CHL-2691",
+          "CHL-2692",
+          "CHL-2704"
+        ]
+      },
+      "displayName": [
+        "阿劳卡尼亚",
+        "Araucania"
+      ],
+      "anchorAtomId": "CHL-2692",
+      "searchAliases": [
+        "Magallanes y Antártica Chilena",
+        "Tierra del Fuego",
+        "火地岛省",
+        "麦哲伦-智利南极大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_AREQUIPA",
+      "primary": "group:PER-570",
+      "members": {
+        "group:PER-570": [
+          "PER-570",
+          "PER-573",
+          "PER-574",
+          "PER-575"
+        ]
+      },
+      "displayName": [
+        "阿雷基帕",
+        "Arequipa"
+      ],
+      "anchorAtomId": "PER-573",
+      "searchAliases": [
+        "Puno",
+        "普诺大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_BAHIA",
+      "primary": "group:BRA-624",
+      "members": {
+        "group:BRA-624": [
+          "BRA-624"
+        ]
+      },
+      "displayName": [
+        "巴伊亚",
+        "Bahia"
+      ],
+      "anchorAtomId": "BRA-624"
+    },
+    {
+      "stateCode": "STATE_BAJO_PARAGUAY",
+      "primary": "group:PRY-603",
+      "members": {
+        "group:PRY-603": [
+          "PRY-603",
+          "PRY-604",
+          "PRY-606",
+          "PRY-607",
+          "PRY-608",
+          "PRY-609",
+          "PRY-610",
+          "PRY-611",
+          "PRY-615",
+          "PRY-616",
+          "PRY-617",
+          "PRY-618",
+          "PRY-619",
+          "PRY-620"
+        ]
+      },
+      "displayName": [
+        "下巴拉圭",
+        "Bajo Paraguay"
+      ],
+      "anchorAtomId": "PRY-606",
+      "searchAliases": [
+        "San Pedro",
+        "圣佩德罗省"
+      ]
+    },
+    {
+      "stateCode": "STATE_BOLIVAR",
+      "primary": "group:VEN-38",
+      "members": {
+        "group:VEN-38": [
+          "VEN-38",
+          "VEN-39",
+          "VEN-46",
+          "VEN-49",
+          "VEN-65"
+        ]
+      },
+      "displayName": [
+        "玻利瓦尔",
+        "Bolivar"
+      ],
+      "anchorAtomId": "VEN-39",
+      "searchAliases": [
+        "Bolívar",
+        "玻利瓦尔州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BUENOS_AIRES",
+      "primary": "group:ARG-1295",
+      "members": {
+        "group:ARG-1295": [
+          "ARG-1295"
+        ],
+        "group:ARG-5493": [
+          "ARG-5493"
+        ]
+      },
+      "displayName": [
+        "布宜诺斯艾利斯",
+        "Buenos Aires"
+      ],
+      "anchorAtomId": "ARG-1295",
+      "searchAliases": [
+        "Ciudad de Buenos Aires",
+        "布宜诺斯艾利斯省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CAJAMARCA",
+      "primary": "group:PER-566",
+      "members": {
+        "group:PER-566": [
+          "PER-566",
+          "PER-567",
+          "PER-568",
+          "PER-578",
+          "PER-580",
+          "PER-582"
+        ]
+      },
+      "displayName": [
+        "卡哈马卡",
+        "Cajamarca"
+      ],
+      "anchorAtomId": "PER-582",
+      "searchAliases": [
+        "San Martín",
+        "圣马丁大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_CAUCA",
+      "primary": "group:COL-1400",
+      "members": {
+        "group:COL-1400": [
+          "COL-1400",
+          "COL-1404",
+          "COL-1405",
+          "COL-1406",
+          "COL-1408"
+        ]
+      },
+      "displayName": [
+        "考卡",
+        "Cauca"
+      ],
+      "anchorAtomId": "COL-1406",
+      "searchAliases": [
+        "Nariño",
+        "纳里尼奥省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CEARA",
+      "primary": "group:BRA-621",
+      "members": {
+        "group:BRA-621": [
+          "BRA-621"
+        ]
+      },
+      "displayName": [
+        "塞阿拉",
+        "Ceara"
+      ],
+      "anchorAtomId": "BRA-621",
+      "searchAliases": [
+        "Ceará",
+        "塞阿腊"
+      ]
+    },
+    {
+      "stateCode": "STATE_CHACO",
+      "primary": "group:ARG-1304",
+      "members": {
+        "group:ARG-1304": [
+          "ARG-1304",
+          "ARG-1306"
+        ]
+      },
+      "displayName": [
+        "查科",
+        "Chaco"
+      ],
+      "anchorAtomId": "ARG-1304",
+      "searchAliases": [
+        "Santiago del Estero",
+        "圣地亚哥－德尔埃斯特罗省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CORRIENTES",
+      "primary": "group:ARG-1308",
+      "members": {
+        "group:ARG-1308": [
+          "ARG-1308",
+          "ARG-1312"
+        ]
+      },
+      "displayName": [
+        "科连特斯",
+        "Corrientes"
+      ],
+      "anchorAtomId": "ARG-1308",
+      "searchAliases": [
+        "科连特斯省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CUNDINAMARCA",
+      "primary": "group:COL-1315",
+      "members": {
+        "group:COL-1315": [
+          "COL-1315",
+          "COL-1397",
+          "COL-1398",
+          "COL-1399",
+          "COL-1401",
+          "COL-1402"
+        ]
+      },
+      "displayName": [
+        "昆迪纳马卡",
+        "Cundinamarca"
+      ],
+      "anchorAtomId": "COL-1402",
+      "searchAliases": [
+        "Tolima",
+        "托利马省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ECUADOR",
+      "primary": "group:ECU-1266",
+      "members": {
+        "group:ECU-1266": [
+          "ECU-1266",
+          "ECU-1267",
+          "ECU-1268",
+          "ECU-1269",
+          "ECU-1277",
+          "ECU-1278",
+          "ECU-1279",
+          "ECU-1280",
+          "ECU-1281",
+          "ECU-1282",
+          "ECU-1284",
+          "ECU-1285",
+          "ECU-1286",
+          "ECU-1287",
+          "ECU-1288",
+          "ECU-1289",
+          "ECU-1290",
+          "ECU-1335",
+          "ECU-1409",
+          "ECU-1410",
+          "ECU-1411",
+          "ECU-5507",
+          "ECU-5508"
+        ]
+      },
+      "displayName": [
+        "厄瓜多尔",
+        "Ecuador"
+      ],
+      "anchorAtomId": "ECU-1288",
+      "searchAliases": [
+        "Pastaza",
+        "帕斯塔萨省"
+      ]
+    },
+    {
+      "stateCode": "STATE_GOIAS",
+      "primary": "group:BRA-1294",
+      "members": {
+        "group:BRA-1294": [
+          "BRA-1294",
+          "BRA-596",
+          "BRA-599"
+        ]
+      },
+      "displayName": [
+        "戈亚斯",
+        "Goias"
+      ],
+      "anchorAtomId": "BRA-1294",
+      "searchAliases": [
+        "Goiás"
+      ]
+    },
+    {
+      "stateCode": "STATE_GUAVIARE",
+      "primary": "group:COL-1283",
+      "members": {
+        "group:COL-1283": [
+          "COL-1283",
+          "COL-1403",
+          "COL-1407",
+          "COL-1420",
+          "COL-1422",
+          "COL-1423",
+          "COL-1424",
+          "COL-1425",
+          "COL-1426",
+          "COL-1427"
+        ]
+      },
+      "displayName": [
+        "瓜维亚雷",
+        "Guaviare"
+      ],
+      "anchorAtomId": "COL-1283",
+      "searchAliases": [
+        "Amazonas",
+        "亚马孙省"
+      ]
+    },
+    {
+      "stateCode": "STATE_GUAYANA",
+      "primary": "group:GUY-671",
+      "members": {
+        "group:FRA-2000": [
+          "FRA-2000"
+        ],
+        "group:GUY-671": [
+          "GUY-671",
+          "GUY-672",
+          "GUY-673",
+          "GUY-674",
+          "GUY-675",
+          "GUY-676",
+          "GUY-677",
+          "GUY-678",
+          "GUY-679",
+          "GUY-680"
+        ],
+        "group:SUR-37": [
+          "SUR-37",
+          "SUR-66",
+          "SUR-67",
+          "SUR-68",
+          "SUR-69",
+          "SUR-70",
+          "SUR-71",
+          "SUR-72",
+          "SUR-73",
+          "SUR-74"
+        ]
+      },
+      "displayName": [
+        "圭亚那",
+        "Guayana"
+      ],
+      "anchorAtomId": "GUY-674",
+      "searchAliases": [
+        "British Guiana",
+        "Dutch Guiana",
+        "French Guiana",
+        "Guyana",
+        "Guyane française",
+        "Sipaliwini",
+        "Surinam",
+        "Suriname",
+        "Upper Demerara-Berbice",
+        "上德梅拉拉-伯比斯区",
+        "法属圭亚那",
+        "苏里南",
+        "锡帕利维尼区"
+      ]
+    },
+    {
+      "stateCode": "STATE_ICA",
+      "primary": "group:PER-569",
+      "members": {
+        "group:PER-569": [
+          "PER-569",
+          "PER-571",
+          "PER-572",
+          "PER-586",
+          "PER-588"
+        ]
+      },
+      "displayName": [
+        "伊卡",
+        "Ica"
+      ],
+      "anchorAtomId": "PER-572",
+      "searchAliases": [
+        "Madre de Dios",
+        "马德雷德迪奥斯大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_JUJUY",
+      "primary": "group:ARG-1301",
+      "members": {
+        "group:ARG-1301": [
+          "ARG-1301",
+          "ARG-1303"
+        ]
+      },
+      "displayName": [
+        "胡胡伊",
+        "Jujuy"
+      ],
+      "anchorAtomId": "ARG-1303",
+      "searchAliases": [
+        "Salta",
+        "萨尔塔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LA_PAMPA",
+      "primary": "group:ARG-1298",
+      "members": {
+        "group:ARG-1298": [
+          "ARG-1298",
+          "ARG-1299"
+        ]
+      },
+      "displayName": [
+        "拉潘帕",
+        "La Pampa"
+      ],
+      "anchorAtomId": "ARG-1299",
+      "searchAliases": [
+        "Córdoba",
+        "科尔多瓦",
+        "科尔多瓦省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LA_PAZ",
+      "primary": "group:BOL-1291",
+      "members": {
+        "group:BOL-1291": [
+          "BOL-1291",
+          "BOL-1293",
+          "BOL-1936",
+          "BOL-1938"
+        ]
+      },
+      "displayName": [
+        "拉巴斯",
+        "La Paz"
+      ],
+      "anchorAtomId": "BOL-1293",
+      "searchAliases": [
+        "El Beni",
+        "贝尼省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LIMA",
+      "primary": "group:PER-3505",
+      "members": {
+        "group:PER-3505": [
+          "PER-3505",
+          "PER-577",
+          "PER-579",
+          "PER-581",
+          "PER-583",
+          "PER-587",
+          "PER-589",
+          "PER-590",
+          "PER-591"
+        ]
+      },
+      "displayName": [
+        "利马",
+        "Lima"
+      ],
+      "anchorAtomId": "PER-583",
+      "searchAliases": [
+        "Ucayali",
+        "乌卡亚利大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_LOS_RIOS",
+      "primary": "group:CHL-20010",
+      "members": {
+        "group:CHL-20010": [
+          "CHL-20010",
+          "CHL-2700",
+          "CHL-2701",
+          "CHL-2702",
+          "CHL-2705"
+        ]
+      },
+      "displayName": [
+        "洛斯里奥斯",
+        "Los Rios"
+      ],
+      "anchorAtomId": "CHL-2700",
+      "searchAliases": [
+        "La Araucanía",
+        "Los Ríos",
+        "阿劳卡尼亚大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_MARANHAO",
+      "primary": "group:BRA-593",
+      "members": {
+        "group:BRA-593": [
+          "BRA-593"
+        ]
+      },
+      "displayName": [
+        "马拉尼昂",
+        "Maranhao"
+      ],
+      "anchorAtomId": "BRA-593",
+      "searchAliases": [
+        "Maranhão",
+        "马拉尼昂州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MATO_GROSSO",
+      "primary": "group:BRA-595",
+      "members": {
+        "group:BRA-595": [
+          "BRA-595",
+          "BRA-600",
+          "BRA-602"
+        ]
+      },
+      "displayName": [
+        "马托格罗索",
+        "Mato Grosso"
+      ],
+      "anchorAtomId": "BRA-602",
+      "searchAliases": [
+        "马托格罗索州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MINAS_GERAIS",
+      "primary": "group:BRA-601",
+      "members": {
+        "group:BRA-601": [
+          "BRA-601"
+        ]
+      },
+      "displayName": [
+        "米纳斯吉拉斯",
+        "Minas Gerais"
+      ],
+      "anchorAtomId": "BRA-601"
+    },
+    {
+      "stateCode": "STATE_MIRANDA",
+      "primary": "group:VEN-25",
+      "members": {
+        "group:VEN-25": [
+          "VEN-25",
+          "VEN-26",
+          "VEN-32",
+          "VEN-35",
+          "VEN-40",
+          "VEN-41",
+          "VEN-42",
+          "VEN-43",
+          "VEN-45",
+          "VEN-47"
+        ]
+      },
+      "displayName": [
+        "米兰达",
+        "Miranda"
+      ],
+      "anchorAtomId": "VEN-25",
+      "searchAliases": [
+        "Apure",
+        "阿普雷州"
+      ]
+    },
+    {
+      "stateCode": "STATE_PARA",
+      "primary": "group:BRA-594",
+      "members": {
+        "group:BRA-594": [
+          "BRA-594",
+          "BRA-681"
+        ]
+      },
+      "displayName": [
+        "帕拉",
+        "Para"
+      ],
+      "anchorAtomId": "BRA-594",
+      "searchAliases": [
+        "Pará"
+      ]
+    },
+    {
+      "stateCode": "STATE_PARAIBA",
+      "primary": "group:BRA-626",
+      "members": {
+        "group:BRA-626": [
+          "BRA-626"
+        ]
+      },
+      "displayName": [
+        "帕拉伊巴",
+        "Paraiba"
+      ],
+      "anchorAtomId": "BRA-626",
+      "searchAliases": [
+        "Paraíba"
+      ]
+    },
+    {
+      "stateCode": "STATE_PARANA",
+      "primary": "group:BRA-613",
+      "members": {
+        "group:BRA-613": [
+          "BRA-613"
+        ]
+      },
+      "displayName": [
+        "巴拉那",
+        "Parana"
+      ],
+      "anchorAtomId": "BRA-613",
+      "searchAliases": [
+        "Paraná",
+        "巴拉那州"
+      ]
+    },
+    {
+      "stateCode": "STATE_PASTAZA",
+      "primary": "group:PER-584",
+      "members": {
+        "group:PER-584": [
+          "PER-584",
+          "PER-585"
+        ]
+      },
+      "displayName": [
+        "帕斯塔萨",
+        "Pastaza"
+      ],
+      "anchorAtomId": "PER-585",
+      "searchAliases": [
+        "Loreto",
+        "洛雷托大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_PATAGONIA",
+      "primary": "group:ARG-1271",
+      "members": {
+        "group:ARG-1271": [
+          "ARG-1271",
+          "ARG-1274",
+          "ARG-1276",
+          "ARG-1297"
+        ]
+      },
+      "displayName": [
+        "巴塔哥尼亚",
+        "Patagonia"
+      ],
+      "anchorAtomId": "ARG-1271",
+      "searchAliases": [
+        "Santa Cruz",
+        "圣克鲁斯省"
+      ]
+    },
+    {
+      "stateCode": "STATE_PERNAMBUCO",
+      "primary": "group:BRA-1313",
+      "members": {
+        "group:BRA-1313": [
+          "BRA-1313",
+          "BRA-623",
+          "BRA-629"
+        ]
+      },
+      "displayName": [
+        "伯南布哥",
+        "Pernambuco"
+      ],
+      "anchorAtomId": "BRA-1313"
+    },
+    {
+      "stateCode": "STATE_PIAUI",
+      "primary": "group:BRA-622",
+      "members": {
+        "group:BRA-622": [
+          "BRA-622"
+        ]
+      },
+      "displayName": [
+        "皮奥伊",
+        "Piaui"
+      ],
+      "anchorAtomId": "BRA-622",
+      "searchAliases": [
+        "Piauí",
+        "皮奥伊州"
+      ]
+    },
+    {
+      "stateCode": "STATE_POTOSI",
+      "primary": "group:BOL-1937",
+      "members": {
+        "group:BOL-1937": [
+          "BOL-1937",
+          "BOL-1939"
+        ]
+      },
+      "displayName": [
+        "波托西",
+        "Potosi"
+      ],
+      "anchorAtomId": "BOL-1939",
+      "searchAliases": [
+        "Potosí",
+        "波托西省"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIO_DE_JANEIRO",
+      "primary": "group:BRA-625",
+      "members": {
+        "group:BRA-625": [
+          "BRA-625",
+          "BRA-627"
+        ]
+      },
+      "displayName": [
+        "里约热内卢",
+        "Rio De Janeiro"
+      ],
+      "anchorAtomId": "BRA-625",
+      "searchAliases": [
+        "Espírito Santo",
+        "Rio de Janeiro",
+        "聖埃斯皮里圖州"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIO_GRANDE_DO_NORTE",
+      "primary": "group:BRA-628",
+      "members": {
+        "group:BRA-628": [
+          "BRA-628"
+        ]
+      },
+      "displayName": [
+        "北里奥格兰德",
+        "Rio Grande Do Norte"
+      ],
+      "anchorAtomId": "BRA-628",
+      "searchAliases": [
+        "Rio Grande do Norte",
+        "北里约格朗德"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIO_GRANDE_DO_SUL",
+      "primary": "group:BRA-612",
+      "members": {
+        "group:BRA-612": [
+          "BRA-612"
+        ]
+      },
+      "displayName": [
+        "南里奥格兰德",
+        "Rio Grande Do Sul"
+      ],
+      "anchorAtomId": "BRA-612",
+      "searchAliases": [
+        "Rio Grande do Sul",
+        "南里奥格兰德州"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIO_NEGRO",
+      "primary": "group:ARG-1275",
+      "members": {
+        "group:ARG-1275": [
+          "ARG-1275",
+          "ARG-1296"
+        ]
+      },
+      "displayName": [
+        "里奥内格罗",
+        "Rio Negro"
+      ],
+      "anchorAtomId": "ARG-1275",
+      "searchAliases": [
+        "Mendoza",
+        "门多萨",
+        "门多萨省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SANTA_CATARINA",
+      "primary": "group:BRA-614",
+      "members": {
+        "group:BRA-614": [
+          "BRA-614"
+        ]
+      },
+      "displayName": [
+        "圣卡塔琳娜",
+        "Santa Catarina"
+      ],
+      "anchorAtomId": "BRA-614",
+      "searchAliases": [
+        "圣卡塔琳娜州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SANTA_CRUZ",
+      "primary": "group:BOL-1292",
+      "members": {
+        "group:BOL-1292": [
+          "BOL-1292",
+          "BOL-1940",
+          "BOL-1941"
+        ]
+      },
+      "displayName": [
+        "圣克鲁斯",
+        "Santa Cruz"
+      ],
+      "anchorAtomId": "BOL-1940",
+      "searchAliases": [
+        "圣克鲁斯省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SANTA_FE",
+      "primary": "group:ARG-1309",
+      "members": {
+        "group:ARG-1309": [
+          "ARG-1309",
+          "ARG-1310"
+        ]
+      },
+      "displayName": [
+        "圣菲",
+        "Santa Fe"
+      ],
+      "anchorAtomId": "ARG-1310",
+      "searchAliases": [
+        "圣大非省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SANTIAGO",
+      "primary": "group:CHL-2696",
+      "members": {
+        "group:CHL-2696": [
+          "CHL-2696",
+          "CHL-2697",
+          "CHL-2698",
+          "CHL-2699",
+          "CHL-2703"
+        ]
+      },
+      "displayName": [
+        "圣地亚哥",
+        "Santiago"
+      ],
+      "anchorAtomId": "CHL-2696",
+      "searchAliases": [
+        "Atacama",
+        "阿塔卡马大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_SAO_PAULO",
+      "primary": "group:BRA-1311",
+      "members": {
+        "group:BRA-1311": [
+          "BRA-1311"
+        ]
+      },
+      "displayName": [
+        "圣保罗",
+        "Sao Paulo"
+      ],
+      "anchorAtomId": "BRA-1311",
+      "searchAliases": [
+        "São Paulo",
+        "圣保罗州"
+      ]
+    },
+    {
+      "stateCode": "STATE_TARAPACA",
+      "primary": "group:CHL-2693",
+      "members": {
+        "group:CHL-2693": [
+          "CHL-2693",
+          "CHL-2694"
+        ]
+      },
+      "displayName": [
+        "塔拉帕卡",
+        "Tarapaca"
+      ],
+      "anchorAtomId": "CHL-2693",
+      "searchAliases": [
+        "Tarapacá",
+        "塔拉帕卡大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_TUCUMAN",
+      "primary": "group:ARG-1273",
+      "members": {
+        "group:ARG-1273": [
+          "ARG-1273",
+          "ARG-1300",
+          "ARG-1302",
+          "ARG-1305"
+        ]
+      },
+      "displayName": [
+        "图库曼",
+        "Tucuman"
+      ],
+      "anchorAtomId": "ARG-1300",
+      "searchAliases": [
+        "Catamarca",
+        "Tucumán",
+        "卡塔马卡省"
+      ]
+    },
+    {
+      "stateCode": "STATE_URUGUAY",
+      "primary": "group:URY-10",
+      "members": {
+        "group:URY-10": [
+          "URY-10",
+          "URY-11",
+          "URY-12",
+          "URY-13",
+          "URY-14",
+          "URY-15",
+          "URY-16",
+          "URY-17",
+          "URY-18",
+          "URY-19",
+          "URY-20",
+          "URY-21",
+          "URY-22",
+          "URY-4",
+          "URY-5",
+          "URY-6",
+          "URY-7",
+          "URY-8",
+          "URY-9"
+        ]
+      },
+      "displayName": [
+        "乌拉圭",
+        "Uruguay"
+      ],
+      "anchorAtomId": "URY-15",
+      "searchAliases": [
+        "Tacuarembó",
+        "塔夸伦博省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZULIA",
+      "primary": "group:VEN-23",
+      "members": {
+        "group:VEN-23": [
+          "VEN-23",
+          "VEN-27",
+          "VEN-28",
+          "VEN-29",
+          "VEN-31",
+          "VEN-33",
+          "VEN-34",
+          "VEN-36"
+        ]
+      },
+      "displayName": [
+        "苏利亚",
+        "Zulia"
+      ],
+      "anchorAtomId": "VEN-31",
+      "searchAliases": [
+        "苏利亚州"
+      ]
+    }
+  ]
+}

@@ -36,7 +36,9 @@ import {applyPacificGameplayRegions} from '../scripts/apply-pacific-gameplay-reg
 import indian from '../data/indian-ocean-gameplay-regions.json' with {type:'json'};
 import {applyReviewedStateIslands} from '../scripts/apply-reviewed-state-islands.mjs';
 import atlantic from '../data/atlantic-gameplay-regions.json' with {type:'json'};
-import {isAfricaBatch,isAtlanticBatch,isIndianOceanBatch} from './reviewed-ocean-fixtures.mjs';
+import africa from '../data/africa-gameplay-regions.json' with {type:'json'};
+import southAmerica from '../data/south-america-gameplay-regions.json' with {type:'json'};
+import {isAfricaBatch,isAtlanticBatch,isIndianOceanBatch,isNorthAmericaBatch,isSouthAmericaBatch} from './reviewed-ocean-fixtures.mjs';
 
 import {isAdjacentIslandBatch} from './southeast-asia-fixtures.mjs';
 import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regions.mjs';
@@ -91,18 +93,28 @@ test('all reviewed attachments are grouping-only and all original terrain data a
  const beforePacific=applyAdjacentIslandMergers(base,prior,plan).filter(g=>!g.sourceIds.some(isReviewedOceanBatch));
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isReviewedOceanBatch)),beforePacific.map(serialize));
  const beforeIndian=applyPacificGameplayRegions(base,applyAdjacentIslandMergers(base,prior,plan),pacific,readGzip('state-regions-1.13.7'));
- const mergedAfterPacific=id=>isIndianOceanBatch(id)||isAtlanticBatch(id)||isAfricaBatch(id);
+ const mergedAfterPacific=id=>isIndianOceanBatch(id)||isAtlanticBatch(id)||isAfricaBatch(id)||isSouthAmericaBatch(id)||isNorthAmericaBatch(id);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(mergedAfterPacific)),
   beforeIndian.filter(g=>!g.sourceIds.some(mergedAfterPacific)).map(serialize));
  const beforeAtlantic=applyReviewedStateIslands(base,beforeIndian,indian,readGzip('state-regions-1.13.7'),
   {label:'Indian Ocean',reason:'victoria-3-reviewed-indian-ocean-region'});
- const mergedAfterIndian=id=>isAtlanticBatch(id)||isAfricaBatch(id);
+ const mergedAfterIndian=id=>isAtlanticBatch(id)||isAfricaBatch(id)||isSouthAmericaBatch(id)||isNorthAmericaBatch(id);
  assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(mergedAfterIndian)),
   beforeAtlantic.filter(g=>!g.sourceIds.some(mergedAfterIndian)).map(serialize));
  const beforeAfrica=applyReviewedStateIslands(base,beforeAtlantic,atlantic,readGzip('state-regions-1.13.7'),
   {label:'Atlantic',reason:'victoria-3-reviewed-atlantic-region'});
- assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isAfricaBatch)),
-  beforeAfrica.filter(g=>!g.sourceIds.some(isAfricaBatch)).map(serialize));
+ const mergedAfterAtlantic=id=>isAfricaBatch(id)||isSouthAmericaBatch(id)||isNorthAmericaBatch(id);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(mergedAfterAtlantic)),
+  beforeAfrica.filter(g=>!g.sourceIds.some(mergedAfterAtlantic)).map(serialize));
+ const beforeSouthAmerica=applyReviewedStateIslands(base,beforeAfrica,africa,readGzip('state-regions-1.13.7'),
+  {label:'Africa',reason:'victoria-3-reviewed-africa-region',allowNewAttachments:false});
+ const mergedAfterAfrica=id=>isSouthAmericaBatch(id)||isNorthAmericaBatch(id);
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(mergedAfterAfrica)),
+  beforeSouthAmerica.filter(g=>!g.sourceIds.some(mergedAfterAfrica)).map(serialize));
+ const beforeNorthAmerica=applyReviewedStateIslands(base,beforeSouthAmerica,southAmerica,readGzip('state-regions-1.13.7'),
+  {label:'South America',reason:'victoria-3-reviewed-south-america-region',allowNewAttachments:false});
+ assert.deepEqual(atlas.gameplayGroups.filter(g=>!g.atomIds.some(isNorthAmericaBatch)),
+  beforeNorthAmerica.filter(g=>!g.sourceIds.some(isNorthAmericaBatch)).map(serialize));
 });
 
 test('unreviewed Guangdong additions or missing administrative links are rejected',()=>{
@@ -114,7 +126,7 @@ test('unreviewed Guangdong additions or missing administrative links are rejecte
 
 test('all nine approved scopes are single playable regions and representative routes remain seaborne',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');assert.equal(STATE_VERSION,24);assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
  assert.equal(plan.regions.length,9);
  const targets=new Set(),nav=new TerrainNavigator();
  for(const row of plan.regions.slice(1)){

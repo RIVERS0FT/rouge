@@ -1,0 +1,1466 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_ALABAMA",
+      "primary": "group:USA-3541",
+      "members": {
+        "group:USA-3541": [
+          "USA-3541"
+        ]
+      },
+      "displayName": [
+        "阿拉巴马",
+        "Alabama"
+      ],
+      "anchorAtomId": "USA-3541",
+      "searchAliases": [
+        "亚拉巴马州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ALASKA",
+      "primary": "group:USA-3563",
+      "members": {
+        "group:USA-3563": [
+          "USA-3563"
+        ]
+      },
+      "displayName": [
+        "阿拉斯加",
+        "Alaska"
+      ],
+      "anchorAtomId": "USA-3563",
+      "searchAliases": [
+        "阿拉斯加州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ALBERTA",
+      "primary": "group:CAN-632",
+      "members": {
+        "group:CAN-632": [
+          "CAN-632"
+        ]
+      },
+      "displayName": [
+        "艾伯塔",
+        "Alberta"
+      ],
+      "anchorAtomId": "CAN-632",
+      "searchAliases": [
+        "阿尔伯塔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ARIZONA",
+      "primary": "group:USA-3520",
+      "members": {
+        "group:USA-3520": [
+          "USA-3520"
+        ]
+      },
+      "displayName": [
+        "亚利桑那",
+        "Arizona"
+      ],
+      "anchorAtomId": "USA-3520",
+      "searchAliases": [
+        "亚利桑那州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ARKANSAS",
+      "primary": "group:USA-3528",
+      "members": {
+        "group:USA-3528": [
+          "USA-3528"
+        ]
+      },
+      "displayName": [
+        "阿肯色",
+        "Arkansas"
+      ],
+      "anchorAtomId": "USA-3528",
+      "searchAliases": [
+        "阿肯色州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BAJA_CALIFORNIA",
+      "primary": "group:MEX-2706",
+      "members": {
+        "group:MEX-2706": [
+          "MEX-2706",
+          "MEX-2707"
+        ]
+      },
+      "displayName": [
+        "下加利福尼亚",
+        "Baja California"
+      ],
+      "anchorAtomId": "MEX-2706",
+      "searchAliases": [
+        "下加利福尼亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BAJIO",
+      "primary": "group:MEX-2715",
+      "members": {
+        "group:MEX-2715": [
+          "MEX-2715",
+          "MEX-2728",
+          "MEX-2733"
+        ]
+      },
+      "displayName": [
+        "巴希奥",
+        "Bajio"
+      ],
+      "anchorAtomId": "MEX-2715",
+      "searchAliases": [
+        "Bajío",
+        "San Luis Potosí",
+        "圣路易斯波托西州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BRITISH_COLUMBIA",
+      "primary": "group:CAN-633",
+      "members": {
+        "group:CAN-633": [
+          "CAN-633"
+        ]
+      },
+      "displayName": [
+        "不列颠哥伦比亚",
+        "British Columbia"
+      ],
+      "anchorAtomId": "CAN-633",
+      "searchAliases": [
+        "Northern Columbia",
+        "不列颠哥伦比亚省",
+        "北哥伦比亚",
+        "卑诗",
+        "卑诗省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CALIFORNIA",
+      "primary": "group:USA-3521",
+      "members": {
+        "group:USA-3521": [
+          "USA-3521"
+        ]
+      },
+      "displayName": [
+        "加利福尼亚",
+        "California"
+      ],
+      "anchorAtomId": "USA-3521",
+      "searchAliases": [
+        "加利福尼亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_CHIAPAS",
+      "primary": "group:MEX-2735",
+      "members": {
+        "group:MEX-2735": [
+          "MEX-2735"
+        ]
+      },
+      "displayName": [
+        "恰帕斯",
+        "Chiapas"
+      ],
+      "anchorAtomId": "MEX-2735",
+      "searchAliases": [
+        "恰帕斯州"
+      ]
+    },
+    {
+      "stateCode": "STATE_CHIHUAHUA",
+      "primary": "group:MEX-2709",
+      "members": {
+        "group:MEX-2709": [
+          "MEX-2709"
+        ]
+      },
+      "displayName": [
+        "奇瓦瓦",
+        "Chihuahua"
+      ],
+      "anchorAtomId": "MEX-2709",
+      "searchAliases": [
+        "奇瓦瓦州"
+      ]
+    },
+    {
+      "stateCode": "STATE_COLORADO",
+      "primary": "group:USA-3522",
+      "members": {
+        "group:USA-3522": [
+          "USA-3522"
+        ]
+      },
+      "displayName": [
+        "科罗拉多",
+        "Colorado"
+      ],
+      "anchorAtomId": "USA-3522",
+      "searchAliases": [
+        "科罗拉多州"
+      ]
+    },
+    {
+      "stateCode": "STATE_COSTA_RICA",
+      "primary": "group:CRI-1327",
+      "members": {
+        "group:CRI-1327": [
+          "CRI-1327",
+          "CRI-1328",
+          "CRI-1329",
+          "CRI-1330",
+          "CRI-1331",
+          "CRI-1333",
+          "CRI-1334"
+        ]
+      },
+      "displayName": [
+        "哥斯达黎加",
+        "Costa Rica"
+      ],
+      "anchorAtomId": "CRI-1330",
+      "searchAliases": [
+        "Puntarenas",
+        "蓬塔雷纳斯省"
+      ]
+    },
+    {
+      "stateCode": "STATE_DELAWARE",
+      "primary": "group:USA-3555",
+      "members": {
+        "group:USA-3555": [
+          "USA-3555"
+        ]
+      },
+      "displayName": [
+        "特拉华",
+        "Delaware"
+      ],
+      "anchorAtomId": "USA-3555",
+      "searchAliases": [
+        "特拉华州"
+      ]
+    },
+    {
+      "stateCode": "STATE_DURANGO",
+      "primary": "group:MEX-2710",
+      "members": {
+        "group:MEX-2710": [
+          "MEX-2710"
+        ]
+      },
+      "displayName": [
+        "杜兰戈",
+        "Durango"
+      ],
+      "anchorAtomId": "MEX-2710",
+      "searchAliases": [
+        "杜兰戈州"
+      ]
+    },
+    {
+      "stateCode": "STATE_FLORIDA",
+      "primary": "group:USA-3542",
+      "members": {
+        "group:USA-3542": [
+          "USA-3542"
+        ]
+      },
+      "displayName": [
+        "佛罗里达",
+        "Florida"
+      ],
+      "anchorAtomId": "USA-3542",
+      "searchAliases": [
+        "佛罗里达州"
+      ]
+    },
+    {
+      "stateCode": "STATE_GEORGIA",
+      "primary": "group:USA-3543",
+      "members": {
+        "group:USA-3543": [
+          "USA-3543"
+        ]
+      },
+      "displayName": [
+        "佐治亚",
+        "Georgia"
+      ],
+      "anchorAtomId": "USA-3543",
+      "searchAliases": [
+        "佐治亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_GUATEMALA",
+      "primary": "group:GTM-1942",
+      "members": {
+        "group:BLZ-1323": [
+          "BLZ-1323",
+          "BLZ-1324",
+          "BLZ-1325",
+          "BLZ-1326",
+          "BLZ-1355",
+          "BLZ-1356"
+        ],
+        "group:GTM-1942": [
+          "GTM-1942",
+          "GTM-1943",
+          "GTM-1944",
+          "GTM-1945",
+          "GTM-1946",
+          "GTM-1947",
+          "GTM-1948",
+          "GTM-1949",
+          "GTM-1950",
+          "GTM-1951",
+          "GTM-1952",
+          "GTM-1953",
+          "GTM-1954",
+          "GTM-1955",
+          "GTM-1956",
+          "GTM-1957",
+          "GTM-1959",
+          "GTM-1960",
+          "GTM-1961",
+          "GTM-1962",
+          "GTM-1963",
+          "GTM-3467"
+        ]
+      },
+      "displayName": [
+        "危地马拉",
+        "Guatemala"
+      ],
+      "anchorAtomId": "GTM-1944",
+      "searchAliases": [
+        "Belize",
+        "British Honduras",
+        "Cayo",
+        "Petén",
+        "伯利兹",
+        "卡约区",
+        "英属洪都拉斯",
+        "贝登省"
+      ]
+    },
+    {
+      "stateCode": "STATE_GUERRERO",
+      "primary": "group:MEX-2729",
+      "members": {
+        "group:MEX-2729": [
+          "MEX-2729"
+        ]
+      },
+      "displayName": [
+        "格雷罗",
+        "Guerrero"
+      ],
+      "anchorAtomId": "MEX-2729",
+      "searchAliases": [
+        "格雷罗州"
+      ]
+    },
+    {
+      "stateCode": "STATE_HONDURAS",
+      "primary": "group:HND-637",
+      "members": {
+        "group:HND-637": [
+          "HND-637",
+          "HND-638",
+          "HND-639",
+          "HND-640",
+          "HND-642",
+          "HND-643",
+          "HND-645",
+          "HND-646",
+          "HND-647",
+          "HND-648",
+          "HND-649",
+          "HND-650",
+          "HND-651",
+          "HND-652",
+          "HND-653",
+          "HND-661",
+          "HND-662"
+        ]
+      },
+      "displayName": [
+        "洪都拉斯",
+        "Honduras"
+      ],
+      "anchorAtomId": "HND-642",
+      "searchAliases": [
+        "Olancho",
+        "奥兰乔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_IDAHO",
+      "primary": "group:USA-3518",
+      "members": {
+        "group:USA-3518": [
+          "USA-3518"
+        ]
+      },
+      "displayName": [
+        "爱达荷",
+        "Idaho"
+      ],
+      "anchorAtomId": "USA-3518",
+      "searchAliases": [
+        "爱达荷州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ILLINOIS",
+      "primary": "group:USA-3546",
+      "members": {
+        "group:USA-3546": [
+          "USA-3546"
+        ]
+      },
+      "displayName": [
+        "伊利诺伊",
+        "Illinois"
+      ],
+      "anchorAtomId": "USA-3546",
+      "searchAliases": [
+        "伊利诺伊州"
+      ]
+    },
+    {
+      "stateCode": "STATE_INDIANA",
+      "primary": "group:USA-3547",
+      "members": {
+        "group:USA-3547": [
+          "USA-3547"
+        ]
+      },
+      "displayName": [
+        "印第安纳",
+        "Indiana"
+      ],
+      "anchorAtomId": "USA-3547",
+      "searchAliases": [
+        "印第安纳州"
+      ]
+    },
+    {
+      "stateCode": "STATE_IOWA",
+      "primary": "group:USA-3529",
+      "members": {
+        "group:USA-3529": [
+          "USA-3529"
+        ]
+      },
+      "displayName": [
+        "艾奥瓦",
+        "Iowa"
+      ],
+      "anchorAtomId": "USA-3529",
+      "searchAliases": [
+        "艾奥瓦州"
+      ]
+    },
+    {
+      "stateCode": "STATE_JALISCO",
+      "primary": "group:MEX-2718",
+      "members": {
+        "group:MEX-2718": [
+          "MEX-2718",
+          "MEX-2719",
+          "MEX-2720",
+          "MEX-2721"
+        ]
+      },
+      "displayName": [
+        "哈利斯科",
+        "Jalisco"
+      ],
+      "anchorAtomId": "MEX-2719",
+      "searchAliases": [
+        "哈利斯科州"
+      ]
+    },
+    {
+      "stateCode": "STATE_KANSAS",
+      "primary": "group:USA-3530",
+      "members": {
+        "group:USA-3530": [
+          "USA-3530"
+        ]
+      },
+      "displayName": [
+        "堪萨斯",
+        "Kansas"
+      ],
+      "anchorAtomId": "USA-3530",
+      "searchAliases": [
+        "堪萨斯州"
+      ]
+    },
+    {
+      "stateCode": "STATE_KENTUCKY",
+      "primary": "group:USA-3548",
+      "members": {
+        "group:USA-3548": [
+          "USA-3548"
+        ]
+      },
+      "displayName": [
+        "肯塔基",
+        "Kentucky"
+      ],
+      "anchorAtomId": "USA-3548",
+      "searchAliases": [
+        "肯塔基州"
+      ]
+    },
+    {
+      "stateCode": "STATE_LOUISIANA",
+      "primary": "group:USA-3535",
+      "members": {
+        "group:USA-3535": [
+          "USA-3535"
+        ]
+      },
+      "displayName": [
+        "路易斯安那",
+        "Louisiana"
+      ],
+      "anchorAtomId": "USA-3535",
+      "searchAliases": [
+        "路易斯安那州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MAINE",
+      "primary": "group:USA-3561",
+      "members": {
+        "group:USA-3561": [
+          "USA-3561"
+        ]
+      },
+      "displayName": [
+        "缅因",
+        "Maine"
+      ],
+      "anchorAtomId": "USA-3561",
+      "searchAliases": [
+        "缅因州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MANITOBA",
+      "primary": "group:CAN-630",
+      "members": {
+        "group:CAN-630": [
+          "CAN-630"
+        ]
+      },
+      "displayName": [
+        "马尼托巴",
+        "Manitoba"
+      ],
+      "anchorAtomId": "CAN-630",
+      "searchAliases": [
+        "曼尼托巴"
+      ]
+    },
+    {
+      "stateCode": "STATE_MARYLAND",
+      "primary": "group:USA-3557",
+      "members": {
+        "group:USA-3556": [
+          "USA-3556"
+        ],
+        "group:USA-3557": [
+          "USA-3557"
+        ]
+      },
+      "displayName": [
+        "马里兰",
+        "Maryland"
+      ],
+      "anchorAtomId": "USA-3557",
+      "searchAliases": [
+        "D.C.",
+        "District of Columbia",
+        "Washington D.C.",
+        "Washington DC",
+        "华盛顿哥伦比亚特区",
+        "哥伦比亚特区",
+        "马里兰州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MASSACHUSETTS",
+      "primary": "group:USA-3513",
+      "members": {
+        "group:USA-3513": [
+          "USA-3513"
+        ]
+      },
+      "displayName": [
+        "马萨诸塞",
+        "Massachusetts"
+      ],
+      "anchorAtomId": "USA-3513",
+      "searchAliases": [
+        "马萨诸塞州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MEXICO",
+      "primary": "group:MEX-2724",
+      "members": {
+        "group:MEX-2724": [
+          "MEX-2724",
+          "MEX-2726",
+          "MEX-2727",
+          "MEX-2730",
+          "MEX-2731",
+          "MEX-2732"
+        ]
+      },
+      "displayName": [
+        "墨西哥",
+        "Mexico"
+      ],
+      "anchorAtomId": "MEX-2724",
+      "searchAliases": [
+        "México",
+        "Puebla",
+        "普埃布拉州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MINNESOTA",
+      "primary": "group:USA-3514",
+      "members": {
+        "group:USA-3514": [
+          "USA-3514"
+        ]
+      },
+      "displayName": [
+        "明尼苏达",
+        "Minnesota"
+      ],
+      "anchorAtomId": "USA-3514",
+      "searchAliases": [
+        "明尼苏达州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MISSISSIPPI",
+      "primary": "group:USA-3544",
+      "members": {
+        "group:USA-3544": [
+          "USA-3544"
+        ]
+      },
+      "displayName": [
+        "密西西比",
+        "Mississippi"
+      ],
+      "anchorAtomId": "USA-3544",
+      "searchAliases": [
+        "密西西比州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MISSOURI",
+      "primary": "group:USA-3531",
+      "members": {
+        "group:USA-3531": [
+          "USA-3531"
+        ]
+      },
+      "displayName": [
+        "密苏里",
+        "Missouri"
+      ],
+      "anchorAtomId": "USA-3531",
+      "searchAliases": [
+        "密苏里州"
+      ]
+    },
+    {
+      "stateCode": "STATE_MONTANA",
+      "primary": "group:USA-3515",
+      "members": {
+        "group:USA-3515": [
+          "USA-3515"
+        ]
+      },
+      "displayName": [
+        "蒙大拿",
+        "Montana"
+      ],
+      "anchorAtomId": "USA-3515",
+      "searchAliases": [
+        "蒙大拿州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEBRASKA",
+      "primary": "group:USA-3532",
+      "members": {
+        "group:USA-3532": [
+          "USA-3532"
+        ]
+      },
+      "displayName": [
+        "内布拉斯加",
+        "Nebraska"
+      ],
+      "anchorAtomId": "USA-3532",
+      "searchAliases": [
+        "內布拉斯加州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEVADA",
+      "primary": "group:USA-3523",
+      "members": {
+        "group:USA-3523": [
+          "USA-3523"
+        ]
+      },
+      "displayName": [
+        "内华达",
+        "Nevada"
+      ],
+      "anchorAtomId": "USA-3523",
+      "searchAliases": [
+        "内华达州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEW_BRUNSWICK",
+      "primary": "group:CAN-684",
+      "members": {
+        "group:CAN-684": [
+          "CAN-684",
+          "CAN-685"
+        ]
+      },
+      "displayName": [
+        "新不伦瑞克",
+        "New Brunswick"
+      ],
+      "anchorAtomId": "CAN-684",
+      "searchAliases": [
+        "Maritime Provinces",
+        "Maritimes",
+        "加拿大滨海诸省",
+        "滨海"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEW_HAMPSHIRE",
+      "primary": "group:USA-3538",
+      "members": {
+        "group:USA-3538": [
+          "USA-3538"
+        ]
+      },
+      "displayName": [
+        "新罕布什尔",
+        "New Hampshire"
+      ],
+      "anchorAtomId": "USA-3538",
+      "searchAliases": [
+        "新罕布什尔州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEW_JERSEY",
+      "primary": "group:USA-3558",
+      "members": {
+        "group:USA-3558": [
+          "USA-3558"
+        ]
+      },
+      "displayName": [
+        "新泽西",
+        "New Jersey"
+      ],
+      "anchorAtomId": "USA-3558",
+      "searchAliases": [
+        "新泽西州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEW_MEXICO",
+      "primary": "group:USA-3524",
+      "members": {
+        "group:USA-3524": [
+          "USA-3524"
+        ]
+      },
+      "displayName": [
+        "新墨西哥",
+        "New Mexico"
+      ],
+      "anchorAtomId": "USA-3524",
+      "searchAliases": [
+        "新墨西哥州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEW_YORK",
+      "primary": "group:USA-3559",
+      "members": {
+        "group:USA-3559": [
+          "USA-3559"
+        ]
+      },
+      "displayName": [
+        "纽约",
+        "New York"
+      ],
+      "anchorAtomId": "USA-3559",
+      "searchAliases": [
+        "Buffalo",
+        "布法罗",
+        "水牛城",
+        "纽约州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NICARAGUA",
+      "primary": "group:NIC-24",
+      "members": {
+        "group:NIC-24": [
+          "NIC-24",
+          "NIC-4800",
+          "NIC-644",
+          "NIC-654",
+          "NIC-655",
+          "NIC-656",
+          "NIC-657",
+          "NIC-658",
+          "NIC-659",
+          "NIC-660",
+          "NIC-663",
+          "NIC-664",
+          "NIC-665",
+          "NIC-666",
+          "NIC-667",
+          "NIC-668",
+          "NIC-669"
+        ]
+      },
+      "displayName": [
+        "尼加拉瓜",
+        "Nicaragua"
+      ],
+      "anchorAtomId": "NIC-657",
+      "searchAliases": [
+        "Atlántico Norte",
+        "北加勒比海岸自治区"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTHWEST_TERRITORIES",
+      "primary": "group:CAN-635",
+      "members": {
+        "group:CAN-635": [
+          "CAN-635"
+        ]
+      },
+      "displayName": [
+        "西北领地",
+        "Northwest Territories"
+      ],
+      "anchorAtomId": "CAN-635",
+      "searchAliases": [
+        "西北地区"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTH_CAROLINA",
+      "primary": "group:USA-3549",
+      "members": {
+        "group:USA-3549": [
+          "USA-3549"
+        ]
+      },
+      "displayName": [
+        "北卡罗来纳",
+        "North Carolina"
+      ],
+      "anchorAtomId": "USA-3549",
+      "searchAliases": [
+        "北卡罗来纳州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTH_DAKOTA",
+      "primary": "group:USA-3516",
+      "members": {
+        "group:USA-3516": [
+          "USA-3516"
+        ]
+      },
+      "displayName": [
+        "北达科他",
+        "North Dakota"
+      ],
+      "anchorAtomId": "USA-3516",
+      "searchAliases": [
+        "北达科他州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NUNAVUT",
+      "primary": "group:CAN-634",
+      "members": {
+        "group:CAN-634": [
+          "CAN-634"
+        ]
+      },
+      "displayName": [
+        "努纳武特",
+        "Nunavut"
+      ],
+      "anchorAtomId": "CAN-634"
+    },
+    {
+      "stateCode": "STATE_OAXACA",
+      "primary": "group:MEX-2723",
+      "members": {
+        "group:MEX-2723": [
+          "MEX-2723"
+        ]
+      },
+      "displayName": [
+        "瓦哈卡",
+        "Oaxaca"
+      ],
+      "anchorAtomId": "MEX-2723",
+      "searchAliases": [
+        "瓦哈卡州"
+      ]
+    },
+    {
+      "stateCode": "STATE_OHIO",
+      "primary": "group:USA-3550",
+      "members": {
+        "group:USA-3550": [
+          "USA-3550"
+        ]
+      },
+      "displayName": [
+        "俄亥俄",
+        "Ohio"
+      ],
+      "anchorAtomId": "USA-3550",
+      "searchAliases": [
+        "俄亥俄州"
+      ]
+    },
+    {
+      "stateCode": "STATE_OKLAHOMA",
+      "primary": "group:USA-3533",
+      "members": {
+        "group:USA-3533": [
+          "USA-3533"
+        ]
+      },
+      "displayName": [
+        "俄克拉何马",
+        "Oklahoma"
+      ],
+      "anchorAtomId": "USA-3533",
+      "searchAliases": [
+        "俄克拉荷马州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ONTARIO",
+      "primary": "group:CAN-682",
+      "members": {
+        "group:CAN-682": [
+          "CAN-682"
+        ]
+      },
+      "displayName": [
+        "安大略",
+        "Ontario"
+      ],
+      "anchorAtomId": "CAN-682",
+      "searchAliases": [
+        "安大略省"
+      ]
+    },
+    {
+      "stateCode": "STATE_OREGON",
+      "primary": "group:USA-3525",
+      "members": {
+        "group:USA-3525": [
+          "USA-3525"
+        ]
+      },
+      "displayName": [
+        "俄勒冈",
+        "Oregon"
+      ],
+      "anchorAtomId": "USA-3525",
+      "searchAliases": [
+        "俄勒冈州"
+      ]
+    },
+    {
+      "stateCode": "STATE_PANAMA",
+      "primary": "group:PAN-1332",
+      "members": {
+        "group:PAN-1332": [
+          "PAN-1332",
+          "PAN-1336",
+          "PAN-1337",
+          "PAN-1338",
+          "PAN-1339",
+          "PAN-1340",
+          "PAN-1341",
+          "PAN-1418",
+          "PAN-1958",
+          "PAN-3454",
+          "PAN-3455"
+        ],
+        "group:PAN-1419": [
+          "PAN-1419"
+        ]
+      },
+      "displayName": [
+        "巴拿马",
+        "Panama"
+      ],
+      "anchorAtomId": "PAN-1340",
+      "searchAliases": [
+        "Guna Yala",
+        "Gunā Yala",
+        "Kuna Yala",
+        "古纳亚拉",
+        "巴拿马省",
+        "雅拉库纳族自治区"
+      ]
+    },
+    {
+      "stateCode": "STATE_PENNSYLVANIA",
+      "primary": "group:USA-3560",
+      "members": {
+        "group:USA-3560": [
+          "USA-3560"
+        ]
+      },
+      "displayName": [
+        "宾夕法尼亚",
+        "Pennsylvania"
+      ],
+      "anchorAtomId": "USA-3560",
+      "searchAliases": [
+        "宾夕法尼亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_QUEBEC",
+      "primary": "group:CAN-683",
+      "members": {
+        "group:CAN-683": [
+          "CAN-683"
+        ]
+      },
+      "displayName": [
+        "魁北克",
+        "Quebec"
+      ],
+      "anchorAtomId": "CAN-683",
+      "searchAliases": [
+        "Québec"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIO_GRANDE",
+      "primary": "group:MEX-2708",
+      "members": {
+        "group:MEX-2708": [
+          "MEX-2708",
+          "MEX-2714",
+          "MEX-2716"
+        ]
+      },
+      "displayName": [
+        "里奥格兰德",
+        "Rio Grande"
+      ],
+      "anchorAtomId": "MEX-2708",
+      "searchAliases": [
+        "Coahuila",
+        "Río Grande",
+        "科阿韦拉州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SAN_SALVADOR",
+      "primary": "group:SLV-1343",
+      "members": {
+        "group:SLV-1343": [
+          "SLV-1343",
+          "SLV-1344",
+          "SLV-1345",
+          "SLV-1346",
+          "SLV-1347",
+          "SLV-1348",
+          "SLV-1349",
+          "SLV-1350",
+          "SLV-1351",
+          "SLV-1352",
+          "SLV-1353",
+          "SLV-1354",
+          "SLV-1358"
+        ]
+      },
+      "displayName": [
+        "圣萨尔瓦多",
+        "San Salvador"
+      ],
+      "anchorAtomId": "SLV-1358",
+      "searchAliases": [
+        "Santa Ana",
+        "圣安娜省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SASKATCHEWAN",
+      "primary": "group:CAN-631",
+      "members": {
+        "group:CAN-631": [
+          "CAN-631"
+        ]
+      },
+      "displayName": [
+        "萨斯喀彻温",
+        "Saskatchewan"
+      ],
+      "anchorAtomId": "CAN-631"
+    },
+    {
+      "stateCode": "STATE_SINALOA",
+      "primary": "group:MEX-2711",
+      "members": {
+        "group:MEX-2711": [
+          "MEX-2711"
+        ]
+      },
+      "displayName": [
+        "锡那罗亚",
+        "Sinaloa"
+      ],
+      "anchorAtomId": "MEX-2711",
+      "searchAliases": [
+        "锡那罗亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SONORA",
+      "primary": "group:MEX-2712",
+      "members": {
+        "group:MEX-2712": [
+          "MEX-2712"
+        ]
+      },
+      "displayName": [
+        "索诺拉",
+        "Sonora"
+      ],
+      "anchorAtomId": "MEX-2712",
+      "searchAliases": [
+        "索诺拉州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_CAROLINA",
+      "primary": "group:USA-3545",
+      "members": {
+        "group:USA-3545": [
+          "USA-3545"
+        ]
+      },
+      "displayName": [
+        "南卡罗来纳",
+        "South Carolina"
+      ],
+      "anchorAtomId": "USA-3545",
+      "searchAliases": [
+        "南卡罗来纳州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_DAKOTA",
+      "primary": "group:USA-3534",
+      "members": {
+        "group:USA-3534": [
+          "USA-3534"
+        ]
+      },
+      "displayName": [
+        "南达科他",
+        "South Dakota"
+      ],
+      "anchorAtomId": "USA-3534",
+      "searchAliases": [
+        "南达科他州"
+      ]
+    },
+    {
+      "stateCode": "STATE_TENNESSEE",
+      "primary": "group:USA-3551",
+      "members": {
+        "group:USA-3551": [
+          "USA-3551"
+        ]
+      },
+      "displayName": [
+        "田纳西",
+        "Tennessee"
+      ],
+      "anchorAtomId": "USA-3551",
+      "searchAliases": [
+        "田纳西州"
+      ]
+    },
+    {
+      "stateCode": "STATE_TEXAS",
+      "primary": "group:USA-3536",
+      "members": {
+        "group:USA-3536": [
+          "USA-3536"
+        ]
+      },
+      "displayName": [
+        "得克萨斯",
+        "Texas"
+      ],
+      "anchorAtomId": "USA-3536",
+      "searchAliases": [
+        "得克萨斯州"
+      ]
+    },
+    {
+      "stateCode": "STATE_UTAH",
+      "primary": "group:USA-3526",
+      "members": {
+        "group:USA-3526": [
+          "USA-3526"
+        ]
+      },
+      "displayName": [
+        "犹他",
+        "Utah"
+      ],
+      "anchorAtomId": "USA-3526",
+      "searchAliases": [
+        "犹他州"
+      ]
+    },
+    {
+      "stateCode": "STATE_VERACRUZ",
+      "primary": "group:MEX-2725",
+      "members": {
+        "group:MEX-2725": [
+          "MEX-2725",
+          "MEX-2734"
+        ]
+      },
+      "displayName": [
+        "韦拉克鲁斯",
+        "Veracruz"
+      ],
+      "anchorAtomId": "MEX-2734",
+      "searchAliases": [
+        "韦拉克鲁斯州"
+      ]
+    },
+    {
+      "stateCode": "STATE_VERMONT",
+      "primary": "group:USA-3540",
+      "members": {
+        "group:USA-3540": [
+          "USA-3540"
+        ]
+      },
+      "displayName": [
+        "佛蒙特",
+        "Vermont"
+      ],
+      "anchorAtomId": "USA-3540",
+      "searchAliases": [
+        "佛蒙特州"
+      ]
+    },
+    {
+      "stateCode": "STATE_VIRGINIA",
+      "primary": "group:USA-3552",
+      "members": {
+        "group:USA-3552": [
+          "USA-3552"
+        ]
+      },
+      "displayName": [
+        "弗吉尼亚",
+        "Virginia"
+      ],
+      "anchorAtomId": "USA-3552",
+      "searchAliases": [
+        "弗吉尼亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_WASHINGTON",
+      "primary": "group:USA-3519",
+      "members": {
+        "group:USA-3519": [
+          "USA-3519"
+        ]
+      },
+      "displayName": [
+        "华盛顿州",
+        "Washington"
+      ],
+      "anchorAtomId": "USA-3519",
+      "searchAliases": [
+        "Southern Columbia",
+        "Washington State",
+        "华盛顿",
+        "南哥伦比亚"
+      ]
+    },
+    {
+      "stateCode": "STATE_WEST_VIRGINIA",
+      "primary": "group:USA-3554",
+      "members": {
+        "group:USA-3554": [
+          "USA-3554"
+        ]
+      },
+      "displayName": [
+        "西弗吉尼亚",
+        "West Virginia"
+      ],
+      "anchorAtomId": "USA-3554",
+      "searchAliases": [
+        "西維吉尼亞州"
+      ]
+    },
+    {
+      "stateCode": "STATE_WISCONSIN",
+      "primary": "group:USA-3553",
+      "members": {
+        "group:USA-3553": [
+          "USA-3553"
+        ]
+      },
+      "displayName": [
+        "威斯康星",
+        "Wisconsin"
+      ],
+      "anchorAtomId": "USA-3553",
+      "searchAliases": [
+        "威斯康星州"
+      ]
+    },
+    {
+      "stateCode": "STATE_WYOMING",
+      "primary": "group:USA-3527",
+      "members": {
+        "group:USA-3527": [
+          "USA-3527"
+        ]
+      },
+      "displayName": [
+        "怀俄明",
+        "Wyoming"
+      ],
+      "anchorAtomId": "USA-3527",
+      "searchAliases": [
+        "怀俄明州"
+      ]
+    },
+    {
+      "stateCode": "STATE_YUCATAN",
+      "primary": "group:MEX-2722",
+      "members": {
+        "group:MEX-2722": [
+          "MEX-2722",
+          "MEX-2736",
+          "MEX-2737"
+        ]
+      },
+      "displayName": [
+        "尤卡坦",
+        "Yucatan"
+      ],
+      "anchorAtomId": "MEX-2722",
+      "searchAliases": [
+        "Campeche",
+        "Yucatán",
+        "坎佩切州"
+      ]
+    },
+    {
+      "stateCode": "STATE_YUKON_TERRITORY",
+      "primary": "group:CAN-636",
+      "members": {
+        "group:CAN-636": [
+          "CAN-636"
+        ]
+      },
+      "displayName": [
+        "育空领地",
+        "Yukon Territory"
+      ],
+      "anchorAtomId": "CAN-636",
+      "searchAliases": [
+        "Yukon",
+        "育空"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZACATECAS",
+      "primary": "group:MEX-2713",
+      "members": {
+        "group:MEX-2713": [
+          "MEX-2713",
+          "MEX-2717"
+        ]
+      },
+      "displayName": [
+        "萨卡特卡斯",
+        "Zacatecas"
+      ],
+      "anchorAtomId": "MEX-2713",
+      "searchAliases": [
+        "萨卡特卡斯州"
+      ]
+    }
+  ]
+}

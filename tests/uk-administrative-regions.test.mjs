@@ -133,9 +133,9 @@ test('UK preprocessing rejects missing island reviews and duplicate or foreign m
 test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
-  assert.equal(STATE_VERSION,24);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v24.');
+  assert.equal(STATE_VERSION,26);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:7,map:'earth-natural-earth-admin1-511-regions-v6'};
