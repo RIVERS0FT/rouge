@@ -50,7 +50,7 @@ function wideTiles(source:LineSegments2,tiles:Iterable<number[]|Float32Array>):T
  const group=new THREE.Group();
  for(const points of tiles){
   const geometry=new LineSegmentsGeometry().setPositions(points);geometry.boundingBox!.expandByScalar(16);geometry.boundingSphere=geometry.boundingBox!.getBoundingSphere(new THREE.Sphere());
-  const lines=new LineSegments2(geometry,source.material);lines.name='country-border-tile';group.add(lines);
+  const lines=new LineSegments2(geometry,source.material);lines.renderOrder=source.renderOrder;lines.name='country-border-tile';group.add(lines);
  }
  return group;
 }

@@ -60,10 +60,14 @@ test('stale worker replies cannot undo ownership, revive eliminated labels or ch
  const newcomer={owner:2,area:1,curves:[]};acceptCountryLayouts('new',members,cache,placements,{campaign:'new',entries:[[2,{members:'4',placement:newcomer}]]});assert.equal(placements.get(2),newcomer);
 });
 
-test('same-key distance texture eviction restores a visible SVG fallback',()=>{
+test('same-key distance texture eviction restores a visible in-layer canvas fallback',()=>{
  const source=readFileSync(new URL('../src/render/countryLabelText.ts',import.meta.url),'utf8');
- assert.match(source,/svg\.style\.display=entry\.texture\?'none':'block'/);
- assert.match(source,/label\.dataset\.textRenderer=entry\.texture\?'distance-field':'svg'/);
+ const style=readFileSync(new URL('../src/ui/style.css',import.meta.url),'utf8');
+ assert.match(source,/entry\.texture\?\?this\.rasterPreview\(entry\);mesh\.visible=!!texture/);
+ assert.match(source,/mesh\.renderOrder=MAP_LAYERS\.countryName/);
+ assert.match(source,/label\.dataset\.textRenderer=entry\.texture\?'distance-field':'canvas-preview'/);
+ assert.match(style,/\.country-label>svg\{[^}]*visibility:hidden/);
+
  const renderer=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
  assert.match(renderer,/if\(state\.campaign!==this\.countryCampaign\)\{\s*this\.countryPlacements\.clear\(\);this\.countryPlacementCache\.clear\(\);this\.countryCurves\.clear\(\)/);
 });

@@ -1,7 +1,7 @@
 import type {Vec2} from '../game/types.ts';
-export const SELECTION_GLOW_WIDTH=2;
+export const SELECTION_GLOW_WIDTH=2.85;
 export type GlowPoint=Vec2;
-export const SELECTION_GLOW_OPACITY=.24;
+export const SELECTION_GLOW_OPACITY=.33;
 /** Keep depth separation, but cap its apparent displacement below one CSS pixel
  * at the steepest terrain angle. Fixed world-space lifts visibly float above
  * tiny islands at the closest camera distance. */

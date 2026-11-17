@@ -1,5 +1,6 @@
 import {ARROW_ART_UNIT,dispatchRibbon,type ScreenPoint} from './dispatchRibbon.ts';
 import type {ArrowProjection} from './groundArrowProjection.ts';
+import type {PaintedPreview,RoutePaintLayer} from './routePaintLayer.ts';
 
 const ns='http://www.w3.org/2000/svg';
 let nextPreview=0;
@@ -25,7 +26,12 @@ export class DispatchPreview {
  private animation=0;
  private started=0;
  private releaseAt=0;
- constructor(host:HTMLElement){
+ private drawn:Omit<PaintedPreview,'markers'|'opacity'>|null=null;
+ private paintedMarkers:PaintedPreview['markers']=[];
+ private readonly layer?:RoutePaintLayer;
+ constructor(host:HTMLElement,layer?:RoutePaintLayer){
+  this.layer=layer;
+  if(layer)this.element.style.opacity='0';
   const id=`dispatch-preview-${++nextPreview}`,defs=svg('defs'),clip=svg('clipPath'),targetClip=svg('clipPath');
   attrs(this.element,{'class':'dispatch-preview','data-testid':'dispatch-preview','aria-hidden':'true'});
   attrs(clip,{id:`${id}-ribbon`,'data-dispatch-clip':''});clip.append(this.ribbonMask);
@@ -51,6 +57,8 @@ export class DispatchPreview {
   if(this.target.getAttribute('d')!==targetOutline){attrs(this.target,{d:targetOutline});attrs(this.glow,{d:targetOutline});}
   if(this.targetMask.getAttribute('d')!==targetPath)attrs(this.targetMask,{d:targetPath});
   attrs(this.reticle,{cx:cursor.x,cy:cursor.y,r:9});
+  this.drawn={d,target:targetOutline,targetMask:targetPath,cx:cursor.x,cy:cursor.y};
+  this.paint(performance.now());
  }
  showTier(fraction:number,count:number,language:'zh'|'en',touch:boolean){
   const percent=`${fraction*100}%`,label=language==='zh'?`出兵 ${count} · ${percent}`:`Dispatch ${count} · ${percent}`;
@@ -63,24 +71,31 @@ export class DispatchPreview {
  release(){this.releaseAt=performance.now();this.element.dataset.phase='released';this.tier.hidden=true;}
  clear(){
   cancelAnimationFrame(this.animation);this.animation=0;this.active=null;this.releaseAt=0;
-  this.element.style.display='none';this.element.style.opacity='';this.tier.hidden=true;
+  this.element.style.display='none';this.element.style.opacity=this.layer?'0':'';this.tier.hidden=true;
+  this.drawn=null;this.paintedMarkers=[];this.layer?.setPreview(null);
   delete this.element.dataset.phase;delete this.element.dataset.target;delete this.element.dataset.source;
  }
  dispose(){this.clear();this.element.remove();this.tier.remove();}
+ private paint(time:number){
+  if(this.layer&&this.drawn)this.layer.setPreview({...this.drawn,markers:this.paintedMarkers,opacity:this.releaseAt?Math.max(0,1-(time-this.releaseAt)/180):1});
+ }
  private frame=(time:number)=>{
   if(this.releaseAt){
    const amount=Math.min(1,(time-this.releaseAt)/180);
    if(amount>=1){this.clear();return;}
-   this.element.style.opacity=String(1-amount);
+   if(!this.layer)this.element.style.opacity=String(1-amount);
   }
   const geometry=this.active,spacing=34*ARROW_ART_UNIT;
   const phase=((time-this.started)*(.065*ARROW_ART_UNIT)%spacing+spacing)%spacing;
+  const painted=[];
   for(let i=0;i<this.markers.length;i++){
    const marker=this.markers[i],t=geometry?(i*spacing+phase)/geometry.length:Infinity;
    if(!geometry||t>=geometry.tip){marker.style.display='none';continue;}
    const d=geometry.markerPath(t);marker.style.display=d?'':'none';
-   attrs(marker,{d,opacity:geometry.marker(t).opacity.toFixed(3)});
+   const opacity=geometry.marker(t).opacity.toFixed(3);
+   attrs(marker,{d,opacity});if(d)painted.push({d,opacity:Number(opacity)});
   }
+  this.paintedMarkers=painted;this.paint(time);
   this.animation=requestAnimationFrame(this.frame);
  };
 }

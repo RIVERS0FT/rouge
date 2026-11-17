@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {layerMapEntity} from './mapLayers.ts';
 import {HOUSE_DEPTH,HOUSE_HEIGHT,HOUSE_WIDTH} from '../game/buildings.ts';
 import {BUILDING_ART_KINDS,BUILDING_ART_SCALE,BUILDING_RENDER_LIMIT,type BuildingArtKind} from './buildingPresentation.ts';
 
@@ -45,7 +46,7 @@ export class TownBuildings {
   this.prepare(this.fallback);this.group.visible=false;scene.add(this.group);
  }
  private prepare(mesh:THREE.InstancedMesh){
-  mesh.frustumCulled=false;mesh.count=0;
+  layerMapEntity(mesh,mesh.material as THREE.Material);mesh.frustumCulled=false;mesh.count=0;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.group.add(mesh);
  }
  private request(){

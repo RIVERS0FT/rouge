@@ -75,9 +75,10 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
   if((outline.outline.match(/M/g)??[]).length!==expected)throw Error('Highlight does not match the administrative border');
  },fixture.value);
  const arrows=page.getByTestId('attack-arrows'),path=arrows.locator('path').first(),canvas=page.locator('#world canvas');
- await expect(arrows).toHaveAttribute('data-routes','1');await expect(path).toBeVisible();
- await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
- const strategic=await path.getAttribute('d');await page.waitForTimeout(400);await expect(path).toBeVisible();
+ await expect(arrows).toHaveAttribute('data-routes','1');await expect(path).toHaveAttribute('d',/^M/);
+ await expect(canvas).toHaveAttribute('data-unit-render-mode','2d');await expect(canvas).toHaveAttribute('data-route-overlay-visible','true');
+ await expect(arrows).toHaveCSS('opacity','0');await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
+ const strategic=await path.getAttribute('d');await page.waitForTimeout(400);await expect(path).toHaveAttribute('d',/^M/);
  const anchor=await page.evaluate(()=>{
   const t=(window as any).attackTest,p=t.world.unitPoint.set(t.state.units[0].x,.16,t.state.units[0].z).project(t.world.camera);
   return {x:(p.x+1)*1440/2,y:(1-p.y)*960/2};
@@ -102,14 +103,14 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
  await page.evaluate(()=>(window as any).attackTest.draw());
  await page.screenshot({path:'artifacts/attack-arrows-2d.png'});
  await page.evaluate(()=>{const t=(window as any).attackTest;t.draw(80);});
- await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');await expect(path).toBeVisible();expect(await path.getAttribute('d')).not.toBe(strategic);
+ await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');await expect(canvas).toHaveAttribute('data-route-overlay-visible','true');await expect(path).toHaveAttribute('d',/^M/);expect(await path.getAttribute('d')).not.toBe(strategic);
  await page.screenshot({path:'artifacts/attack-arrows-3d.png'});
  await page.evaluate(()=>{const t=(window as any).attackTest;t.state.provinces[t.to].captor=0;t.state.provinces[t.to].capture=.05;t.draw();});
- await expect(arrows).toHaveAttribute('data-routes','0');await expect(arrows.locator('path')).toHaveCount(0);
+ await expect(arrows).toHaveAttribute('data-routes','0');await expect(arrows.locator('path')).toHaveCount(0);await expect(canvas).toHaveAttribute('data-route-overlay-visible','false');
  await page.evaluate(()=>{const t=(window as any).attackTest;t.state.provinces[t.to].captor=-1;t.state.provinces[t.to].capture=0;t.draw();});
  await expect(arrows.locator('path')).toHaveCount(0);
  await page.evaluate(()=>{const t=(window as any).attackTest;t.state.units=[{...t.state.units[0],id:t.state.nextId++}];t.draw();});
- await expect(path).toBeVisible();
+ await expect(path).toHaveAttribute('d',/^M/);
  await page.evaluate(()=>{const t=(window as any).attackTest;t.state.units=[];t.draw();});
  await expect(arrows.locator('path')).toHaveCount(0);await expect(arrows).toHaveAttribute('data-routes','0');
  await page.evaluate(()=>(window as any).attackTest.world.dispose());await expect(arrows).toHaveCount(0);expect(errors).toEqual([]);

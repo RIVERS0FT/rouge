@@ -114,7 +114,7 @@ small,.small{font-size:12px;line-height:1.6}
    System serif fallbacks keep the treatment original, offline and CJK-readable. */
 .country-label{font-weight:700;letter-spacing:.2em;paint-order:stroke fill;text-shadow:none;font-kerning:normal;will-change:transform}
 
-.country-label>svg{display:block;overflow:visible;pointer-events:none}
+.country-label>svg{display:block;visibility:hidden;overflow:visible;pointer-events:none}
 
 .country-label text{paint-order:stroke fill;stroke-linejoin:round;font-weight:700;dominant-baseline:central}
 
