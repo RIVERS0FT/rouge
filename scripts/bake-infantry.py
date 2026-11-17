@@ -71,7 +71,7 @@ def paint_layer(mesh, material):
 def to_engine(v):
     return (v.x, v.z, -v.y)
 
-# Compact vertex layout: XYZ signed Q12, unit normal signed i8, RGB linear,
+# Compact vertex layout: XYZ signed Q12, unit normal signed i8, fabric pattern ID, RGB linear,
 # selective faction mix, two joint indices, first joint's weight and emissive mask.
 vertices = []
 dedup = {}
@@ -81,6 +81,9 @@ for obj in nodes:
         continue
     mesh = obj.data
     mesh.calc_loop_triangles()
+    # Surface IDs share a previously reserved byte. Coordinates remain in the
+    # source mesh's undeformed fabric space so the tint follows every pose.
+    fabric = {'Continuous wool coat': 1, 'Rounded wool upper sleeve R': 2, 'Front placket': 3}.get(obj.name, 0)
     arm = next((m.object for m in obj.modifiers if m.type == 'ARMATURE'), None)
     if arm:
         local = arm.matrix_world.inverted_safe() @ obj.matrix_world
@@ -112,7 +115,8 @@ for obj in nodes:
                 painted = layer.data[idx if layer.domain == 'CORNER' else loop.vertex_index].color
                 rgb = tuple(a*b for a, b in zip(base_rgb, painted))
             v = struct.pack('<3h3bB8B', *(round(x * 4096) for x in to_engine(local @ vert.co)),
-                            *(quantize(x, 127) for x in to_engine((normal_matrix @ mesh.corner_normals[idx].vector).normalized())), 0,
+                            *(quantize(x, 127) for x in to_engine((normal_matrix @ mesh.corner_normals[idx].vector).normalized())),
+                            fabric if tint == 208 or fabric == 3 else 0,
                             *(round(255 * max(0, min(1, x))) for x in rgb), tint, a, b, weight, glow)
             idx = dedup.get(v)
             if idx is None:
@@ -149,12 +153,23 @@ def frames(clip, count):
 walk = 25
 shoot = 15
 palette = frames('Walk', walk) + frames('Shoot', shoot)
+assert any(track.name == 'Idle' for obj in animated for track in obj.animation_data.nla_tracks), 'Missing Idle pose'
+idle_start = len(palette)
+# Append a single static attention row after the two existing clips.
+# glTF import leaves the original first animation assigned as an active
+# action as well as in NLA tracks. Clear it only after the legacy bake so
+# that the static pose fully controls arms, head and both planted feet.
+for obj in animated:
+    obj.animation_data.action = None
+palette += frames('Idle', 1)
+assert len(palette) - idle_start == len(joint_specs) * 12
+assert palette[idle_start:] != palette[:len(joint_specs) * 12], 'Idle must be a distinct pose'
 # Reject malformed or accidentally duplicated clip captures.
 assert max(abs(palette[i] - palette[i + len(joint_specs) * 12]) for i in range(len(joint_specs)*12)) > .005
 assert all(math.isfinite(x) for x in palette)
 if sys.byteorder != 'little':
     indices.byteswap()
-header = struct.pack('<4s7I', b'RINF', 1, len(vertices), len(indices), len(joint_specs), walk, shoot, 24)
+header = struct.pack('<4s7I', b'RINF', 3, len(vertices), len(indices), len(joint_specs), walk, shoot, 24)
 blob = header + b''.join(vertices) + indices.tobytes()
 blob += bytes((-len(blob)) % 4)
 blob += struct.pack(f'<{len(palette)}f', *palette)
