@@ -75,3 +75,78 @@ test('lazy/error boxes retain the exact ground anchor, yaw, footprint and bounde
  }finally{batch.dispose();}
  assert.equal(scene.children.length,0);
 });
+
+test('atlas corruption cannot make valid modern geometry fall back to the old boxes',async()=>{
+ const {readBuildingBundle}=await import('../src/render/buildingAsset.ts');
+ const bytes=Buffer.from(readFileSync(new URL('../src/render/assets/modern-buildings.glb',import.meta.url)));
+ const n=bytes.readUInt32LE(12),model=JSON.parse(bytes.toString('utf8',20,20+n));
+ const image=model.bufferViews[model.images[0].bufferView];
+ bytes[28+n+image.byteOffset]=0; // Corrupt only the atlas marker; all mesh bytes are untouched.
+ const bundle=readBuildingBundle(Uint8Array.from(bytes).buffer);
+ assert.equal(bundle.atlas,null);
+ assert.deepEqual([...bundle.geometries.values()].map(g=>g.index.length/3),[146,260,248,180]);
+});
+
+test('models replace placeholder geometry before atlas completion and survive failed image decode',async()=>{
+ const {readBuildingBundle}=await import('../src/render/buildingAsset.ts');
+ const bytes=readFileSync(new URL('../src/render/assets/modern-buildings.glb',import.meta.url));
+ const bundle=readBuildingBundle(Uint8Array.from(bytes).buffer);
+ assert.ok(bundle.atlas);
+ let rejectDecode;
+ const decode=new Promise((_,reject)=>{rejectDecode=reject;});
+ const scene=new THREE.Scene(),batch=new TownBuildings(scene,()=>{},{load:async()=>bundle,decode:()=>decode});
+ let slots=0;
+ const draw=()=>{batch.begin(true);for(const kind of BUILDING_ART_KINDS)batch.add(kind,slots++,LAND_Y,0,0);batch.end();};
+ try{
+  draw();assert.equal(batch.fallbackCount,4);assert.equal(batch.assetState,'loading');
+  await new Promise(setImmediate);
+  draw();assert.equal(batch.fallbackCount,0);assert.equal(batch.assetState,'modern-v3-untextured');assert.equal(batch.assetIssue,'atlas-loading');
+  rejectDecode(Error('Image decoder refused bytes'));
+  await new Promise(setImmediate);
+  draw();assert.equal(batch.fallbackCount,0);assert.equal(batch.assetState,'modern-v3-untextured');assert.equal(batch.assetIssue,'atlas-decode');
+  assert.deepEqual(BUILDING_ART_KINDS.map(k=>batch.count(k)),[1,1,1,1]);
+  const models=batch.group.children.slice(1);
+  assert.deepEqual(models.map(m=>m.geometry.index.count/3),[146,260,248,180]);
+  assert.ok(models.every(m=>m.material.map===null));
+ }finally{batch.dispose();}
+});
+
+test('a transient package request retries once; permanent HTTP failures are reported',async()=>{
+ const {loadBuildingBundle}=await import('../src/render/buildingAsset.ts');
+ const bytes=readFileSync(new URL('../src/render/assets/modern-buildings.glb',import.meta.url));
+ let attempts=0;
+ const valid=await loadBuildingBundle(async(_url,options)=>{
+  if(++attempts===1)throw new TypeError('simulated initial network failure');
+  assert.equal(options.cache,'reload');
+  return new Response(Uint8Array.from(bytes));
+ });
+ assert.equal(attempts,2);assert.equal(valid.geometries.size,4);
+ attempts=0;
+ await assert.rejects(loadBuildingBundle(async()=>{
+  attempts++;return new Response(null,{status:503});
+ }),{code:'http'});
+ assert.equal(attempts,2);
+ await assert.rejects(loadBuildingBundle(async()=>new Response(null,{status:404})),{code:'http'});
+ await assert.rejects(loadBuildingBundle(async()=>new Response('not a GLB')),{code:'bundle'});
+});
+
+test('a decoded atlas upgrades all four already-mounted meshes to one original glTF sampler',async()=>{
+ const {readBuildingBundle}=await import('../src/render/buildingAsset.ts');
+ const bytes=readFileSync(new URL('../src/render/assets/modern-buildings.glb',import.meta.url));
+ const bundle=readBuildingBundle(Uint8Array.from(bytes).buffer);
+ const scene=new THREE.Scene();
+ let closed=0;
+ const batch=new TownBuildings(scene,()=>{},{load:async()=>bundle,decode:async()=>({width:512,height:512,close(){closed++;}})});
+ try{
+  batch.begin(true);batch.add('house',0,LAND_Y,0,0);batch.end();
+  await new Promise(setImmediate);
+  assert.equal(batch.assetState,'modern-v3');assert.equal(batch.assetIssue,'');
+  const material=batch.group.children[1].material,map=material.map;
+  assert.ok(batch.group.children.slice(1).every(mesh=>mesh.material===material));
+  assert.equal(map.colorSpace,THREE.SRGBColorSpace);assert.equal(map.flipY,false);
+  assert.equal(map.wrapS,THREE.RepeatWrapping);assert.equal(map.wrapT,THREE.RepeatWrapping);
+  assert.equal(map.magFilter,THREE.LinearFilter);assert.equal(map.minFilter,THREE.LinearMipmapLinearFilter);
+  assert.equal(map.generateMipmaps,true);
+ }finally{batch.dispose();}
+ assert.equal(closed,1);
+});

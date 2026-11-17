@@ -16,7 +16,11 @@ node scripts/pack-building-models.mjs /path/to/rouge-building-art-v3/assets
 
 Only the near 3D mode requests the bundle. All meshes share one material and
 the available instances are bounded by the pre-existing tactical limit.
-Fallback boxes retain the original graphics until the art loads or if it fails.
+Fallback boxes retain the original graphics only while geometry downloads or
+when the mesh package cannot be acquired or read. If the JPEG is delayed or
+unavailable, the modern silhouettes appear with solid fallback colors; a
+successful decode upgrades them to the shared atlas. The canvas reports
+`building-model-asset` and `building-model-issue` for troubleshooting.
 The original town/obstacle center and yaw, ground level, and 0.50×0.65 footprint
 are unchanged. The meshes have no decorative ground slabs and render at a common
 0.5 scale within those original footprints. A facility replaces a base
