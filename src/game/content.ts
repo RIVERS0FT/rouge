@@ -4,7 +4,7 @@ import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION=pkg.version;
 // Bump the LAN protocol identity when shared simulation rules, commands, or state shape change.
-export const RULES_ID='admin1-locked-game-regions-v42';
+export const RULES_ID='admin1-locked-game-regions-v43';
 export const STATE_VERSION=28;
 export const MAP_ID='earth-natural-earth-admin1-511-regions-v27' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.

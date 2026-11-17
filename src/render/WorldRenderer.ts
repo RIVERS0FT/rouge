@@ -1,7 +1,8 @@
 import {MARCH_FRACTIONS,marchDispatchCount,type MarchFraction} from '../game/countryActions.ts';
 import {acceptCountryLayouts} from './countryLayoutState.ts';
 import {BattleBadges} from './battleBadges.ts';
-import {battleContacts,type BattleContact} from './battleContacts.ts';
+import {ArmyPlaques} from './armyPlaques.ts';
+import {armyViews,battleViews,type ArmyView,type BattleView} from './armyViews.ts';
 import {OCEAN_LABEL_WORLD_WIDTH} from './oceanLabels.ts';
 import {DispatchPreview} from './dispatchPreview.ts';
 import {AttackArrows} from './attackArrows.ts';
@@ -115,7 +116,7 @@ export class WorldRenderer {
   private routeLayer:RoutePaintLayer;
   private lastAttackView='';private lastAttackRoutes:readonly AttackRoute[]|null=null;
   private battleBadges:BattleBadges;
-  private battles:BattleContact[]=[];
+  private battles:BattleView[]=[];private armies:ArmyView[]=[];private armyPlaques:ArmyPlaques;private selectedArmy:number|null=null;
   private battleTimer:number|null=null;private battleLast=0;
   private attacks:AttackRoute[]=[];private attackKey='';
   private attackTracker=new AttackRouteTracker();
@@ -166,7 +167,7 @@ export class WorldRenderer {
   private visibleUnitIds=new Set<number>();
   private infantry=new InfantryBatch(this.scene,()=>{this.invalidated=true;});
   private infantryMotion=new InfantryMotion();
-  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number,fraction:MarchFraction)=>void) {
+  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number,fraction:MarchFraction)=>void,private onArmy:(id:number)=>void=()=>{}) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
     this.camera.up.set(0,0,-1);
@@ -178,6 +179,7 @@ export class WorldRenderer {
     this.attackArrows=new AttackArrows(host,this.routeLayer);
     this.battleBadges=new BattleBadges(host);
     this.dispatchPreview=new DispatchPreview(host,this.routeLayer);host.append(this.provinceLayer);
+    this.armyPlaques=new ArmyPlaques(host,id=>this.onArmy(id));
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.selectionOverlay.name='selection-overlay';
@@ -1032,7 +1034,7 @@ export class WorldRenderer {
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
     this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites='0';this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.infantry.count);this.renderer.domElement.dataset.unitSpritePixels='0';
     this.renderer.domElement.dataset.unitModelAsset=!models?'none':batch?'infantry-v11':this.infantry.failed?'fallback':'loading';
-    this.drawBattleBadges();
+    this.drawBattleBadges();this.drawArmyPlaques();
     this.renderer.domElement.dataset.renderedIdleModels=String(this.infantry.idling);
     this.renderer.domElement.dataset.renderedWalkingModels=String(this.infantry.walking);
     this.renderer.domElement.dataset.renderedShootingModels=String(this.infantry.shooting);
@@ -1042,14 +1044,15 @@ export class WorldRenderer {
   private scheduleBattleContacts(){
     if(this.actor<0){
       if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleTimer=null;
-      if(this.battles.length){this.battles=[];this.invalidated=true;}return;
+      if(this.battles.length||this.armies.length){this.battles=[];this.armies=[];this.invalidated=true;}return;
     }
     if(this.battleTimer!==null)return;
     const update=()=>{
       this.battleTimer=null;this.battleLast=performance.now();if(!this.state||this.actor<0)return;
-      const battles=battleContacts(this.state);
-      if(battles.length||this.battles.length)this.invalidated=true;
-      this.battles=battles;
+      // Regional battles and army nameplates both come from the authoritative ledgers.
+      const battles=battleViews(this.state),armies=armyViews(this.state);
+      if(battles.length||this.battles.length||armies.length||this.armies.length)this.invalidated=true;
+      this.battles=battles;this.armies=armies;
     };
     // Coalesce accelerated/remote simulation frames (and still consume a last,
     // paused snapshot), but project existing badges on every camera frame.
@@ -1064,6 +1067,24 @@ export class WorldRenderer {
       return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};
     },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner));
   }
+  /** Army nameplates ride above each army's lead battalion: interpolated models in 3D,
+   * authoritative positions in 2D, where individual battalions are not drawn. */
+  private drawArmyPlaques(){
+    if(!this.state)return;
+    const state=this.state,time=performance.now(),near=unitRenderMode(this.blend)==='3d';
+    // An army fighting in a region with a battle badge is shown by that badge (its flag and troops).
+    const fighting=new Set(this.battles.map(battle=>battle.region));
+    const armies=this.actor<0?[]:fighting.size?this.armies.filter(view=>!fighting.has(view.lead.province)):this.armies;
+    this.armyPlaques.draw(armies,state.players,this.actor,this.selectedArmy,view=>{
+      const at=near?this.unitMotion.position(view.lead,time):view.lead;
+      const p=this.unitPoint.set(nearestWorldX(at.x,this.focus.x),LAND_Y+(near?1.5:1.1),at.z).project(this.camera);
+      if(p.z<-1||p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;
+      return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};
+    },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner),view=>`${countryName(this.lang,state.players[view.owner])} · ${view.count}`);
+    this.renderer.domElement.dataset.armyPlaques=String(this.armies.length);
+  }
+  /** Highlight the army chosen for a redirect (null clears it). */
+  setSelectedArmy(id:number|null):void{if(this.selectedArmy!==id){this.selectedArmy=id;this.invalidated=true;}}
   private drawAttackArrows(){
     const view=[this.viewportWidth,this.viewportHeight,this.focus.x,...this.camera.projectionMatrix.elements,...this.camera.matrixWorldInverse.elements].join(',');
     if(view===this.lastAttackView&&this.attacks===this.lastAttackRoutes)return;
@@ -1104,7 +1125,7 @@ export class WorldRenderer {
     finally{this.flatMapCache.surface.visible=false;for(let i=0;i<backgrounds.length;i++)backgrounds[i].visible=visible[i];}
   }
   dispose(){
-    if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleBadges.dispose();
+    if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleBadges.dispose();this.armyPlaques.dispose();
     this.infantry.dispose();this.towns.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.routeLayer.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
     cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
     for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();

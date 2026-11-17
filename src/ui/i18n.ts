@@ -233,6 +233,10 @@ export const STRINGS:Record<string,[string,string]>={
  militaryTitle:['军务','Military'],upgradeEffect:['升级效果','Effect'],
  noRegionSelected:['未选择地块','No region selected'],
  talentEntry:['领袖天赋','Leader talents'],
+ armies:['军团','Armies'],noArmies:['暂无行军中的军团','No armies on the march'],armyTarget:['前往 {region}','to {region}'],
+ armySelectedHint:['已选中军团：右键或长按目标地块改道','Army selected: right-click or long-press a region to redirect it'],
+ battles:['战局','Battles'],noBattles:['暂无战局','No battles'],neutralSide:['中立守军','Neutral garrison'],
+ 'event.battle':['赢得战局','won the battle at'],battleVersus:['对阵 {sides}','against {sides}'],
 };
 export function t(language:Language,key:string):string{return STRINGS[key]?.[language==='zh'?0:1]??STRINGS['error.generic'][language==='zh'?0:1];}
 export {campaignDateLabel as timeLabel} from './campaignCalendar.ts';

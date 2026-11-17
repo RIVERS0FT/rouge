@@ -24,6 +24,7 @@ export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
   if(s.version!==STATE_VERSION||s.map!==MAP_ID||s.spawnModel!=='single'||s.neutralGarrisonModel!=='preplaced'||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
+  if(!validArmyLedgers(s))return false;
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
@@ -45,17 +46,19 @@ export function validateState(value:unknown):value is GameState{
     const order=p.march;
     if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable)return false;
     if(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)||(order.fraction!==undefined&&!isMarchFraction(order.fraction))||Object.hasOwn(order,'unitIds'))return false;
+    if(order.army!==undefined&&s.armies.find(army=>army.id===order.army)?.owner!==order.owner)return false;
     const orderIds=order.pendingIds;
     if(!Array.isArray(orderIds)||orderIds.length<1||orderIds.length>s.units.length||new Set(orderIds).size!==orderIds.length||!orderIds.every(id=>integer(id,1,s.nextId-1)))return false;
   }
   const pending=new Map<number,number>();
   for(const p of s.provinces){const order=p.march;if(order)for(const id of order.pendingIds){if(pending.has(id))return false;pending.set(id,p.id);}}
-  const ids=new Set<number>();
+  const ids=new Set<number>(),armies=new Map(s.armies.map(army=>[army.id,army]));
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,Number.MIN_VALUE,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
     const source=pending.get(u.id);if(source!==undefined){if(!isRegionGarrison(u,s.provinces[source].owner,source))return false;pending.delete(u.id);}
     if(u.assault!==undefined&&(u.owner<0||u.assault!==(u.target??u.province)))return false;
+    if(u.army!==undefined&&(armies.get(u.army)?.owner!==u.owner))return false;
     if(!Array.isArray(u.route)||u.route.length!==0)return false;
     if(u.target===null){if(u.travel||u.transport||u.destination!==null||u.origin!==u.province)return false;}
     else {
@@ -69,7 +72,8 @@ export function validateState(value:unknown):value is GameState{
     // Legitimate arrivals can put more troops here than local training allows.
     ids.add(u.id);
   }
-  return !pending.size&&s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1)));
+  return !pending.size&&s.events.every(e=>e&&integer(e.tick,0,s.tick)&&['capture','level','victory','battle'].includes(e.key)&&integer(e.player,0,s.players.length-1)&&(e.province===undefined||integer(e.province,0,MAP.length-1))
+    &&(e.sides===undefined||(e.key==='battle'&&Array.isArray(e.sides)&&e.sides.length>=2&&e.sides.length<=s.players.length+1&&new Set(e.sides).size===e.sides.length&&e.sides.every(owner=>integer(owner,-1,s.players.length-1)))));
 }
 /** Rule v34 reworked talents that used to raise maximum health (Field Medicine, Infantry Line).
  * Clamp older troops to their current maximum instead of rejecting the save; validation still runs. */
@@ -82,12 +86,35 @@ function clampReworkedTalentHealth(state:unknown):void{
     try{const maximum=stats((u.owner as number)>=0?s.players[u.owner as number]:undefined,u.kind as never).hp;if(u.hp>maximum&&u.hp<=maximum*1.5+0.01)u.hp=maximum;}catch{/* Malformed players fail validation below. */}
   }
 }
+/** Armies exist while troops march or attack; battles are open fights per region. */
+function validArmyLedgers(s:GameState):boolean{
+  if(!Array.isArray(s.armies)||!integer(s.nextArmy,1,1e12)||!Array.isArray(s.battles)||!integer(s.nextBattle,1,1e12))return false;
+  const armyIds=new Set<number>();
+  for(const army of s.armies){
+    if(!army||typeof army!=='object'||!integer(army.id,1,s.nextArmy-1)||armyIds.has(army.id)||!integer(army.owner,0,s.players.length-1)||!integer(army.to,0,MAP.length-1)||!MAP[army.to].playable||!integer(army.formed,0,s.tick)||!integer(army.size,1,1e9))return false;
+    armyIds.add(army.id);
+  }
+  const battleIds=new Set<number>(),regions=new Set<number>();
+  for(const battle of s.battles){
+    if(!battle||typeof battle!=='object'||!integer(battle.id,1,s.nextBattle-1)||battleIds.has(battle.id)||!integer(battle.region,0,MAP.length-1)||!MAP[battle.region].playable||regions.has(battle.region))return false;
+    if(!integer(battle.start,0,s.tick)||!integer(battle.last,battle.start,s.tick)||!Array.isArray(battle.sides)||battle.sides.length<1||battle.sides.length>s.players.length+1)return false;
+    const owners=new Set<number>();
+    for(const side of battle.sides){if(!side||!integer(side.owner,-1,s.players.length-1)||owners.has(side.owner)||!integer(side.losses,0,1e9))return false;owners.add(side.owner);}
+    battleIds.add(battle.id);regions.add(battle.region);
+  }
+  return true;
+}
+/** Campaigns saved before armies existed load with empty army and battle ledgers. */
+function addArmyLedgers(state:unknown):void{
+  if(!state||typeof state!=='object')return;const s=state as Record<string,unknown>;
+  if(!('armies' in s))s.armies=[];if(!('nextArmy' in s))s.nextArmy=1;if(!('battles' in s))s.battles=[];if(!('nextBattle' in s))s.nextBattle=1;
+}
 // Integrity checksum only, not an anti-cheat signature.
 export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
 export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');clampReworkedTalentHealth(state);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
+  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');clampReworkedTalentHealth(state);addArmyLedgers(state);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 /** One atomic replacement, including when the previous automatic snapshot is unreadable. */
