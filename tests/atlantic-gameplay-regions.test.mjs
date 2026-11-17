@@ -44,9 +44,9 @@ test('the reviewed Atlantic selections have exact bilingual names, real anchors 
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v22');
- assert.equal(STATE_VERSION,23);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v23.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v36');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');
+ assert.equal(STATE_VERSION,24);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v24.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
 });
 
 test('Atlantic grouping reuses every original map atom without changing raw jurisdiction, shape or physical topology',()=>{
@@ -86,6 +86,5 @@ test('selected Atlantic scope never absorbs the retained remote islands or mainl
  assert.notEqual(get('SHN-4865'),get('FLK-5152'));
  assert.notEqual(get('GRL-2738'),get('GRL-2739'));
  assert.equal(get('GRL-2738').playable,false);
- assert.equal(MAP_METADATA.count,795);
- assert.equal(MAP_METADATA.playableCount,791);
+ assert.equal(plan.regions.reduce((n,row)=>n+Object.keys(row.members).length-1,0),35);
 });

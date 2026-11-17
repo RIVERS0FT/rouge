@@ -57,8 +57,8 @@ test('118 Philippines source areas all resolve to three locked playable territor
  assert.equal(MAP.filter(g=>isPhilippines(g.code)).length,3);
  assert.equal(new Set(regions.flatMap(g=>g.sourceAtoms)).size,118);
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v22');assert.equal(STATE_VERSION,23);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v36');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');assert.equal(STATE_VERSION,24);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
  for(const [queries,region] of [
   [['Manila','Batanes','Las Pinas','Palawan','达古潘'],regions[0]],
   [['Cebu','Lapu-Lapu','Bacolod','保和省'],regions[1]],
