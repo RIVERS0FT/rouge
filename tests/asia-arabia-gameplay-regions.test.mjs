@@ -45,7 +45,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('the approved Asia and Arabia membership, names and anchor locations are playable',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,29);assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
  assert.equal(MAP.filter(r=>r.sourceAtoms.some(id=>/^(SAU|OMN|YEM|ARE|QAT|KWT|BHR)-/.test(id))).length,9);
  assert.equal(MAP.filter(r=>r.sourceAtoms.some(id=>/^(BRN|KHM|IDN|LAO|MYS|MMR|PHL|SGP|THA|TLS|VNM)-/.test(id))).length,39);
  for(const row of plan.regions){

@@ -48,9 +48,9 @@ test('the reviewed South America selections have exact bilingual names, real anc
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');
- assert.equal(STATE_VERSION,28);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
+ assert.equal(STATE_VERSION,29);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
 });
 
 test('South America grouping reuses every original map atom without changing raw jurisdiction, shape or physical topology',()=>{

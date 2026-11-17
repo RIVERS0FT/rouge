@@ -9,6 +9,7 @@ import {SAVE_PREFIX} from '../src/game/save.ts';
 import {terrainAt,terrainSegment} from '../src/game/terrain-navigation.ts';
 import atlas from '../src/generated/world.js';
 import plan from '../data/reviewed-class-a-gameplay-regions.json' with {type:'json'};
+import {correctedAnchor} from './reviewed-ocean-fixtures.mjs';
 
 const base=JSON.parse(gunzipSync(readFileSync(new URL('../data/natural-earth-admin1-base.json.gz',import.meta.url))));
 const source=new Map(SOURCE_MAP.map(atom=>[atom.code,atom]));
@@ -27,7 +28,7 @@ test('A-page approval transfers precisely 63 groups into 50 existing labels and 
   assert.ok(!receivers.has(target.id));receivers.add(target.id);
   assert.deepEqual(target.sourceAtoms,atoms);
   assert.deepEqual(target.name,row.displayName);
-  assert.deepEqual(target.center,source.get(row.anchorAtomId).center);
+  assert.deepEqual(target.center,source.get(correctedAnchor(row.anchorAtomId)).center);
   assert.ok(target.playable&&target.locked&&terrainAt(target.center,true)>=0);
   for(const id of atoms){
    assert.ok(!atomsReviewed.has(id));atomsReviewed.add(id);
@@ -44,9 +45,9 @@ test('A-page approval transfers precisely 63 groups into 50 existing labels and 
  assert.equal(receivers.size,50);assert.equal(removed,63);assert.equal(atomsReviewed.size,795);
  assert.equal(MAP_METADATA.count,687);assert.equal(MAP_METADATA.playableCount,683);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');
- assert.equal(STATE_VERSION,28);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
+ assert.equal(STATE_VERSION,29);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
 });
 
 test('approved disconnected fragments share game ownership only, not terrain or physical routes',()=>{

@@ -7,7 +7,14 @@ export const COLLISION_MAX_PUSH=.6;
 export const COLLISION_CANDIDATES=96;
 export const COLLISION_CONSTRAINTS=12;
 export const COLLISION_CELL=1.24; // Maximum diameter: a 3 × 3 neighborhood is enough.
-export interface CircleBody extends Vec2 {id:number;radius:number;mobility?:number}
+/** Two marching bodies that both moved into their contact this tick (cosine above this) walk head-on. */
+export const COLLISION_HEAD_ON=.5;
+/** Each head-on body also slides this share of the overlap to its own right, so the pair passes. */
+export const COLLISION_SIDESTEP=.5;
+/** `motion`: direction (radians, Math.atan2) a marching body moved this tick; NaN when it stood still. */
+export interface CircleBody extends Vec2 {id:number;radius:number;mobility?:number;motion?:number}
+/** Direction of one tick's movement as the ground solvers read it. */
+export function motionAngle(dx:number,dz:number):number {return dx||dz?Math.atan2(dz,dx):NaN;}
 export interface CollisionReport {candidates:number;contacts:number;maxPenetration:number;limited:number;constraints:number;constraintLimited:number}
 const directions=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQRT1_2],[-1,0],[-Math.SQRT1_2,-Math.SQRT1_2],[0,-1],[Math.SQRT1_2,-Math.SQRT1_2]];
 
@@ -79,9 +86,14 @@ class CircleSolver {
      if((remaining[ai]<1e-7||attempts[ai]>=COLLISION_CONSTRAINTS)&&(remaining[bi]<1e-7||attempts[bi]>=COLLISION_CONSTRAINTS))continue;
      let x:number,z:number;
      if(d>1e-9){x=dx/d;z=dz/d;}else{const fallback=directions[(Math.imul(aid,73856093)^Math.imul(bid,19349663))>>>0&7];x=fallback[0];z=fallback[1];}
+     // Two marching bodies that walked into each other would be pushed back to the same
+     // spots every tick, forever. Both keep right (opposite sides of the contact) and pass.
+     const motionA=this.bodies[ai].motion,motionB=this.bodies[bi].motion;
+     const headOn=motionA!==undefined&&motionB!==undefined&&x*Math.cos(motionA)+z*Math.sin(motionA)>COLLISION_HEAD_ON&&x*Math.cos(motionB)+z*Math.sin(motionB)< -COLLISION_HEAD_ON;
      const mobilityA=mobility[ai],mobilityB=mobility[bi],share=mobilityA/(mobilityA+mobilityB||1);
      const movedA=this.push(ai,-x,-z,overlap*share),movedB=this.push(bi,x,z,overlap-movedA);
      if(movedB<overlap-movedA-1e-6)this.push(ai,-x,-z,overlap-movedA-movedB);
+     if(headOn){const side=overlap*COLLISION_SIDESTEP;this.push(ai,z,-x,side);this.push(bi,-z,x,side);}
     }
     if(visited>=COLLISION_CANDIDATES)break;
    }

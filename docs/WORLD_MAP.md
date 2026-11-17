@@ -36,6 +36,8 @@ https://proj.org/en/stable/operations/projections/mill.html
 
 处理顺序：固定源验证 → 按 adm1_code 排序 → 共享边提取 → 简化环顶点（保留相邻环保留顶点的并集）→ 分离离岛/孔洞 → 主陆块内部锚点 → 米勒运行时投影。
 
+主陆块是含 Natural Earth 标注点的可见部分；没有时取最大的可见部分（不再取第一个环，它常是小岛或飞地，例如伯尔尼、西澳大利亚）。贴在地块边缘的城镇锚点按[锚点修正清单](../data/gameplay-anchor-corrections.json)改到审定的成员地块或首府坐标，见 [GAMEPLAY_ANCHOR_CORRECTIONS.md](GAMEPLAY_ANCHOR_CORRECTIONS.md)。
+
 生成后约 24.5 万顶点；源边界已在反经线切开，非南极环若出现跨越 180° 的线段会拒绝生成。海岸简化属于原型制图精度，不是测绘精度。
 
 ## 兼容与边界

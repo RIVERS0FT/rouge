@@ -1,0 +1,33 @@
+{
+ "schema": 1,
+ "audit": "Region centers within 1.6 map units of another region's land border, or in the outer tenth of the region, after the main-landmass fix (2026-11-17).",
+ "anchors": [
+  {"group": "group:DZA-2163", "from": "DZA-2211", "to": "DZA-2217", "note": "Constantine city; Biskra sat on the East Sahara border, 219 km from the city"},
+  {"group": "group:BGR-2243", "from": null, "to": "BGR-2243", "displayName": ["索菲亚州", "Sofia"], "note": "Sofia city; Sofia Province's label point sat on the Burgas border"},
+  {"group": "group:MEX-2724", "from": "MEX-2724", "to": "MEX-2727", "note": "Mexico City; Puebla sat on the Veracruz border"},
+  {"group": "group:KOS-5886", "from": "KOS-5886", "to": "KOS-5898", "note": "Kosovo Polje beside Priština; Peć sits on the Montenegro border"},
+  {"group": "group:HRV-1592", "from": "SVN-954", "to": "SVN-1022", "note": "Ajdovščina, the deepest member; Ilirska Bistrica sits on the Croatian border"},
+  {"group": "group:SLV-1343", "from": "SLV-1358", "to": "SLV-1349", "note": "San Salvador city; Santa Ana sat on the Guatemala border"},
+  {"group": "group:SVN-1000", "from": "SVN-207", "to": "SVN-962", "note": "Ljubljana; Kočevje sits on the Croatian border"},
+  {"group": "group:LBN-3022", "from": "LBN-3022", "to": "LBN-3025", "note": "Mount Lebanon; every Beqaa point lies on the Syrian border"},
+  {"group": "group:DZA-2195", "from": "DZA-2212", "to": "DZA-2209", "note": "Blida beside Algiers; Djelfa sat on the Sahara border and Algiers' own point is on the shore"},
+  {"group": "group:UGA-2631", "from": "UGA-3125", "to": "UGA-3088", "note": "Kampala; Kaabong sat in the far north-east corner"},
+  {"group": "group:COM-4934", "from": "MDG-5861", "to": "MDG-5873", "note": "Haute Matsiatra (Fianarantsoa); Amoron'i Mania sat on the northern border"},
+  {"group": "group:COL-1283", "from": "COL-1283", "to": "COL-1423", "note": "Guaviare, the region's namesake; Amazonas sat on the southern border"}
+ ],
+ "centers": [
+  {"atom": "PAK-1123", "lonLat": [71.58, 34.01], "note": "Peshawar; the label point sat on the Punjab border"},
+  {"atom": "AFG-1760", "lonLat": [70.58, 37.12], "note": "Faizabad; the label point sat on the K.P. border"},
+  {"atom": "ITA-5445", "lonLat": [10.22, 45.54], "note": "Brescia city; the label point sat on the Bozen border"},
+  {"atom": "ROU-296", "lonLat": [23.59, 46.77], "note": "Cluj-Napoca; the label point sat on the Arad border"},
+  {"atom": "TZA-3393", "lonLat": [37.73, -4.07], "note": "Same; Moshi and the label point lie on the Kenyan border"},
+  {"atom": "NLD-896", "lonLat": [5.91, 51.98], "note": "Arnhem; the label point sat on the Friesland border"},
+  {"atom": "ITA-5455", "lonLat": [13.23, 46.06], "note": "Udine city; the label point sat on the Slovenian border"},
+  {"atom": "MEX-2719", "lonLat": [-103.35, 20.67], "note": "Guadalajara; the label point sat on the Zacatecas border"},
+  {"atom": "USA-3535", "lonLat": [-91.15, 30.45], "note": "Baton Rouge; the label point sat on the Mississippi border"},
+  {"atom": "IND-3257", "lonLat": [88.36, 22.57], "note": "Kolkata; the label point sat on the Dhaka border"},
+  {"atom": "GRC-3001", "lonLat": [25.40, 41.12], "note": "Komotini; the label point sat on the Burgas border"},
+  {"atom": "RUS-2379", "lonLat": [61.40, 55.16], "note": "Chelyabinsk city; the label point sat on the Qostanay border"},
+  {"atom": "JPN-1850", "lonLat": [135.77, 35.01], "note": "Kyoto city; the label point sat on the Nagano border"}
+ ]
+}

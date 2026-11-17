@@ -10,8 +10,11 @@ export function usePreClassAMapFixture() {
  const spawnUrl=new URL('../data/spawn-sites.json',import.meta.url).href;
  const oldSpawnsUrl=new URL('./pre-class-a-spawn-sites.json',import.meta.url);
  const groupsUrl=new URL('../src/generated/gameplay-groups-before-class-a.json',import.meta.url);
+ const correctionsUrl=new URL('../data/gameplay-anchor-corrections.json',import.meta.url).href;
  let injected;
  registerHooks({load(url,context,nextLoad){
+  // Anchor corrections are the newest layer: the historical atlas predates them.
+  if(url===correctionsUrl)return {source:JSON.stringify({schema:1,anchors:[],centers:[]}),format:'json',shortCircuit:true};
   if(url===spawnUrl){
    const before=JSON.parse(readFileSync(oldSpawnsUrl,'utf8'));
    const current=JSON.parse(readFileSync(fileURLToPath(spawnUrl),'utf8'));

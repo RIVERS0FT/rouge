@@ -51,9 +51,9 @@ test('exactly the 21 approved transfers preserve 18 receiving names, land anchor
  assert.equal(ids.size,18);assert.equal(donors,21);assert.equal(contacts,53);assert.equal(covered,153);
  assert.equal(MAP_METADATA.count,750);assert.equal(MAP_METADATA.playableCount,746);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');
- assert.equal(STATE_VERSION,28);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
+ assert.equal(STATE_VERSION,29);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
 });
 
 test('cross-border gameplay labels do not change raw jurisdiction data or invent routes',()=>{
