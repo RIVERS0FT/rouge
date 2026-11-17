@@ -5,7 +5,8 @@ import {UNITS} from '../game/content.ts';
 import {constructionProductionMultiplier, fundsIncomeRate, recoveryMultiplier} from '../game/construction.ts';
 import {factionColor} from '../game/factionColors.ts';
 import {MAP} from '../game/map.ts';
-import {regionCapacity, regionProductionRate} from '../game/territoryEconomy.ts';
+import {capacityFor, regionProductionRate} from '../game/territoryEconomy.ts';
+import {talentProfile, tradeBonus} from '../game/talentEffects.ts';
 import type {GameState, Kind} from '../game/types.ts';
 import {FactionSwatch} from './FactionSwatch.tsx';
 import {DockPanel, Pips, SectionRibbon} from './hud/DockPanel.tsx';
@@ -39,11 +40,13 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const text = (key: string) => t(language, key);
  const province = state.provinces[selected], player = state.players[actor];
  const status = province.capture > 0 ? 'contested' : province.recovery > 0 ? 'recovering' : 'stable';
- const productionTime = UNITS[province.kind].train, capacity = regionCapacity(selected);
+ const productionTime = UNITS[province.kind].train, capacity = capacityFor(state, selected);
  const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
  const country = state.players[province.owner];
- const recovery = recoveryMultiplier(province.recovery, country), production = rate * constructionProductionMultiplier(province) * recovery;
- const income = province.owner < 0 ? 0 : fundsIncomeRate(province, rate, country);
+ // Mirrors the engine's steady training rate and income, including the owner's talents (Levy only while funds last).
+ const profile = country ? talentProfile(country) : undefined, levy = profile?.levy && country!.funds >= 5 ? 1.5 : 1;
+ const recovery = recoveryMultiplier(province.recovery, country), production = rate * constructionProductionMultiplier(province) * recovery * (profile?.trainingFactor ?? 1) * levy;
+ const income = province.owner < 0 ? 0 : fundsIncomeRate(province, rate, country, tradeBonus(state, selected, country));
  const owner = province.owner < 0 ? text('neutralOwner') : playerName(language, state.players[province.owner]);
  const captor = province.captor >= 0 ? state.players[province.captor] : undefined;
  return <DockPanel id="province-panel" className="province-panel" bandClassName="province-heading" bodyRef={body} hidden={hidden}

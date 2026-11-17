@@ -1,6 +1,7 @@
 import {MAP,BOUNDS} from '../game/map.ts';
 import {buildBorderEdges,classifyBorder,borderPositions,type BorderEdge} from './territoryBorders.ts';
 import {politicalRibbonGeometry} from './politicalTint.ts';
+import {borderLineTiles} from './borderLineTiles.ts';
 const edges=buildBorderEdges(MAP,BOUNDS);
 self.onmessage=({data}:{data:{campaign:string;revision:number;owners:number[];groups:string[]}})=>{
  const internal:BorderEdge[]=[],countries:BorderEdge[]=[],painted:BorderEdge[]=[];
@@ -10,6 +11,7 @@ self.onmessage=({data}:{data:{campaign:string;revision:number;owners:number[];gr
  }
  const admin=new Float32Array(borderPositions(internal,.24)),country=new Float32Array(borderPositions(countries,.28)),ribbon=politicalRibbonGeometry(painted);
  const attributes=Object.fromEntries(['aStart','aEnd','aPrevious','aNext'].map(name=>[name,ribbon.getAttribute(name).array]));
- self.postMessage({campaign:data.campaign,revision:data.revision,admin,country,attributes,segments:painted.length},{transfer:[admin.buffer,country.buffer,...Object.values(attributes).map(array=>array.buffer)]});
+ const adminTiles=borderLineTiles(admin),countryTiles=borderLineTiles(country);
+ self.postMessage({campaign:data.campaign,revision:data.revision,admin,country,adminTiles,countryTiles,attributes,segments:painted.length},{transfer:[admin.buffer,country.buffer,...adminTiles.map(tile=>tile.positions.buffer),...countryTiles.map(tile=>tile.positions.buffer),...Object.values(attributes).map(array=>array.buffer)]});
 };
 self.postMessage({type:'ready'});

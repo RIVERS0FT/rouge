@@ -27,6 +27,15 @@ test('loss of a detached possession keeps the existing legal title and texture i
  assert.equal(after,before);assert.equal(cache.get(0).members,'0');
 });
 
+test('a distant loss preserves the clearance corridor without rescanning world borders',()=>{
+ const map=[region(0,0,0,100,100),region(1,220,0,10,10)],cache=new Map(),owners=[0,0],edges=buildBorderEdges(map,bounds);
+ const before=buildCountryPlacements(map,owners,buildCountryLabels(map,owners),edges,cache,bounds).get(0);
+ owners[1]=-1;
+ const unrelatedBorders={[Symbol.iterator](){throw Error('A distant loss should not scan world borders');}};
+ const after=buildCountryPlacements(map,owners,buildCountryLabels(map,owners),unrelatedBorders,cache,bounds).get(0);
+ assert.equal(after,before);assert.equal(cache.get(0).members,'0');assert.deepEqual(fitCountryCurve(after,8),fitCountryCurve(before,8));
+});
+
 test('renderer replaces an invalid title synchronously, retains a third owner, and removes eliminated owners',()=>{
  const map=[region(0,0,0,100,101),region(1,220,0,40,40),region(2,-220,0,50,50)],cache=new Map();
  const before=layout(map,[0,0,2],cache),old=before.get(0),unchanged=before.get(2);

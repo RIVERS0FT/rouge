@@ -26,16 +26,14 @@ for(const kind of NEW)test(kind+': single-choice campaign, production, upgrades,
  e.step();replica=applyFrame(replica,encodeFrame(e.state,base,0).frame);assert.deepEqual(replica,e.state);
  assert.equal(e.command(0,{type:'production',province:home,kind:'infantry'}).ok,false);
 });
-test('family-specific talent offers and bonuses work for both original and new members',()=>{
- for(const [talent,family]of [['charge',['cavalry','heavyCavalry']],['barrage',['artillery','horseArtillery']],['sappers',['engineer']]]){
+test('signature talents are offered only to their own unit kind, including the newer kinds',()=>{
+ for(const [talent,kind]of [['shieldWall','infantry'],['forwardMarksmen','skirmisher'],['stormTroops','grenadier'],['charge','cavalry'],
+  ['cuirass','heavyCavalry'],['barrage','artillery'],['pointBlank','horseArtillery'],['sappers','engineer']]){
   const definition=TALENTS.find(t=>t.id===talent);
-  for(const k of KINDS){
-   assert.equal(talentApplies(definition,[k]),family.includes(k));
-   const p=fresh(k).state.players[0];p.talents=[talent];
-   const expected=(talent!=='sappers'&&family.includes(k))?1.25:1;
-   assert.equal(stats(p,k).attack,UNITS[k].attack*expected);
-  }
+  for(const k of KINDS)assert.equal(talentApplies(definition,[k]),k===kind,`${talent}/${k}`);
  }
+ // Former family attack bonuses are conditional combat effects now, not stat changes.
+ for(const k of KINDS){const p=fresh(k).state.players[0];p.talents=['charge','barrage','breachDrills'];assert.equal(stats(p,k).attack,UNITS[k].attack);}
 });
 test('old four-kind saves and old multi-kind loadouts are rejected without migration',()=>{
  const s=fresh('infantry').state;

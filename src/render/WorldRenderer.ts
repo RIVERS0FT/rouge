@@ -14,7 +14,8 @@ import {factionFlags} from '../game/factionFlags.ts';
 import type {Flag} from '../game/flags.ts';
 import {MapSurface} from './mapSurface.ts';
 import {FlatMapCache} from './flatMapCache.ts';
-import {mapGeometryTiles,wideBorderTiles} from './mapGeometryTiles.ts';
+import {mapGeometryTiles,nativeBorderTiles,wideBorderTiles} from './mapGeometryTiles.ts';
+import type {BorderLineTile} from './borderLineTiles.ts';
 import {CountryLabelText} from './countryLabelText.ts';
 import {COUNTRY_FONT_WEIGHT,COUNTRY_INK_OPACITY,COUNTRY_OUTLINE,COUNTRY_OUTLINE_OPACITY,countryInk,countryOutlineWidth} from './countryTypography.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
@@ -107,6 +108,7 @@ export class WorldRenderer {
   private provinceLayer:HTMLDivElement;
   private dispatchPreview:DispatchPreview;
   private attackArrows:AttackArrows;
+  private lastAttackView='';private lastAttackRoutes:readonly AttackRoute[]|null=null;
   private battleBadges:BattleBadges;
   private battles:BattleContact[]=[];
   private battleTimer:number|null=null;private battleLast=0;
@@ -295,10 +297,10 @@ export class WorldRenderer {
     material.customProgramCacheKey=()=> 'earth-wide-border-v3-flat';
     const lines=new LineSegments2(geometry,material);lines.visible=points.length>0;return lines;
   }
-  private replaceWideGeometry(lines:LineSegments2,points:number[]) {
+  private replaceWideGeometry(lines:LineSegments2,points:number[]|Float32Array,tiles?:readonly BorderLineTile[]) {
     const geometry=new LineSegmentsGeometry().setPositions(points);lines.geometry.dispose();lines.geometry=geometry;lines.visible=points.length>0;
     for(const copy of lines===this.selection?this.selectionRepeats:this.repeats){const repeat=copy.getObjectByName(lines.name) as LineSegments2;repeat.geometry=geometry;repeat.visible=lines.visible;}
-    if(lines===this.countries){geometry.setDrawRange(0,0);this.replaceBorderTiles(lines,wideBorderTiles(lines));}
+    if(lines===this.countries){geometry.setDrawRange(0,0);this.replaceBorderTiles(lines,wideBorderTiles(lines,128,tiles));}
   }
   private replaceBorderTiles(source:THREE.Mesh|THREE.LineSegments,tiles:THREE.Group){
     tiles.traverse(object=>{object.updateMatrix();object.matrixAutoUpdate=false;});
@@ -372,15 +374,15 @@ export class WorldRenderer {
     this.borderPending={campaign:this.state!.campaign,revision:++this.borderRequest,owners:[...this.ownerIds],groups};this.renderer.domElement.dataset.borderLayoutState='pending';
     if(!this.borderWorker){
       const worker=new Worker(new URL('./mapBorders.worker.ts',import.meta.url),{type:'module'});this.borderWorker=worker;
-      worker.onmessage=({data}:{data:{type?:'ready';campaign:string;revision:number;admin:Float32Array;country:Float32Array;attributes:Record<string,Float32Array>;segments:number}})=>{
+      worker.onmessage=({data}:{data:{type?:'ready';campaign:string;revision:number;admin:Float32Array;country:Float32Array;adminTiles:BorderLineTile[];countryTiles:BorderLineTile[];attributes:Record<string,Float32Array>;segments:number}})=>{
         if(this.borderWorker!==worker)return;
         if(data.type==='ready'){this.borderWorkerReady=true;this.flushBorders();return;}
         this.borderWorkerBusy=false;
         if(data.campaign===this.state?.campaign){
           const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(data.admin,3));this.admin.geometry.dispose();this.admin.geometry=geometry;
           for(const copy of this.repeats)(copy.getObjectByName('region-boundaries') as THREE.LineSegments).geometry=geometry;
-          geometry.setDrawRange(0,0);this.replaceBorderTiles(this.admin,mapGeometryTiles(this.admin,2));
-          this.replaceWideGeometry(this.countries,Array.from(data.country));this.politicalTint.setRibbon(data.attributes,data.segments);
+          geometry.setDrawRange(0,0);this.replaceBorderTiles(this.admin,nativeBorderTiles(this.admin,data.adminTiles));
+          this.replaceWideGeometry(this.countries,data.country,data.countryTiles);this.politicalTint.setRibbon(data.attributes,data.segments);
           const d=this.renderer.domElement.dataset;d.managementBorderSegments=String(data.admin.length/6);d.countryBorderSegments=String(data.country.length/6);d.politicalTintSegments=String(data.segments);d.borderLayoutState=this.borderPending?'pending':'ready';
           this.mapRevision++;this.invalidated=true;this.backgroundFrame=true;
         }
@@ -1028,12 +1030,15 @@ export class WorldRenderer {
     },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner));
   }
   private drawAttackArrows(){
+    const view=[this.viewportWidth,this.viewportHeight,this.focus.x,...this.camera.projectionMatrix.elements,...this.camera.matrixWorldInverse.elements].join(',');
+    if(view===this.lastAttackView&&this.attacks===this.lastAttackRoutes)return;
+    this.lastAttackView=view;this.lastAttackRoutes=this.attacks;
     const projection=groundArrowProjection(this.camera,this.viewportWidth,this.viewportHeight,LAND_Y);
     this.attackArrows.draw(this.attacks,(route,copy)=>{
       const from=MAP[route.from]?.center,to=MAP[route.to]?.center;if(!from||!to)return null;
       const sourceX=nearestWorldX(from.x,this.focus.x)+copy*WORLD_WIDTH,targetX=nearestWorldX(to.x,sourceX);
       return [{x:sourceX,y:from.z},{x:targetX,y:to.z}];
-    },projection,this.viewportWidth,this.viewportHeight,factionColor);
+    },projection,this.viewportWidth,this.viewportHeight,factionColor,view);
   }
   private drawWorld(){
     if(this.blend>0){this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.renderer.render(this.scene,this.camera);return;}

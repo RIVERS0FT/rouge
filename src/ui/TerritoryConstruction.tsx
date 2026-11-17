@@ -1,6 +1,7 @@
 import type {CountryAction} from '../game/countryActions.ts';
 import {useMemo, useState} from 'react';
-import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, constructionCost, fundsIncomeRate} from '../game/construction.ts';
+import {CONSTRUCTION, CONSTRUCTION_KINDS, availableFunds, constructionCost, fundsIncomeRate, maxConstructionLevel} from '../game/construction.ts';
+import {tradeBonus} from '../game/talentEffects.ts';
 import {MAP} from '../game/map.ts';
 import {regionProductionRate} from '../game/territoryEconomy.ts';
 import type {ConstructionKind, GameState} from '../game/types.ts';
@@ -43,16 +44,17 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
  let income = 0;
  for(const member of members) {
   const region = state.provinces[member], item = region.construction;
-  if(region.owner === actor) income += fundsIncomeRate(region, regionProductionRate(member), state.players[actor]);
+  if(region.owner === actor) income += fundsIncomeRate(region, regionProductionRate(member), state.players[actor], tradeBonus(state, member, state.players[actor]));
   if(item) counts[item.kind]++;
  }
  if(!own && !building && members.length <= 1) return null;
  const name = (kind: ConstructionKind) => text(`construction.${kind}`);
- const benefit = (kind: ConstructionKind, level: 1 | 2) => {
+ const maxLevel = maxConstructionLevel(state.players[actor]);
+ const benefit = (kind: ConstructionKind, level: 1 | 2 | 3) => {
   const value = CONSTRUCTION[kind].benefits[level - 1];
   return text(`construction.${kind}.benefit`).replace('{amount}', String(kind === 'market' ? value : Math.round(value * 100)));
  };
- const buy = (kind: ConstructionKind, cost: number, label: string, expectedLevel: 0 | 1) => (
+ const buy = (kind: ConstructionKind, cost: number, label: string, expectedLevel: 0 | 1 | 2) => (
   <button className="secondary construction-buy" type="button" data-testid={`construct-${kind}`} disabled={!ready || funds < cost}
    title={province.capture > 0 ? text('error.constructionContested') : funds < cost ? text('error.noFunds') : undefined} aria-label={`${label} ${name(kind)} · ${cost}`}
    onClick={() => {if(ready && funds >= cost) onCommand({type: 'construct', province: target, kind, expectedLevel});}}>
@@ -82,9 +84,9 @@ function ConstructionControls({state, selected, actor, eliminated, language, onC
     <div className="construction-copy">
      <strong>{name(building.kind)} · {text('constructionLevel').replace('{level}', String(building.level))}</strong>
      <small>{benefit(building.kind, building.level)}</small>
-     {editable && building.level === 1 && <small>{text('constructionNext').replace('{effect}', benefit(building.kind, 2))}</small>}
+     {editable && building.level < maxLevel && <small>{text('constructionNext').replace('{effect}', benefit(building.kind, building.level === 1 ? 2 : 3))}</small>}
     </div>
-    {editable && (building.level === 1 ? buy(building.kind, constructionCost(building.kind, 1, state.players[actor]), text('constructionUpgrade'), 1) :
+    {editable && (building.level < maxLevel ? buy(building.kind, constructionCost(building.kind, building.level === 1 ? 1 : 2, state.players[actor]), text('constructionUpgrade'), building.level === 1 ? 1 : 2) :
      <span className="construction-max">{text('max')}</span>)}
    </div> : editable ? kinds.map(kind => <div className="construction-option" key={kind}>
     <Icon name={icon[kind]} size={16}/>

@@ -1,6 +1,7 @@
 import {kernel,physicsCensus,packBattleUnits,commitBattleUnits,geometrySnapshot,type UnitCensus} from './groundKernel.ts';
 import type {Unit,GameState} from './types.ts';
 import type {UnitStats} from './content.ts';
+import type {CombatLanes} from './talentEffects.ts';
 import type {CollisionReport} from './collision.ts';
 
 type Reply={type:'done';id:number;units:Float64Array;report:CollisionReport;times:{prepare:number;solve:number;total:number}};
@@ -40,13 +41,13 @@ export class PhysicsPool {
   if(this.closed)return;this.closed=true;
   for(const slot of this.slots){clearTimeout(slot.timer);slot.rejectReady(error);if(slot.pending){clearTimeout(slot.pending.timer);slot.pending.reject(error);slot.pending=undefined;}slot.worker.terminate();}
  }
- async run(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>UnitStats,state:GameState,dirty?:Dirty):Promise<{damage:Map<number,{amount:number;attacker:number}>;collision:CollisionReport;census:UnitCensus}>{
+ async run(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>UnitStats,state:GameState,dirty?:Dirty,lanes?:CombatLanes):Promise<{damage:Map<number,{amount:number;attacker:number}>;collision:CollisionReport;census:UnitCensus}>{
   if(this.busy)throw Error('Overlapping physics steps');this.busy=true;
   try{
    await this.ready();const started=performance.now(),n=active.length;
    if(!n||n>65536||!Number.isInteger(state.tick)||state.tick<0||state.tick>0xffffffff||active.some(u=>u.id<1||u.id>0x7fffffff))throw Error('Unsupported parallel army size or identifiers');
    for(let i=1;i<n;i++)if(active[i].id<=active[i-1].id)throw Error('Parallel physics requires ordered entity IDs');
-   const p=packBattleUnits(active,statsFor,state,true,this.cache,dirty);kernel.partitionBattalions();
+   const p=packBattleUnits(active,statsFor,state,true,this.cache,dirty,lanes);kernel.partitionBattalions();
    const order=new Uint32Array(kernel.memory.buffer,kernel.assignPhysicsJobs(this.slots.length),n),offsets=new Uint32Array(kernel.memory.buffer,kernel.physicsJobOffsetsPointer(),this.slots.length+1);
    const jobs=this.slots.map((_,i)=>({count:offsets[i+1]-offsets[i]})),owners=Int32Array.from(state.provinces,province=>province.owner),partitioned=performance.now();
    const replies=await Promise.all(jobs.map(async(job,index)=>{
@@ -65,9 +66,8 @@ export class PhysicsPool {
    }));
    const collision:CollisionReport={candidates:0,contacts:0,maxPenetration:0,limited:0,constraints:0,constraintLimited:0};
    for(const result of replies)if(result){const {reply}=result;new Float64Array(kernel.memory.buffer,SCRATCH,reply.units.length).set(reply.units);kernel.unpackPhysicsJob(result.job,SCRATCH);for(const field of ['candidates','contacts','limited','constraints','constraintLimited']as const)collision[field]+=reply.report[field];collision.maxPenetration=Math.max(collision.maxPenetration,reply.report.maxPenetration);}
-   const census=physicsCensus(state.provinces.length,state.players.length),stored=p.data.slice();
-   for(let i=0;i<n;i++){stored[i*32+4]-=stored[i*32+20];stored[i*32+19]=stored[i*32+20]=stored[i*32+21]=0;}
-   const damage=new Map<number,{amount:number;attacker:number}>();commitBattleUnits(active,p.data,damage);this.cache.data=stored;this.cache.pathEpoch=p.pathEpoch;this.cache.ordered=active.slice();
+   const census=physicsCensus(state.provinces.length,state.players.length);
+   const damage=new Map<number,{amount:number;attacker:number}>();commitBattleUnits(active,p.data,damage,true);this.cache.data=p.data.slice();this.cache.pathEpoch=p.pathEpoch;this.cache.ordered=active.slice();
    this.last={prepare:partitioned-started,total:performance.now()-started,jobs:replies.filter(result=>result!==null).map(result=>({units:result.count,...result.reply.times}))};
    return {damage,collision,census};
   }catch(error){if(this.slots.some(slot=>slot.pending))this.fail(error instanceof Error?error:Error(String(error)));throw error;}
