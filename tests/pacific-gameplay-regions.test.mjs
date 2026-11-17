@@ -34,9 +34,9 @@ test('Pacific plan collapses complete source groups into named locked gameplay r
  }
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,MAP_METADATA.count-4);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');
- assert.equal(STATE_VERSION,24);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v24.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');
+ assert.equal(STATE_VERSION,26);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
 });
 
 test('Pacific grouping links never widen physical land; original coastlines and source country tags survive byte-for-byte',()=>{

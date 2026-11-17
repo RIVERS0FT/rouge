@@ -45,9 +45,9 @@ test('the reviewed Africa selections have exact bilingual names, real anchors an
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v23');
- assert.equal(STATE_VERSION,24);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v24.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v37');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');
+ assert.equal(STATE_VERSION,26);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
 });
 
 test('Africa grouping reuses every original map atom without changing raw jurisdiction, shape or physical topology',()=>{
