@@ -10,7 +10,7 @@ export type Upgrade = 'attack' | 'health' | 'speed';
 export type Terrain = 'plain' | 'forest' | 'highland';
 export interface ProvinceDef { id:number; code:string; name:[string,string]; sourceId:number; sourceAtoms?:readonly string[]; locked?:boolean; center:Vec2; polygon:Vec2[]; parts:Vec2[][][]; neighbors:number[]; terrain:Terrain; playable:boolean; visible:boolean; cropped:boolean; navigationPart:number; bounds:{left:number;right:number;top:number;bottom:number} }
 export type ConstructionKind = 'market' | 'barracks' | 'fortress';
-export interface TerritoryConstruction {kind:ConstructionKind;level:1|2}
+export interface TerritoryConstruction {kind:ConstructionKind;level:1|2|3}
 /** Friendly queued arrivals count toward local training, not march capacity. */
 export type MarchOrder={to:number;owner:number;pendingIds:number[];reserved?:true;fraction?:MarchFraction};
 export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number; construction?:TerritoryConstruction; march?:MarchOrder; lastMarchTick?:number }

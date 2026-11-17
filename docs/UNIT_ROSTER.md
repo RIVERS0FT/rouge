@@ -17,11 +17,13 @@ unchanged. Splash uses the existing 35% secondary damage, at most two secondary
 enemies, no friendly fire. Only engineers receive the innate 1.5 capture rate.
 
 ## Families and talents
-UNIT_FAMILY explicitly groups kinds. Call to charge applies to light and heavy
-cavalry; Barrage applies to field and horse artillery. Offers and damage use the
-same classification. Upgrades remain per-kind. Assault engineers is unchanged.
-There is no new charge animation/ability, auto-kiting, deployment requirement,
-minimum firing range, healing, or special upgrade tree.
+UNIT_FAMILY still groups kinds for display, but talents are offered per exact
+kind: every kind has two signature talents (engineers three), so the eight
+starting units draw eight different pools. The former family talents keep their
+IDs with conditional effects (for example Charge: light cavalry +35% damage while
+under orders; Siege guns: field artillery +40% against garrisoned troops). Upgrades
+remain per-kind. There is no charge animation, auto-kiting, deployment requirement
+or minimum firing range. See [Talents and builds](TALENT_BUILDS.md).
 
 ## Compatibility
 - Local v5 saves containing only the original roster can import with missing new

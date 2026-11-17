@@ -8,9 +8,14 @@ import type {SVGProps} from 'react';
 export type IconName =
  | 'coin' | 'sabres' | 'territory' | 'rank' | 'crown' | 'laurel' | 'military' | 'globe'
  | 'scroll' | 'search' | 'gear' | 'hourglass' | 'focus' | 'hammer' | 'shield' | 'banner'
- | 'chevron' | 'region' | 'alert' | 'income' | 'march' | 'anchor' | 'close' | 'back' | 'archive';
+ | 'chevron' | 'region' | 'alert' | 'income' | 'march' | 'anchor' | 'close' | 'back' | 'archive' | 'lock';
 
 const PATHS: Record<IconName, JSX.Element> = {
+ lock: <>
+  <rect x="5" y="10.5" width="14" height="10" rx="1.5"/>
+  <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>
+  <path d="M12 14.5v2.5"/>
+ </>,
  coin: <>
   <ellipse cx="12" cy="7" rx="7" ry="3"/>
   <path d="M5 7v4c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/>

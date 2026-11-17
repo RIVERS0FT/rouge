@@ -133,6 +133,43 @@ function candidates(grid:Grid,edges:readonly Edge[],bounds:Rect):CountryCurve[]{
 function preservesMembers(previous:string,next:readonly number[]):boolean{
  const current=new Set(next);return previous.split(',').every(id=>current.has(Number(id)));
 }
+const partBounds=new WeakMap<ProvinceDef,Rect[]>(),corridorBounds=new WeakMap<CountryCurve,Rect&{radius:number}>();
+/** A loss outside every old clearance corridor cannot invalidate a title.
+ * Most border captures need no world-edge scan or synchronous raster/refit. */
+function preservesCorridors(placement:CountryPlacement,previous:string,next:readonly number[],map:readonly ProvinceDef[]):boolean{
+ if(!placement.curves.length)return false;
+ const held=new Set(next),lost=previous.split(',').map(Number).filter(id=>!held.has(id));
+ if(!lost.length)return false;
+ return placement.curves.every(curve=>{
+  let corridor=corridorBounds.get(curve);
+  if(!corridor){
+   if(!curve.points.length)return false;
+   let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity,step=0;
+   for(let i=0;i<curve.points.length;i++){const p=curve.points[i];left=Math.min(left,p.x);right=Math.max(right,p.x);top=Math.min(top,p.z);bottom=Math.max(bottom,p.z);if(i)step=Math.max(step,Math.hypot(p.x-curve.points[i-1].x,p.z-curve.points[i-1].z));}
+   const pad=curve.clearance+step/2+1e-7;corridor={left:left-pad,right:right+pad,top:top-pad,bottom:bottom+pad,radius:pad};corridorBounds.set(curve,corridor);
+  }
+  for(const id of lost){
+   const province=map[id];if(!province)return false;
+   let parts=partBounds.get(province);
+   if(!parts){parts=province.parts.map(part=>{let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;for(const p of part[0]){left=Math.min(left,p.x);right=Math.max(right,p.x);top=Math.min(top,p.z);bottom=Math.max(bottom,p.z);}return {left,right,top,bottom};});partBounds.set(province,parts);}
+   for(const part of parts){
+    if(part.right-part.left>(WORLD_BOUNDS.right-WORLD_BOUNDS.left)/2)return false;
+    const center=(part.left+part.right)/2,shift=nearestWorldX(center,curve.anchor.x)-center,width=WORLD_BOUNDS.right-WORLD_BOUNDS.left;
+    for(const copy of [-width,0,width]){
+     const left=part.left+shift+copy,right=part.right+shift+copy;
+     if(left>corridor.right||right<corridor.left||part.top>corridor.bottom||part.bottom<corridor.top)continue;
+     // Discs around the validation samples cover every interval's old clearance
+     // corridor. The whole curve's rectangle would reject distant diagonal losses.
+     if(curve.points.some(p=>{
+      const dx=Math.max(left-p.x,0,p.x-right),dz=Math.max(part.top-p.z,0,p.z-part.bottom);
+      return dx*dx+dz*dz<=corridor.radius**2;
+     }))return false;
+    }
+   }
+  }
+  return true;
+ });
+}
 function curveStillFits(curve:CountryCurve,edges:readonly Edge[],bounds:Rect,referenceX:number):boolean{
  let clearance=Infinity,longestStep=0;
  for(let i=0;i<curve.points.length;i++){
@@ -164,7 +201,7 @@ export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonl
   const ids=members.get(label.owner)??[],signature=ids.join(','),old=cache.get(label.owner);
   const gained=!!old?.placement.curves.length&&preservesMembers(old.members,ids);
   const materialGrowth=gained&&label.area>=old!.placement.area*2;
-  if(old&&(old.members===signature||gained)&&(!materialGrowth||options.deferGrowth)){
+  if(old&&(old.members===signature||gained||preservesCorridors(old.placement,old.members,ids,map))&&(!materialGrowth||options.deferGrowth)){
    // Small gains retain exact geometry; do not reset the cumulative baseline.
    // The foreground keeps this legal title until a matching worker refit arrives.
    old.members=signature;old.pendingGrowth=materialGrowth||undefined;result.set(label.owner,old.placement);

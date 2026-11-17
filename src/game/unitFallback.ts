@@ -2,10 +2,21 @@ import {MAP,pointInProvince,provinceAt} from './map.ts';
 import {DT,stats} from './content.ts';
 import type {Kind,Unit,GameState} from './types.ts';
 import {UNIT_RADIUS} from './collision.ts';
+import {combatLanes,secondaryMultiplier,secondaryTargets,MODE_TARGET_MASK,MODE_VS_MARCHING,MODE_VS_GARRISON,MODE_POINT_BLANK,MODE_SPLASH_RESIST,TARGET_BONUS,POINT_BLANK_BONUS,POINT_BLANK_RANGE_SQUARED,SPLASH_RESIST_FACTOR} from './talentEffects.ts';
 import {buildingSegment,buildingStep} from './buildings.ts';
 import {terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 /** Exact JavaScript path for scratch limits or unavailable parallel workers. */
 export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:number,kind:Kind)=>ReturnType<typeof stats>,s:GameState,damage:Map<number,{amount:number;attacker:number}>,halt:(u:Unit)=>void):void {
+ // Talent lanes use positions and orders at the start of the pass, exactly like the packed kernel rows.
+ const {mode,taken,dealt,speed}=combatLanes(active,s,unitStats);
+ const hit=(source:number,target:number,multiplier:number,close:boolean)=>{
+  const attacker=active[source],victim=active[target],targetMode=mode[source]&MODE_TARGET_MASK;let bonus=dealt[source];
+  if(targetMode===MODE_VS_MARCHING){if(victim.target!==null)bonus+=TARGET_BONUS;}
+  else if(targetMode===MODE_VS_GARRISON){if(victim.target===null)bonus+=TARGET_BONUS;}
+  else if(targetMode===MODE_POINT_BLANK){if(close)bonus+=POINT_BLANK_BONUS;}
+  const amount=unitStats(attacker.owner,attacker.kind).attack*multiplier*(1+bonus)*100/(100+unitStats(victim.owner,victim.kind).defense)*(1-taken[target]),old=damage.get(victim.id);
+  damage.set(victim.id,{amount:(old?.amount??0)+amount,attacker:attacker.owner});
+ };
  const buckets=new Map<number,Map<number,Map<number,number[]>>>();
     const liveX=new Float64Array(active.length),liveZ=new Float64Array(active.length),liveOwners=new Int32Array(active.length),liveIds=new Float64Array(active.length),liveRadii=new Float64Array(active.length),embarked=new Uint8Array(active.length);
     for(let index=0;index<active.length;index++){const u=active[index];liveX[index]=u.x;liveZ[index]=u.z;liveOwners[index]=u.owner;liveIds[index]=u.id;liveRadii[index]=UNIT_RADIUS[u.kind];embarked[index]=Number(!!u.transport?.embarked);if(u.transport?.embarked)continue;const x=Math.floor(u.x/8),z=Math.floor(u.z/8);let column=buckets.get(x);if(!column){column=new Map();buckets.set(x,column);}let owners=column.get(z);if(!owners){owners=new Map();column.set(z,owners);}let list=owners.get(u.owner);if(!list){list=[];owners.set(u.owner,list);}list.push(index);}
@@ -19,29 +30,23 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
       return result;
     };
     const updateUnit=(index:number)=>{
-      const u=active[index],ux=liveX[index],uz=liveZ[index],st=unitStats(u.owner,u.kind);
+      const u=active[index],ux=liveX[index],uz=liveZ[index],st=unitStats(u.owner,u.kind),landSpeed=speed[index]===speed[index]?speed[index]:st.speed;
       // Carry sub-tick remainder during continuous fire (e.g. 0.65 attacks/s).
-      u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,nearest=st.range*st.range;
+      u.cooldown=u.cooldown>0?u.cooldown-DT:0;let enemy:Unit|undefined,enemyIndex=-1,nearest=st.range*st.range;
       const bx=Math.floor(u.x/8),bz=Math.floor(u.z/8);
       if(!u.transport?.embarked){const cell=neighborhood(bx,bz);let opponents=cell.enemies.get(u.owner);
         if(!opponents){opponents=cell.all.filter(v=>liveOwners[v]!==u.owner);cell.enemies.set(u.owner,opponents);}
-        for(const other of opponents){if(embarked[other])continue;const d=(ux-liveX[other])**2+(uz-liveZ[other])**2;if(d<nearest||(d===nearest&&enemy&&liveIds[other]<enemy.id)){nearest=d;enemy=active[other];}}
+        for(const other of opponents){if(embarked[other])continue;const d=(ux-liveX[other])**2+(uz-liveZ[other])**2;if(d<nearest||(d===nearest&&enemy&&liveIds[other]<enemy.id)){nearest=d;enemy=active[other];enemyIndex=other;}}
       }
       if(enemy){
         if(u.cooldown<=1e-9){
-          const targets=[enemy];
+          hit(index,enemyIndex,1,nearest<=POINT_BLANK_RANGE_SQUARED);
           if(st.splash>0){
-            const nearby=neighborhood(Math.floor(enemy.x/8),Math.floor(enemy.z/8)).all.map(index=>active[index]);
-            const extra=nearby.filter(v=>v.id!==enemy!.id&&v.owner!==u.owner&&!v.transport?.embarked&&
-              Math.hypot(v.x-enemy!.x,v.z-enemy!.z)<=st.splash)
-              .sort((a,b)=>(a.x-enemy!.x)**2+(a.z-enemy!.z)**2-((b.x-enemy!.x)**2+(b.z-enemy!.z)**2)||a.id-b.id);
-            targets.push(...extra.slice(0,2));
-          }
-          for(const [i,target] of targets.entries()){
-            const defender=s.players[target.owner],home=s.provinces[target.province]?.owner===target.owner;
-            const reduction=home&&defender?.talents.includes('entrenchment')?0.15:0;
-            const amount=st.attack*(i===0?1:0.35)*100/(100+unitStats(target.owner,target.kind).defense)*(1-reduction),old=damage.get(target.id);
-            damage.set(target.id,{amount:(old?.amount??0)+amount,attacker:u.owner});
+            const nearby=neighborhood(Math.floor(enemy.x/8),Math.floor(enemy.z/8)).all,secondary=secondaryMultiplier(mode[index]);
+            const extra=nearby.filter(v=>active[v].id!==enemy!.id&&active[v].owner!==u.owner&&!active[v].transport?.embarked&&
+              Math.hypot(active[v].x-enemy!.x,active[v].z-enemy!.z)<=st.splash)
+              .sort((a,b)=>(active[a].x-enemy!.x)**2+(active[a].z-enemy!.z)**2-((active[b].x-enemy!.x)**2+(active[b].z-enemy!.z)**2)||active[a].id-active[b].id);
+            for(const other of extra.slice(0,secondaryTargets(mode[index])))hit(index,other,secondary*(mode[other]&MODE_SPLASH_RESIST?SPLASH_RESIST_FACTOR:1),false);
           }
           u.cooldown+=1/st.attackSpeed;
         }return;
@@ -51,7 +56,7 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
       // troops approach it until houses and neighboring footprints stop them;
       // no ring slots, angles or cosmetic offsets are assigned.
       if(!u.travel&&!u.transport?.embarked){
-        const center=MAP[u.province].center,dx=center.x-u.x,dz=center.z-u.z,d=Math.hypot(dx,dz),step=Math.min(d,st.speed*DT);
+        const center=MAP[u.province].center,dx=center.x-u.x,dz=center.z-u.z,d=Math.hypot(dx,dz),step=Math.min(d,landSpeed*DT);
         const to=d?{x:u.x+dx/d*step,z:u.z+dz/d*step}:u;
         let crowded=false;
         for(const other of neighborhood(bx,bz).all){
@@ -71,10 +76,10 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
         let next=travelCorridorPoint(travel,u,1.2);if(!terrainLocalSegment(u,next))next=travelCorridorPoint(travel,u);
         steering={...next,sea:false};
       }
-      const dx=steering.x-u.x,dz=steering.z-u.z,d=Math.hypot(dx,dz),goalDistance=Math.hypot(point.x-u.x,point.z-u.z),move=Math.min(d,(point.sea?st.seaSpeed:st.speed)*DT);
+      const dx=steering.x-u.x,dz=steering.z-u.z,d=Math.hypot(dx,dz),goalDistance=Math.hypot(point.x-u.x,point.z-u.z),move=Math.min(d,(point.sea?st.seaSpeed:landSpeed)*DT);
       let nx=d?u.x+dx/d*move:steering.x,nz=d?u.z+dz/d*move:steering.z;
       if(steering!==point&&!terrainLocalSegment({x:nx,z:nz},travelCorridorPoint(travel,{x:nx,z:nz}))){
-        const q=travelCorridorPoint(travel,u),qx=q.x-u.x,qz=q.z-u.z,qd=Math.hypot(qx,qz),step=Math.min(qd,st.speed*DT);
+        const q=travelCorridorPoint(travel,u),qx=q.x-u.x,qz=q.z-u.z,qd=Math.hypot(qx,qz),step=Math.min(qd,landSpeed*DT);
         nx=qd?u.x+qx/qd*step:u.x;nz=qd?u.z+qz/qd*step:u.z;
       }
       const last=travel.index===travel.points.length-1;

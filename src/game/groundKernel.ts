@@ -1,6 +1,8 @@
 import {KERNEL_BYTES} from '../generated/simulationKernel.ts';
 import {UNIT_RADIUS,type CircleBody,type CollisionReport} from './collision.ts';
 import type {Unit} from './types.ts';
+// Type-only: map.ts imports this module, so it must not load talent rules (which read the map) at runtime.
+import type {CombatLanes} from './talentEffects.ts';
 export const kernel=new WebAssembly.Instance(new WebAssembly.Module(KERNEL_BYTES),{host:{push(){throw Error('Generic callback unavailable in ground kernel');},hypot2:Math.hypot,sin:Math.sin,cos:Math.cos}}).exports as any;
 let nativeNorm=true,checkSeed=17;
 for(let i=0;i<2048;i++){checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const a=(checkSeed/2147483648)*10**((i%600)-300);checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const b=(checkSeed/2147483648)*10**(((i*7)%600)-300);if(!Object.is(kernel.scaledNorm(a,b),Math.hypot(a,b))){nativeNorm=false;break;}}
@@ -47,7 +49,7 @@ function writeBattleUnit(data:Float64Array,i:number,unit:Unit,s:import('./conten
   data[base+22]=s.speed;data[base+23]=s.seaSpeed;data[base+24]=s.range;data[base+25]=s.attackSpeed;data[base+26]=s.attack;data[base+27]=s.splash;data[base+28]=s.defense;data[base+29]=radii[unit.kind];
 }
 let cachedPaths=new WeakMap<object,number>(),cachedPathLength=0,pathEpoch=0;const PATH_CAPACITY=64*1024*1024/8;
-export function packBattleUnits(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>import('./content.ts').UnitStats,state:import('./types.ts').GameState,includeEmbarked=false,cache?:{data:Float64Array;rows:WeakMap<Unit,number>;pathEpoch:number;ordered?:readonly Unit[]},dirty?:{all:boolean;units:Set<Unit>;owners:Set<number>}){
+export function packBattleUnits(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>import('./content.ts').UnitStats,state:import('./types.ts').GameState,includeEmbarked=false,cache?:{data:Float64Array;rows:WeakMap<Unit,number>;pathEpoch:number;ordered?:readonly Unit[]},dirty?:{all:boolean;units:Set<Unit>;owners:Set<number>},lanes?:CombatLanes){
  const n=active.length;if(!n||n>65536)throw Error('Battle scratch capacity exceeded');
  const pointer=32*1024*1024,pathPointer=initializeBattleMemory(),buffer=kernel.memory.buffer,data=new Float64Array(buffer,pointer,n*32),paths=new Float64Array(buffer,pathPointer,PATH_CAPACITY);
  let missing=0,pathCount=0;for(const unit of active)if(unit.travel){const points=unit.travel.points;pathCount+=points.length*3;if(!cachedPaths.has(points))missing+=points.length*3;}
@@ -63,21 +65,29 @@ export function packBattleUnits(active:readonly Unit[],statsFor:(owner:number,ki
   else{flush();writeBattleUnit(data,i,unit,statsFor(unit.owner,unit.kind),state);}
  }flush();
  const owners=new Int32Array(buffer,kernel.provinceOwnersPointer(),state.provinces.length);for(let i=0;i<owners.length;i++)owners[i]=state.provinces[i].owner;
- const flags=new Uint8Array(buffer,8*1024*1024,state.players.length);for(let i=0;i<flags.length;i++)flags[i]=Number(state.players[i].talents.includes('entrenchment'));
- kernel.applyEntrenchment(pointer,n,flags.byteOffset,flags.length);if(!kernel.buildUnitIndex(pointer,n,pathPointer,includeEmbarked))throw Error('Battle spatial capacity exceeded');
+ writeCombatLanes(data,n,lanes);if(!kernel.buildUnitIndex(pointer,n,pathPointer,includeEmbarked))throw Error('Battle spatial capacity exceeded');
  return {data,paths:paths.subarray(0,cachedPathLength),pathEpoch,pointer,n,pathPointer};
 }
 
-export function commitBattleUnits(active:readonly Unit[],data:Float64Array,damage:Map<number,{amount:number;attacker:number}>):void {
+/** Talent lanes (talentEffects.combatLanes, computed by the engine) are rewritten every tick,
+ * including rows reused from the parallel cache: 18 combat mode bits, 30 damage-taken reduction,
+ * 31 damage-dealt bonus and 22 conditional land speed. Without lanes, rows carry no talent effects. */
+function writeCombatLanes(data:Float64Array,n:number,lanes?:CombatLanes):void {
+ if(!lanes){for(let i=0;i<n;i++){const base=i*32;data[base+18]=0;data[base+30]=0;data[base+31]=0;}return;}
+ const {mode,taken,dealt,speed}=lanes;
+ for(let i=0;i<n;i++){const base=i*32,value=speed[i];data[base+18]=mode[i];data[base+30]=taken[i];data[base+31]=dealt[i];if(value===value)data[base+22]=value;}
+}
+export function commitBattleUnits(active:readonly Unit[],data:Float64Array,damage:Map<number,{amount:number;attacker:number}>,normalizeCache=false):void {
  for(let i=0;i<active.length;i++){
   const unit=active[i],base=i*32,flags=data[base+19];unit.x=data[base+2];unit.z=data[base+3];unit.province=data[base+6];unit.cooldown=data[base+10];
   if(flags&4){delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   else{if(flags&1)delete unit.travel;else if(unit.travel)unit.travel.index=data[base+13];if(data[base+14]){const transport=unit.transport;if(transport){transport.from=data[base+15];transport.to=data[base+16];transport.index=data[base+17];transport.embarked=!!(data[base+14]&2);}else unit.transport={from:data[base+15],to:data[base+16],index:data[base+17],embarked:!!(data[base+14]&2)};}else if(flags&2)delete unit.transport;}
   if(data[base+20])damage.set(unit.id,{amount:data[base+20],attacker:data[base+21]});
+  if(normalizeCache){data[base+4]-=data[base+20];data[base+19]=data[base+20]=data[base+21]=0;}
  }
 }
-export function updateBattleUnits(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>import('./content.ts').UnitStats,state:import('./types.ts').GameState,damage:Map<number,{amount:number;attacker:number}>):void {
- if(!active.length)return;const p=packBattleUnits(active,statsFor,state);kernel.updateBattalions();commitBattleUnits(active,p.data,damage);
+export function updateBattleUnits(active:readonly Unit[],statsFor:(owner:number,kind:Unit['kind'])=>import('./content.ts').UnitStats,state:import('./types.ts').GameState,damage:Map<number,{amount:number;attacker:number}>,lanes?:CombatLanes):void {
+ if(!active.length)return;const p=packBattleUnits(active,statsFor,state,false,undefined,undefined,lanes);kernel.updateBattalions();commitBattleUnits(active,p.data,damage);
 }
 
 export interface UnitCensus {counts:Uint32Array;occupants:Uint32Array;nearOwner:Int32Array;engineers:Uint8Array}

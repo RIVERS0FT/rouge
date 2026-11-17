@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
 import {captureReward} from '../../game/construction.ts';
-import {STATS, upgradeCost} from '../../game/content.ts';
+import {STATS, upgradeCostFor} from '../../game/content.ts';
 import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
 import type {GameState} from '../../game/types.ts';
@@ -31,7 +31,7 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
  const player = state.players[actor], text = (key: string) => t(language, key);
  const income = incomePerDay(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
  const progress = leaderProgress(player);
- const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < 8).map(upgradeCost);
+ const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < 8).map(level => upgradeCostFor(player, level));
  const cheapest = costs.length ? Math.min(...costs) : null;
  const domination = state.domination[actor] ?? 0;
  const rival = state.players.filter(p => p.id !== actor).map(p => ({player: p, value: state.domination[p.id] ?? 0})).sort((a, b) => b.value - a.value)[0];

@@ -8,6 +8,25 @@ const svgPath=(points:readonly ScreenPoint[])=>points.length>=3?`M${points.map(s
 export const ARROW_ART_UNIT=.4;
 const CHEVRON=[[-4,-4],[0,-4],[4,0],[0,4],[-4,4],[0,0]];
 
+/** Round stroke made of ground-plane polygons, so its width follows local perspective. */
+function strokePolygons(contour:readonly ScreenPoint[],radius:number){
+ const polygons:ScreenPoint[][]=[];
+ const directions=contour.map((a,i)=>{const b=contour[(i+1)%contour.length],length=Math.hypot(b.x-a.x,b.y-a.y);return {x:(b.x-a.x)/length,y:(b.y-a.y)/length};});
+ for(let i=0;i<contour.length;i++){
+  const a=contour[i],b=contour[(i+1)%contour.length],next=directions[i],previous=directions[(i+contour.length-1)%contour.length];
+  const nx=-next.y*radius,ny=next.x*radius;
+  // All subpaths have the same winding; overlaps are filled once, with no alpha seams.
+  polygons.push([{x:a.x+nx,y:a.y+ny},{x:a.x-nx,y:a.y-ny},{x:b.x-nx,y:b.y-ny},{x:b.x+nx,y:b.y+ny}]);
+  const turn=previous.x*next.y-previous.y*next.x;
+  if(Math.abs(turn)<1e-10)continue;
+  const angle=Math.atan2(turn,previous.x*next.x+previous.y*next.y),side=turn>0?-1:1;
+  const start=Math.atan2(previous.x*side,-previous.y*side),steps=Math.ceil(Math.abs(angle)/(Math.PI/8));
+  const join=[a,...Array.from({length:steps+1},(_,step)=>({x:a.x+Math.cos(start+angle*step/steps)*radius,y:a.y+Math.sin(start+angle*step/steps)*radius}))];
+  polygons.push(turn>0?join:join.reverse());
+ }
+ return polygons;
+}
+
 export function dispatchThreshold(pointerType:string){
  return pointerType==='touch'||pointerType==='pen'?8:5;
 }
@@ -39,14 +58,16 @@ export function dispatchRibbon(source:ScreenPoint,cursor:ScreenPoint,endGap?:num
  const contour=[...edge(1),point(tip,shoulder),end,point(tip,-shoulder),...edge(-1).reverse()];
  const projected=projection?.polygon(contour)??contour,d=svgPath(projected);
  if(!d)return null;
- const mid=tip/2,a=projection?.point(point(mid,-unit/2)),b=projection?.point(point(mid,unit/2));
- const outlineWidth=a&&b?Math.hypot(b.x-a.x,b.y-a.y)*.8:0;
  const marker=(t:number)=>{
   const p=point(t),scale=width(t)/10;
   const opacity=clamp(t/.1,0,1)*clamp((tip-t)/.16,0,1)*.9;
   return {x:p.x,y:p.y,angle:p.angle,scale,opacity};
  };
- return {d,projected,outlineWidth,length:distance-reticleGap,tip,marker,
+ return {d,projected,length:distance-reticleGap,tip,marker,
+  outline(){
+   const projected=strokePolygons(contour,.4*unit).map(polygon=>projection?.polygon(polygon)??polygon);
+   return {d:projected.map(svgPath).join(''),projected};
+  },
   markerPath(t:number){
    const p=marker(t),angle=p.angle*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle);
    const vertices=CHEVRON.map(([x,y])=>({x:p.x+(x*cos-y*sin)*p.scale,y:p.y+(x*sin+y*cos)*p.scale}));

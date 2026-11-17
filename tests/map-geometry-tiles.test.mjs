@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {mapGeometryTiles,wideBorderTiles} from '../src/render/mapGeometryTiles.ts';
+import {mapGeometryTiles,nativeBorderTiles,wideBorderTiles} from '../src/render/mapGeometryTiles.ts';
+import {borderLineTiles} from '../src/render/borderLineTiles.ts';
 import {LineSegments2} from 'three/examples/jsm/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import {LineMaterial} from 'three/examples/jsm/lines/LineMaterial.js';
@@ -48,4 +49,28 @@ test('wide country border tiles retain all endpoints, widths and cross-tile boun
  }
  assert.deepEqual(segments,points);source.material.linewidth=3;assert.ok(tiles.children.every(line=>line.material.linewidth===3));
  for(const line of tiles.children)line.geometry.dispose();source.geometry.dispose();source.material.dispose();
+});
+
+test('worker-prepared borders exactly preserve native and wide tiles, including large indices and negative seams',()=>{
+ const points=[];
+ for(let i=0;i<40000;i++){const x=(i%17-8)*128+(i%3)*.00001,z=(i%11-5)*128;points.push(x,.24,z,x+(i%7)*50,.24,z+(i%13)*31);}
+ points.push(-500,.24,-20,500,.24,20);
+ const positions=new Float32Array(points),transferred=structuredClone(borderLineTiles(positions),{transfer:[]});
+ const source=new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(positions,3)),new THREE.LineBasicMaterial());
+ const wide=new LineSegments2(new LineSegmentsGeometry().setPositions(positions),new LineMaterial({linewidth:2.2}));
+ const pairs=[[mapGeometryTiles(source,2),nativeBorderTiles(source,transferred)],[wideBorderTiles(wide),wideBorderTiles(wide,128,transferred)]];
+ for(const [original,prepared] of pairs){
+  assert.equal(prepared.children.length,original.children.length);
+  for(let i=0;i<original.children.length;i++){
+   const before=original.children[i],after=prepared.children[i];assert.equal(after.material,before.material);assert.equal(after.frustumCulled,before.frustumCulled);
+   for(const name of ['position','instanceStart','instanceEnd']){
+    const a=before.geometry.getAttribute(name),b=after.geometry.getAttribute(name);if(!a)continue;
+    assert.equal(b.count,a.count);for(let j=0;j<a.count;j++)assert.deepEqual([b.getX(j),b.getY(j),b.getZ(j)],[a.getX(j),a.getY(j),a.getZ(j)]);
+   }
+   assert.deepEqual(after.geometry.boundingBox,before.geometry.boundingBox);assert.deepEqual(after.geometry.boundingSphere,before.geometry.boundingSphere);
+  }
+  for(const group of [original,prepared])for(const line of group.children)line.geometry.dispose();
+ }
+ source.geometry.dispose();source.material.dispose();wide.geometry.dispose();wide.material.dispose();
+ assert.deepEqual(borderLineTiles(new Float32Array()),[]);
 });

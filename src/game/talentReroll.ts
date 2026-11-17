@@ -5,10 +5,15 @@ export function talentRerollCost(player:Pick<Player,'rerollsUsed'|'level'>):numb
  return 30+10*Math.max(0,player.level-2)+15*player.rerollsUsed;
 }
 
-export function availableTalentIds(player:Pick<Player,'talents'|'loadout'>):string[]{
- return TALENTS.filter(t=>!player.talents.includes(t.id)&&talentApplies(t,player.loadout)).map(t=>t.id);
+/** Unowned talents this country can draw now. Drafts are not weighted by any
+ * build: rule-changing talents only wait for a leader level. */
+export function availableTalentIds(player:Pick<Player,'talents'|'loadout'>&{level?:number}):string[]{
+ const level=player.level??1;
+ return TALENTS.filter(t=>!player.talents.includes(t.id)&&talentApplies(t,player.loadout)&&level>=(t.minLevel??1)).map(t=>t.id);
 }
 
-export function canRerollTalent(player:Pick<Player,'talents'|'loadout'|'choices'|'drafts'>):boolean{
- return player.drafts>0&&player.choices.length>0&&availableTalentIds(player).some(id=>!player.choices.includes(id));
+/** A reroll may keep one offered card; it must still be able to change another. */
+export function canRerollTalent(player:Pick<Player,'talents'|'loadout'|'choices'|'drafts'>&{level?:number},keep?:string):boolean{
+ if(player.drafts<=0||!player.choices.length||(keep!==undefined&&!player.choices.includes(keep)))return false;
+ return availableTalentIds(player).some(id=>!player.choices.includes(id));
 }

@@ -48,11 +48,13 @@ test('non-artillery attacks remain single target even with clustered enemies',()
  const {e,s,unit}=battle('infantry');s.units.push(unit(3,1,'infantry',1,.1));e.step(1);
  close(10000-s.units.find(u=>u.id===2).hp,14*100/110);close(s.units.find(u=>u.id===3).hp,10000);
 });
-test('attack upgrade and unit talents retain multipliers before defender armor',()=>{
- for(const [kind,talent]of [['cavalry','charge'],['heavyCavalry','charge'],['artillery','barrage'],['horseArtillery','barrage']]){
-  const {e,s,defender}=battle(kind);s.players[0].talents=['veterans',talent];
+test('attack upgrades and Veteran cadres scale attack before conditional talent bonuses and armor',()=>{
+ // Charge needs the attacker under orders; Siege guns needs a garrisoned target (the defender has no order).
+ for(const [kind,talent,bonus,march]of [['cavalry','charge',.35,true],['artillery','barrage',.4,false]]){
+  const {e,s,attacker,defender}=battle(kind);s.players[0].talents=['veterans',talent];
+  if(march)Object.assign(attacker,{target:attacker.province,destination:attacker.province});
   assert.equal(e.command(0,{type:'upgrade',kind,stat:'attack'}).ok,true);
-  const hp=defender.hp;e.step(1);close(hp-defender.hp,(UNITS[kind].attack+2)*1.12*1.25*100/110);
+  const hp=defender.hp;e.step(1);close(hp-defender.hp,(UNITS[kind].attack+2)*1.12*(1+bonus)*100/110);
  }
 });
 
@@ -70,7 +72,7 @@ test('engineers keep 1.5 capture multiplier and existing multiplicative capture 
   const u=unit(1,0,kind);Object.assign(u,{x:MAP[target].center.x,z:MAP[target].center.z,province:target,origin:target});s.units=[u];s.players[0].talents=talents;
   e.step(20);return s.provinces[target].capture;
  }
- close(capture('infantry'),1);close(capture('engineer'),1.5);close(capture('engineer',['conqueror','sappers']),1.5*1.3*1.3);
+ close(capture('infantry'),1);close(capture('engineer'),1.5);close(capture('engineer',['conqueror','sappers']),1.5*1.3);
 });
 
 for(const kind of ['grenadier','horseArtillery'])test(kind+': bounded splash shares combat formula',()=>{

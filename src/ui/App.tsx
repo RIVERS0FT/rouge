@@ -7,6 +7,7 @@ import type {Flag} from '../game/flags.ts';
 import {MAP} from '../game/map.ts';
 import {deleteSave, decodeSave, encodeSave, listSaves, MAX_SAVE_BYTES, readSave, writeAutosave, writeSave, type SaveInfo} from '../game/save.ts';
 import {getSpawnCapacity, makeAISetups} from '../game/spawns.ts';
+import {formedBuilds} from '../game/talentBuilds.ts';
 import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
 import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
 import type {WorldRenderer} from '../render/WorldRenderer.ts';
@@ -35,6 +36,7 @@ import {SessionLifetime} from './SessionLifetime.tsx';
 import {loadSetupPreferences, saveSetupPreferences} from './setupPreferences.ts';
 import {StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
 import {talentSelectionStatus} from './talentSelection.ts';
+import {loadCodex, saveCodex} from './talentText.tsx';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
 import {TerritoryPanel} from './TerritoryPanel.tsx';
 import {World} from './World.tsx';
@@ -79,6 +81,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [localStarting, setLocalStarting] = useState(false);
  const [pendingTalent, setPendingTalent] = useState<string | null>(null);
  const seenTalentRound = useRef<string | null>(null);
+ const [codex, setCodex] = useState<string[]>(loadCodex);
  const [game, setGame] = useState<GameState | null>(null), [actor, setActor] = useState(0), [selected, setSelected] = useState(0);
  const [preferences] = useState(() => loadSetupPreferences());
  const [soloAICount, setSoloAICount] = useState('2'), [roomAICount, setRoomAICount] = useState('0'), [lobbyAI, setLobbyAI] = useState('0');
@@ -110,6 +113,15 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const report = (error: unknown) => setToast(text(`error.${error instanceof Error ? error.message : 'generic'}`));
  useEffect(() => setLobbyAI(String(room?.aiCount ?? 0)), [room?.aiCount]);
  useEffect(() => {if(eliminated) {setModal(null); setPendingTalent(null);}}, [eliminated]);
+ // A sample build counts as discovered once this country's talents form it in any campaign.
+ useEffect(() => {
+  if(!player) return;
+  const found = formedBuilds(player.talents).filter(id => !codex.includes(id));
+  if(!found.length) return;
+  const next = [...codex, ...found];
+  setCodex(next); saveCodex(next);
+  setToast(text('codexDiscovered').replace('{name}', found.map(id => text(`build.${id}`)).join(language === 'zh' ? '、' : ', ')));
+ }, [player?.talents]);
  useEffect(() => {
   const tracker = new InputDeviceTracker();
   const pointer = (event: PointerEvent) => setInputDevice(tracker.pointer(event as PointerEvent & PointerIntent, performance.now()));
@@ -364,7 +376,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     onName={setName} onCode={setCode} onStart={startSolo} onCreateRoom={() => roomAction(false)} onJoinRoom={() => roomAction(true)}/>}
    {modal === 'territories' && game && <TerritoryManagement state={game} grouping={game.grouping} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={issue}/>}
    {modal === 'talents' && player && game && <TalentsDialog player={player} campaign={game.campaign} seenRound={seenTalentRound} eliminated={eliminated} pending={pendingTalent !== null} language={language}
-    onChoose={id => {setPendingTalent(id); issue(countryActions.talent(id));}} onReroll={expectedCost => issue({type: 'reroll', expectedCost})}/>}
+    codex={codex} onChoose={id => {setPendingTalent(id); issue(countryActions.talent(id));}}
+    onReroll={(expectedCost, keep) => issue(keep === undefined ? {type: 'reroll', expectedCost} : {type: 'reroll', expectedCost, keep})}/>}
   </ModalDialog>}
   {localStarting && <ModalDialog label={text('starting')} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting" className="starting-modal">
    <p role="status" data-testid="local-starting"><Icon name="hourglass" size={18}/>{text('starting')}</p>

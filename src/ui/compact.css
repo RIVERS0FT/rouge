@@ -133,6 +133,9 @@
  .talent-card-front{padding:16px}
  .talent-symbol{width:58px;height:58px;font-size:30px;margin:4px 0 10px}
  .talent-card p,.talent-select{font-size:14px}
+ .talent-actions{flex-wrap:wrap;gap:8px}
+ .talent-keep-hint{margin-left:0}
+ .codex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .settings-language{flex-wrap:wrap;gap:10px}
  .new-save{flex-wrap:wrap}
  .new-save input{width:100%;flex-basis:100%}

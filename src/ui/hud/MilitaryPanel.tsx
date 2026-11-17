@@ -1,5 +1,5 @@
 import {countryActions, type CountryAction} from '../../game/countryActions.ts';
-import {STATS, stats, upgradeCost} from '../../game/content.ts';
+import {STATS, stats, upgradeCostFor} from '../../game/content.ts';
 import type {Player} from '../../game/types.ts';
 import {Icon} from '../icons.tsx';
 import {t, type Language} from '../i18n.ts';
@@ -24,7 +24,7 @@ export function MilitaryPanel({player, eliminated, language, onCommand, onClose}
     <UnitAttributes values={stats(player, kind)} language={language}/>
     <SectionRibbon>{text('upgrades')}</SectionRibbon>
     {STATS.map(stat => {
-     const level = player.upgrades[kind][stat], cost = upgradeCost(level), maxed = level >= MAX_LEVEL;
+     const level = player.upgrades[kind][stat], cost = upgradeCostFor(player, level), maxed = level >= MAX_LEVEL;
      // The row itself carries the tooltip, so the buy button's parent remains the row.
      return <Tip as="div" className="upgrade-row" key={stat} placement="right" content={<><TipTitle aside={maxed ? text('max') : `${level}/${MAX_LEVEL}`}>{text(stat)}</TipTitle>
       <TipRow label={text('upgradeEffect')} value={text(`${stat}.desc`)}/>

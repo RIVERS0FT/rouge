@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {LineSegments2} from 'three/examples/jsm/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import type {BorderLineTile} from './borderLineTiles.ts';
 
 /** Keep complete primitives in conservative bounds. Land attributes stay shared
  * so ownership/capture edits remain exact. Native line tiles own compact pairs:
@@ -26,14 +27,28 @@ export function mapGeometryTiles(source:THREE.Mesh|THREE.LineSegments,primitiveS
  return group;
 }
 
-export function wideBorderTiles(source:LineSegments2,side=128):THREE.Group{
+export function nativeBorderTiles(source:THREE.LineSegments,tiles:readonly BorderLineTile[]):THREE.Group{
+ const group=new THREE.Group();group.name=source.name;
+ for(const {positions} of tiles){
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geometry.computeBoundingBox();geometry.boundingBox!.expandByScalar(1);geometry.boundingSphere=geometry.boundingBox!.getBoundingSphere(new THREE.Sphere());
+  const lines=source.clone(false);lines.geometry=geometry;lines.frustumCulled=true;lines.name='coastline-tile';group.add(lines);
+ }
+ return group;
+}
+
+export function wideBorderTiles(source:LineSegments2,side=128,prepared?:readonly BorderLineTile[]):THREE.Group{
+ if(prepared)return wideTiles(source,prepared.map(tile=>tile.positions));
  const start=source.geometry.getAttribute('instanceStart'),end=source.geometry.getAttribute('instanceEnd'),tiles=new Map<string,number[]>();
  for(let i=0;i<start.count;i++){
   const key=`${Math.floor((start.getX(i)+end.getX(i))/(side*2))}:${Math.floor((start.getZ(i)+end.getZ(i))/(side*2))}`,points=tiles.get(key)??[];
   points.push(start.getX(i),start.getY(i),start.getZ(i),end.getX(i),end.getY(i),end.getZ(i));tiles.set(key,points);
  }
+ return wideTiles(source,tiles.values());
+}
+function wideTiles(source:LineSegments2,tiles:Iterable<number[]|Float32Array>):THREE.Group{
  const group=new THREE.Group();
- for(const points of tiles.values()){
+ for(const points of tiles){
   const geometry=new LineSegmentsGeometry().setPositions(points);geometry.boundingBox!.expandByScalar(16);geometry.boundingSphere=geometry.boundingBox!.getBoundingSphere(new THREE.Sphere());
   const lines=new LineSegments2(geometry,source.material);lines.name='country-border-tile';group.add(lines);
  }

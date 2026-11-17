@@ -133,7 +133,8 @@ small,.small{font-size:12px;line-height:1.6}
 .dispatch-tier[data-touch="true"]{pointer-events:auto;touch-action:none;min-height:44px}
 .dispatch-tier-hint{padding:2px 5px;border:1px solid #b18a4e70;border-radius:3px;color:#e9cc97;font:600 12px/1.2 system-ui,sans-serif}
 .attack-arrows{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
-.attack-arrows path{fill:#a04432;fill-opacity:.74;stroke:#ead5a2;stroke-opacity:.8;stroke-width:.8;stroke-linejoin:round}
+.attack-arrows path{fill:#a04432;fill-opacity:.74;stroke:none}
+.attack-arrows [data-attack-outline]{fill:#ead5a2;fill-opacity:.8}
 .dispatch-preview [data-dispatch-ribbon]{fill:#a04432;fill-opacity:.74}
 .dispatch-preview [data-dispatch-chevrons]{fill:#ffd5a0}
 .dispatch-preview [data-dispatch-target]{fill:none;stroke:#f38256;stroke-width:1.5;stroke-linejoin:round}

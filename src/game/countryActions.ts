@@ -16,11 +16,11 @@ export type CountryAction =
   | {type:'mergeGroups';groups:string[];expectedRevision:number}
   | {type:'splitGroup';group:string;atoms:string[];expectedRevision:number}
   | {type:'march';from:number;to:number;fraction:MarchFraction}
-  | {type:'construct';province:number;kind:ConstructionKind;expectedLevel:0|1}
+  | {type:'construct';province:number;kind:ConstructionKind;expectedLevel:0|1|2}
   | {type:'production';province:number;kind:Kind}
   | {type:'upgrade';kind:Kind;stat:Upgrade}
   | {type:'talent';id:string}
-  | {type:'reroll';expectedCost?:number};
+  | {type:'reroll';expectedCost?:number;keep?:string};
 
 export const countryActions={
   march:(from:number,to:number,fraction:MarchFraction=1)=>({type:'march',from,to,fraction} satisfies CountryAction),

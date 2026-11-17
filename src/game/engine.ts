@@ -11,12 +11,14 @@ import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainCle
 import {UNIT_RADIUS,COLLISION_MAX_PUSH,separateCircles,type CollisionReport} from './collision.ts';
 import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
-import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping} from './territoryEconomy.ts';
+import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping,capacityFor} from './territoryEconomy.ts';
 
-import {STARTING_FUNDS,MAX_FUNDS,captureReward,recoveryDuration,constructionCost,isConstructionKind,recoveryMultiplier,fundsIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier} from './construction.ts';
+import {STARTING_FUNDS,MAX_FUNDS,captureReward,recoveryDuration,constructionCost,isConstructionKind,recoveryMultiplier,fundsIncomeRate,constructionProductionMultiplier,captureSpeedMultiplier,maxConstructionLevel,plunderMultiplier,salvageValue,treasuryInterest} from './construction.ts';
+import {talentContext,combatLanes,tradeBonus,academyExperience,bastionAttrition,encircledBy,PULSE_TICKS,SAPPER_INTERVAL_TICKS,type TalentContext,type CombatLanes} from './talentEffects.ts';
+import {aiTalentChoice} from './talentBuilds.ts';
 import {isRegionGarrison} from './capacity.ts';
-import { DT, MAP_ID, STATE_VERSION, KINDS, STATS, UNITS, stats, upgradeCost, validateSetup, TALENT_BY_ID, talentApplies, UNIT_FAMILY } from './content.ts';
-import type { GameState, PlayerSetup, Player, Unit, Kind, Result } from './types.ts';
+import { DT, MAP_ID, STATE_VERSION, KINDS, STATS, UNITS, stats, upgradeCostFor, validateSetup, TALENT_BY_ID, talentApplies, talentAppliesToKind, hasTalent } from './content.ts';
+import type { GameState, PlayerSetup, Player, Province, Unit, Kind, Result } from './types.ts';
 function random(s:GameState):number{let x=s.rng;x^=x<<13;x^=x>>>17;x^=x<<5;s.rng=x>>>0;return s.rng/4294967296;}
 export function createGame(setups:PlayerSetup[],seed=20261108,campaign=`campaign-${seed}`):GameState{
   if(setups.length<2||setups.length>getSpawnCapacity()||!setups.every(validateSetup))throw new Error('invalidSetup');
@@ -67,11 +69,12 @@ function spawn(s:GameState,province:number,kind:Kind,initialNearby?:readonly Uni
   if(!Number.isFinite(best))return false;s.nextId++;
   s.units.push({id,owner:p.owner,kind,x,z,hp:stats(s.players[p.owner],kind).hp,province,target:null,origin:province,destination:null,route:[],cooldown:0});return true;
 }
-function draft(s:GameState,p:Player,previous:readonly string[]=[]):void{
+function draft(s:GameState,p:Player,previous:readonly string[]=[],keep?:string):void{
   if(p.choices.length||p.drafts<=0)return;
-  const available=availableTalentIds(p);
+  // Offers are uniform: no build weighting. A reroll may keep one card in its first slot.
+  const available=keep===undefined?availableTalentIds(p):availableTalentIds(p).filter(id=>id!==keep);
   for(let i=available.length-1;i>0;i--){const j=Math.floor(random(s)*(i+1));[available[i],available[j]]=[available[j],available[i]];}
-  p.choices=available.slice(0,3);
+  p.choices=keep===undefined?available.slice(0,3):[keep,...available.slice(0,2)];
   // A paid reroll must change at least one offered talent, not just its slot.
   if(previous.length===p.choices.length&&p.choices.every(id=>previous.includes(id))){
     const replacement=available.find(id=>!previous.includes(id));if(replacement)p.choices[p.choices.length-1]=replacement;
@@ -152,18 +155,19 @@ export class Engine{
         return{ok:true};
       }
       case 'construct':{
-        if(!Number.isInteger(c.province)||!isConstructionKind(c.kind)||(c.expectedLevel!==0&&c.expectedLevel!==1))return fail('invalidCommand');
+        // Level 3 exists only for countries with Industrial Base; a forged third level is malformed.
+        if(!Number.isInteger(c.province)||!isConstructionKind(c.kind)||(c.expectedLevel!==0&&c.expectedLevel!==1&&(c.expectedLevel!==2||maxConstructionLevel(p)<3)))return fail('invalidCommand');
         const province=s.provinces[c.province];
         if(!province||!MAP[c.province]?.playable||province.owner!==actor)return fail('notOwner');
         if(province.capture>0)return fail('constructionContested');
         const level=province.construction?.level??0;
         if(province.construction&&province.construction.kind!==c.kind)return fail('slotOccupied');
-        if(level===2)return fail('maxLevel');
+        if(level>=maxConstructionLevel(p))return fail('maxLevel');
         if(level!==c.expectedLevel)return fail('constructionChanged');
         const cost=constructionCost(c.kind,level,p),funds=p.funds;
         if(funds<cost)return fail('noFunds');
         p.funds=funds-cost;
-        province.construction={kind:c.kind,level:level===0?1:2};
+        province.construction={kind:c.kind,level:level===0?1:level===1?2:3};
         return{ok:true};
       }
       case 'production':{
@@ -174,20 +178,20 @@ export class Engine{
       }
       case 'upgrade':{
         if(!KINDS.includes(c.kind)||!STATS.includes(c.stat)||!p.loadout.includes(c.kind))return fail('invalidCommand');
-        const level=p.upgrades[c.kind][c.stat],cost=upgradeCost(level);if(level>=8)return fail('maxLevel');if(p.funds<cost)return fail('noFunds');
+        const level=p.upgrades[c.kind][c.stat],cost=upgradeCostFor(p,level);if(level>=8)return fail('maxLevel');if(p.funds<cost)return fail('noFunds');
         const oldHp=stats(p,c.kind).hp;p.funds-=cost;p.upgrades[c.kind][c.stat]++;this.physicsDirty.owners.add(actor);
         if(c.stat==='health'){const newHp=stats(p,c.kind).hp;for(const u of s.units)if(u.owner===actor&&u.kind===c.kind)u.hp=u.hp/oldHp*newHp;}return{ok:true};
       }
       case 'talent':{
         const talent=typeof c.id==='string'?TALENT_BY_ID.get(c.id):undefined;
-        if(!talent||p.drafts<1||!p.choices.includes(talent.id)||p.talents.includes(talent.id)||!talentApplies(talent,p.loadout))return fail('invalidChoice');
-        this.physicsDirty.owners.add(actor);const stat=talent.unit?.stat;
-        if(stat==='hp'||stat==='attackSpeed'){
+        if(!talent||p.drafts<1||!p.choices.includes(talent.id)||p.talents.includes(talent.id)||!talentApplies(talent,p.loadout)||p.level<(talent.minLevel??1))return fail('invalidChoice');
+        this.physicsDirty.owners.add(actor);
+        for(const mod of talent.unit??[])if(mod.stat==='hp'||mod.stat==='attackSpeed'){
           // The selected modifier applies to deployed troops as well as future ones.
           // Keep both the current HP fraction and progress through a running attack cooldown.
-          const factor=talent.unit?.factor??1;
-          for(const u of s.units)if(u.owner===actor&&(!talent.kind||UNIT_FAMILY[u.kind]===UNIT_FAMILY[talent.kind])){
-            if(stat==='hp')u.hp*=factor;else u.cooldown/=factor;
+          const factor=mod.factor??1;
+          for(const u of s.units)if(u.owner===actor&&talentAppliesToKind(talent,u.kind)){
+            if(mod.stat==='hp')u.hp*=factor;else u.cooldown/=factor;
           }
         }
         if(talent.id==='rapidRecovery'){
@@ -199,7 +203,8 @@ export class Engine{
         p.choices=[];p.drafts--;draft(s,p);return{ok:true};
       }
       case 'reroll':{
-        if(!canRerollTalent(p))return fail('noTalentReroll');
+        if(c.keep!==undefined&&(typeof c.keep!=='string'||!p.choices.includes(c.keep)))return fail('invalidCommand');
+        if(!canRerollTalent(p,c.keep))return fail('noTalentReroll');
         const cost=talentRerollCost(p);
         if(c.expectedCost!==undefined){
           if(!Number.isSafeInteger(c.expectedCost)||c.expectedCost<1)return fail('invalidCommand');
@@ -208,7 +213,7 @@ export class Engine{
         if(p.funds<cost)return fail('noFunds');
         const previous=p.choices;
         p.funds-=cost;p.rerollsUsed++;
-        p.choices=[];draft(s,p,previous);return{ok:true};
+        p.choices=[];draft(s,p,previous,c.keep);return{ok:true};
       }
       default:return fail('invalidCommand');
     }
@@ -260,23 +265,25 @@ export class Engine{
     const active=this.activeUnits();this.clearBuildings(active);
     const statCache=new Map<number,Map<Kind,ReturnType<typeof stats>>>();
     const unitStats=(owner:number,kind:Kind)=>{let values=statCache.get(owner);if(!values){values=new Map();statCache.set(owner,values);}let value=values.get(kind);if(!value){value=stats(s.players[owner],kind);values.set(kind,value);}return value;};
-    return {active,unitStats,topologyBefore};
+    // Talent combat lanes from orders, positions and ownership at the start of the tick.
+    const lanes=combatLanes(active,s,unitStats);
+    return {active,unitStats,topologyBefore,lanes};
   }
   private updatePrepared(frame:ReturnType<Engine['prepareTick']>):void {
     const damage=new Map<number,{amount:number;attacker:number}>();
-    try{updateBattleUnits(frame.active,frame.unitStats,this.state,damage);}
+    try{updateBattleUnits(frame.active,frame.unitStats,this.state,damage,frame.lanes);}
     catch{damage.clear();updateUnitsFallback(frame.active,frame.unitStats,this.state,damage,u=>this.halt(u));}
     this.finishTick(frame.active,damage,frame.topologyBefore);
   }
   private tick():void{this.updatePrepared(this.prepareTick());}
   private parallelBusy=false;private awaitingPhysics=false;
-  async stepParallel(run:(active:readonly Unit[],statsFor:(owner:number,kind:Kind)=>ReturnType<typeof stats>,state:GameState,dirty:{all:boolean;units:Set<Unit>;owners:Set<number>})=>Promise<{damage:Map<number,{amount:number;attacker:number}>;collision:CollisionReport;census?:UnitCensus}>,count=1):Promise<void>{
+  async stepParallel(run:(active:readonly Unit[],statsFor:(owner:number,kind:Kind)=>ReturnType<typeof stats>,state:GameState,dirty:{all:boolean;units:Set<Unit>;owners:Set<number>},lanes:CombatLanes)=>Promise<{damage:Map<number,{amount:number;attacker:number}>;collision:CollisionReport;census?:UnitCensus}>,count=1):Promise<void>{
     if(this.parallelBusy)throw Error('A simulation step is already running');this.parallelBusy=true;
     try{for(let i=0;i<count;i++){
       if(this.state.winner!==null)return;const frame=this.prepareTick();
       if(frame.active.length<256){this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
       let result;
-      try{this.awaitingPhysics=true;result=await run(frame.active,frame.unitStats,this.state,this.physicsDirty);}
+      try{this.awaitingPhysics=true;result=await run(frame.active,frame.unitStats,this.state,this.physicsDirty,frame.lanes);}
       catch{this.awaitingPhysics=false;this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
       finally{this.awaitingPhysics=false;}
       this.physicsDirty={all:false,units:new Set<Unit>(),owners:new Set<number>()};this.finishTick(frame.active,result.damage,frame.topologyBefore,result.collision,result.census);
@@ -285,8 +292,19 @@ export class Engine{
   private spawnIndex:Map<number|string,Unit[]>|undefined;private nativeSpawnUnits:readonly Unit[]|undefined;private freshSpawns:Unit[]=[];
   private finishTick(active:readonly Unit[],damage:Map<number,{amount:number;attacker:number}>,topologyBefore:number,collision?:CollisionReport,census?:UnitCensus):void{
     this.spawnIndex=undefined;this.nativeSpawnUnits=census?active:undefined;this.freshSpawns=[];const s=this.state,popKey=(owner:number,region:number)=>(owner+1)*MAP.length+region;
+    // Talent state is fixed at the start of the tick for every rule below.
+    const context=talentContext(s),pulse=s.tick%PULSE_TICKS===0,attrition=pulse&&context.profiles.some(p=>p.bastionGuns);
     // Apply accumulated damage simultaneously, so entity iteration order cannot prevent retaliation.
-    for(const u of s.units){const hit=damage.get(u.id);if(hit){u.hp-=hit.amount;if(u.hp<=0)experience(s,hit.attacker,12);}}s.units=s.units.filter(u=>u.hp>0);
+    // Bastion attrition joins the daily pass: enemies inside a holder's fortress region lose health.
+    for(const u of s.units){
+      const hit=damage.get(u.id);let amount=hit?hit.amount:0,killer=hit?hit.attacker:-1;
+      if(attrition&&!u.transport?.embarked){
+        const region=s.provinces[u.province],holder=region?region.owner:-1;
+        if(holder>=0&&holder!==u.owner&&context.profiles[holder].bastionGuns&&region.construction?.kind==='fortress'){amount+=bastionAttrition(region)*stats(s.players[u.owner],u.kind).hp;if(!hit)killer=holder;this.physicsDirty.units.add(u);}
+      }
+      if(amount){u.hp-=amount;if(u.hp<=0)this.unitKilled(u,killer);}
+    }
+    s.units=s.units.filter(u=>u.hp>0);
     if(collision)this.collision=collision;else this.separate(active);
     // Incoming orders and physical occupants affect training only, never march orders.
     // Sparse destinations scale with moving armies, not players × the entire map.
@@ -303,28 +321,35 @@ export class Engine{
     if(this.censusOccupants.length!==MAP.length){this.censusOccupants=new Uint32Array(MAP.length);this.censusNearOwner=new Int32Array(MAP.length);this.censusEngineers=new Uint8Array(MAP.length);}
     buildUnitCensus(s,this.censusCounts,this.censusOccupants,this.censusNearOwner,this.censusEngineers);
     }
+    const raiders=context.profiles.flatMap((profile,id)=>profile.raid?[id]:[]),academy=new Float64Array(s.players.length);
     for(const province of s.provinces){
       if(!MAP[province.id].playable||(province.owner<0&&!this.censusOccupants[province.id]))continue;
       const nearOwner=this.censusNearOwner[province.id],attacker=nearOwner>=0&&nearOwner!==province.owner?nearOwner:-1;
       if(attacker>=0){
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
-        const player=s.players[attacker],engineers=Boolean(this.censusEngineers[province.id]);
-        province.capture+=DT*captureSpeedMultiplier(province)*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(engineers&&player.talents.includes('sappers')?1.3:1);
-        if(province.capture>=8){province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});for(const u of s.units)if(!u.transport?.embarked&&u.province===province.id&&Math.hypot(u.x-MAP[province.id].center.x,u.z-MAP[province.id].center.z)<3.7&&u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
-      }else{province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
+        const player=s.players[attacker],engineers=Boolean(this.censusEngineers[province.id]),profile=context.profiles[attacker];
+        province.capture+=DT*(profile.stormTroops?1:captureSpeedMultiplier(province))*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(profile.encirclement&&encircledBy(context,province.id,attacker)?1.5:1);
+        if(province.capture>=8){const previous=province.owner;province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});this.captureTalents(province,previous,player);for(const u of s.units)if(!u.transport?.embarked&&u.province===province.id&&Math.hypot(u.x-MAP[province.id].center.x,u.z-MAP[province.id].center.z)<3.7&&u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+      }else if(!(nearOwner===-2&&province.captor>=0&&context.profiles[province.captor]?.siegeLines)){province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
       if(province.owner<0)continue;
-      const owner=s.players[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery,owner);
-      owner.funds=Math.min(MAX_FUNDS,owner.funds+DT*fundsIncomeRate(province,rate,owner));
+      const owner=s.players[province.owner],profile=context.profiles[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery,owner);
+      // Raiding cavalry present in an enemy region stops its income and training.
+      let raided=false;for(const raider of raiders)if(raider!==province.owner&&this.censusCounts[popKey(raider,province.id)]){raided=true;break;}
+      if(!raided)owner.funds=Math.min(MAX_FUNDS,owner.funds+DT*fundsIncomeRate(province,rate,owner,profile.tradeRoutes?tradeBonus(s,province.id,owner):0));
       province.recovery=province.recovery<=DT+1e-7?0:province.recovery-DT;
-      if(nearOwner!==-2&&nearOwner!==province.owner)continue;
+      if(profile.academy)academy[province.owner]+=academyExperience(province);
+      const contested=nearOwner!==-2&&nearOwner!==province.owner;
+      if((contested&&!profile.militia)||raided||context.encirclers.has(province.id))continue;
       const garrison=this.censusCounts[popKey(province.owner,province.id)];
       const key=popKey(province.owner,province.id);
-      if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=regionCapacity(province.id))continue;
-      province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*(owner.talents.includes('industry')?1.2:1)*(owner.talents.includes('logistics')?1.1:1);
+      if(garrison+(reservations.get(key)??0)+(queuedReservations.get(key)??0)>=capacityFor(s,province.id))continue;
+      const levy=profile.levy&&owner.funds>=5,besieged=profile.militia&&(contested||province.capture>0);
+      province.production+=DT*rate*recovery*constructionProductionMultiplier(province)*profile.trainingFactor*(levy?1.5:1)*(besieged?2:1);
       if(province.production>=UNITS[province.kind].train){
         province.production-=UNITS[province.kind].train;
         if(!spawn(s,province.id,province.kind,undefined,this.spawnNeighbors(province.id)))province.production=UNITS[province.kind].train;
         else{
+          if(levy)owner.funds=Math.max(0,owner.funds-5);
           const fresh=s.units[s.units.length-1];this.indexSpawned(fresh);
           // Full departures pull in fresh recruits only until the queue closes.
           // Replace the order object so LAN/broadcast deltas see the new ID.
@@ -333,6 +358,7 @@ export class Engine{
         }
       }
     }
+    this.dailyTalents(context,academy,damage,pulse);
     this.releaseMarches();
     // All captures have settled: losing then gaining a region in this tick is not defeat.
     if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
@@ -346,6 +372,54 @@ export class Engine{
       if(s.domination[p.id]>=30||(owned>0&&survivingOwners.size===1)){s.winner=p.id;s.events.push({tick:s.tick,key:'victory',player:p.id});break;}
     }
     if(s.events.length>32)s.events.splice(0,s.events.length-32);
+  }
+  /** Kill rewards for the killer's country and death effects for the victim's. */
+  private unitKilled(unit:Unit,killer:number):void {
+    const s=this.state,attacker=s.players[killer],victim=s.players[unit.owner];
+    if(attacker){
+      experience(s,killer,hasTalent(attacker,'battleHardened')?24:12);
+      if(hasTalent(attacker,'bounty'))attacker.funds=Math.min(MAX_FUNDS,attacker.funds+3*plunderMultiplier(attacker));
+    }
+    if(!victim)return;
+    if(hasTalent(victim,'pensions'))victim.funds=Math.min(MAX_FUNDS,victim.funds+5);
+    const region=s.provinces[unit.province];
+    if(region?.owner===unit.owner&&!unit.transport?.embarked&&hasTalent(victim,'martyrs')){const train=UNITS[region.kind].train;region.production=Math.min(train,region.production+train*.5);}
+  }
+  /** Capture effects of the new owner's talents, after the standard reward. */
+  private captureTalents(province:Province,previous:number,player:Player):void {
+    const s=this.state,gain=plunderMultiplier(player),victim=previous>=0?s.players[previous]:undefined;
+    if(victim&&hasTalent(player,'tribute')){const taken=Math.min(80,Math.floor(victim.funds*.1));victim.funds-=taken;player.funds=Math.min(MAX_FUNDS,player.funds+taken*gain);}
+    if(province.construction&&hasTalent(player,'salvage')){player.funds=Math.min(MAX_FUNDS,player.funds+salvageValue(province.construction)*gain);delete province.construction;}
+    if(!province.construction&&hasTalent(player,'fortify'))province.construction={kind:'fortress',level:1};
+    if(hasTalent(player,'pressGang'))for(let i=0;i<2;i++)if(spawn(s,province.id,province.kind,undefined,this.spawnNeighbors(province.id)))this.indexSpawned(s.units[s.units.length-1]);
+  }
+  /** Continuous and daily talent effects after regions have produced this tick. */
+  private dailyTalents(context:TalentContext,academy:Float64Array,damage:Map<number,{amount:number;attacker:number}>,pulse:boolean):void {
+    const s=this.state;
+    for(const p of s.players){
+      const profile=context.profiles[p.id];
+      if(profile.treasury)p.funds=Math.min(MAX_FUNDS,p.funds+DT*treasuryInterest(p));
+      if(academy[p.id])experience(s,p.id,DT*academy[p.id]);
+    }
+    // Field Medicine heals troops at rest in friendly regions; Supply Columns heals troops under orders.
+    if(pulse&&context.profiles.some(p=>p.fieldMedicine||p.supplyColumns)){
+      for(const u of s.units){
+        if(u.owner<0)continue;const profile=context.profiles[u.owner];if(!profile.fieldMedicine&&!profile.supplyColumns)continue;
+        let heal=0;
+        if(profile.supplyColumns&&u.target!==null)heal+=.02;
+        if(profile.fieldMedicine&&!u.transport?.embarked&&u.cooldown<=0&&!damage.has(u.id)&&s.provinces[u.province]?.owner===u.owner)heal+=.03;
+        if(!heal)continue;const maximum=stats(s.players[u.owner],u.kind).hp;if(u.hp>=maximum)continue;
+        u.hp=Math.min(maximum,u.hp+maximum*heal);this.physicsDirty.units.add(u);
+      }
+    }
+    // Sappers: every ten days, a building with the owner's troops present gains a level.
+    if(s.tick%SAPPER_INTERVAL_TICKS===0&&context.profiles.some(p=>p.sappers)){
+      for(const province of s.provinces){
+        const building=province.construction;if(!building||province.owner<0||!context.profiles[province.owner].sappers)continue;
+        if(building.level>=maxConstructionLevel(s.players[province.owner])||!this.censusCounts[(province.owner+1)*MAP.length+province.id])continue;
+        province.construction={kind:building.kind,level:building.level===1?2:3};
+      }
+    }
   }
   private spawnCell(x:number,z:number):number|string {return x>=0&&x<1024&&z>=0&&z<1024?z*1024+x:x+':'+z;}
   private indexSpawned(u:Unit):void {
@@ -456,7 +530,7 @@ export class Engine{
     for(const v of s.provinces)if(MAP[v.id].playable&&actors.has(v.owner)){const ids=territories.get(v.owner)??[];ids.push(v.id);territories.set(v.owner,ids);}
     for(const u of s.units){occupants[u.province]++;if(!actors.has(u.owner)||s.provinces[u.province]?.owner!==u.owner||!isRegionGarrison(u,u.owner,u.province))continue;const units=garrisons.get(u.province)??[];units.push(u);garrisons.set(u.province,units);}
     for(const p of scheduled.filter(p=>territories.has(p.id))){
-      if(p.choices.length)this.command(p.id,countryActions.talent(p.choices[0]));
+      if(p.choices.length)this.command(p.id,countryActions.talent(aiTalentChoice(s,p)));
       if(p.funds>160)this.command(p.id,countryActions.upgrade(p.loadout[Math.floor(random(s)*p.loadout.length)],STATS[Math.floor(random(s)*3)]));
       for(const id of territories.get(p.id)??[]){
         const province=s.provinces[id];if(province.march)continue;
