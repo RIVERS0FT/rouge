@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import * as THREE from 'three';
 import {buildBorderEdges} from '../src/render/territoryBorders.ts';
-import {innerGlowMesh} from '../src/render/selectionGlow.ts';
+import {innerGlowMesh,SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY} from '../src/render/selectionGlow.ts';
 import {MAP,containsPart,BOUNDS} from '../src/game/map.ts';
 import {clipTriangle} from '../src/game/crop.ts';
 const square=(x,z,w,h)=>[{x,z},{x:x+w,z},{x:x+w,z:z+h},{x,z:z+h}];
@@ -17,6 +17,23 @@ test('inner glow is a finite strip, never whole-face vertex interpolation',()=>{
  assert.ok(mesh.distance.some(d=>d<.01));assert.ok(mesh.distance.some(d=>d>1.99));
  for(let i=0;i<mesh.points.length;i+=3){const triangle=mesh.points.slice(i,i+3);assert.equal(insideTriangle({x:10,z:10},triangle),false);for(const p of triangle)assert.ok(p.x>=0&&p.x<=20&&p.z>=0&&p.z<=20);}
 });
+test('stronger and wider glow reaches the expanded fade strip without filling the region or spilling past an island',()=>{
+ assert.equal(SELECTION_GLOW_WIDTH,2.85);assert.equal(SELECTION_GLOW_OPACITY,.33);
+ const ring=square(0,0,20,20),island=square(30,0,.23,.16),parts=[[ring],[island]],triangles=tessellate(parts);
+ const previous=innerGlowMesh(triangles,segments([ring,island]),2),mesh=innerGlowMesh(triangles,segments([ring,island]));
+ const covers=(m,p)=>{for(let i=0;i<m.points.length;i+=3)if(insideTriangle(p,m.points.slice(i,i+3)))return true;return false;};
+ assert.equal(covers(previous,{x:9.3,z:2.38}),false);
+ assert.equal(covers(mesh,{x:9.3,z:2.38}),true,'The new outer fade band is visible inside the land');
+ assert.equal(covers(mesh,{x:9.3,z:3.15}),false,'The glow still terminates before the center');
+ assert.equal(covers(mesh,{x:30.1,z:.07}),true,'A tiny disconnected island keeps valid glow');
+ assert.equal(covers(mesh,{x:30.25,z:.07}),false,'No glow over the adjacent sea');
+ const shader=readFileSync(new URL('../src/render/WorldRenderer.ts',import.meta.url),'utf8');
+ assert.match(shader,/opacity:SELECTION_GLOW_OPACITY/);
+ assert.match(shader,/uGlowWidth=\{value:SELECTION_GLOW_WIDTH\}/);
+ assert.match(shader,/1\.0 - smoothstep\(0\.0, uGlowWidth, vEdgeDistance\)/);
+ assert.match(shader,/diffuseColor\.a \*= fade \* fade/);
+});
+
 test('glow clips to concave land triangles, preserving holes and disconnected islands',()=>{
  const parts=[[square(0,0,20,20),square(5,5,10,10)],[square(30,0,6,6)]],triangles=tessellate(parts),mesh=innerGlowMesh(triangles,segments(parts.flat()),2);
  assert.ok(mesh.points.length>0);
@@ -32,7 +49,7 @@ test('real cropped polar and date-line selections stay on their land mesh with b
 });
 test('largest source boundary has bounded selection rebuild work',()=>{
  const count=p=>p.parts.flat().reduce((n,r)=>n+r.length,0),p=[...MAP].sort((a,b)=>count(b)-count(a))[0];
- const triangles=tessellate(p.parts),started=performance.now(),mesh=innerGlowMesh(triangles,buildBorderEdges([p],BOUNDS).map(e=>[e.a,e.b]),2),elapsed=performance.now()-started;
+ const triangles=tessellate(p.parts),started=performance.now(),mesh=innerGlowMesh(triangles,buildBorderEdges([p],BOUNDS).map(e=>[e.a,e.b])),elapsed=performance.now()-started;
  console.log(`Largest selection ${p.code}: ${count(p)} boundary vertices, ${triangles.length} land triangles, ${mesh.points.length} glow vertices, ${elapsed.toFixed(1)} ms`);
  assert.ok(mesh.points.length<750000,'Bounded overlay geometry');assert.ok(elapsed<5000,'Regression guard, not a mobile frame-time guarantee');
 });
@@ -118,7 +135,7 @@ test('acute and shallow zigzag corners stay single-sided and smoothly faded',()=
  for(let i=0;i<mesh.points.length;i+=3){
   const t=mesh.points.slice(i,i+3),center={x:t.reduce((sum,p)=>sum+p.x,0)/3,z:t.reduce((sum,p)=>sum+p.z,0)/3};
   assert.ok(containsPart(parts[0],center.x,center.z),'Glow never leaks across the zigzag border');
-  assert.ok(mesh.distance.slice(i,i+3).every(d=>d>=0&&d<=2));
+  assert.ok(mesh.distance.slice(i,i+3).every(d=>d>=0&&d<=SELECTION_GLOW_WIDTH));
  }
 });
 

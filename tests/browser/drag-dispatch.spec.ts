@@ -44,7 +44,8 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  const drag=async()=>{
   await page.mouse.move(start.x,start.y);await page.mouse.down();
   await page.mouse.move(target.x,target.y,{steps:5});
-  await expect(arrow).toBeVisible();await expect(arrow).toHaveAttribute('data-target',String(mapOrderFixture.target));
+  await expect(arrow).toHaveAttribute('data-phase','dragging');await expect(arrow).toHaveAttribute('data-target',String(mapOrderFixture.target));
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','true');
  };
  await drag();await expect(tier).toHaveAttribute('data-count','12');
  for(const [fraction,count] of [['0.25','3'],['0.5','6'],['0.75','9'],['1','12']]){
@@ -93,7 +94,8 @@ test.describe('touch garrison dispatch',()=>{
   for(const cancelled of [true,false]){
    await touch('touchStart',[{...start,id:1}]);
    await touch('touchMove',[{...target,id:1}]);
-   await expect(arrow).toBeVisible();
+   await expect(arrow).toHaveAttribute('data-phase','dragging');
+   await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','true');
    await expect(arrow).toHaveAttribute('data-target',String(mapOrderFixture.target));
    await expect(tier).toHaveAttribute('data-fraction','1');
    await tier.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:998,button:0,bubbles:true});

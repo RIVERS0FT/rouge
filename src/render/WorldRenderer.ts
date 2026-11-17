@@ -5,6 +5,7 @@ import {battleContacts,type BattleContact} from './battleContacts.ts';
 import {OCEAN_LABEL_WORLD_WIDTH} from './oceanLabels.ts';
 import {DispatchPreview} from './dispatchPreview.ts';
 import {AttackArrows} from './attackArrows.ts';
+import {RoutePaintLayer} from './routePaintLayer.ts';
 import {groundArrowProjection} from './groundArrowProjection.ts';
 import {AttackRouteTracker,type AttackRoute} from './attackRoutes.ts';
 import {dispatchSources,dispatchThreshold,type ScreenPoint} from './dispatchRibbon.ts';
@@ -17,6 +18,7 @@ import {FlatMapCache} from './flatMapCache.ts';
 import {mapGeometryTiles,nativeBorderTiles,wideBorderTiles} from './mapGeometryTiles.ts';
 import type {BorderLineTile} from './borderLineTiles.ts';
 import {CountryLabelText} from './countryLabelText.ts';
+import {MAP_LAYERS,layerMapEntity} from './mapLayers.ts';
 import {COUNTRY_FONT_WEIGHT,COUNTRY_INK_OPACITY,COUNTRY_OUTLINE,COUNTRY_OUTLINE_OPACITY,countryInk,countryOutlineWidth} from './countryTypography.ts';
 import {CoastShadow,COAST_SHADOW_WIDTH} from './coastShadow.ts';
 import {PoliticalTint} from './politicalTint.ts';
@@ -110,6 +112,7 @@ export class WorldRenderer {
   private provinceLayer:HTMLDivElement;
   private dispatchPreview:DispatchPreview;
   private attackArrows:AttackArrows;
+  private routeLayer:RoutePaintLayer;
   private lastAttackView='';private lastAttackRoutes:readonly AttackRoute[]|null=null;
   private battleBadges:BattleBadges;
   private battles:BattleContact[]=[];
@@ -171,9 +174,10 @@ export class WorldRenderer {
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
     this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
-    this.attackArrows=new AttackArrows(host);
+    this.routeLayer=new RoutePaintLayer(this.scene,()=>{this.invalidated=true;});
+    this.attackArrows=new AttackArrows(host,this.routeLayer);
     this.battleBadges=new BattleBadges(host);
-    this.dispatchPreview=new DispatchPreview(host);host.append(this.provinceLayer);
+    this.dispatchPreview=new DispatchPreview(host,this.routeLayer);host.append(this.provinceLayer);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.selectionOverlay.name='selection-overlay';
@@ -224,16 +228,16 @@ export class WorldRenderer {
     this.politicalTint=new PoliticalTint(BOUNDS,{width:tintWidth,height:Math.round(tintWidth*(BOUNDS.bottom-BOUNDS.top)/(BOUNDS.right-BOUNDS.left))});
     this.politicalTint.attach(material);this.politicalTint.stripePeriod.value=11*this.renderer.getPixelRatio();this.renderer.domElement.dataset.politicalTint='painted-edges';
     this.land=new THREE.Mesh(geometry,material);this.atlas.add(mapGeometryTiles(this.land,3));
-    this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.flatSurface(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.atlas.add(this.admin);
-    const outlines=this.lines(coasts,0x35433f,0.7);this.flatSurface(outlines.material as THREE.Material);outlines.name='coastlines';this.atlas.add(mapGeometryTiles(outlines,2));
-    this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.atlas.add(this.countries);
+    this.admin=this.lines([],0x4c514a,internalBorderOpacity(this.distance));this.flatSurface(this.admin.material as THREE.Material);this.admin.name='region-boundaries';this.admin.renderOrder=MAP_LAYERS.regionBorder;this.atlas.add(this.admin);
+    const outlines=this.lines(coasts,0x35433f,0.7);this.flatSurface(outlines.material as THREE.Material);outlines.name='coastlines';outlines.renderOrder=MAP_LAYERS.regionBorder;this.atlas.add(mapGeometryTiles(outlines,2));
+    this.countries=this.wideLines([],COUNTRY_BORDER_COLOR,COUNTRY_BORDER_WIDTH);this.countries.name='country-boundaries';this.countries.renderOrder=MAP_LAYERS.countryBorder;this.atlas.add(this.countries);
     this.renderer.domElement.dataset.boundaryMode='ownership-and-management';
     this.renderer.domElement.dataset.neutralBorders='independent-territories';
     this.renderer.domElement.dataset.countryBorderWidth=String(COUNTRY_BORDER_WIDTH);
     this.renderer.domElement.dataset.selectionBorderWidth=String(SELECTION_BORDER_WIDTH);
     this.renderer.domElement.dataset.coastBorderSegments=String(coasts.length/6);
     this.renderer.domElement.dataset.regionCount=String(MAP.length);
-    this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=2;this.selectionOverlay.add(this.selection);
+    this.selection=this.wideLines([],0xead5a2,SELECTION_BORDER_WIDTH);this.selection.name='selected-border';this.selection.renderOrder=MAP_LAYERS.selectedBorder;this.selectionOverlay.add(this.selection);
     const glowMaterial=new THREE.MeshBasicMaterial({color:0xead5a2,transparent:true,opacity:SELECTION_GLOW_OPACITY,depthWrite:false,side:THREE.DoubleSide});
     glowMaterial.onBeforeCompile=shader=>{
       // The glow shares the flat land datum, with only a subpixel depth lift.
@@ -247,7 +251,7 @@ export class WorldRenderer {
     glowMaterial.customProgramCacheKey=()=> 'earth-selection-inner-glow-v5-flat';
     const initialGlow=new THREE.BufferGeometry();initialGlow.setAttribute('position',new THREE.Float32BufferAttribute([],3));initialGlow.setAttribute('edgeDistance',new THREE.Float32BufferAttribute([],1));
     this.emptyGlow=initialGlow;
-    this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=1;this.selectionOverlay.add(this.selectionGlow);
+    this.selectionGlow=new THREE.Mesh(initialGlow,glowMaterial);this.selectionGlow.name='selected-inner-glow';this.selectionGlow.renderOrder=MAP_LAYERS.hoverGlow;this.selectionOverlay.add(this.selectionGlow);
     // Reuse the same GPU geometry/materials. Only the camera view and picking wrap;
     // canonical entity positions and province IDs never duplicate.
     for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.atlas.clone(true);copy.position.x=offset;copy.visible=false;this.repeats.push(copy);this.scene.add(copy);}
@@ -255,13 +259,13 @@ export class WorldRenderer {
     for(let i=0;i<48;i++) {
       const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
       const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
-      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));sprite.renderOrder=5;sprite.visible=false;
+      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));sprite.renderOrder=MAP_LAYERS.countryName;sprite.visible=false;
       this.labels.push({sprite,canvas,texture,key:''});this.scene.add(sprite);
     }
     this.bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.13,0.34,3,5),new THREE.MeshStandardMaterial({roughness:1}),512);
     this.heads=new THREE.InstancedMesh(new THREE.SphereGeometry(0.14,5,4),new THREE.MeshStandardMaterial({color:0xd2c8ad,roughness:1}),512);
     this.towns=new TownBuildings(this.scene,()=>{this.invalidated=true;this.backgroundFrame=true;});
-    for(const mesh of [this.bodies,this.heads]){mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
+    for(const mesh of [this.bodies,this.heads]){layerMapEntity(mesh,mesh.material as THREE.Material);mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;this.scene.add(mesh);}
     host.addEventListener('pointerdown',this.plaquePointerDown,true);host.addEventListener('wheel',this.plaqueWheel,{passive:false});host.addEventListener('contextmenu',this.contextMenu);
     window.addEventListener('keydown',this.dispatchKey,true);window.addEventListener('pointerdown',this.dispatchOutsidePointer,true);window.addEventListener('blur',this.cancelDispatch);
     document.addEventListener('visibilitychange',this.dispatchVisibility);
@@ -279,7 +283,7 @@ export class WorldRenderer {
     if(required<=this.unitInstanceCapacity)return;
     let capacity=this.unitInstanceCapacity;while(capacity<required)capacity*=2;
     const grow=(old:THREE.InstancedMesh)=>{
-      const next=new THREE.InstancedMesh(old.geometry,old.material,capacity);
+      const next=new THREE.InstancedMesh(old.geometry,old.material,capacity);layerMapEntity(next,next.material as THREE.Material);
       next.frustumCulled=false;next.instanceMatrix.setUsage(THREE.DynamicDrawUsage);next.count=0;
       this.scene.remove(old);old.dispose();this.scene.add(next);return next;
     };
@@ -510,7 +514,7 @@ export class WorldRenderer {
     const p=MAP[id];if(!p?.visible)return;this.renderer.domElement.dataset.settled='false';this.globalView=false;this.invalidated=true;this.focus.set(p.center.x,0,p.center.z);this.desiredFocusZ=p.center.z;
     this.desiredDistance=THREE.MathUtils.clamp(Math.max(p.bounds.right-p.bounds.left,p.bounds.bottom-p.bounds.top)*2.4,16,240);
   }
-  private resize=()=>{this.cancelDispatch();this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.viewportWidth=w;this.viewportHeight=h;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
+  private resize=()=>{this.cancelDispatch();this.backgroundFrame=true;this.down=null;this.touches.clear();this.touchBase=null;this.touchMoved=true;this.invalidated=true;this.renderer.domElement.dataset.settled='false';const w=this.host.clientWidth,h=this.host.clientHeight;if(w<1||h<1)return;this.viewportWidth=w;this.viewportHeight=h;this.renderer.setSize(w,h);this.routeLayer.resize(w,h,this.renderer.getPixelRatio());this.camera.aspect=w/h;this.camera.updateProjectionMatrix();if(this.globalView){this.desiredDistance=worldCoverDistance(w/h);if(!this.resized)this.distance=this.desiredDistance;}this.desiredDistance=Math.min(this.desiredDistance,worldCoverDistance(w/h));this.distance=Math.min(this.distance,worldCoverDistance(w/h));this.resized=true;};
   private pick(e:Pick<PointerEvent,'clientX'|'clientY'>):number {
     const r=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);this.ray.setFromCamera(this.pointer,this.camera);
     const point=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-LAND_Y);
@@ -1071,9 +1075,10 @@ export class WorldRenderer {
     },projection,this.viewportWidth,this.viewportHeight,factionColor,view);
   }
   private drawWorld(){
+    this.routeLayer.flush();this.renderer.domElement.dataset.routeOverlayVisible=String(this.routeLayer.mesh.visible);
     if(this.blend>0){this.coastShadow.renderMask(this.renderer,this.camera,!this.globalView);this.renderer.render(this.scene,this.camera);return;}
     // Selection is a live world-space overlay, never part of a background tile.
-    const live=[this.bodies,this.heads,this.towns.group,this.countryText.group,this.selectionOverlay,...this.selectionRepeats,...this.labels.map(label=>label.sprite)],visibility=live.map(object=>object.visible);
+    const live=[this.bodies,this.heads,this.towns.group,this.countryText.group,this.routeLayer.mesh,this.selectionOverlay,...this.selectionRepeats,...this.labels.map(label=>label.sprite)],visibility=live.map(object=>object.visible);
     this.flatMapCache.prepare(this.renderer,this.camera,this.mapRevision,!this.globalView,(camera,width,height,pixelRatio,viewport)=>{
       for(const object of live)object.visible=false;
       const lines=[this.countries.material] as LineMaterial[],resolutions=lines.map(material=>material.resolution.clone());
@@ -1099,7 +1104,7 @@ export class WorldRenderer {
   }
   dispose(){
     if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleBadges.dispose();
-    this.infantry.dispose();this.towns.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+    this.infantry.dispose();this.towns.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.routeLayer.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
     cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
     for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}

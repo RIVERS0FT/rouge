@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {parseInfantryAsset,type InfantryAsset} from './infantryAsset.ts';
+import {layerMapEntity} from './mapLayers.ts';
 import {infantryPose} from './infantryIdle.ts';
 import {infantryFabricShader} from './infantryFabric.ts';
 
@@ -117,7 +118,7 @@ export class InfantryBatch {
     this.poseFrames=new THREE.InstancedBufferAttribute(new Float32Array(this.capacity),1).setUsage(THREE.DynamicDrawUsage);
     this.country=new THREE.InstancedBufferAttribute(new Float32Array(this.capacity*3),3).setUsage(THREE.DynamicDrawUsage);
     geometry.setAttribute('rougeFrame',this.poseFrames);geometry.setAttribute('rougeCountry',this.country);
-    const next=new THREE.InstancedMesh(geometry,this.material!,this.capacity);
+    const next=new THREE.InstancedMesh(geometry,this.material!,this.capacity);layerMapEntity(next,this.material!);
     next.name='Rouge infantry batch';next.count=0;next.frustumCulled=false;next.instanceMatrix.setUsage(THREE.DynamicDrawUsage);next.visible=false;
     this.mesh=next;this.scene.add(next);
   }

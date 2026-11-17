@@ -1,21 +1,25 @@
 import {ARROW_ART_UNIT,dispatchRibbon,type ScreenPoint} from './dispatchRibbon.ts';
 import type {ArrowProjection} from './groundArrowProjection.ts';
 import type {AttackRoute} from './attackRoutes.ts';
+import type {PaintedRoute,RoutePaintLayer} from './routePaintLayer.ts';
 
 const ns='http://www.w3.org/2000/svg';
-/** Persistent, static SVG routes: camera changes reproject them; no animation loop. */
+/** Persistent routes: camera changes reproject them; no animation loop. SVG paths are geometry metadata when a paint layer is supplied. */
 export class AttackArrows {
  private element=document.createElementNS(ns,'svg');
  private paths=new Map<string,{ribbon:SVGPathElement;outline:SVGPathElement}>();
  private geometry=new Map<string,{d:string;outline:string}|null>();
  private projectionKey:string|undefined;
- constructor(host:HTMLElement){
+ private readonly layer?:RoutePaintLayer;
+ constructor(host:HTMLElement,layer?:RoutePaintLayer){
+  this.layer=layer;
+  if(layer)this.element.style.opacity='0';
   this.element.setAttribute('class','attack-arrows');this.element.setAttribute('data-testid','attack-arrows');
   this.element.setAttribute('aria-hidden','true');host.append(this.element);
  }
  draw(routes:readonly AttackRoute[],ground:(route:AttackRoute,copy:number)=>[ScreenPoint,ScreenPoint]|null,projection:ArrowProjection,width:number,height:number,color:(owner:number)=>string,projectionKey?:string){
   if(projectionKey===undefined||projectionKey!==this.projectionKey){this.geometry.clear();this.projectionKey=projectionKey;}
-  const keep=new Set<string>(),used=new Set<string>();
+  const keep=new Set<string>(),used=new Set<string>(),painted:PaintedRoute[]=[];
   for(const route of routes)for(const copy of [-1,0,1]){
    const key=`${route.owner}:${route.from}:${route.to}:${copy}`;used.add(key);
    let geometry=this.geometry.get(key);
@@ -31,7 +35,7 @@ export class AttackArrows {
     }
     this.geometry.set(key,geometry);
    }
-   if(!geometry)continue;keep.add(key);
+   if(!geometry)continue;keep.add(key);painted.push(geometry);
    let paths=this.paths.get(key);
    if(!paths){
     const ribbon=document.createElementNS(ns,'path'),outline=document.createElementNS(ns,'path');
@@ -47,7 +51,7 @@ export class AttackArrows {
   }
   for(const [key,paths]of this.paths)if(!keep.has(key)){paths.ribbon.remove();paths.outline.remove();this.paths.delete(key);}
   for(const key of this.geometry.keys())if(!used.has(key))this.geometry.delete(key);
-  this.element.dataset.routes=String(routes.length);
+  this.element.dataset.routes=String(routes.length);this.layer?.setCommitted(painted);
  }
- dispose(){this.element.remove();this.paths.clear();this.geometry.clear();}
+ dispose(){this.layer?.setCommitted([]);this.element.remove();this.paths.clear();this.geometry.clear();}
 }
