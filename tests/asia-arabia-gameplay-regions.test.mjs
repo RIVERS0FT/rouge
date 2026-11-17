@@ -1,4 +1,5 @@
-import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
+import {isPreClassAReviewedBatch as isReviewedOceanBatch,preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -10,10 +11,6 @@ import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mj
 import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.mjs';
 import {repartitionPhilippines} from '../scripts/apply-philippines-gameplay-regions.mjs';
 import {repartitionThailand} from '../scripts/apply-thailand-gameplay-regions.mjs';
-import {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {MAP_ID,RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {TerrainNavigator,terrainAt,terrainSegment,validateTravel} from '../src/game/terrain-navigation.ts';
-import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
@@ -31,25 +28,40 @@ import {isAsiaArabia,isEuropeOrGlobalIslands} from './southeast-asia-fixtures.mj
 import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regions.mjs';
 import {repartitionSoutheastAsia} from '../scripts/apply-southeast-asia-gameplay-regions.mjs';
 
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {MAP_ID,RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {TerrainNavigator,terrainAt,terrainSegment,validateTravel}=await import('../src/game/terrain-navigation.ts');
+const {default:atlas}=await import('../src/generated/world.js');
+
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
 const historical=consolidateStateRegions(base,readGzip('gameplay-region-partition').groups,decisions);
 const prior=repartitionSoutheastAsia(base,repartitionThailand(base,repartitionPhilippines(base,repartitionSwissRegions(base,repartitionMaldives(base,applyAdministrativeGroupOverrides(base,repartitionUkRegions(base,repartitionFrenchRegions(base,
   applyCurrentStateMergers(base,historical,currentDecisions,overlapAudit),france),uk),adminOverrides),maldives),swiss),philippines),thailand),sea);
+const approvedBeforeAdjacent=new Map(repartitionAsiaArabia(base,prior,plan).map(g=>[g.id,g]));
 const byCode=id=>MAP[provinceByCode(id)];
 const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('the approved Asia and Arabia membership, names and anchor locations are playable',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
- assert.equal(MAP.filter(r=>/^(SAU|OMN|YEM|ARE|QAT|KWT|BHR)-/.test(r.code)).length,10);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
+ assert.equal(MAP.filter(r=>r.sourceAtoms.some(id=>/^(SAU|OMN|YEM|ARE|QAT|KWT|BHR)-/.test(id))).length,9);
  assert.equal(MAP.filter(r=>r.sourceAtoms.some(id=>/^(BRN|KHM|IDN|LAO|MYS|MMR|PHL|SGP|THA|TLS|VNM)-/.test(id))).length,39);
  for(const row of plan.regions){
   const r=byCode(row.id.slice(6));
   assert.deepEqual(r.name,row.displayName);
-  assert.equal('group:'+r.code,row.id);assert.ok(r.playable&&r.locked&&terrainAt(r.center,true)>=0);
+  assert.ok(r.playable&&r.locked&&terrainAt(r.center,true)>=0);
   if(row.anchorAtomId)assert.deepEqual(r.center,sourceByCode.get(row.anchorAtomId).center);
-  assert.deepEqual(r.sourceAtoms,Object.values(row.groups).flat().sort());
+  const oldAtoms=Object.values(row.groups).flat().sort();
+  const historical=approvedBeforeAdjacent.get(row.id);
+  assert.deepEqual(historical.sourceIds,oldAtoms);
+  assert.deepEqual(historical.displayName,row.displayName);
+  if(row.anchorAtomId)assert.equal(historical.anchorAtomId,row.anchorAtomId);
+  assert.deepEqual(r.sourceAtoms.filter(atom=>oldAtoms.includes(atom)),oldAtoms);
+  if(!['group:ARE-338','group:SAU-846'].includes(row.id)){
+   assert.equal('group:'+r.code,row.id);assert.deepEqual(r.sourceAtoms,oldAtoms);
+  }
   for(const code of r.sourceAtoms){
    const p=sourceByCode.get(code);
    assert.equal(provinceAt(p.center.x,p.center.z),r.id);
@@ -67,7 +79,8 @@ test('the approved Asia and Arabia membership, names and anchor locations are pl
  ])assert.ok(searchProvinces(query).some(p=>p.id===byCode(code).id),query);
  assert.notEqual(byCode('MYS-1137').id,byCode('MYS-1186').id);
  assert.notEqual(byCode('OMN-2425').id,byCode('OMN-2404').id);
- assert.deepEqual(byCode('OMN-2425').sourceAtoms,['OMN-2425']);
+ assert.deepEqual(approvedBeforeAdjacent.get('group:OMN-2425').sourceIds,['OMN-2425']);
+ assert.equal(byCode('OMN-2425'),byCode('ARE-338'));
 });
 
 test('Bahrain and the Timor-Leste exclave keep false land edges out and real sea movement possible',()=>{

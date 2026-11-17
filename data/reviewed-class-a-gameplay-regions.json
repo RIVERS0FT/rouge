@@ -1,0 +1,2264 @@
+{
+  "schema": 1,
+  "baseline": {
+    "revision": "ba6626f2d8ff467879d8460fda289307e0b33137",
+    "atlasSha256": "e552f1edb76726fe7b00cb0fa4d8b07dd27cc53fe325a90a4c6a190ee446236e",
+    "regionCount": 750
+  },
+  "regions": [
+    {
+      "target": "group:ARE-338",
+      "displayName": [
+        "阿联酋",
+        "United Arab Emirates"
+      ],
+      "anchorAtomId": "ARE-349",
+      "targetSourceIds": [
+        "ARE-338",
+        "ARE-339",
+        "ARE-341",
+        "ARE-344",
+        "ARE-346",
+        "ARE-347",
+        "ARE-348",
+        "ARE-349",
+        "ARE-350",
+        "OMN-2425"
+      ],
+      "sources": [
+        {
+          "group": "group:BHR-4926",
+          "sourceIds": [
+            "BHR-4926",
+            "BHR-4927",
+            "BHR-4928",
+            "BHR-4929",
+            "BHR-4930"
+          ],
+          "aliases": [
+            "Bahrain",
+            "group:BHR-4926",
+            "巴林"
+          ]
+        },
+        {
+          "group": "group:QAT-1099",
+          "sourceIds": [
+            "QAT-1099",
+            "QAT-1100",
+            "QAT-1101",
+            "QAT-1105",
+            "QAT-1106",
+            "QAT-1107",
+            "QAT-5487"
+          ],
+          "aliases": [
+            "Qatar",
+            "group:QAT-1099",
+            "卡塔尔"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "ARE-349",
+          "QAT-1101"
+        ],
+        [
+          "BHR-4930",
+          "QAT-1106"
+        ]
+      ],
+      "auditCase": "multi:STATE_ABU_DHABI"
+    },
+    {
+      "target": "group:ISR-3053",
+      "displayName": [
+        "南部区",
+        "HaDarom"
+      ],
+      "anchorAtomId": "ISR-3053",
+      "targetSourceIds": [
+        "ISR-3053",
+        "ISR-3054",
+        "ISR-3055",
+        "ISR-3056",
+        "ISR-3058",
+        "WEB+00?"
+      ],
+      "sources": [
+        {
+          "group": "group:GAZ+00?",
+          "sourceIds": [
+            "GAZ+00?"
+          ],
+          "aliases": [
+            "Gaza Strip",
+            "group:GAZ+00?",
+            "加沙省"
+          ]
+        },
+        {
+          "group": "group:ISR-3057",
+          "sourceIds": [
+            "ISR-3057"
+          ],
+          "aliases": [
+            "Tel Aviv",
+            "group:ISR-3057",
+            "特拉维夫区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_PALESTINE"
+    },
+    {
+      "target": "group:JOR-850",
+      "displayName": [
+        "哈伊勒",
+        "Ha'il"
+      ],
+      "anchorAtomId": "SAU-861",
+      "targetSourceIds": [
+        "JOR-850",
+        "SAU-846",
+        "SAU-847",
+        "SAU-861",
+        "SAU-862"
+      ],
+      "sources": [
+        {
+          "group": "group:IRQ-3061",
+          "sourceIds": [
+            "IRQ-3061",
+            "IRQ-3223",
+            "IRQ-3471"
+          ],
+          "aliases": [
+            "Al-Anbar",
+            "group:IRQ-3061",
+            "安巴尔省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_HAIL"
+    },
+    {
+      "target": "group:HND-637",
+      "displayName": [
+        "洪都拉斯",
+        "Honduras"
+      ],
+      "anchorAtomId": "HND-642",
+      "targetSourceIds": [
+        "HND-637",
+        "HND-638",
+        "HND-639",
+        "HND-640",
+        "HND-642",
+        "HND-643",
+        "HND-645",
+        "HND-646",
+        "HND-647",
+        "HND-648",
+        "HND-649",
+        "HND-650",
+        "HND-651",
+        "HND-652",
+        "HND-653",
+        "HND-661",
+        "HND-662"
+      ],
+      "sources": [
+        {
+          "group": "group:HND-641",
+          "sourceIds": [
+            "HND-641"
+          ],
+          "aliases": [
+            "Islas de la Bahía",
+            "group:HND-641",
+            "海湾群岛省"
+          ]
+        },
+        {
+          "group": "group:SLV-1357",
+          "sourceIds": [
+            "SLV-1357"
+          ],
+          "aliases": [
+            "Chalatenango",
+            "group:SLV-1357",
+            "查拉特南戈省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "HND-637",
+          "HND-641"
+        ]
+      ],
+      "auditCase": "multi:STATE_HONDURAS"
+    },
+    {
+      "target": "group:TZA-3393",
+      "displayName": [
+        "乞力马扎罗区",
+        "Kilimanjaro"
+      ],
+      "anchorAtomId": "TZA-3393",
+      "targetSourceIds": [
+        "TZA-3393"
+      ],
+      "sources": [
+        {
+          "group": "group:TZA-3337",
+          "sourceIds": [
+            "TZA-3337",
+            "TZA-3380",
+            "TZA-3381",
+            "TZA-3383",
+            "TZA-3384"
+          ],
+          "aliases": [
+            "Zanzibar",
+            "group:TZA-3337",
+            "桑给巴尔"
+          ]
+        },
+        {
+          "group": "group:TZA-3378",
+          "sourceIds": [
+            "TZA-3378"
+          ],
+          "aliases": [
+            "Dar-Es-Salaam",
+            "group:TZA-3378",
+            "达累斯萨拉姆区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "TZA-3337",
+          "TZA-3378"
+        ],
+        [
+          "TZA-3380",
+          "TZA-3393"
+        ]
+      ],
+      "auditCase": "multi:STATE_ZANZIBAR"
+    },
+    {
+      "target": "group:COD-1559",
+      "displayName": [
+        "东刚果",
+        "Congo Orientale"
+      ],
+      "anchorAtomId": "COD-1559",
+      "targetSourceIds": [
+        "COD-1559",
+        "COD-1894",
+        "COD-1895",
+        "COD-1898"
+      ],
+      "sources": [
+        {
+          "group": "group:UGA-3087",
+          "sourceIds": [
+            "UGA-3087"
+          ],
+          "aliases": [
+            "Maracha",
+            "group:UGA-3087",
+            "马拉查"
+          ]
+        },
+        {
+          "group": "group:UGA-3104",
+          "sourceIds": [
+            "UGA-3104",
+            "UGA-5610"
+          ],
+          "aliases": [
+            "Ntoroko",
+            "group:UGA-3104",
+            "恩托罗科区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_CONGO_ORIENTALE"
+    },
+    {
+      "target": "group:BTN-2433",
+      "displayName": [
+        "阿鲁纳恰尔邦",
+        "Arunachal Pradesh"
+      ],
+      "anchorAtomId": "IND-3299",
+      "targetSourceIds": [
+        "BTN-2433",
+        "BTN-2434",
+        "BTN-2435",
+        "BTN-2436",
+        "BTN-2437",
+        "BTN-2438",
+        "BTN-2439",
+        "BTN-2440",
+        "BTN-2480",
+        "BTN-2481",
+        "BTN-2482",
+        "BTN-2483",
+        "BTN-2484",
+        "BTN-2485",
+        "BTN-2486",
+        "BTN-2487",
+        "BTN-2490",
+        "BTN-2491",
+        "BTN-2492",
+        "BTN-2493",
+        "IND-3299"
+      ],
+      "sources": [
+        {
+          "group": "group:IND-3259",
+          "sourceIds": [
+            "IND-3259"
+          ],
+          "aliases": [
+            "Sikkim",
+            "group:IND-3259",
+            "锡金邦"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_EASTERN_HIMALAYAS"
+    },
+    {
+      "target": "group:THA-375",
+      "displayName": [
+        "泰南",
+        "Southern Thailand"
+      ],
+      "anchorAtomId": "THA-380",
+      "targetSourceIds": [
+        "THA-375",
+        "THA-376",
+        "THA-377",
+        "THA-378",
+        "THA-379",
+        "THA-380",
+        "THA-382",
+        "THA-383",
+        "THA-385",
+        "THA-386",
+        "THA-387",
+        "THA-388",
+        "THA-420",
+        "THA-493",
+        "THA-494"
+      ],
+      "sources": [
+        {
+          "group": "group:MMR-3266",
+          "sourceIds": [
+            "MMR-3266"
+          ],
+          "aliases": [
+            "Kayin",
+            "group:MMR-3266",
+            "克伦邦"
+          ]
+        },
+        {
+          "group": "group:MMR-3279",
+          "sourceIds": [
+            "MMR-3279"
+          ],
+          "aliases": [
+            "Tanintharyi",
+            "group:MMR-3279",
+            "德林达依"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "MMR-3266",
+          "MMR-3279"
+        ]
+      ],
+      "auditCase": "multi:STATE_TENASSERIM"
+    },
+    {
+      "target": "group:MYS-1186",
+      "displayName": [
+        "东马来西亚",
+        "East Malaysia"
+      ],
+      "anchorAtomId": "MYS-1187",
+      "targetSourceIds": [
+        "MYS-1186",
+        "MYS-1187",
+        "MYS-4833"
+      ],
+      "sources": [
+        {
+          "group": "group:BRN-1181",
+          "sourceIds": [
+            "BRN-1181",
+            "BRN-1182",
+            "BRN-1184"
+          ],
+          "aliases": [
+            "Belait",
+            "group:BRN-1181",
+            "马来奕县"
+          ]
+        },
+        {
+          "group": "group:BRN-1183",
+          "sourceIds": [
+            "BRN-1183"
+          ],
+          "aliases": [
+            "Temburong",
+            "group:BRN-1183",
+            "淡布隆县"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_NORTH_BORNEO"
+    },
+    {
+      "target": "group:IDN-1235",
+      "displayName": [
+        "努沙登加拉",
+        "Nusa Tenggara"
+      ],
+      "anchorAtomId": "IDN-1235",
+      "targetSourceIds": [
+        "IDN-1235",
+        "IDN-555"
+      ],
+      "sources": [
+        {
+          "group": "group:IDN-1232",
+          "sourceIds": [
+            "IDN-1232"
+          ],
+          "aliases": [
+            "Bali",
+            "group:IDN-1232",
+            "巴厘岛"
+          ]
+        },
+        {
+          "group": "group:TLS-541",
+          "sourceIds": [
+            "TLS-541",
+            "TLS-542",
+            "TLS-543",
+            "TLS-544",
+            "TLS-545",
+            "TLS-546",
+            "TLS-547",
+            "TLS-548",
+            "TLS-549",
+            "TLS-550",
+            "TLS-551",
+            "TLS-552",
+            "TLS-553"
+          ],
+          "aliases": [
+            "Timor-Leste",
+            "group:TLS-541",
+            "东帝汶"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "IDN-1232",
+          "IDN-555"
+        ]
+      ],
+      "auditCase": "multi:STATE_SUNDA_ISLANDS"
+    },
+    {
+      "target": "group:EGY-1542",
+      "displayName": [
+        "中埃及",
+        "Middle Egypt"
+      ],
+      "anchorAtomId": "EGY-1542",
+      "targetSourceIds": [
+        "EGY-1542",
+        "EGY-1546"
+      ],
+      "sources": [
+        {
+          "group": "group:EGY-1536",
+          "sourceIds": [
+            "EGY-1536"
+          ],
+          "aliases": [
+            "As Suways",
+            "group:EGY-1536",
+            "苏伊士省"
+          ]
+        },
+        {
+          "group": "group:EGY-1549",
+          "sourceIds": [
+            "EGY-1549",
+            "EGY-1552"
+          ],
+          "aliases": [
+            "Suhaj",
+            "group:EGY-1549",
+            "索哈杰省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "EGY-1536",
+          "EGY-1546"
+        ],
+        [
+          "EGY-1546",
+          "EGY-1549"
+        ]
+      ],
+      "auditCase": "multi:STATE_MIDDLE_EGYPT"
+    },
+    {
+      "target": "group:MAR-1445",
+      "displayName": [
+        "里夫",
+        "Al Rif"
+      ],
+      "anchorAtomId": "MAR-1445",
+      "targetSourceIds": [
+        "MAR-1445"
+      ],
+      "sources": [
+        {
+          "group": "group:ESP-5815",
+          "sourceIds": [
+            "ESP-5815"
+          ],
+          "aliases": [
+            "Ceuta",
+            "group:ESP-5815",
+            "休达"
+          ]
+        },
+        {
+          "group": "group:ESP-5835",
+          "sourceIds": [
+            "ESP-5835"
+          ],
+          "aliases": [
+            "Melilla",
+            "group:ESP-5835",
+            "梅利利亚"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "ESP-5815",
+          "ESP-5835"
+        ]
+      ],
+      "auditCase": "multi:STATE_AL_RIF"
+    },
+    {
+      "target": "group:FSM-4941",
+      "displayName": [
+        "密克罗尼西亚联邦",
+        "Federated States of Micronesia"
+      ],
+      "anchorAtomId": "FSM-4941",
+      "targetSourceIds": [
+        "FSM-4941",
+        "FSM-4942",
+        "FSM-4943",
+        "FSM-4944"
+      ],
+      "sources": [
+        {
+          "group": "group:KIR+00?",
+          "sourceIds": [
+            "KIR+00?"
+          ],
+          "aliases": [
+            "Kiribati",
+            "group:KIR+00?",
+            "基里巴斯"
+          ]
+        },
+        {
+          "group": "group:MHL-4968",
+          "sourceIds": [
+            "MHL-4968",
+            "MHL-4969",
+            "TUV+00?",
+            "UMI-5179"
+          ],
+          "aliases": [
+            "East Micronesia",
+            "group:MHL-4968",
+            "东密克罗尼西亚"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "FSM-4944",
+          "MHL-4968"
+        ],
+        [
+          "KIR+00?",
+          "TUV+00?"
+        ]
+      ],
+      "auditCase": "multi:STATE_EAST_MICRONESIA"
+    },
+    {
+      "target": "group:RUS-2381",
+      "displayName": [
+        "涅涅茨自治区",
+        "Nenets"
+      ],
+      "anchorAtomId": "RUS-2381",
+      "targetSourceIds": [
+        "RUS-2381"
+      ],
+      "sources": [
+        {
+          "group": "group:RUS+99?",
+          "sourceIds": [
+            "RUS+99?"
+          ],
+          "aliases": [
+            "Unnamed region 3372",
+            "group:RUS+99?",
+            "未命名地区 3372"
+          ]
+        },
+        {
+          "group": "group:RUS-2354",
+          "sourceIds": [
+            "RUS-2354"
+          ],
+          "aliases": [
+            "Arkhangel'sk",
+            "group:RUS-2354",
+            "阿尔汉格尔斯克州"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "RUS+99?",
+          "RUS-2381"
+        ]
+      ],
+      "auditCase": "multi:STATE_NENETSIA"
+    },
+    {
+      "target": "group:GBR-2039",
+      "displayName": [
+        "西南英格兰",
+        "South West England"
+      ],
+      "anchorAtomId": "GBR-2048",
+      "targetSourceIds": [
+        "GBR-2039",
+        "GBR-2043",
+        "GBR-2044",
+        "GBR-2045",
+        "GBR-2046",
+        "GBR-2047",
+        "GBR-2048",
+        "GBR-2050",
+        "GBR-2051",
+        "GBR-2052",
+        "GBR-2110",
+        "GBR-2141",
+        "GBR-2142",
+        "GBR-2756",
+        "GBR-2757",
+        "GBR-5988"
+      ],
+      "sources": [
+        {
+          "group": "group:GGY+00?",
+          "sourceIds": [
+            "GGY+00?"
+          ],
+          "aliases": [
+            "Sark",
+            "group:GGY+00?",
+            "萨克岛"
+          ]
+        },
+        {
+          "group": "group:JEY+00?",
+          "sourceIds": [
+            "JEY+00?"
+          ],
+          "aliases": [
+            "Jersey",
+            "group:JEY+00?",
+            "泽西"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "GBR-2142",
+          "GGY+00?"
+        ],
+        [
+          "GGY+00?",
+          "JEY+00?"
+        ]
+      ],
+      "auditCase": "multi:STATE_WEST_COUNTRY"
+    },
+    {
+      "target": "group:ECU-1266",
+      "displayName": [
+        "厄瓜多尔",
+        "Ecuador"
+      ],
+      "anchorAtomId": "ECU-1288",
+      "targetSourceIds": [
+        "ECU-1266",
+        "ECU-1267",
+        "ECU-1268",
+        "ECU-1269",
+        "ECU-1277",
+        "ECU-1278",
+        "ECU-1279",
+        "ECU-1280",
+        "ECU-1281",
+        "ECU-1282",
+        "ECU-1284",
+        "ECU-1285",
+        "ECU-1286",
+        "ECU-1287",
+        "ECU-1288",
+        "ECU-1289",
+        "ECU-1290",
+        "ECU-1335",
+        "ECU-1409",
+        "ECU-1410",
+        "ECU-1411",
+        "ECU-5507",
+        "ECU-5508"
+      ],
+      "sources": [
+        {
+          "group": "group:ECU-1270",
+          "sourceIds": [
+            "ECU-1270"
+          ],
+          "aliases": [
+            "Galápagos",
+            "group:ECU-1270",
+            "加拉帕戈斯省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "ECU-1270",
+          "ECU-5507"
+        ]
+      ],
+      "auditCase": "multi:STATE_ECUADOR"
+    },
+    {
+      "target": "group:CAN-684",
+      "displayName": [
+        "新不伦瑞克",
+        "New Brunswick"
+      ],
+      "anchorAtomId": "CAN-684",
+      "targetSourceIds": [
+        "CAN-684",
+        "CAN-685"
+      ],
+      "sources": [
+        {
+          "group": "group:CAN-687",
+          "sourceIds": [
+            "CAN-687"
+          ],
+          "aliases": [
+            "Prince Edward Island",
+            "group:CAN-687",
+            "爱德华王子岛"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "CAN-684",
+          "CAN-687"
+        ]
+      ],
+      "auditCase": "multi:STATE_NEW_BRUNSWICK"
+    },
+    {
+      "target": "group:ROU-311",
+      "displayName": [
+        "苏恰瓦县",
+        "Suceava"
+      ],
+      "anchorAtomId": "ROU-311",
+      "targetSourceIds": [
+        "ROU-311"
+      ],
+      "sources": [
+        {
+          "group": "group:UKR-288",
+          "sourceIds": [
+            "UKR-288"
+          ],
+          "aliases": [
+            "Chernivtsi",
+            "group:UKR-288",
+            "切尔诺夫策州"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_BUKOVINA"
+    },
+    {
+      "target": "group:CUB-1365",
+      "displayName": [
+        "古巴东部",
+        "Eastern Cuba"
+      ],
+      "anchorAtomId": "CUB-1367",
+      "targetSourceIds": [
+        "CUB-1365",
+        "CUB-1366",
+        "CUB-1367",
+        "CUB-1368",
+        "CUB-1369"
+      ],
+      "sources": [
+        {
+          "group": "group:USG+00?",
+          "sourceIds": [
+            "USG+00?"
+          ],
+          "aliases": [
+            "Guantanamo Bay USNB",
+            "group:USG+00?",
+            "关塔那摩湾美国海军基地"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_EASTERN_CUBA"
+    },
+    {
+      "target": "group:ABW-5150",
+      "displayName": [
+        "西印度群岛",
+        "West Indies"
+      ],
+      "anchorAtomId": "LCA-5077",
+      "targetSourceIds": [
+        "ABW-5150",
+        "AIA+99?",
+        "AIA-5114",
+        "AIA-5115",
+        "AIA-5116",
+        "AIA-5117",
+        "AIA-5118",
+        "AIA-5119",
+        "AIA-5120",
+        "AIA-5121",
+        "AIA-5122",
+        "AIA-5123",
+        "AIA-5124",
+        "AIA-5125",
+        "AIA-5126",
+        "AIA-5127",
+        "ATG-5091",
+        "ATG-5092",
+        "ATG-5093",
+        "ATG-5094",
+        "ATG-5095",
+        "ATG-5096",
+        "ATG-5097",
+        "ATG-5098",
+        "BLM-5113",
+        "BRB-1989",
+        "BRB-1990",
+        "BRB-1991",
+        "BRB-1992",
+        "BRB-1993",
+        "BRB-1994",
+        "BRB-1995",
+        "BRB-1996",
+        "BRB-1997",
+        "BRB-1998",
+        "BRB-1999",
+        "CUW-5151",
+        "DMA-1432",
+        "DMA-1433",
+        "DMA-1434",
+        "DMA-1435",
+        "DMA-1436",
+        "DMA-1437",
+        "DMA-1438",
+        "DMA-1439",
+        "DMA-1440",
+        "DMA-1441",
+        "FRA-1442",
+        "FRA-4603",
+        "GRD-5069",
+        "GRD-5070",
+        "GRD-5071",
+        "GRD-5072",
+        "GRD-5073",
+        "GRD-5074",
+        "GRD-5075",
+        "KNA-5099",
+        "KNA-5100",
+        "KNA-5101",
+        "KNA-5102",
+        "KNA-5103",
+        "KNA-5104",
+        "KNA-5105",
+        "KNA-5106",
+        "KNA-5107",
+        "KNA-5108",
+        "KNA-5109",
+        "KNA-5110",
+        "KNA-5111",
+        "KNA-5112",
+        "LCA-5076",
+        "LCA-5077",
+        "LCA-5078",
+        "LCA-5079",
+        "LCA-5080",
+        "LCA-5081",
+        "LCA-5082",
+        "LCA-5083",
+        "LCA-5084",
+        "LCA-5085",
+        "LCA-5086",
+        "MAF-5145",
+        "MSR-5087",
+        "MSR-5088",
+        "MSR-5089",
+        "NLD-5147",
+        "NLD-5148",
+        "NLD-5149",
+        "SXM-5146",
+        "TTO-50",
+        "TTO-5090",
+        "TTO-51",
+        "TTO-52",
+        "TTO-53",
+        "TTO-54",
+        "TTO-55",
+        "TTO-56",
+        "TTO-57",
+        "TTO-58",
+        "TTO-59",
+        "TTO-60",
+        "TTO-61",
+        "TTO-62",
+        "TTO-63",
+        "TTO-64",
+        "VCT-5063",
+        "VCT-5064",
+        "VCT-5065",
+        "VCT-5066",
+        "VCT-5067",
+        "VCT-5068",
+        "VEN-48",
+        "VGB+00?",
+        "VIR-4868",
+        "VIR-4869",
+        "VIR-4870"
+      ],
+      "sources": [
+        {
+          "group": "group:VEN-44",
+          "sourceIds": [
+            "VEN-44"
+          ],
+          "aliases": [
+            "Dependencias Federales",
+            "group:VEN-44",
+            "联邦属地"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "VEN-44",
+          "VEN-48"
+        ]
+      ],
+      "auditCase": "multi:STATE_WEST_INDIES"
+    },
+    {
+      "target": "group:CHE-162",
+      "displayName": [
+        "东瑞士",
+        "East Switzerland"
+      ],
+      "anchorAtomId": "CHE-170",
+      "targetSourceIds": [
+        "CHE-162",
+        "CHE-163",
+        "CHE-164",
+        "CHE-166",
+        "CHE-167",
+        "CHE-168",
+        "CHE-169",
+        "CHE-170",
+        "CHE-171",
+        "CHE-173",
+        "CHE-174",
+        "CHE-175",
+        "CHE-176",
+        "CHE-177",
+        "CHE-3423",
+        "CHE-3425",
+        "CHE-3426",
+        "CHE-3427",
+        "CHE-3473"
+      ],
+      "sources": [
+        {
+          "group": "group:LIE-4892",
+          "sourceIds": [
+            "LIE-4892",
+            "LIE-4893",
+            "LIE-4894",
+            "LIE-4895",
+            "LIE-4896",
+            "LIE-4897",
+            "LIE-4898",
+            "LIE-4899",
+            "LIE-4900",
+            "LIE-4901",
+            "LIE-4902"
+          ],
+          "aliases": [
+            "Liechtenstein",
+            "group:LIE-4892",
+            "列支敦士登"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_EAST_SWITZERLAND"
+    },
+    {
+      "target": "group:FRA-4601",
+      "displayName": [
+        "印度洋领地",
+        "Indian Ocean Territory"
+      ],
+      "anchorAtomId": "MUS-5190",
+      "targetSourceIds": [
+        "FRA-4601",
+        "MUS-5180",
+        "MUS-5181",
+        "MUS-5183",
+        "MUS-5184",
+        "MUS-5185",
+        "MUS-5186",
+        "MUS-5187",
+        "MUS-5188",
+        "MUS-5189",
+        "MUS-5190",
+        "MUS-5191",
+        "MUS-5192",
+        "MUS-5193",
+        "MUS-5194",
+        "MUS-5195",
+        "MUS-5196"
+      ],
+      "sources": [
+        {
+          "group": "group:SYC-5197",
+          "sourceIds": [
+            "SYC-5197",
+            "SYC-5198",
+            "SYC-5199",
+            "SYC-5200",
+            "SYC-5201",
+            "SYC-5202",
+            "SYC-5203",
+            "SYC-5204",
+            "SYC-5205",
+            "SYC-5206",
+            "SYC-5207",
+            "SYC-5208",
+            "SYC-5209",
+            "SYC-5210",
+            "SYC-5211",
+            "SYC-5212",
+            "SYC-5213",
+            "SYC-5214",
+            "SYC-5215",
+            "SYC-5216",
+            "SYC-5217",
+            "SYC-5218",
+            "SYC-5219",
+            "SYC-5220",
+            "SYC-5221",
+            "SYC-5222"
+          ],
+          "aliases": [
+            "Seychelles",
+            "group:SYC-5197",
+            "塞舌尔"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "MUS-5180",
+          "SYC-5220"
+        ]
+      ],
+      "auditCase": "multi:STATE_INDIAN_OCEAN_TERRITORY"
+    },
+    {
+      "target": "group:UGA-3064",
+      "displayName": [
+        "乌干达",
+        "Uganda"
+      ],
+      "anchorAtomId": "UGA-3125",
+      "targetSourceIds": [
+        "UGA-3064",
+        "UGA-3065",
+        "UGA-3066",
+        "UGA-3067",
+        "UGA-3068",
+        "UGA-3069",
+        "UGA-3070",
+        "UGA-3071",
+        "UGA-3073",
+        "UGA-3074",
+        "UGA-3075",
+        "UGA-3076",
+        "UGA-3077",
+        "UGA-3078",
+        "UGA-3079",
+        "UGA-3080",
+        "UGA-3082",
+        "UGA-3084",
+        "UGA-3085",
+        "UGA-3086",
+        "UGA-3088",
+        "UGA-3089",
+        "UGA-3090",
+        "UGA-3091",
+        "UGA-3092",
+        "UGA-3093",
+        "UGA-3094",
+        "UGA-3095",
+        "UGA-3096",
+        "UGA-3098",
+        "UGA-3099",
+        "UGA-3100",
+        "UGA-3101",
+        "UGA-3102",
+        "UGA-3103",
+        "UGA-3105",
+        "UGA-3106",
+        "UGA-3107",
+        "UGA-3108",
+        "UGA-3112",
+        "UGA-3113",
+        "UGA-3114",
+        "UGA-3115",
+        "UGA-3116",
+        "UGA-3117",
+        "UGA-3118",
+        "UGA-3119",
+        "UGA-3121",
+        "UGA-3122",
+        "UGA-3123",
+        "UGA-3124",
+        "UGA-3125",
+        "UGA-3126",
+        "UGA-3127",
+        "UGA-3128",
+        "UGA-3361",
+        "UGA-3362",
+        "UGA-3366",
+        "UGA-3367",
+        "UGA-3368",
+        "UGA-3369",
+        "UGA-3370",
+        "UGA-3371",
+        "UGA-3372",
+        "UGA-3373",
+        "UGA-3374",
+        "UGA-3375",
+        "UGA-3376",
+        "UGA-3377",
+        "UGA-5589",
+        "UGA-5590",
+        "UGA-5591",
+        "UGA-5592",
+        "UGA-5593",
+        "UGA-5594",
+        "UGA-5595",
+        "UGA-5596",
+        "UGA-5597",
+        "UGA-5599",
+        "UGA-5600",
+        "UGA-5601",
+        "UGA-5602",
+        "UGA-5603",
+        "UGA-5604",
+        "UGA-5605",
+        "UGA-5606",
+        "UGA-5607",
+        "UGA-5608",
+        "UGA-5609",
+        "UGA-5611",
+        "UGA-5612",
+        "UGA-5613",
+        "UGA-5615",
+        "UGA-5616",
+        "UGA-5617",
+        "UGA-5618",
+        "UGA-5619",
+        "UGA-5620",
+        "UGA-5621",
+        "UGA-5622",
+        "UGA-5623",
+        "UGA-5624",
+        "UGA-5625",
+        "UGA-5626"
+      ],
+      "sources": [
+        {
+          "group": "group:UGA-2631",
+          "sourceIds": [
+            "UGA-2631",
+            "UGA-3120",
+            "UGA-5598",
+            "UGA-5614"
+          ],
+          "aliases": [
+            "Kalangala",
+            "group:UGA-2631",
+            "卡兰加拉区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_UGANDA"
+    },
+    {
+      "target": "group:UKR-284",
+      "displayName": [
+        "第聂伯罗彼得罗夫斯克州",
+        "Dnipropetrovs'k"
+      ],
+      "anchorAtomId": "UKR-326",
+      "targetSourceIds": [
+        "UKR-284",
+        "UKR-320",
+        "UKR-322",
+        "UKR-326"
+      ],
+      "sources": [
+        {
+          "group": "group:MDA-1628",
+          "sourceIds": [
+            "MDA-1628",
+            "MDA-1637",
+            "MDA-1638",
+            "MDA-1645",
+            "MDA-1650",
+            "MDA-1652"
+          ],
+          "aliases": [
+            "Bender",
+            "group:MDA-1628",
+            "宾杰里"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_CHERSON"
+    },
+    {
+      "target": "group:CMR-1476",
+      "displayName": [
+        "南喀麦隆",
+        "South Cameroon"
+      ],
+      "anchorAtomId": "CMR-1481",
+      "targetSourceIds": [
+        "CMR-1476",
+        "CMR-1481",
+        "CMR-803",
+        "GNQ-1478",
+        "GNQ-1479",
+        "STP-4861",
+        "STP-4862"
+      ],
+      "sources": [
+        {
+          "group": "group:GNQ-1469",
+          "sourceIds": [
+            "GNQ-1469"
+          ],
+          "aliases": [
+            "Kié-Ntem",
+            "group:GNQ-1469",
+            "基埃恩特姆省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_SOUTH_CAMEROON"
+    },
+    {
+      "target": "group:IDN-1233",
+      "displayName": [
+        "东爪哇省",
+        "Jawa Timur"
+      ],
+      "anchorAtomId": "IDN-1233",
+      "targetSourceIds": [
+        "IDN-1233"
+      ],
+      "sources": [
+        {
+          "group": "group:IOA-2652",
+          "sourceIds": [
+            "IOA-2652"
+          ],
+          "aliases": [
+            "Christmas Island",
+            "group:IOA-2652",
+            "聖誕島"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "IDN-1233",
+          "IOA-2652"
+        ]
+      ],
+      "auditCase": "multi:STATE_EAST_JAVA"
+    },
+    {
+      "target": "group:IDN-1930",
+      "displayName": [
+        "廖内省",
+        "Riau"
+      ],
+      "anchorAtomId": "IDN-492",
+      "targetSourceIds": [
+        "IDN-1930",
+        "IDN-492",
+        "IDN-539"
+      ],
+      "sources": [
+        {
+          "group": "group:IDN-1796",
+          "sourceIds": [
+            "IDN-1796"
+          ],
+          "aliases": [
+            "Kepulauan Riau",
+            "group:IDN-1796",
+            "廖内群岛省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "IDN-1796",
+          "IDN-492"
+        ]
+      ],
+      "auditCase": "multi:STATE_NORTH_SUMATRA"
+    },
+    {
+      "target": "group:IDN-1225",
+      "displayName": [
+        "南苏门答腊省",
+        "Sumatera Selatan"
+      ],
+      "anchorAtomId": "IDN-1230",
+      "targetSourceIds": [
+        "IDN-1225",
+        "IDN-1229",
+        "IDN-1230"
+      ],
+      "sources": [
+        {
+          "group": "group:IDN-1231",
+          "sourceIds": [
+            "IDN-1231"
+          ],
+          "aliases": [
+            "Bangka-Belitung",
+            "group:IDN-1231",
+            "邦加-勿里洞省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "IDN-1230",
+          "IDN-1231"
+        ]
+      ],
+      "auditCase": "multi:STATE_SOUTH_SUMATRA"
+    },
+    {
+      "target": "group:SYR-134",
+      "displayName": [
+        "阿勒颇省",
+        "Aleppo"
+      ],
+      "anchorAtomId": "SYR-137",
+      "targetSourceIds": [
+        "SYR-134",
+        "SYR-135",
+        "SYR-137",
+        "SYR-140"
+      ],
+      "sources": [
+        {
+          "group": "group:TUR-2289",
+          "sourceIds": [
+            "TUR-2289"
+          ],
+          "aliases": [
+            "Hatay",
+            "group:TUR-2289",
+            "哈塔伊省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_ALEPPO"
+    },
+    {
+      "target": "group:TUR-2229",
+      "displayName": [
+        "马尼萨省",
+        "Manisa"
+      ],
+      "anchorAtomId": "TUR-2277",
+      "targetSourceIds": [
+        "TUR-2229",
+        "TUR-2230",
+        "TUR-2277",
+        "TUR-2278"
+      ],
+      "sources": [
+        {
+          "group": "group:TUR-2239",
+          "sourceIds": [
+            "TUR-2239"
+          ],
+          "aliases": [
+            "group:TUR-2239",
+            "Çanakkale",
+            "恰纳卡莱省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "TUR-2230",
+          "TUR-2239"
+        ]
+      ],
+      "auditCase": "multi:STATE_AYDIN"
+    },
+    {
+      "target": "group:IRQ-3222",
+      "displayName": [
+        "巴士拉省",
+        "Al-Basrah"
+      ],
+      "anchorAtomId": "IRQ-3222",
+      "targetSourceIds": [
+        "IRQ-3222",
+        "IRQ-3225",
+        "IRQ-3226"
+      ],
+      "sources": [
+        {
+          "group": "group:KWT-1663",
+          "sourceIds": [
+            "KWT-1663",
+            "KWT-1664",
+            "KWT-1665",
+            "KWT-1666",
+            "KWT-1667",
+            "KWT-3506"
+          ],
+          "aliases": [
+            "Kuwait",
+            "group:KWT-1663",
+            "科威特"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_BASRA"
+    },
+    {
+      "target": "group:SYR-136",
+      "displayName": [
+        "代尔祖尔省",
+        "Dayr Az Zawr"
+      ],
+      "anchorAtomId": "SYR-142",
+      "targetSourceIds": [
+        "SYR-136",
+        "SYR-141",
+        "SYR-142"
+      ],
+      "sources": [
+        {
+          "group": "group:IRQ-3051",
+          "sourceIds": [
+            "IRQ-3051"
+          ],
+          "aliases": [
+            "Ninawa",
+            "group:IRQ-3051",
+            "尼尼微省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_DEIR_EZ_ZOR"
+    },
+    {
+      "target": "group:JOR-849",
+      "displayName": [
+        "马安省",
+        "Ma`an"
+      ],
+      "anchorAtomId": "JOR-853",
+      "targetSourceIds": [
+        "JOR-849",
+        "JOR-851",
+        "JOR-852",
+        "JOR-853",
+        "JOR-854",
+        "JOR-855",
+        "JOR-856",
+        "JOR-857",
+        "JOR-859",
+        "JOR-860"
+      ],
+      "sources": [
+        {
+          "group": "group:JOR-858",
+          "sourceIds": [
+            "JOR-858"
+          ],
+          "aliases": [
+            "Madaba",
+            "group:JOR-858",
+            "马代巴省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_TRANSJORDAN"
+    },
+    {
+      "target": "group:SDS-147",
+      "displayName": [
+        "苏丹赤道",
+        "Equatoria"
+      ],
+      "anchorAtomId": "SDS-870",
+      "targetSourceIds": [
+        "SDS-147",
+        "SDS-863",
+        "SDS-864",
+        "SDS-865",
+        "SDS-870",
+        "SDS-871",
+        "SDS-872",
+        "SDS-873",
+        "SDS-892"
+      ],
+      "sources": [
+        {
+          "group": "group:UGA-3081",
+          "sourceIds": [
+            "UGA-3081"
+          ],
+          "aliases": [
+            "Koboko",
+            "group:UGA-3081",
+            "科博科区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_EQUATORIA"
+    },
+    {
+      "target": "group:KOR-2495",
+      "displayName": [
+        "江原道",
+        "Gangwon"
+      ],
+      "anchorAtomId": "KOR-2496",
+      "targetSourceIds": [
+        "KOR-2495",
+        "KOR-2496",
+        "KOR-2497",
+        "KOR-2498"
+      ],
+      "sources": [
+        {
+          "group": "group:PRK-3308",
+          "sourceIds": [
+            "PRK-3308"
+          ],
+          "aliases": [
+            "Kangwŏn-do",
+            "group:PRK-3308"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_SEOUL"
+    },
+    {
+      "target": "group:KOR-2494",
+      "displayName": [
+        "全罗南道",
+        "South Jeolla"
+      ],
+      "anchorAtomId": "KOR-2506",
+      "targetSourceIds": [
+        "KOR-2494",
+        "KOR-2499",
+        "KOR-2500",
+        "KOR-2502",
+        "KOR-2503",
+        "KOR-2506",
+        "KOR-5129"
+      ],
+      "sources": [
+        {
+          "group": "group:KOR-2510",
+          "sourceIds": [
+            "KOR-2510"
+          ],
+          "aliases": [
+            "Jeju",
+            "group:KOR-2510",
+            "济州特别自治道"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "KOR-2506",
+          "KOR-2510"
+        ]
+      ],
+      "auditCase": "multi:STATE_YANGHO"
+    },
+    {
+      "target": "group:RUS-2372",
+      "displayName": [
+        "奔萨州",
+        "Penza"
+      ],
+      "anchorAtomId": "RUS-2373",
+      "targetSourceIds": [
+        "RUS-2372",
+        "RUS-2373",
+        "RUS-2375"
+      ],
+      "sources": [
+        {
+          "group": "group:RUS-2363",
+          "sourceIds": [
+            "RUS-2363"
+          ],
+          "aliases": [
+            "Lipetsk",
+            "group:RUS-2363",
+            "利佩茨克州"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_TAMBOV"
+    },
+    {
+      "target": "group:RUS-2383",
+      "displayName": [
+        "科米共和国",
+        "Komi"
+      ],
+      "anchorAtomId": "RUS-2383",
+      "targetSourceIds": [
+        "RUS-2383"
+      ],
+      "sources": [
+        {
+          "group": "group:RUS-2356",
+          "sourceIds": [
+            "RUS-2356",
+            "RUS-2359"
+          ],
+          "aliases": [
+            "Vologda",
+            "group:RUS-2356",
+            "沃洛格达州"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "RUS-2359",
+          "RUS-2383"
+        ]
+      ],
+      "auditCase": "multi:STATE_VOLOGDA"
+    },
+    {
+      "target": "group:BWA-1191",
+      "displayName": [
+        "博茨瓦纳",
+        "Botswana"
+      ],
+      "anchorAtomId": "BWA-2630",
+      "targetSourceIds": [
+        "BWA-1191",
+        "BWA-2625",
+        "BWA-2629",
+        "BWA-2630",
+        "BWA-2646",
+        "BWA-2647",
+        "BWA-2648",
+        "BWA-2649",
+        "BWA-4853",
+        "BWA-5501",
+        "BWA-5502",
+        "BWA-5503",
+        "BWA-5504",
+        "BWA-5505",
+        "BWA-5506"
+      ],
+      "sources": [
+        {
+          "group": "group:NAM-3356",
+          "sourceIds": [
+            "NAM-3356"
+          ],
+          "aliases": [
+            "Caprivi",
+            "group:NAM-3356",
+            "卡普里维区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_BOTSWANA"
+    },
+    {
+      "target": "group:ZAF-1206",
+      "displayName": [
+        "自由邦",
+        "Vrystaat"
+      ],
+      "anchorAtomId": "ZAF-1206",
+      "targetSourceIds": [
+        "ZAF-1206"
+      ],
+      "sources": [
+        {
+          "group": "group:LSO-1211",
+          "sourceIds": [
+            "LSO-1211"
+          ],
+          "aliases": [
+            "Butha-Buthe",
+            "group:LSO-1211",
+            "布塔-布泰区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_VRYSTAAT"
+    },
+    {
+      "target": "group:SVN-1010",
+      "displayName": [
+        "伊利爾斯卡比斯特里察鎮",
+        "Ilirska Bistrica"
+      ],
+      "anchorAtomId": "SVN-954",
+      "targetSourceIds": [
+        "SVN-1010",
+        "SVN-1012",
+        "SVN-1018",
+        "SVN-1022",
+        "SVN-1023",
+        "SVN-1024",
+        "SVN-1025",
+        "SVN-1026",
+        "SVN-1027",
+        "SVN-1028",
+        "SVN-1029",
+        "SVN-1030",
+        "SVN-1031",
+        "SVN-1032",
+        "SVN-1033",
+        "SVN-1034",
+        "SVN-1035",
+        "SVN-260",
+        "SVN-261",
+        "SVN-954",
+        "SVN-977",
+        "SVN-978"
+      ],
+      "sources": [
+        {
+          "group": "group:HRV-1592",
+          "sourceIds": [
+            "HRV-1592"
+          ],
+          "aliases": [
+            "Istarska",
+            "group:HRV-1592",
+            "伊斯特拉县"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_ISTRIA"
+    },
+    {
+      "target": "group:FRA-5269",
+      "displayName": [
+        "奥克西塔尼",
+        "Occitanie"
+      ],
+      "anchorAtomId": "FRA-5272",
+      "targetSourceIds": [
+        "FRA-5269",
+        "FRA-5271",
+        "FRA-5272",
+        "FRA-5293",
+        "FRA-5294",
+        "FRA-5298",
+        "FRA-5305",
+        "FRA-5307",
+        "FRA-5318",
+        "FRA-5320",
+        "FRA-5337",
+        "FRA-5346",
+        "FRA-5347"
+      ],
+      "sources": [
+        {
+          "group": "group:AND-4876",
+          "sourceIds": [
+            "AND-4876",
+            "AND-4877",
+            "AND-4878",
+            "AND-4879",
+            "AND-4880",
+            "AND-4881",
+            "AND-4882"
+          ],
+          "aliases": [
+            "Andorra",
+            "group:AND-4876",
+            "安道尔"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_LANGUEDOC"
+    },
+    {
+      "target": "group:FRA-5265",
+      "displayName": [
+        "普罗旺斯-阿尔卑斯-蓝色海岸",
+        "Provence-Alpes-Côte d'Azur"
+      ],
+      "anchorAtomId": "FRA-5265",
+      "targetSourceIds": [
+        "FRA-5265",
+        "FRA-5266",
+        "FRA-5274",
+        "FRA-5304",
+        "FRA-5351",
+        "FRA-5352"
+      ],
+      "sources": [
+        {
+          "group": "group:MCO+00?",
+          "sourceIds": [
+            "MCO+00?"
+          ],
+          "aliases": [
+            "Monaco",
+            "group:MCO+00?",
+            "摩纳哥城"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_PROVENCE"
+    },
+    {
+      "target": "group:ESP-5804",
+      "displayName": [
+        "哈恩省",
+        "Jaén"
+      ],
+      "anchorAtomId": "ESP-5826",
+      "targetSourceIds": [
+        "ESP-5804",
+        "ESP-5821",
+        "ESP-5826",
+        "ESP-5834"
+      ],
+      "sources": [
+        {
+          "group": "group:GIB+00?",
+          "sourceIds": [
+            "GIB+00?"
+          ],
+          "aliases": [
+            "Gibraltar",
+            "group:GIB+00?",
+            "直布罗陀"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "ESP-5834",
+          "GIB+00?"
+        ]
+      ],
+      "auditCase": "multi:STATE_UPPER_ANDALUSIA"
+    },
+    {
+      "target": "group:GMB-2151",
+      "displayName": [
+        "塞内加尔",
+        "Senegal"
+      ],
+      "anchorAtomId": "SEN-779",
+      "targetSourceIds": [
+        "GMB-2151",
+        "GMB-2152",
+        "GMB-2153",
+        "GMB-2154",
+        "GMB-5512",
+        "GMB-5513",
+        "SEN-5514",
+        "SEN-5515",
+        "SEN-5516",
+        "SEN-5517",
+        "SEN-763",
+        "SEN-764",
+        "SEN-765",
+        "SEN-766",
+        "SEN-767",
+        "SEN-768",
+        "SEN-774",
+        "SEN-775",
+        "SEN-779"
+      ],
+      "sources": [
+        {
+          "group": "group:SEN-759",
+          "sourceIds": [
+            "SEN-759"
+          ],
+          "aliases": [
+            "Dakar",
+            "group:SEN-759",
+            "达喀尔区"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_SENEGAL"
+    },
+    {
+      "target": "group:NLD-3484",
+      "displayName": [
+        "北荷兰省",
+        "Noord-Holland"
+      ],
+      "anchorAtomId": "NLD-3486",
+      "targetSourceIds": [
+        "NLD-3484",
+        "NLD-3485",
+        "NLD-3486",
+        "NLD-903"
+      ],
+      "sources": [
+        {
+          "group": "group:NLD-902",
+          "sourceIds": [
+            "NLD-902"
+          ],
+          "aliases": [
+            "Flevoland",
+            "group:NLD-902",
+            "弗莱福兰省"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_HOLLAND"
+    },
+    {
+      "target": "group:GBR-2108",
+      "displayName": [
+        "西北英格兰",
+        "North West England"
+      ],
+      "anchorAtomId": "GBR-2139",
+      "targetSourceIds": [
+        "GBR-2108",
+        "GBR-2122",
+        "GBR-2123",
+        "GBR-2139",
+        "GBR-2774",
+        "GBR-5666",
+        "GBR-5667",
+        "GBR-5668",
+        "GBR-5669",
+        "GBR-5670",
+        "GBR-5676",
+        "GBR-5677",
+        "GBR-5678",
+        "GBR-5679",
+        "GBR-5680",
+        "GBR-5681",
+        "GBR-5682",
+        "GBR-5683",
+        "GBR-5684",
+        "GBR-5685",
+        "GBR-5706",
+        "GBR-5707",
+        "GBR-5708"
+      ],
+      "sources": [
+        {
+          "group": "group:IMN+00?",
+          "sourceIds": [
+            "IMN+00?"
+          ],
+          "aliases": [
+            "Isle of Man",
+            "group:IMN+00?",
+            "马恩岛"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [
+        [
+          "GBR-2139",
+          "IMN+00?"
+        ]
+      ],
+      "auditCase": "multi:STATE_LANCASHIRE"
+    },
+    {
+      "target": "group:GBR-2054",
+      "displayName": [
+        "东米德兰兹",
+        "East Midlands"
+      ],
+      "anchorAtomId": "GBR-2081",
+      "targetSourceIds": [
+        "GBR-2054",
+        "GBR-2058",
+        "GBR-2059",
+        "GBR-2081",
+        "GBR-2749",
+        "GBR-2761",
+        "GBR-2762",
+        "GBR-2763",
+        "GBR-2764"
+      ],
+      "sources": [
+        {
+          "group": "group:GBR-2121",
+          "sourceIds": [
+            "GBR-2121",
+            "GBR-2750",
+            "GBR-2775",
+            "GBR-2776",
+            "GBR-2777",
+            "GBR-2778",
+            "GBR-2779",
+            "GBR-5690",
+            "GBR-5691",
+            "GBR-5692",
+            "GBR-5693",
+            "GBR-5694",
+            "GBR-5695",
+            "GBR-5696"
+          ],
+          "aliases": [
+            "West Midlands",
+            "group:GBR-2121",
+            "西米德兰兹"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_MIDLANDS"
+    },
+    {
+      "target": "group:GBR-2082",
+      "displayName": [
+        "北爱尔兰",
+        "Northern Ireland"
+      ],
+      "anchorAtomId": "GBR-2136",
+      "targetSourceIds": [
+        "GBR-2082",
+        "GBR-2083",
+        "GBR-2084",
+        "GBR-2085",
+        "GBR-2086",
+        "GBR-2087",
+        "GBR-2088",
+        "GBR-2089",
+        "GBR-2090",
+        "GBR-2091",
+        "GBR-2092",
+        "GBR-2093",
+        "GBR-2094",
+        "GBR-2095",
+        "GBR-2096",
+        "GBR-2097",
+        "GBR-2098",
+        "GBR-2099",
+        "GBR-2100",
+        "GBR-2101",
+        "GBR-2102",
+        "GBR-2103",
+        "GBR-2135",
+        "GBR-2136",
+        "GBR-2137",
+        "GBR-2773"
+      ],
+      "sources": [
+        {
+          "group": "group:IRL-729",
+          "sourceIds": [
+            "IRL-729"
+          ],
+          "aliases": [
+            "Donegal",
+            "group:IRL-729",
+            "多尼戈尔郡"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_ULSTER"
+    },
+    {
+      "target": "group:GBR-2055",
+      "displayName": [
+        "约克郡与亨伯",
+        "Yorkshire and The Humber"
+      ],
+      "anchorAtomId": "GBR-2140",
+      "targetSourceIds": [
+        "GBR-2055",
+        "GBR-2056",
+        "GBR-2057",
+        "GBR-2120",
+        "GBR-2124",
+        "GBR-2140",
+        "GBR-5671",
+        "GBR-5672",
+        "GBR-5673",
+        "GBR-5674",
+        "GBR-5675",
+        "GBR-5686",
+        "GBR-5687",
+        "GBR-5688",
+        "GBR-5689"
+      ],
+      "sources": [
+        {
+          "group": "group:GBR-2028",
+          "sourceIds": [
+            "GBR-2028",
+            "GBR-2029",
+            "GBR-2030",
+            "GBR-2031",
+            "GBR-2032",
+            "GBR-2033",
+            "GBR-2034",
+            "GBR-5661",
+            "GBR-5662",
+            "GBR-5663",
+            "GBR-5664",
+            "GBR-5665"
+          ],
+          "aliases": [
+            "North East England",
+            "group:GBR-2028",
+            "东北英格兰"
+          ]
+        }
+      ],
+      "expectedNewIslandAttachments": [],
+      "auditCase": "multi:STATE_YORKSHIRE"
+    }
+  ]
+}

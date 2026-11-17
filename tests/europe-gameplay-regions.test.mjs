@@ -1,4 +1,5 @@
-import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
+import {isPreClassAReviewedBatch as isReviewedOceanBatch,preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -10,10 +11,6 @@ import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mj
 import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.mjs';
 import {repartitionPhilippines} from '../scripts/apply-philippines-gameplay-regions.mjs';
 import {repartitionThailand} from '../scripts/apply-thailand-gameplay-regions.mjs';
-import {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {MAP_ID,RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {terrainAt} from '../src/game/terrain-navigation.ts';
-import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
@@ -33,6 +30,12 @@ import {repartitionAsiaArabia} from '../scripts/apply-asia-arabia-gameplay-regio
 import {repartitionEurope} from '../scripts/apply-europe-gameplay-regions.mjs';
 import {repartitionSoutheastAsia} from '../scripts/apply-southeast-asia-gameplay-regions.mjs';
 
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {MAP_ID,RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {terrainAt}=await import('../src/game/terrain-navigation.ts');
+const {default:atlas}=await import('../src/generated/world.js');
+
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
 const historical=consolidateStateRegions(base,readGzip('gameplay-region-partition').groups,decisions);
@@ -43,7 +46,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('seven approved European areas use only their existing source geometry and exact gameplay memberships',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
  for(const [country,count] of [['MLT',1],['ALD',1],['LVA',2],['EST',2],['AND',1],['LIE',1],['SVN',2]]){
   assert.equal(MAP.filter(r=>r.code.startsWith(country+'-')).length,count,country);
  }

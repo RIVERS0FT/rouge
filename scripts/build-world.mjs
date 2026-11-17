@@ -1,3 +1,5 @@
+import {applyReviewedClassAGameplayRegions} from './apply-reviewed-class-a-gameplay-regions.mjs';
+import {applyApprovedAdjacentGameplayRegions} from './apply-approved-adjacent-gameplay-regions.mjs';
 /** Offline Natural Earth Admin1 atlas. Complete real administrative atoms. */
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
@@ -79,11 +81,19 @@ const africaGroups=applyReviewedStateIslands(source,atlanticGroups,africaPlan,st
 const southAmericaPlan=JSON.parse(await readFile(new URL('data/south-america-gameplay-regions.json',root)));
 const southAmericaGroups=applyReviewedStateIslands(source,africaGroups,southAmericaPlan,stateReference,{label:'South America',reason:'victoria-3-reviewed-south-america-region',allowNewAttachments:false});
 const northAmericaPlan=JSON.parse(await readFile(new URL('data/north-america-gameplay-regions.json',root)));
-const finalGroups=applyReviewedStateIslands(source,southAmericaGroups,northAmericaPlan,stateReference,{label:'North America',reason:'victoria-3-reviewed-north-america-region',allowNewAttachments:false});
+const northAmericaGroups=applyReviewedStateIslands(source,southAmericaGroups,northAmericaPlan,stateReference,{label:'North America',reason:'victoria-3-reviewed-north-america-region',allowNewAttachments:false});
+const approvedAdjacent=JSON.parse(await readFile(new URL('data/approved-adjacent-gameplay-regions.json',root)));
+const approvedAdjacentGroups=applyApprovedAdjacentGameplayRegions(source,northAmericaGroups,approvedAdjacent);
+const reviewedClassA=JSON.parse(await readFile(new URL('data/reviewed-class-a-gameplay-regions.json',root)));
+const finalGroups=applyReviewedClassAGameplayRegions(source,approvedAdjacentGroups,reviewedClassA);
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
-const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:finalGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{}),...(g.searchAliases?{searchAliases:g.searchAliases}:{})}))};
+const packGroups=groups=>groups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{}),...(g.searchAliases?{searchAliases:g.searchAliases}:{})}));
+const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:packGroups(finalGroups)};
 const raw=Buffer.from(JSON.stringify(atlas));await mkdir(new URL('src/generated/',root),{recursive:true});
+// Materialize the earlier management layer for exact historical witnesses in
+// unit tests. Vite never imports or includes this artifact in the release.
+await writeChanged(new URL('src/generated/gameplay-groups-before-class-a.json',root),JSON.stringify(packGroups(approvedAdjacentGroups)));
 let old;try{old=await readFile(output);}catch{}
 if(!old?.equals(raw))await writeFile(output,raw);
 // Node tests and the LAN server read the local JSON without an HTTP dependency.

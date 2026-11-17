@@ -18,3 +18,4 @@ src/generated/world.d.ts
 src/generated/terrain-navigation.json
 
 src/generated/gameplay-map.json
+src/generated/gameplay-groups-before-class-a.json

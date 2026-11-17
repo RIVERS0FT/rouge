@@ -106,20 +106,20 @@ test('Maldives grouping rejects duplicated or noneligible members and a wrong an
  assert.throws(()=>repartitionMaldives(base,prior,wrongAnchor),/Expected one reviewed Maldives/);
 });
 
-test('map v25 and save v26 reject the previous map and LAN data without changing old slots',()=>{
+test('map v27 and save v28 reject the previous map and LAN data without changing old slots',()=>{
  const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
  const current=createGame(players,42,'maldives-gameplay-regions');
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');
- assert.equal(STATE_VERSION,26);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
- assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');
+ assert.equal(STATE_VERSION,28);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
+ assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
  const currentSave=encodeSave(current,'Current campaign');
  assert.deepEqual(decodeSave(currentSave).state,current);
- const old={...current,version:25,map:'earth-natural-earth-admin1-511-regions-v24'};
+ const old={...current,version:27,map:'earth-natural-earth-admin1-511-regions-v26'};
  const body=JSON.stringify(old),previousSave=JSON.stringify({...JSON.parse(currentSave),body,hash:checksum(body)});
  assert.throws(()=>decodeSave(previousSave),/incompatibleMap/);
  assert.throws(()=>applyFrame(null,{type:'state',state:old}),/incompatibleMap/);
- const oldKey='rouge.save.natural-earth-admin1.regions.v25.same';
+ const oldKey='rouge.save.natural-earth-admin1.regions.v27.same';
  const records=new Map([[oldKey,previousSave],[oldKey+'.backup',previousSave]]);
  const storage={get length(){return records.size;},key:i=>[...records.keys()][i]??null,getItem:k=>records.get(k)??null,setItem:(k,v)=>records.set(k,v),removeItem:k=>records.delete(k)};
  assert.deepEqual(listSaves(storage),[]);

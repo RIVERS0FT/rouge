@@ -1,4 +1,5 @@
-import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
+import {isPreClassAReviewedBatch as isReviewedOceanBatch,preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -8,10 +9,6 @@ import {repartitionFrenchRegions} from '../scripts/apply-france-administrative-r
 import {repartitionUkRegions} from '../scripts/apply-uk-administrative-regions.mjs';
 import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mjs';
 import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.mjs';
-import {MAP,MAP_METADATA,SOURCE_MAP,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {MAP_ID,RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {terrainAt} from '../src/game/terrain-navigation.ts';
-import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
@@ -23,6 +20,12 @@ import plan from '../data/swiss-gameplay-regions.json' with {type:'json'};
 import spawns from '../data/spawn-sites.json' with {type:'json'};
 
 import {isAnyLatestGrouping as isSeaBatch} from './southeast-asia-fixtures.mjs';
+
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,SOURCE_MAP,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {MAP_ID,RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {terrainAt}=await import('../src/game/terrain-navigation.ts');
+const {default:atlas}=await import('../src/generated/world.js');
 
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
@@ -58,8 +61,8 @@ test('all 26 cantons are retained exactly once in two locked playable Swiss terr
  }
  assert.equal(byCode('CHE-171').id,east.id);assert.equal(byCode('CHE-3425').id,east.id);
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
 });
 
 test('Swiss merge does not change any other memberships, names, geometry or source topology',()=>{
