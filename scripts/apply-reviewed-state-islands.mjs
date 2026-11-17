@@ -1,7 +1,7 @@
-/** Combine reviewed island state regions out of whole existing Rouge regions.
+/** Combine reviewed state regions out of whole existing Rouge regions.
  * Extra component edges connect the locked administrative grouping only.
  * Do not mutate the original province records, coastlines or routing graph. */
-export function applyReviewedStateIslands(base, groups, plan, reference, {label,reason}) {
+export function applyReviewedStateIslands(base, groups, plan, reference, {label,reason,allowNewAttachments=true}) {
  const validName=s=>typeof s==='string'&&s.trim().length>0&&s===s.trim();
  const prior=new Map(groups.map(g=>[g.id,g]));
  const source=new Map(base.provinces.map(p=>[p.id,p]));
@@ -51,7 +51,10 @@ export function applyReviewedStateIslands(base, groups, plan, reference, {label,
    if(!area.has(a)||!area.has(b))throw Error(label+' merge would lose an earlier island endpoint: '+stateCode);
    if(join(a,b))links.push([a,b]);
   }
-  for(const island of [...new Set(sourceIds.map(find))])if(join(island,anchorAtomId))links.push([island,anchorAtomId]);
+  const components=[...new Set(sourceIds.map(find))];
+  if(!allowNewAttachments&&components.length>1)
+   throw Error(label+' merge requires connected land or previously reviewed attachments: '+stateCode);
+  for(const island of components)if(join(island,anchorAtomId))links.push([island,anchorAtomId]);
   const {islandAttachments:_oldLinks,searchAliases:_oldAliases,...retained}=core;
   return {...retained,id:'group:'+sourceIds[0],sourceIds,displayName,anchorAtomId,
     reason,...(links.length?{islandAttachments:links}:{}),

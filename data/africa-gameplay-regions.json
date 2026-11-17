@@ -1,0 +1,2372 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_ALGIERS",
+      "primary": "group:DZA-2195",
+      "members": {
+        "group:DZA-2195": [
+          "DZA-2195",
+          "DZA-2196",
+          "DZA-2197",
+          "DZA-2198",
+          "DZA-2199",
+          "DZA-2200",
+          "DZA-2205",
+          "DZA-2206",
+          "DZA-2209",
+          "DZA-2210",
+          "DZA-2212",
+          "DZA-2213"
+        ]
+      },
+      "displayName": [
+        "阿尔及尔",
+        "Algiers"
+      ],
+      "anchorAtomId": "DZA-2212",
+      "searchAliases": [
+        "Djelfa",
+        "杰勒法省"
+      ]
+    },
+    {
+      "stateCode": "STATE_AL_RIF",
+      "primary": "group:MAR-1445",
+      "members": {
+        "group:MAR-1445": [
+          "MAR-1445"
+        ]
+      },
+      "displayName": [
+        "里夫",
+        "Al Rif"
+      ],
+      "anchorAtomId": "MAR-1445",
+      "searchAliases": [
+        "Tanger - Tétouan",
+        "al Rif",
+        "丹吉尔-得土安大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_AMHARA",
+      "primary": "group:ETH-3129",
+      "members": {
+        "group:ETH-3129": [
+          "ETH-3129",
+          "ETH-3130"
+        ]
+      },
+      "displayName": [
+        "阿姆哈拉",
+        "Amhara"
+      ],
+      "anchorAtomId": "ETH-3129",
+      "searchAliases": [
+        "Southern Nations, Nationalities and Peoples",
+        "南方各族州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BAS_CONGO",
+      "primary": "group:COD-1871",
+      "members": {
+        "group:COD-1871": [
+          "COD-1871",
+          "COD-1883",
+          "COD-1884"
+        ]
+      },
+      "displayName": [
+        "下刚果",
+        "Bas Congo"
+      ],
+      "anchorAtomId": "COD-1871",
+      "searchAliases": [
+        "Bandundu",
+        "Lower Congo",
+        "班顿杜省"
+      ]
+    },
+    {
+      "stateCode": "STATE_BENIN",
+      "primary": "group:NGA-2853",
+      "members": {
+        "group:NGA-2853": [
+          "NGA-2853",
+          "NGA-2854",
+          "NGA-2861",
+          "NGA-2865"
+        ]
+      },
+      "displayName": [
+        "贝宁",
+        "Benin"
+      ],
+      "anchorAtomId": "NGA-2865",
+      "searchAliases": [
+        "Kogi",
+        "科吉州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BLUE_NILE",
+      "primary": "group:SDN-148",
+      "members": {
+        "group:SDN-148": [
+          "SDN-148",
+          "SDN-874",
+          "SDN-875",
+          "SDN-876",
+          "SDN-879",
+          "SDN-880",
+          "SDN-884"
+        ],
+        "group:SDS-869": [
+          "SDS-869"
+        ]
+      },
+      "displayName": [
+        "青尼罗",
+        "Blue Nile"
+      ],
+      "anchorAtomId": "SDN-876",
+      "searchAliases": [
+        "Gedarif",
+        "Upper Nile",
+        "上尼罗省",
+        "加达里夫省"
+      ]
+    },
+    {
+      "stateCode": "STATE_BORNU",
+      "primary": "group:NGA-2839",
+      "members": {
+        "group:NGA-2839": [
+          "NGA-2839",
+          "NGA-2873"
+        ]
+      },
+      "displayName": [
+        "博尔努",
+        "Bornu"
+      ],
+      "anchorAtomId": "NGA-2839",
+      "searchAliases": [
+        "Borno",
+        "博尔诺州"
+      ]
+    },
+    {
+      "stateCode": "STATE_BOTSWANA",
+      "primary": "group:BWA-1191",
+      "members": {
+        "group:BWA-1191": [
+          "BWA-1191",
+          "BWA-2625",
+          "BWA-2629",
+          "BWA-2630",
+          "BWA-2646",
+          "BWA-2647",
+          "BWA-2648",
+          "BWA-2649",
+          "BWA-4853",
+          "BWA-5501",
+          "BWA-5502",
+          "BWA-5503",
+          "BWA-5504",
+          "BWA-5505",
+          "BWA-5506"
+        ]
+      },
+      "displayName": [
+        "博茨瓦纳",
+        "Botswana"
+      ],
+      "anchorAtomId": "BWA-2630",
+      "searchAliases": [
+        "Central",
+        "中部区"
+      ]
+    },
+    {
+      "stateCode": "STATE_CAPE_COLONY",
+      "primary": "group:ZAF-1189",
+      "members": {
+        "group:ZAF-1189": [
+          "ZAF-1189"
+        ]
+      },
+      "displayName": [
+        "开普殖民地",
+        "Cape Colony"
+      ],
+      "anchorAtomId": "ZAF-1189",
+      "searchAliases": [
+        "Western Cape",
+        "西开普省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CHAD",
+      "primary": "group:TCD-1465",
+      "members": {
+        "group:TCD-1465": [
+          "TCD-1465",
+          "TCD-1466",
+          "TCD-1472",
+          "TCD-1473",
+          "TCD-1475",
+          "TCD-5577",
+          "TCD-5578",
+          "TCD-5579",
+          "TCD-5581"
+        ]
+      },
+      "displayName": [
+        "乍得",
+        "Chad"
+      ],
+      "anchorAtomId": "TCD-5577",
+      "searchAliases": [
+        "Borkou",
+        "博尔库区"
+      ]
+    },
+    {
+      "stateCode": "STATE_CONGO",
+      "primary": "group:COG-2185",
+      "members": {
+        "group:AGO-1885": [
+          "AGO-1885"
+        ],
+        "group:COG-2185": [
+          "COG-2185",
+          "COG-2626",
+          "COG-2838",
+          "COG-2880",
+          "COG-3341",
+          "COG-3342",
+          "COG-3343",
+          "COG-3344",
+          "COG-3345",
+          "COG-3346",
+          "COG-4855",
+          "COG-5855"
+        ]
+      },
+      "displayName": [
+        "刚果",
+        "Congo"
+      ],
+      "anchorAtomId": "COG-2838",
+      "searchAliases": [
+        "Cabinda",
+        "Likouala",
+        "利夸拉省",
+        "卡宾达省"
+      ]
+    },
+    {
+      "stateCode": "STATE_CONGO_ORIENTALE",
+      "primary": "group:COD-1559",
+      "members": {
+        "group:COD-1559": [
+          "COD-1559",
+          "COD-1894",
+          "COD-1895",
+          "COD-1898"
+        ]
+      },
+      "displayName": [
+        "东刚果",
+        "Congo Orientale"
+      ],
+      "anchorAtomId": "COD-1559",
+      "searchAliases": [
+        "Lualaba",
+        "Orientale",
+        "东方省",
+        "卢阿拉巴"
+      ]
+    },
+    {
+      "stateCode": "STATE_CONSTANTINE",
+      "primary": "group:DZA-2163",
+      "members": {
+        "group:DZA-2163": [
+          "DZA-2163",
+          "DZA-2164",
+          "DZA-2165",
+          "DZA-2166",
+          "DZA-2207",
+          "DZA-2208",
+          "DZA-2211",
+          "DZA-2214",
+          "DZA-2215",
+          "DZA-2216",
+          "DZA-2217",
+          "DZA-2218",
+          "DZA-2219",
+          "DZA-2220",
+          "DZA-2221",
+          "DZA-2222",
+          "DZA-2223"
+        ]
+      },
+      "displayName": [
+        "君士坦丁",
+        "Constantine"
+      ],
+      "anchorAtomId": "DZA-2211",
+      "searchAliases": [
+        "Biskra",
+        "比斯克拉省"
+      ]
+    },
+    {
+      "stateCode": "STATE_DAHOMEY",
+      "primary": "group:BEN-2169",
+      "members": {
+        "group:BEN-2169": [
+          "BEN-2169",
+          "BEN-2170",
+          "BEN-2171",
+          "BEN-2174",
+          "BEN-2175",
+          "BEN-2176",
+          "BEN-2177",
+          "BEN-2178",
+          "BEN-2179",
+          "BEN-2180",
+          "BEN-2181",
+          "BEN-2182"
+        ]
+      },
+      "displayName": [
+        "达荷美",
+        "Dahomey"
+      ],
+      "anchorAtomId": "BEN-2170",
+      "searchAliases": [
+        "Alibori",
+        "阿黎博里省"
+      ]
+    },
+    {
+      "stateCode": "STATE_DARFUR",
+      "primary": "group:SDN-5856",
+      "members": {
+        "group:SDN-5856": [
+          "SDN-5856",
+          "SDN-5857",
+          "SDN-5858",
+          "SDN-5859",
+          "SDN-881"
+        ]
+      },
+      "displayName": [
+        "达尔富尔",
+        "Darfur"
+      ],
+      "anchorAtomId": "SDN-881",
+      "searchAliases": [
+        "North Darfur",
+        "北达尔富尔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_DONGOLA",
+      "primary": "group:SDN-149",
+      "members": {
+        "group:SDN-149": [
+          "SDN-149",
+          "SDN-877",
+          "SDN-878"
+        ]
+      },
+      "displayName": [
+        "栋古拉",
+        "Dongola"
+      ],
+      "anchorAtomId": "SDN-878",
+      "searchAliases": [
+        "Northern",
+        "北部省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EASTERN_CAPE",
+      "primary": "group:ZAF-1926",
+      "members": {
+        "group:ZAF-1926": [
+          "ZAF-1926"
+        ]
+      },
+      "displayName": [
+        "东开普",
+        "Eastern Cape"
+      ],
+      "anchorAtomId": "ZAF-1926",
+      "searchAliases": [
+        "东开普省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EASTERN_MALI",
+      "primary": "group:MLI-2794",
+      "members": {
+        "group:MLI-2794": [
+          "MLI-2794",
+          "MLI-2809",
+          "MLI-2810"
+        ]
+      },
+      "displayName": [
+        "东马里",
+        "Eastern Mali"
+      ],
+      "anchorAtomId": "MLI-2809",
+      "searchAliases": [
+        "Mopti",
+        "莫普提区"
+      ]
+    },
+    {
+      "stateCode": "STATE_EAST_ANGOLA",
+      "primary": "group:AGO-1874",
+      "members": {
+        "group:AGO-1874": [
+          "AGO-1874",
+          "AGO-1875",
+          "AGO-1876",
+          "AGO-1878",
+          "AGO-1879",
+          "AGO-1886",
+          "AGO-1888",
+          "AGO-1892"
+        ]
+      },
+      "displayName": [
+        "东安哥拉",
+        "East Angola"
+      ],
+      "anchorAtomId": "AGO-1888",
+      "searchAliases": [
+        "Cuando Cubango",
+        "宽多-库邦戈省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EAST_HAUSALAND",
+      "primary": "group:NGA-2864",
+      "members": {
+        "group:NGA-2864": [
+          "NGA-2864",
+          "NGA-2867",
+          "NGA-2868",
+          "NGA-2869",
+          "NGA-2870",
+          "NGA-3470"
+        ]
+      },
+      "displayName": [
+        "东豪萨兰",
+        "East Hausaland"
+      ],
+      "anchorAtomId": "NGA-2864",
+      "searchAliases": [
+        "Kaduna",
+        "卡杜纳州"
+      ]
+    },
+    {
+      "stateCode": "STATE_EAST_SAHARA",
+      "primary": "group:DZA-2188",
+      "members": {
+        "group:DZA-2188": [
+          "DZA-2188",
+          "DZA-2189",
+          "DZA-2191",
+          "DZA-2194"
+        ]
+      },
+      "displayName": [
+        "东撒哈拉",
+        "East Sahara"
+      ],
+      "anchorAtomId": "DZA-2189",
+      "searchAliases": [
+        "Tamanghasset",
+        "塔曼拉塞特省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EGYPTIAN_DESERT",
+      "primary": "group:EGY-1548",
+      "members": {
+        "group:EGY-1548": [
+          "EGY-1548",
+          "EGY-1550"
+        ]
+      },
+      "displayName": [
+        "埃及沙漠",
+        "Egyptian Desert"
+      ],
+      "anchorAtomId": "EGY-1550",
+      "searchAliases": [
+        "Al Wadi at Jadid",
+        "新河谷省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EQUATEUR",
+      "primary": "group:COD-1461",
+      "members": {
+        "group:COD-1461": [
+          "COD-1461"
+        ]
+      },
+      "displayName": [
+        "刚果赤道",
+        "Equateur"
+      ],
+      "anchorAtomId": "COD-1461",
+      "searchAliases": [
+        "Équateur",
+        "赤道省"
+      ]
+    },
+    {
+      "stateCode": "STATE_EQUATORIA",
+      "primary": "group:SDS-147",
+      "members": {
+        "group:SDS-147": [
+          "SDS-147",
+          "SDS-863",
+          "SDS-864",
+          "SDS-865",
+          "SDS-870",
+          "SDS-871",
+          "SDS-872",
+          "SDS-873",
+          "SDS-892"
+        ]
+      },
+      "displayName": [
+        "苏丹赤道",
+        "Equatoria"
+      ],
+      "anchorAtomId": "SDS-870",
+      "searchAliases": [
+        "Jonglei",
+        "琼莱省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ERITREA",
+      "primary": "group:ERI-1560",
+      "members": {
+        "group:DJI-1566": [
+          "DJI-1566",
+          "DJI-1568",
+          "DJI-1569",
+          "DJI-1570",
+          "DJI-1571"
+        ],
+        "group:ERI-1560": [
+          "ERI-1560",
+          "ERI-1561",
+          "ERI-1562",
+          "ERI-1563",
+          "ERI-1564",
+          "ERI-1565"
+        ]
+      },
+      "displayName": [
+        "厄立特里亚",
+        "Eritrea"
+      ],
+      "anchorAtomId": "ERI-1560",
+      "searchAliases": [
+        "Dikhil",
+        "Gash Barka",
+        "加什-巴尔卡区",
+        "迪基尔州"
+      ]
+    },
+    {
+      "stateCode": "STATE_FEZ",
+      "primary": "group:MAR-1448",
+      "members": {
+        "group:MAR-1448": [
+          "MAR-1448",
+          "MAR-1451"
+        ]
+      },
+      "displayName": [
+        "非斯",
+        "Fez"
+      ],
+      "anchorAtomId": "MAR-1451",
+      "searchAliases": [
+        "Rabat - Salé - Zemmour - Zaer",
+        "拉巴特-萨累-宰穆尔-扎埃尔大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_GABON",
+      "primary": "group:GAB-2168",
+      "members": {
+        "group:GAB-2168": [
+          "GAB-2168",
+          "GAB-2186",
+          "GAB-2187",
+          "GAB-2621",
+          "GAB-2622",
+          "GAB-2623",
+          "GAB-2624",
+          "GAB-2627",
+          "GAB-2628"
+        ],
+        "group:GNQ-1468": [
+          "GNQ-1468",
+          "GNQ-1470",
+          "GNQ-1471"
+        ]
+      },
+      "displayName": [
+        "加蓬",
+        "Gabon"
+      ],
+      "anchorAtomId": "GAB-2186",
+      "searchAliases": [
+        "Centro Sur",
+        "Ogooué-Ivindo",
+        "中南省",
+        "奥果韦-伊温多省"
+      ]
+    },
+    {
+      "stateCode": "STATE_GOLD_COAST",
+      "primary": "group:GHA-2155",
+      "members": {
+        "group:GHA-2155": [
+          "GHA-2155",
+          "GHA-2156",
+          "GHA-2157",
+          "GHA-2158",
+          "GHA-2159",
+          "GHA-2160",
+          "GHA-2161",
+          "GHA-2162",
+          "GHA-2172"
+        ]
+      },
+      "displayName": [
+        "黄金海岸",
+        "Gold Coast"
+      ],
+      "anchorAtomId": "GHA-2155",
+      "searchAliases": [
+        "Northern",
+        "北部地区"
+      ]
+    },
+    {
+      "stateCode": "STATE_GONDER",
+      "primary": "group:ETH-3109",
+      "members": {
+        "group:ETH-3109": [
+          "ETH-3109",
+          "ETH-3110",
+          "ETH-3111",
+          "ETH-3132"
+        ]
+      },
+      "displayName": [
+        "贡德尔",
+        "Gonder"
+      ],
+      "anchorAtomId": "ETH-3109",
+      "searchAliases": [
+        "Amhara",
+        "阿姆哈拉州"
+      ]
+    },
+    {
+      "stateCode": "STATE_GUINEA",
+      "primary": "group:GIN-5627",
+      "members": {
+        "group:GIN-5627": [
+          "GIN-5627",
+          "GIN-5628",
+          "GIN-5629",
+          "GIN-5630",
+          "GIN-5631",
+          "GIN-5632",
+          "GIN-5633",
+          "GIN-5634",
+          "GIN-5635",
+          "GIN-5636",
+          "GIN-5637",
+          "GIN-5638",
+          "GIN-5639",
+          "GIN-5640",
+          "GIN-5641",
+          "GIN-5642",
+          "GIN-5643",
+          "GIN-5644",
+          "GIN-5645",
+          "GIN-5646",
+          "GIN-5647",
+          "GIN-5648",
+          "GIN-5649",
+          "GIN-5650",
+          "GIN-5651",
+          "GIN-5652",
+          "GIN-5653",
+          "GIN-5654",
+          "GIN-5655",
+          "GIN-5656",
+          "GIN-5657",
+          "GIN-5658",
+          "GIN-5659",
+          "GIN-5660"
+        ],
+        "group:GNB-5500": [
+          "GNB-5500",
+          "GNB-769",
+          "GNB-770",
+          "GNB-771",
+          "GNB-772",
+          "GNB-773",
+          "GNB-776",
+          "GNB-777",
+          "GNB-778"
+        ]
+      },
+      "displayName": [
+        "几内亚",
+        "Guinea"
+      ],
+      "anchorAtomId": "GIN-5657",
+      "searchAliases": [
+        "Gabú",
+        "Siguiri",
+        "加布区",
+        "锡吉里省"
+      ]
+    },
+    {
+      "stateCode": "STATE_HAUSALAND",
+      "primary": "group:NGA-2849",
+      "members": {
+        "group:NGA-2849": [
+          "NGA-2849",
+          "NGA-2851",
+          "NGA-2871",
+          "NGA-2872",
+          "NGA-2879"
+        ]
+      },
+      "displayName": [
+        "豪萨兰",
+        "Hausaland"
+      ],
+      "anchorAtomId": "NGA-2851",
+      "searchAliases": [
+        "Niger",
+        "尼日尔州"
+      ]
+    },
+    {
+      "stateCode": "STATE_HEREROLAND",
+      "primary": "group:NAM-3340",
+      "members": {
+        "group:NAM-3340": [
+          "NAM-3340",
+          "NAM-3347",
+          "NAM-3348",
+          "NAM-3349",
+          "NAM-3350",
+          "NAM-3351",
+          "NAM-3352",
+          "NAM-3353",
+          "NAM-3354",
+          "NAM-3355"
+        ]
+      },
+      "displayName": [
+        "赫雷罗兰",
+        "Hereroland"
+      ],
+      "anchorAtomId": "NAM-3347",
+      "searchAliases": [
+        "Kunene",
+        "库内内区"
+      ]
+    },
+    {
+      "stateCode": "STATE_INNER_MAURITANIA",
+      "primary": "group:MRT-2783",
+      "members": {
+        "group:MRT-2783": [
+          "MRT-2783",
+          "MRT-2789",
+          "MRT-2795",
+          "MRT-2796",
+          "MRT-2797",
+          "MRT-2798"
+        ]
+      },
+      "displayName": [
+        "内毛里塔尼亚",
+        "Inner Mauritania"
+      ],
+      "anchorAtomId": "MRT-2783",
+      "searchAliases": [
+        "Tiris Zemmour",
+        "提里斯-宰穆尔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_INNER_MOROCCO",
+      "primary": "group:MAR-1446",
+      "members": {
+        "group:MAR-1446": [
+          "MAR-1446",
+          "MAR-1447",
+          "MAR-1452",
+          "MAR-1454",
+          "MAR-1455",
+          "MAR-3457"
+        ]
+      },
+      "displayName": [
+        "内摩洛哥",
+        "Inner Morocco"
+      ],
+      "anchorAtomId": "MAR-3457",
+      "searchAliases": [
+        "Guelmim - Es-Semara",
+        "盖勒敏-塞马拉大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_IVORY_COAST",
+      "primary": "group:CIV-3431",
+      "members": {
+        "group:CIV-3431": [
+          "CIV-3431",
+          "CIV-3449",
+          "CIV-3450",
+          "CIV-3451",
+          "CIV-3452",
+          "CIV-3458",
+          "CIV-3460",
+          "CIV-3462"
+        ]
+      },
+      "displayName": [
+        "象牙海岸",
+        "Ivory Coast"
+      ],
+      "anchorAtomId": "CIV-3431",
+      "searchAliases": [
+        "Savanes",
+        "萨瓦纳区"
+      ]
+    },
+    {
+      "stateCode": "STATE_KASAI",
+      "primary": "group:COD-1872",
+      "members": {
+        "group:COD-1872": [
+          "COD-1872",
+          "COD-1896"
+        ]
+      },
+      "displayName": [
+        "开赛",
+        "Kasai"
+      ],
+      "anchorAtomId": "COD-1896",
+      "searchAliases": [
+        "Kasaï-Oriental",
+        "东开赛省"
+      ]
+    },
+    {
+      "stateCode": "STATE_KATANGA",
+      "primary": "group:COD-1897",
+      "members": {
+        "group:COD-1897": [
+          "COD-1897"
+        ]
+      },
+      "displayName": [
+        "加丹加",
+        "Katanga"
+      ],
+      "anchorAtomId": "COD-1897",
+      "searchAliases": [
+        "加丹加省"
+      ]
+    },
+    {
+      "stateCode": "STATE_KAZEMBE",
+      "primary": "group:ZMB-514",
+      "members": {
+        "group:MWI-1194": [
+          "MWI-1194",
+          "MWI-1873",
+          "MWI-1899",
+          "MWI-1900",
+          "MWI-1901",
+          "MWI-1902",
+          "MWI-1903",
+          "MWI-1907",
+          "MWI-1908",
+          "MWI-1909",
+          "MWI-1911",
+          "MWI-1913",
+          "MWI-1914"
+        ],
+        "group:ZMB-514": [
+          "ZMB-514",
+          "ZMB-515",
+          "ZMB-518",
+          "ZMB-5511"
+        ]
+      },
+      "displayName": [
+        "卡曾贝",
+        "Kazembe"
+      ],
+      "anchorAtomId": "ZMB-5511",
+      "searchAliases": [
+        "Muchinga",
+        "Mzimba",
+        "姆津巴县",
+        "穆欽加省"
+      ]
+    },
+    {
+      "stateCode": "STATE_KENYA",
+      "primary": "group:KEN-1193",
+      "members": {
+        "group:KEN-1193": [
+          "KEN-1193",
+          "KEN-1195",
+          "KEN-1196",
+          "KEN-889",
+          "KEN-893"
+        ]
+      },
+      "displayName": [
+        "肯尼亚",
+        "Kenya"
+      ],
+      "anchorAtomId": "KEN-889",
+      "searchAliases": [
+        "Eastern",
+        "东部省"
+      ]
+    },
+    {
+      "stateCode": "STATE_KORDOFAN",
+      "primary": "group:SDN-882",
+      "members": {
+        "group:SDN-882": [
+          "SDN-882",
+          "SDN-883"
+        ]
+      },
+      "displayName": [
+        "科尔多凡",
+        "Kordofan"
+      ],
+      "anchorAtomId": "SDN-883",
+      "searchAliases": [
+        "North Kordufan",
+        "北科尔多凡省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LIBERIA",
+      "primary": "group:LBR-1458",
+      "members": {
+        "group:LBR-1458": [
+          "LBR-1458",
+          "LBR-1459",
+          "LBR-780",
+          "LBR-781",
+          "LBR-782",
+          "LBR-783",
+          "LBR-784",
+          "LBR-785",
+          "LBR-786",
+          "LBR-787",
+          "LBR-788",
+          "LBR-789",
+          "LBR-791",
+          "LBR-792",
+          "LBR-793"
+        ]
+      },
+      "displayName": [
+        "利比里亚",
+        "Liberia"
+      ],
+      "anchorAtomId": "LBR-791",
+      "searchAliases": [
+        "Grain Coast",
+        "Nimba",
+        "宁巴县",
+        "谷物海岸"
+      ]
+    },
+    {
+      "stateCode": "STATE_LIBYA",
+      "primary": "group:LBY-2965",
+      "members": {
+        "group:LBY-2965": [
+          "LBY-2965",
+          "LBY-2981",
+          "LBY-2982",
+          "LBY-2983",
+          "LBY-2984",
+          "LBY-2986",
+          "LBY-2987"
+        ]
+      },
+      "displayName": [
+        "利比亚",
+        "Libya"
+      ],
+      "anchorAtomId": "LBY-2965",
+      "searchAliases": [
+        "Al Kufrah",
+        "Cyrenaica",
+        "库夫拉省",
+        "昔兰尼加"
+      ]
+    },
+    {
+      "stateCode": "STATE_LIBYAN_DESERT",
+      "primary": "group:LBY-2964",
+      "members": {
+        "group:LBY-2964": [
+          "LBY-2964",
+          "LBY-2967",
+          "LBY-2968",
+          "LBY-2969",
+          "LBY-2971",
+          "LBY-5488"
+        ]
+      },
+      "displayName": [
+        "利比亚沙漠",
+        "Libyan Desert"
+      ],
+      "anchorAtomId": "LBY-2969",
+      "searchAliases": [
+        "Fezzan",
+        "Murzuq",
+        "费赞",
+        "迈尔祖格省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LINDI",
+      "primary": "group:TZA-3335",
+      "members": {
+        "group:TZA-3335": [
+          "TZA-3335",
+          "TZA-3379",
+          "TZA-3382",
+          "TZA-3385",
+          "TZA-3386",
+          "TZA-3387",
+          "TZA-3388",
+          "TZA-3389",
+          "TZA-3390",
+          "TZA-3395",
+          "TZA-5587"
+        ]
+      },
+      "displayName": [
+        "林迪",
+        "Lindi"
+      ],
+      "anchorAtomId": "TZA-3379",
+      "searchAliases": [
+        "Morogoro",
+        "Rufiji",
+        "莫罗戈罗区",
+        "鲁菲吉"
+      ]
+    },
+    {
+      "stateCode": "STATE_LOURENCO_MARQUES",
+      "primary": "group:MOZ-1207",
+      "members": {
+        "group:MOZ-1207": [
+          "MOZ-1207",
+          "MOZ-1925",
+          "MOZ-1927",
+          "MOZ-5854"
+        ]
+      },
+      "displayName": [
+        "洛伦索-马贵斯",
+        "Lourenco Marques"
+      ],
+      "anchorAtomId": "MOZ-1207",
+      "searchAliases": [
+        "Gaza",
+        "Lourenço Marques",
+        "加扎省"
+      ]
+    },
+    {
+      "stateCode": "STATE_LOWER_EGYPT",
+      "primary": "group:EGY-1530",
+      "members": {
+        "group:EGY-1530": [
+          "EGY-1530",
+          "EGY-1532",
+          "EGY-1533",
+          "EGY-1534",
+          "EGY-1535",
+          "EGY-1537",
+          "EGY-1539",
+          "EGY-1541",
+          "EGY-1543",
+          "EGY-1547"
+        ]
+      },
+      "displayName": [
+        "下埃及",
+        "Lower Egypt"
+      ],
+      "anchorAtomId": "EGY-1541",
+      "searchAliases": [
+        "Al Buhayrah",
+        "布海拉省"
+      ]
+    },
+    {
+      "stateCode": "STATE_MARRAKECH",
+      "primary": "group:MAR-1449",
+      "members": {
+        "group:MAR-1449": [
+          "MAR-1449",
+          "MAR-1450",
+          "MAR-1453",
+          "MAR-1456",
+          "MAR-1457"
+        ]
+      },
+      "displayName": [
+        "马拉喀什",
+        "Marrakech"
+      ],
+      "anchorAtomId": "MAR-1456",
+      "searchAliases": [
+        "Marrakech - Tensift - Al Haouz",
+        "马拉喀什-坦西夫特-豪兹大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_MATRUH",
+      "primary": "group:EGY-1540",
+      "members": {
+        "group:EGY-1540": [
+          "EGY-1540",
+          "EGY-1544",
+          "EGY-1545"
+        ]
+      },
+      "displayName": [
+        "马特鲁",
+        "Matruh"
+      ],
+      "anchorAtomId": "EGY-1540",
+      "searchAliases": [
+        "马特鲁省"
+      ]
+    },
+    {
+      "stateCode": "STATE_MAURITANIA",
+      "primary": "group:MRT-2784",
+      "members": {
+        "group:MRT-2784": [
+          "MRT-2784",
+          "MRT-2785",
+          "MRT-2786",
+          "MRT-2787",
+          "MRT-2788",
+          "MRT-2790",
+          "MRT-2791"
+        ]
+      },
+      "displayName": [
+        "毛里塔尼亚",
+        "Mauritania"
+      ],
+      "anchorAtomId": "MRT-2788",
+      "searchAliases": [
+        "Trarza",
+        "特拉扎省"
+      ]
+    },
+    {
+      "stateCode": "STATE_MIDDLE_EGYPT",
+      "primary": "group:EGY-1542",
+      "members": {
+        "group:EGY-1542": [
+          "EGY-1542",
+          "EGY-1546"
+        ]
+      },
+      "displayName": [
+        "中埃及",
+        "Middle Egypt"
+      ],
+      "anchorAtomId": "EGY-1542",
+      "searchAliases": [
+        "Al Fayyum",
+        "法尤姆省"
+      ]
+    },
+    {
+      "stateCode": "STATE_MOCAMBIQUE",
+      "primary": "group:MOZ-1198",
+      "members": {
+        "group:MOZ-1198": [
+          "MOZ-1198",
+          "MOZ-1199",
+          "MOZ-1200",
+          "MOZ-1906"
+        ],
+        "group:MWI-1904": [
+          "MWI-1904",
+          "MWI-1910",
+          "MWI-1912",
+          "MWI-1915",
+          "MWI-1916",
+          "MWI-1917",
+          "MWI-1918",
+          "MWI-1919",
+          "MWI-1920",
+          "MWI-1921",
+          "MWI-1922",
+          "MWI-1923",
+          "MWI-1924",
+          "MWI-5510"
+        ]
+      },
+      "displayName": [
+        "莫桑比克",
+        "Mocambique"
+      ],
+      "anchorAtomId": "MOZ-1199",
+      "searchAliases": [
+        "Mangochi",
+        "Niassa",
+        "尼亚萨省",
+        "曼戈切县"
+      ]
+    },
+    {
+      "stateCode": "STATE_NAMAQUALAND",
+      "primary": "group:NAM-3338",
+      "members": {
+        "group:NAM-3338": [
+          "NAM-3338",
+          "NAM-3339"
+        ]
+      },
+      "displayName": [
+        "纳马夸兰",
+        "Namaqualand"
+      ],
+      "anchorAtomId": "NAM-3338",
+      "searchAliases": [
+        "Karas",
+        "卡拉斯区"
+      ]
+    },
+    {
+      "stateCode": "STATE_NIGER",
+      "primary": "group:NER-796",
+      "members": {
+        "group:NER-796": [
+          "NER-796",
+          "NER-800"
+        ]
+      },
+      "displayName": [
+        "尼日尔",
+        "Niger"
+      ],
+      "anchorAtomId": "NER-800",
+      "searchAliases": [
+        "Agadez",
+        "阿加德兹大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_NIGERIA",
+      "primary": "group:NGA-2846",
+      "members": {
+        "group:NGA-2846": [
+          "NGA-2846",
+          "NGA-2848",
+          "NGA-2858",
+          "NGA-2859",
+          "NGA-2866",
+          "NGA-2881"
+        ]
+      },
+      "displayName": [
+        "尼日利亚",
+        "Nigeria"
+      ],
+      "anchorAtomId": "NGA-2848",
+      "searchAliases": [
+        "Taraba",
+        "塔拉巴州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NIGER_DELTA",
+      "primary": "group:NGA-2841",
+      "members": {
+        "group:NGA-2841": [
+          "NGA-2841",
+          "NGA-2842",
+          "NGA-2843",
+          "NGA-2844",
+          "NGA-2845",
+          "NGA-2847",
+          "NGA-2857",
+          "NGA-2860",
+          "NGA-2862",
+          "NGA-2863"
+        ]
+      },
+      "displayName": [
+        "尼日尔河三角洲",
+        "Niger Delta"
+      ],
+      "anchorAtomId": "NGA-2847",
+      "searchAliases": [
+        "Cross River",
+        "克里斯河州"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTHERN_CAPE",
+      "primary": "group:ZAF-1188",
+      "members": {
+        "group:ZAF-1188": [
+          "ZAF-1188"
+        ]
+      },
+      "displayName": [
+        "北开普",
+        "Northern Cape"
+      ],
+      "anchorAtomId": "ZAF-1188",
+      "searchAliases": [
+        "北开普省"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTH_ANGOLA",
+      "primary": "group:AGO-1877",
+      "members": {
+        "group:AGO-1877": [
+          "AGO-1877",
+          "AGO-1880",
+          "AGO-1881",
+          "AGO-1882"
+        ]
+      },
+      "displayName": [
+        "北安哥拉",
+        "North Angola"
+      ],
+      "anchorAtomId": "AGO-1881",
+      "searchAliases": [
+        "Uíge",
+        "威热省"
+      ]
+    },
+    {
+      "stateCode": "STATE_NORTH_CAMEROON",
+      "primary": "group:CMR-1477",
+      "members": {
+        "group:CMR-1477": [
+          "CMR-1477",
+          "CMR-1480",
+          "CMR-1482",
+          "CMR-1483",
+          "CMR-798",
+          "CMR-799"
+        ]
+      },
+      "displayName": [
+        "北喀麦隆",
+        "North Cameroon"
+      ],
+      "anchorAtomId": "CMR-1480",
+      "searchAliases": [
+        "Centre",
+        "中部区"
+      ]
+    },
+    {
+      "stateCode": "STATE_ORAN",
+      "primary": "group:DZA-2144",
+      "members": {
+        "group:DZA-2144": [
+          "DZA-2144",
+          "DZA-2145",
+          "DZA-2146",
+          "DZA-2147",
+          "DZA-2149",
+          "DZA-2201",
+          "DZA-2202",
+          "DZA-2203",
+          "DZA-2204"
+        ]
+      },
+      "displayName": [
+        "奥兰",
+        "Oran"
+      ],
+      "anchorAtomId": "DZA-2149",
+      "searchAliases": [
+        "Naâma",
+        "纳马省"
+      ]
+    },
+    {
+      "stateCode": "STATE_OROMIA",
+      "primary": "group:ETH-3131",
+      "members": {
+        "group:ETH-3131": [
+          "ETH-3131",
+          "ETH-3133",
+          "ETH-3134",
+          "ETH-3135",
+          "ETH-3136"
+        ]
+      },
+      "displayName": [
+        "奥罗米亚",
+        "Oromia"
+      ],
+      "anchorAtomId": "ETH-3131",
+      "searchAliases": [
+        "Oromiya",
+        "奥罗米亚州"
+      ]
+    },
+    {
+      "stateCode": "STATE_OUTER_HAUSALAND",
+      "primary": "group:NER-4859",
+      "members": {
+        "group:NER-4859": [
+          "NER-4859",
+          "NER-91",
+          "NER-92",
+          "NER-93",
+          "NER-94",
+          "NER-95"
+        ]
+      },
+      "displayName": [
+        "外豪萨兰",
+        "Outer Hausaland"
+      ],
+      "anchorAtomId": "NER-92",
+      "searchAliases": [
+        "Zinder",
+        "津德尔大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_RIFT_VALLEY",
+      "primary": "group:KEN-1197",
+      "members": {
+        "group:KEN-1197": [
+          "KEN-1197",
+          "KEN-890",
+          "KEN-891"
+        ]
+      },
+      "displayName": [
+        "大裂谷",
+        "Rift Valley"
+      ],
+      "anchorAtomId": "KEN-890",
+      "searchAliases": [
+        "裂谷省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SAHARA",
+      "primary": "group:DZA-2143",
+      "members": {
+        "group:DZA-2143": [
+          "DZA-2143",
+          "DZA-2148",
+          "DZA-2150",
+          "DZA-2190",
+          "DZA-2192",
+          "DZA-2193"
+        ]
+      },
+      "displayName": [
+        "撒哈拉",
+        "Sahara"
+      ],
+      "anchorAtomId": "DZA-2143",
+      "searchAliases": [
+        "Adrar",
+        "阿德拉尔省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SENEGAL",
+      "primary": "group:SEN-5514",
+      "members": {
+        "group:GMB-2151": [
+          "GMB-2151",
+          "GMB-2152",
+          "GMB-2153",
+          "GMB-2154",
+          "GMB-5512",
+          "GMB-5513"
+        ],
+        "group:SEN-5514": [
+          "SEN-5514",
+          "SEN-5515",
+          "SEN-5516",
+          "SEN-5517",
+          "SEN-763",
+          "SEN-764",
+          "SEN-765",
+          "SEN-766",
+          "SEN-767",
+          "SEN-768",
+          "SEN-774",
+          "SEN-775",
+          "SEN-779"
+        ]
+      },
+      "displayName": [
+        "塞内加尔",
+        "Senegal"
+      ],
+      "anchorAtomId": "SEN-779",
+      "searchAliases": [
+        "Central River",
+        "Tambacounda",
+        "中河区",
+        "坦巴昆达区"
+      ]
+    },
+    {
+      "stateCode": "STATE_SIERRA_LEONE",
+      "primary": "group:SLE-760",
+      "members": {
+        "group:SLE-760": [
+          "SLE-760",
+          "SLE-761",
+          "SLE-762",
+          "SLE-790"
+        ]
+      },
+      "displayName": [
+        "塞拉利昂",
+        "Sierra Leone"
+      ],
+      "anchorAtomId": "SLE-762",
+      "searchAliases": [
+        "Northern",
+        "北方省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SINAI",
+      "primary": "group:EGY-1531",
+      "members": {
+        "group:EGY-1531": [
+          "EGY-1531",
+          "EGY-1538",
+          "EGY-1557",
+          "EGY-1558"
+        ]
+      },
+      "displayName": [
+        "西奈",
+        "Sinai"
+      ],
+      "anchorAtomId": "EGY-1557",
+      "searchAliases": [
+        "Janub Sina'",
+        "南西奈省"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOMALILAND",
+      "primary": "group:SOM-1",
+      "members": {
+        "group:SOL+00?": [
+          "SOL+00?"
+        ],
+        "group:SOM-1": [
+          "SOM-1",
+          "SOM-2312",
+          "SOM-2313",
+          "SOM-2314",
+          "SOM-2315",
+          "SOM-2316",
+          "SOM-2407",
+          "SOM-2408",
+          "SOM-2409",
+          "SOM-2410",
+          "SOM-2412",
+          "SOM-2413",
+          "SOM-2645"
+        ]
+      },
+      "displayName": [
+        "索马里兰",
+        "Somaliland"
+      ],
+      "anchorAtomId": "SOM-1",
+      "searchAliases": [
+        "Bari",
+        "巴里州"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_ANGOLA",
+      "primary": "group:AGO-1887",
+      "members": {
+        "group:AGO-1887": [
+          "AGO-1887",
+          "AGO-1889",
+          "AGO-1890",
+          "AGO-1891",
+          "AGO-1893"
+        ]
+      },
+      "displayName": [
+        "南安哥拉",
+        "South Angola"
+      ],
+      "anchorAtomId": "AGO-1891",
+      "searchAliases": [
+        "Huíla",
+        "威拉省"
+      ]
+    },
+    {
+      "stateCode": "STATE_TANGANYIKA",
+      "primary": "group:TZA-3336",
+      "members": {
+        "group:BDI-2632": [
+          "BDI-2632",
+          "BDI-2633",
+          "BDI-2634",
+          "BDI-2635",
+          "BDI-2636",
+          "BDI-2637",
+          "BDI-2638",
+          "BDI-2639",
+          "BDI-2640",
+          "BDI-2641",
+          "BDI-2642",
+          "BDI-2643",
+          "BDI-2644",
+          "BDI-3364",
+          "BDI-3365",
+          "BDI-4854",
+          "BDI-5588"
+        ],
+        "group:RWA-3491": [
+          "RWA-3491",
+          "RWA-3492",
+          "RWA-3493",
+          "RWA-3494",
+          "RWA-3495"
+        ],
+        "group:TZA-3336": [
+          "TZA-3336",
+          "TZA-3357",
+          "TZA-3358",
+          "TZA-3359",
+          "TZA-3360",
+          "TZA-3363",
+          "TZA-3391",
+          "TZA-3392",
+          "TZA-3394",
+          "TZA-5584",
+          "TZA-5585",
+          "TZA-5586"
+        ]
+      },
+      "displayName": [
+        "坦噶尼喀",
+        "Tanganyika"
+      ],
+      "anchorAtomId": "TZA-3359",
+      "searchAliases": [
+        "Bururi",
+        "Eastern",
+        "Tabora",
+        "东部省",
+        "塔波拉区",
+        "布鲁里省"
+      ]
+    },
+    {
+      "stateCode": "STATE_TIMBUKTU",
+      "primary": "group:MLI-2688",
+      "members": {
+        "group:MLI-2688": [
+          "MLI-2688",
+          "MLI-2689",
+          "MLI-2690"
+        ]
+      },
+      "displayName": [
+        "廷巴克图",
+        "Timbuktu"
+      ],
+      "anchorAtomId": "MLI-2688",
+      "searchAliases": [
+        "通布图区"
+      ]
+    },
+    {
+      "stateCode": "STATE_TOGO",
+      "primary": "group:TGO-86",
+      "members": {
+        "group:GHA-2173": [
+          "GHA-2173"
+        ],
+        "group:TGO-86": [
+          "TGO-86",
+          "TGO-87",
+          "TGO-88",
+          "TGO-89",
+          "TGO-90"
+        ]
+      },
+      "displayName": [
+        "多哥",
+        "Togo"
+      ],
+      "anchorAtomId": "TGO-86",
+      "searchAliases": [
+        "Plateaux",
+        "Volta",
+        "沃尔特地区",
+        "高原区"
+      ]
+    },
+    {
+      "stateCode": "STATE_TRANSVAAL",
+      "primary": "group:ZAF-1201",
+      "members": {
+        "group:SWZ-534": [
+          "SWZ-534",
+          "SWZ-535",
+          "SWZ-536",
+          "SWZ-537"
+        ],
+        "group:ZAF-1201": [
+          "ZAF-1201",
+          "ZAF-1208",
+          "ZAF-1209",
+          "ZAF-1210"
+        ]
+      },
+      "displayName": [
+        "德兰士瓦",
+        "Transvaal"
+      ],
+      "anchorAtomId": "ZAF-1210",
+      "searchAliases": [
+        "Limpopo",
+        "Lubombo",
+        "卢邦博",
+        "林波波省"
+      ]
+    },
+    {
+      "stateCode": "STATE_TRIPOLI",
+      "primary": "group:LBY-2882",
+      "members": {
+        "group:LBY-2882": [
+          "LBY-2882",
+          "LBY-2966",
+          "LBY-2970",
+          "LBY-2973",
+          "LBY-2974",
+          "LBY-2975",
+          "LBY-2976",
+          "LBY-2978",
+          "LBY-2985"
+        ]
+      },
+      "displayName": [
+        "的黎波里",
+        "Tripoli"
+      ],
+      "anchorAtomId": "LBY-2976",
+      "searchAliases": [
+        "Mizdah",
+        "米兹达"
+      ]
+    },
+    {
+      "stateCode": "STATE_TUNISIA",
+      "primary": "group:TUN-101",
+      "members": {
+        "group:TUN-101": [
+          "TUN-101",
+          "TUN-102",
+          "TUN-103",
+          "TUN-104",
+          "TUN-105",
+          "TUN-106",
+          "TUN-107",
+          "TUN-108",
+          "TUN-109",
+          "TUN-110",
+          "TUN-111",
+          "TUN-112",
+          "TUN-113",
+          "TUN-114",
+          "TUN-115",
+          "TUN-116",
+          "TUN-117",
+          "TUN-118",
+          "TUN-119",
+          "TUN-120",
+          "TUN-96",
+          "TUN-97",
+          "TUN-98"
+        ]
+      },
+      "displayName": [
+        "突尼斯",
+        "Tunisia"
+      ],
+      "anchorAtomId": "TUN-98",
+      "searchAliases": [
+        "Tataouine",
+        "泰塔温省"
+      ]
+    },
+    {
+      "stateCode": "STATE_UBANGI_SHARI",
+      "primary": "group:CAF-1460",
+      "members": {
+        "group:CAF-1460": [
+          "CAF-1460",
+          "CAF-4856",
+          "CAF-794",
+          "CAF-795",
+          "CAF-801",
+          "CAF-802",
+          "CAF-804",
+          "CAF-805",
+          "CAF-806",
+          "CAF-807",
+          "CAF-808",
+          "CAF-809",
+          "CAF-810",
+          "CAF-812",
+          "CAF-866",
+          "CAF-867",
+          "CAF-868"
+        ]
+      },
+      "displayName": [
+        "乌班吉沙里",
+        "Ubangi Shari"
+      ],
+      "anchorAtomId": "CAF-866",
+      "searchAliases": [
+        "Haute-Kotto",
+        "Ubangi-Shari",
+        "上科托省"
+      ]
+    },
+    {
+      "stateCode": "STATE_UGANDA",
+      "primary": "group:UGA-3064",
+      "members": {
+        "group:UGA-3064": [
+          "UGA-3064",
+          "UGA-3065",
+          "UGA-3066",
+          "UGA-3067",
+          "UGA-3068",
+          "UGA-3069",
+          "UGA-3070",
+          "UGA-3071",
+          "UGA-3073",
+          "UGA-3074",
+          "UGA-3075",
+          "UGA-3076",
+          "UGA-3077",
+          "UGA-3078",
+          "UGA-3079",
+          "UGA-3080",
+          "UGA-3082",
+          "UGA-3084",
+          "UGA-3085",
+          "UGA-3086",
+          "UGA-3088",
+          "UGA-3089",
+          "UGA-3090",
+          "UGA-3091",
+          "UGA-3092",
+          "UGA-3093",
+          "UGA-3094",
+          "UGA-3095",
+          "UGA-3096",
+          "UGA-3098",
+          "UGA-3099",
+          "UGA-3100",
+          "UGA-3101",
+          "UGA-3102",
+          "UGA-3103",
+          "UGA-3105",
+          "UGA-3106",
+          "UGA-3107",
+          "UGA-3108",
+          "UGA-3112",
+          "UGA-3113",
+          "UGA-3114",
+          "UGA-3115",
+          "UGA-3116",
+          "UGA-3117",
+          "UGA-3118",
+          "UGA-3119",
+          "UGA-3121",
+          "UGA-3122",
+          "UGA-3123",
+          "UGA-3124",
+          "UGA-3125",
+          "UGA-3126",
+          "UGA-3127",
+          "UGA-3128",
+          "UGA-3361",
+          "UGA-3362",
+          "UGA-3366",
+          "UGA-3367",
+          "UGA-3368",
+          "UGA-3369",
+          "UGA-3370",
+          "UGA-3371",
+          "UGA-3372",
+          "UGA-3373",
+          "UGA-3374",
+          "UGA-3375",
+          "UGA-3376",
+          "UGA-3377",
+          "UGA-5589",
+          "UGA-5590",
+          "UGA-5591",
+          "UGA-5592",
+          "UGA-5593",
+          "UGA-5594",
+          "UGA-5595",
+          "UGA-5596",
+          "UGA-5597",
+          "UGA-5599",
+          "UGA-5600",
+          "UGA-5601",
+          "UGA-5602",
+          "UGA-5603",
+          "UGA-5604",
+          "UGA-5605",
+          "UGA-5606",
+          "UGA-5607",
+          "UGA-5608",
+          "UGA-5609",
+          "UGA-5611",
+          "UGA-5612",
+          "UGA-5613",
+          "UGA-5615",
+          "UGA-5616",
+          "UGA-5617",
+          "UGA-5618",
+          "UGA-5619",
+          "UGA-5620",
+          "UGA-5621",
+          "UGA-5622",
+          "UGA-5623",
+          "UGA-5624",
+          "UGA-5625",
+          "UGA-5626"
+        ]
+      },
+      "displayName": [
+        "乌干达",
+        "Uganda"
+      ],
+      "anchorAtomId": "UGA-3125",
+      "searchAliases": [
+        "Kaabong",
+        "卡邦区"
+      ]
+    },
+    {
+      "stateCode": "STATE_UPPER_EGYPT",
+      "primary": "group:EGY-1551",
+      "members": {
+        "group:EGY-1551": [
+          "EGY-1551",
+          "EGY-1556",
+          "EGY-5494"
+        ]
+      },
+      "displayName": [
+        "上埃及",
+        "Upper Egypt"
+      ],
+      "anchorAtomId": "EGY-1556",
+      "searchAliases": [
+        "Al Bahr al Ahmar",
+        "红海省"
+      ]
+    },
+    {
+      "stateCode": "STATE_VOLTA",
+      "primary": "group:BFA-2183",
+      "members": {
+        "group:BFA-2183": [
+          "BFA-2183",
+          "BFA-2184",
+          "BFA-2799",
+          "BFA-2800",
+          "BFA-2801",
+          "BFA-2802",
+          "BFA-2803",
+          "BFA-2804",
+          "BFA-2805",
+          "BFA-2806",
+          "BFA-2807",
+          "BFA-2808",
+          "BFA-2811",
+          "BFA-2812",
+          "BFA-2813",
+          "BFA-2814",
+          "BFA-2815",
+          "BFA-2816",
+          "BFA-2817",
+          "BFA-2818",
+          "BFA-2819",
+          "BFA-2820",
+          "BFA-2821",
+          "BFA-2822",
+          "BFA-2823",
+          "BFA-2824",
+          "BFA-2825",
+          "BFA-2826",
+          "BFA-2827",
+          "BFA-2828",
+          "BFA-2829",
+          "BFA-2830",
+          "BFA-2831",
+          "BFA-2832",
+          "BFA-2833",
+          "BFA-2834",
+          "BFA-2835",
+          "BFA-2836",
+          "BFA-2837",
+          "BFA-2874",
+          "BFA-2875",
+          "BFA-2876",
+          "BFA-2877",
+          "BFA-2878",
+          "BFA-5989"
+        ]
+      },
+      "displayName": [
+        "沃尔特",
+        "Volta"
+      ],
+      "anchorAtomId": "BFA-2836",
+      "searchAliases": [
+        "Komoé",
+        "科莫埃省"
+      ]
+    },
+    {
+      "stateCode": "STATE_VRYSTAAT",
+      "primary": "group:ZAF-1206",
+      "members": {
+        "group:ZAF-1206": [
+          "ZAF-1206"
+        ]
+      },
+      "displayName": [
+        "自由邦",
+        "Vrystaat"
+      ],
+      "anchorAtomId": "ZAF-1206",
+      "searchAliases": [
+        "Free State",
+        "Transorangia",
+        "奥兰治河外",
+        "自由邦省"
+      ]
+    },
+    {
+      "stateCode": "STATE_WADDAI",
+      "primary": "group:TCD-1464",
+      "members": {
+        "group:CMR-1462": [
+          "CMR-1462"
+        ],
+        "group:TCD-1464": [
+          "TCD-1464",
+          "TCD-1474",
+          "TCD-1484",
+          "TCD-1485",
+          "TCD-1486",
+          "TCD-1487",
+          "TCD-1488",
+          "TCD-1489",
+          "TCD-4857",
+          "TCD-4858",
+          "TCD-5580",
+          "TCD-5582",
+          "TCD-5583"
+        ]
+      },
+      "displayName": [
+        "瓦达伊",
+        "Waddai"
+      ],
+      "anchorAtomId": "TCD-1489",
+      "searchAliases": [
+        "Extrême-Nord",
+        "Salamat",
+        "极北区",
+        "萨拉马特区"
+      ]
+    },
+    {
+      "stateCode": "STATE_WESTERN_MALI",
+      "primary": "group:MLI-2792",
+      "members": {
+        "group:MLI-2792": [
+          "MLI-2792",
+          "MLI-2793",
+          "MLI-4860"
+        ]
+      },
+      "displayName": [
+        "西马里",
+        "Western Mali"
+      ],
+      "anchorAtomId": "MLI-2793",
+      "searchAliases": [
+        "Kayes",
+        "卡伊区"
+      ]
+    },
+    {
+      "stateCode": "STATE_WEST_SAHARA",
+      "primary": "group:MAR-3456",
+      "members": {
+        "group:MAR-3456": [
+          "MAR-3456",
+          "MAR-3469"
+        ],
+        "group:SAH+00?": [
+          "SAH+00?"
+        ]
+      },
+      "displayName": [
+        "西撒哈拉",
+        "West Sahara"
+      ],
+      "anchorAtomId": "MAR-3456",
+      "searchAliases": [
+        "Laâyoune - Boujdour - Sakia El Hamra",
+        "Western Sahara",
+        "阿尤恩-布支杜尔-萨基亚-阿姆拉大区"
+      ]
+    },
+    {
+      "stateCode": "STATE_WINDWARD_COAST",
+      "primary": "group:CIV-3437",
+      "members": {
+        "group:CIV-3437": [
+          "CIV-3437",
+          "CIV-3440",
+          "CIV-3441",
+          "CIV-3443",
+          "CIV-3444",
+          "CIV-3445",
+          "CIV-3446",
+          "CIV-3447",
+          "CIV-3448",
+          "CIV-3459",
+          "CIV-3461"
+        ]
+      },
+      "displayName": [
+        "向风海岸",
+        "Windward Coast"
+      ],
+      "anchorAtomId": "CIV-3448",
+      "searchAliases": [
+        "Bas-Sassandra",
+        "下萨桑德拉区"
+      ]
+    },
+    {
+      "stateCode": "STATE_YORUBA_STATES",
+      "primary": "group:NGA-2850",
+      "members": {
+        "group:NGA-2850": [
+          "NGA-2850",
+          "NGA-2852",
+          "NGA-2855",
+          "NGA-2856"
+        ]
+      },
+      "displayName": [
+        "约鲁巴",
+        "Yoruba States"
+      ],
+      "anchorAtomId": "NGA-2856",
+      "searchAliases": [
+        "Oyo",
+        "奥约州"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZAMBEZI",
+      "primary": "group:ZWE-524",
+      "members": {
+        "group:ZWE-524": [
+          "ZWE-524",
+          "ZWE-525",
+          "ZWE-526",
+          "ZWE-527",
+          "ZWE-528",
+          "ZWE-529",
+          "ZWE-530",
+          "ZWE-531",
+          "ZWE-532",
+          "ZWE-533"
+        ]
+      },
+      "displayName": [
+        "赞比西",
+        "Zambezi"
+      ],
+      "anchorAtomId": "ZWE-526",
+      "searchAliases": [
+        "Matabeleland North",
+        "北马塔贝莱兰省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZAMBEZIA",
+      "primary": "group:MOZ-1190",
+      "members": {
+        "group:MOZ-1190": [
+          "MOZ-1190",
+          "MOZ-1192",
+          "MOZ-1905"
+        ]
+      },
+      "displayName": [
+        "赞比西亚",
+        "Zambezia"
+      ],
+      "anchorAtomId": "MOZ-1190",
+      "searchAliases": [
+        "Tete",
+        "太特省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZAMBIA",
+      "primary": "group:ZMB-516",
+      "members": {
+        "group:ZMB-516": [
+          "ZMB-516",
+          "ZMB-517",
+          "ZMB-520",
+          "ZMB-521",
+          "ZMB-522",
+          "ZMB-523"
+        ]
+      },
+      "displayName": [
+        "赞比亚",
+        "Zambia"
+      ],
+      "anchorAtomId": "ZMB-523",
+      "searchAliases": [
+        "Western",
+        "西方省"
+      ]
+    },
+    {
+      "stateCode": "STATE_ZULULAND",
+      "primary": "group:ZAF-1216",
+      "members": {
+        "group:LSO-1202": [
+          "LSO-1202",
+          "LSO-1203",
+          "LSO-1204",
+          "LSO-1205",
+          "LSO-1212",
+          "LSO-1213",
+          "LSO-1214",
+          "LSO-1215",
+          "LSO-3453"
+        ],
+        "group:ZAF-1216": [
+          "ZAF-1216"
+        ]
+      },
+      "displayName": [
+        "祖鲁兰",
+        "Zululand"
+      ],
+      "anchorAtomId": "ZAF-1216",
+      "searchAliases": [
+        "KwaZulu-Natal",
+        "Thaba-Tseka",
+        "塔巴-采卡区",
+        "夸祖鲁-纳塔尔省"
+      ]
+    }
+  ]
+}
