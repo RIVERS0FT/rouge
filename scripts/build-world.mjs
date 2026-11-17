@@ -71,7 +71,9 @@ const pacificPlan=JSON.parse(await readFile(new URL('data/pacific-gameplay-regio
 const stateReference=JSON.parse(gunzipSync(await readFile(new URL('data/state-regions-1.13.7.json.gz',root))));
 const pacificGroups=applyPacificGameplayRegions(source,priorGroups,pacificPlan,stateReference);
 const indianPlan=JSON.parse(await readFile(new URL('data/indian-ocean-gameplay-regions.json',root)));
-const finalGroups=applyReviewedStateIslands(source,pacificGroups,indianPlan,stateReference,{label:'Indian Ocean',reason:'victoria-3-reviewed-indian-ocean-region'});
+const indianGroups=applyReviewedStateIslands(source,pacificGroups,indianPlan,stateReference,{label:'Indian Ocean',reason:'victoria-3-reviewed-indian-ocean-region'});
+const atlanticPlan=JSON.parse(await readFile(new URL('data/atlantic-gameplay-regions.json',root)));
+const finalGroups=applyReviewedStateIslands(source,indianGroups,atlanticPlan,stateReference,{label:'Atlantic',reason:'victoria-3-reviewed-atlantic-region'});
 // Keep the source partition as provenance, and ship only operational membership
 // in the shared atlas. Audit/optimization logs never enter either JS bundle.
 const atlas={...source,sourceRevision:'Natural Earth 5.1.1 / Admin1 10m',provinces:source.provinces.map((p,id)=>({...p,code:p.id,sourceId:id})),gameplayGroups:finalGroups.map(g=>({id:g.id,atomIds:g.sourceIds,legacyHint:g.legacyHint,reason:g.reason,...(g.displayName?{displayName:g.displayName}:{}),...(g.islandAttachments?{islandAttachments:g.islandAttachments}:{}),...(g.anchorAtomId?{anchorAtomId:g.anchorAtomId}:{}),...(g.searchAliases?{searchAliases:g.searchAliases}:{})}))};

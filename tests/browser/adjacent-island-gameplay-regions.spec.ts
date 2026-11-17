@@ -24,9 +24,9 @@ test('Macau and nearby small island aliases select their final gameplay destinat
  await page.getByTestId('settings-resume').click();
  expect(await select('Macao','Guangdong')).toBe(canton);
  expect(await select('Saipan','West Micronesia')).toBe(saipan);
- const dutch=await select('Saba','Caribbean Netherlands');
- expect(await select('Bonaire','Caribbean Netherlands')).toBe(dutch);
- const antigua=await select('Redonda','Antigua and Barbuda');
- expect(await select('Barbuda','Antigua and Barbuda')).toBe(antigua);
+ const dutch=await select('Saba','West Indies');
+ expect(await select('Bonaire','West Indies')).toBe(dutch);
+ expect(await select('Redonda','West Indies')).toBe(dutch);
+ expect(await select('Barbuda','West Indies')).toBe(dutch);
  await select('Anjouan','South Madagascar');
 });
