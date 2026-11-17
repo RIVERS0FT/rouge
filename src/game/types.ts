@@ -12,12 +12,19 @@ export interface ProvinceDef { id:number; code:string; name:[string,string]; sou
 export type ConstructionKind = 'market' | 'barracks' | 'fortress';
 export interface TerritoryConstruction {kind:ConstructionKind;level:1|2|3}
 /** Friendly queued arrivals count toward local training, not march capacity. */
-export type MarchOrder={to:number;owner:number;pendingIds:number[];reserved?:true;fraction?:MarchFraction};
+export type MarchOrder={to:number;owner:number;pendingIds:number[];reserved?:true;fraction?:MarchFraction;army?:number};
+/** One dispatch order forms an army. It exists while troops march or attack and dissolves into
+ * the garrison of a friendly region on arrival; same-target armies whose leads meet merge. */
+export interface Army { id:number; owner:number; to:number; formed:number; size:number }
+/** Side of a regional battle; owner -1 is the neutral garrison. */
+export interface BattleSide { owner:number; losses:number }
+/** Fighting in one region: every country drawn in joins the same battle until it is quiet for two days. */
+export interface Battle { id:number; region:number; start:number; last:number; sides:BattleSide[] }
 export interface Province { id:number; owner:number; production:number; kind:Kind; recovery:number; captor:number; capture:number; construction?:TerritoryConstruction; march?:MarchOrder; lastMarchTick?:number }
 /** An assault destination marks where a unit was sent while it was hostile. */
-export interface Unit { travel?:TravelPlan; assault?:number; id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; origin:number; destination:number|null; route:number[]; transport?:{from:number;to:number;index:number;embarked:boolean}; cooldown:number }
+export interface Unit { travel?:TravelPlan; assault?:number; army?:number; id:number; owner:number; kind:Kind; x:number; z:number; hp:number; province:number; target:number|null; origin:number; destination:number|null; route:number[]; transport?:{from:number;to:number;index:number;embarked:boolean}; cooldown:number }
 export interface Player { id:number; name:string; country?:CountryIdentity; flag?:Flag; leader:Leader; loadout:Kind[]; ai:boolean; funds:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerollsUsed:number }
-export interface GameEvent { tick:number; key:'capture'|'level'|'victory'; player:number; province?:number }
-export interface GameState { version:typeof import('./content.ts').STATE_VERSION; map:typeof import('./content.ts').MAP_ID; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[] }
+export interface GameEvent { tick:number; key:'capture'|'level'|'victory'|'battle'; player:number; province?:number; sides?:number[] }
+export interface GameState { version:typeof import('./content.ts').STATE_VERSION; map:typeof import('./content.ts').MAP_ID; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[]; armies:Army[]; nextArmy:number; battles:Battle[]; nextBattle:number }
 export interface PlayerSetup { name:string; flag?:Flag; leader:Leader; loadout:Kind[]; ai?:boolean }
 export type Result = {ok:true} | {ok:false;error:string};

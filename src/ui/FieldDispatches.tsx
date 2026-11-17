@@ -6,7 +6,7 @@ import {Icon, type IconName} from './icons.tsx';
 import {playerName, t, timeLabel, type Language} from './i18n.ts';
 import {campaignDateTime} from './campaignCalendar.ts';
 
-const EVENT_ICONS: Record<GameEvent['key'], IconName> = {capture: 'banner', level: 'rank', victory: 'crown'};
+const EVENT_ICONS: Record<GameEvent['key'], IconName> = {capture: 'banner', level: 'rank', victory: 'crown', battle: 'sabres'};
 
 /** The newest four dispatches as a notification feed. Rows share one time
  * column; a named region jumps the camera there. */
@@ -24,7 +24,9 @@ export function FieldDispatches({events, players, language, onRegion}: Pick<Game
      <bdi className="dispatch-player" style={{color: factionTextColor(event.player)}}>{playerName(language, players[event.player])}</bdi>
      <span className="dispatch-event">{t(language, `event.${event.key}`)}{event.province !== undefined && <> {onRegion
       ? <button type="button" className="dispatch-region" onClick={() => onRegion(event.province!)}>{MAP[event.province].name[language === 'zh' ? 0 : 1]}</button>
-      : <bdi className="dispatch-region">{MAP[event.province].name[language === 'zh' ? 0 : 1]}</bdi>}</>}</span>
+      : <bdi className="dispatch-region">{MAP[event.province].name[language === 'zh' ? 0 : 1]}</bdi>}</>}
+      {event.key === 'battle' && event.sides && <span className="dispatch-versus"> · {t(language, 'battleVersus').replace('{sides}', event.sides.filter(owner => owner !== event.player)
+       .map(owner => owner < 0 ? t(language, 'neutralSide') : playerName(language, players[owner])).join(language === 'zh' ? '、' : ', '))}</span>}</span>
     </div>
    </li>)}
   </ol> : <p className="dispatch-empty">{t(language, 'noEvents')}</p>}

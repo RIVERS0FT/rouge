@@ -11,6 +11,7 @@ import {formedBuilds} from '../game/talentBuilds.ts';
 import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
 import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
 import type {WorldRenderer} from '../render/WorldRenderer.ts';
+import {armyViews, battleViews} from '../render/armyViews.ts';
 import {CommanderPortrait} from './CommanderHud.tsx';
 import {EliminationBody, VictoryOverlay} from './dialogs/ResultDialogs.tsx';
 import {SavesView} from './dialogs/SavesView.tsx';
@@ -82,6 +83,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [pendingTalent, setPendingTalent] = useState<string | null>(null);
  const seenTalentRound = useRef<string | null>(null);
  const [codex, setCodex] = useState<string[]>(loadCodex);
+ const [selectedArmy, setSelectedArmy] = useState<number | null>(null);
  const [game, setGame] = useState<GameState | null>(null), [actor, setActor] = useState(0), [selected, setSelected] = useState(0);
  const [preferences] = useState(() => loadSetupPreferences());
  const [soloAICount, setSoloAICount] = useState('2'), [roomAICount, setRoomAICount] = useState('0'), [lobbyAI, setLobbyAI] = useState('0');
@@ -107,12 +109,16 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const solo = session.current?.mode === 'solo';
  const factions = useMemo(() => game ? factionSummaries(game) : [], [game]);
  const regions = useMemo(() => game ? ownedRegions(game, actor) : [], [game, actor]);
+ const armyList = useMemo(() => game ? armyViews(game) : [], [game]), battleList = useMemo(() => game ? battleViews(game) : [], [game]);
+ const ownsArmy = (id: number | null) => id !== null && Boolean(game?.armies.some(army => army.id === id && army.owner === actor));
  const owned = factions.find(faction => faction.id === actor)?.territory ?? 0;
 
  const notifyResult = (result: Result) => {if(!result.ok) {setPendingTalent(null); setToast(text(`error.${result.error}`));}};
  const report = (error: unknown) => setToast(text(`error.${error instanceof Error ? error.message : 'generic'}`));
  useEffect(() => setLobbyAI(String(room?.aiCount ?? 0)), [room?.aiCount]);
  useEffect(() => {if(eliminated) {setModal(null); setPendingTalent(null);}}, [eliminated]);
+ // An army dissolves on arrival; drop a selection that no longer exists.
+ useEffect(() => {if(selectedArmy !== null && !ownsArmy(selectedArmy)) setSelectedArmy(null);}, [game?.armies, selectedArmy, actor]);
  // A sample build counts as discovered once this country's talents form it in any campaign.
  useEffect(() => {
   if(!player) return;
@@ -237,9 +243,14 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  function issue(command: CountryAction) {if(localStarting) return; if(eliminated) {notifyResult({ok: false, error: 'eliminated'}); return;} session.current?.command(command);}
  function selectProvince(id: number, attack: boolean) {
   if(screen !== 'game' || localStarting) return;
-  if(attack) {if(eliminated || !MAP[selected] || !MAP[id]) return; issue(countryActions.march(selected,id));}
-  else if(id === -1) {setSelected(-1); setDock(current => current === 'region' ? null : current);}
-  else if(MAP[id]) {setSelected(id); if(!compactRef.current) setDock('region');}
+  if(attack) {
+   if(eliminated || !MAP[id]) return;
+   // With an army selected, a right-click / long-press redirects that army instead of dispatching.
+   if(ownsArmy(selectedArmy)) {issue(countryActions.armyMarch(selectedArmy!, id)); return;}
+   if(!MAP[selected]) return; issue(countryActions.march(selected,id));
+  }
+  else if(id === -1) {setSelectedArmy(null); setSelected(-1); setDock(current => current === 'region' ? null : current);}
+  else if(MAP[id]) {setSelectedArmy(null); setSelected(id); if(!compactRef.current) setDock('region');}
  }
  /** Outliner, search, nations and dispatch shortcuts: select, frame and (on wide screens) dock the region. */
  const jumpToRegion = useCallback((id: number) => {
@@ -318,7 +329,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  return <div className={`app ${screen === 'menu' ? 'is-menu' : screen === 'game' ? 'is-game' : 'is-lobby'}`} data-layout={compact ? 'compact' : 'wide'} data-dock={dock ?? 'none'}
   data-input-device={inputDevice} data-resource-state="ready" data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <SessionLifetime session={session}/>
-  <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' && !eliminated ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target,fraction) => {for(const source of sources) issue(countryActions.march(source,target,fraction));}} worldRef={world}/>
+  <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' && !eliminated ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target,fraction) => issue(countryActions.muster(sources,target,fraction))}
+   onArmy={id => setSelectedArmy(current => current === id ? null : id)} selectedArmy={screen === 'game' ? selectedArmy : null} worldRef={world}/>
   <div className="map-vignette"/>
   {screen !== 'game' && <div className="language-switch">
    <button type="button" className={language === 'zh' ? 'active' : ''} onClick={() => setLanguage('zh')} aria-label="简体中文">中</button><span>/</span>
@@ -347,7 +359,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     {dock === 'military' && <MilitaryPanel player={player} eliminated={eliminated} language={language} onCommand={issue} onClose={closeDock}/>}
     {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={id => {if(compact) closeDock(); focusNation(id);}} onClose={closeDock}/>}
    </div>
-   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} language={language} open={outlinerOpen}
+   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} battles={battleList} selectedArmy={selectedArmy} language={language} open={outlinerOpen}
+    onSelectArmy={army => {setSelectedArmy(army.id); world.current?.focusProvince(army.lead.province);}}
     onFocusNation={focusNation} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>
    <CommanderPortrait player={player} language={language} color={factionColor(actor)} onTalents={() => setModal('talents')}/>
    {paused && solo && <div className="pause-banner" role="status"><span aria-hidden="true">Ⅱ</span>{text('paused')}</div>}

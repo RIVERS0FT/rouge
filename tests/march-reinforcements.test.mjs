@@ -74,7 +74,8 @@ test('redirects only upcoming departures, preserves cadence and launched routes,
  const initial=encodeFrame(e.state,undefined,0),client=applyFrame(null,JSON.parse(JSON.stringify(initial.frame)));
  assert.ok(order(e,from,newTarget,.5).ok);
  const redirected=e.state.provinces[from].march;
- assert.deepEqual(redirected,{to:newTarget,owner:0,pendingIds:units.slice(1,3).map(u=>u.id),fraction:.5});
+ // The redirect forms a second army from the troops still waiting at the source.
+ assert.deepEqual(redirected,{to:newTarget,owner:0,pendingIds:units.slice(1,3).map(u=>u.id),fraction:.5,army:2});
  assert.ok(order(e,from,newTarget,.5).ok);assert.equal(e.state.provinces[from].march,redirected);
  assert.equal(e.state.provinces[from].lastMarchTick,0);
  assert.deepEqual(first.travel,originalRoute);assert.equal(first.target,to);

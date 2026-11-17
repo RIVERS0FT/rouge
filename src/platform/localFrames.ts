@@ -2,7 +2,7 @@ import {KINDS,MAP_ID,STATE_VERSION} from '../game/content.ts';
 import {validGroupingState} from '../game/territoryEconomy.ts';
 import type {GameState,Province,Unit} from '../game/types.ts';
 
-const WIDTH=19;
+const WIDTH=20;
 const kindIndex=Object.fromEntries(KINDS.map((kind,index)=>[kind,index]));
 type Path=NonNullable<Unit['travel']>;
 type PathEntry={id:number;revision:string;points:Path['points']};
@@ -20,7 +20,8 @@ function writeUnit(data:Float64Array,at:number,u:Unit,routes:number[][]):void {
  data[at+7]=u.target??-1;data[at+8]=u.origin;data[at+9]=u.destination??-1;data[at+10]=u.cooldown;data[at+11]=u.assault??0;
  data[at+12]=travel?.index??0;data[at+13]=transport?.from??0;data[at+14]=transport?.to??0;data[at+15]=transport?.index??0;data[at+16]=Number(transport?.embarked??false);
  data[at+17]=u.route.length?routes.push(u.route)-1:-1;
- data[at+18]=(travel?1:Object.hasOwn(u,'travel')?3:0)|(transport?4:Object.hasOwn(u,'transport')?12:0)|(u.assault!==undefined?16:Object.hasOwn(u,'assault')?48:0);
+ data[at+18]=(travel?1:Object.hasOwn(u,'travel')?3:0)|(transport?4:Object.hasOwn(u,'transport')?12:0)|(u.assault!==undefined?16:Object.hasOwn(u,'assault')?48:0)|(u.army!==undefined?64:Object.hasOwn(u,'army')?192:0);
+ data[at+19]=u.army??0;
 }
 export function encodeLocalFrame(s:GameState,base?:LocalBase):{frame:LocalFrame;base:LocalBase;transfer:ArrayBuffer[]} {
  const full=!base||base.campaign!==s.campaign||base.provinces.length!==s.provinces.length;
@@ -32,11 +33,12 @@ export function encodeLocalFrame(s:GameState,base?:LocalBase):{frame:LocalFrame;
  return {frame:{type:'local',full,campaign:s.campaign,baseTick:base?.tick??s.tick,state,provinces:full?provinces:provinces.filter((p,i)=>!sameProvince(p,base!.provinces[i])),...(full||grouping.revision!==base!.groupingRevision?{grouping}:{}),units:data,paths,routes},base:{campaign:s.campaign,tick:s.tick,groupingRevision:grouping.revision,provinces:provinces.map(p=>({...p})),paths:current},transfer:[data.buffer]};
 }
 function readUnit(data:Float64Array,at:number,paths:Map<number,PathEntry|Path>,routes:number[][]):Unit {
- const id=data[at],kind=KINDS[data[at+2]],flags=data[at+18],route=data[at+17];if(!kind||!Number.isSafeInteger(id)||id<1||!Number.isInteger(flags)||flags<0||flags>63||((flags&2)&&!(flags&1))||((flags&8)&&!(flags&4))||((flags&32)&&!(flags&16))||!Number.isInteger(route)||route< -1||route>=routes.length)throw Error('invalidSnapshot');
+ const id=data[at],kind=KINDS[data[at+2]],flags=data[at+18],route=data[at+17];if(!kind||!Number.isSafeInteger(id)||id<1||!Number.isInteger(flags)||flags<0||flags>255||((flags&2)&&!(flags&1))||((flags&8)&&!(flags&4))||((flags&32)&&!(flags&16))||((flags&128)&&!(flags&64))||!Number.isInteger(route)||route< -1||route>=routes.length)throw Error('invalidSnapshot');
  const u:Unit={id,owner:data[at+1],kind,x:data[at+3],z:data[at+4],hp:data[at+5],province:data[at+6],target:data[at+7]===-1?null:data[at+7],origin:data[at+8],destination:data[at+9]===-1?null:data[at+9],cooldown:data[at+10],route:route===-1?[]:routes[route]};
  if(flags&1){if(flags&2)u.travel=undefined;else{const path=paths.get(id);if(!path)throw Error('invalidSnapshot');u.travel={revision:path.revision,points:path.points,index:data[at+12]};}}
  if(flags&4)u.transport=flags&8?undefined:{from:data[at+13],to:data[at+14],index:data[at+15],embarked:Boolean(data[at+16])};
- if(flags&16)u.assault=flags&32?undefined:data[at+11];return u;
+ if(flags&16)u.assault=flags&32?undefined:data[at+11];
+ if(flags&64)u.army=flags&128?undefined:data[at+19];return u;
 }
 export function applyLocalFrame(current:GameState|null,frame:LocalFrame):GameState {
  if(frame.state.map!==MAP_ID||frame.state.version!==STATE_VERSION||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw Error('incompatibleMap');

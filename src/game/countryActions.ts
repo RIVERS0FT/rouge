@@ -16,6 +16,10 @@ export type CountryAction =
   | {type:'mergeGroups';groups:string[];expectedRevision:number}
   | {type:'splitGroup';group:string;atoms:string[];expectedRevision:number}
   | {type:'march';from:number;to:number;fraction:MarchFraction}
+  /** One dispatch from every chosen region of a territory forms a single army. */
+  | {type:'muster';sources:number[];to:number;fraction:MarchFraction}
+  /** Redirect an army that is marching or attacking. */
+  | {type:'armyMarch';army:number;to:number}
   | {type:'construct';province:number;kind:ConstructionKind;expectedLevel:0|1|2}
   | {type:'production';province:number;kind:Kind}
   | {type:'upgrade';kind:Kind;stat:Upgrade}
@@ -24,6 +28,8 @@ export type CountryAction =
 
 export const countryActions={
   march:(from:number,to:number,fraction:MarchFraction=1)=>({type:'march',from,to,fraction} satisfies CountryAction),
+  muster:(sources:number[],to:number,fraction:MarchFraction=1)=>({type:'muster',sources,to,fraction} satisfies CountryAction),
+  armyMarch:(army:number,to:number)=>({type:'armyMarch',army,to} satisfies CountryAction),
   upgrade:(kind:Kind,stat:Upgrade)=>({type:'upgrade',kind,stat} satisfies CountryAction),
   talent:(id:string)=>({type:'talent',id} satisfies CountryAction),
 };

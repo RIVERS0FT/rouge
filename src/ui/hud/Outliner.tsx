@@ -3,13 +3,15 @@ import {factionColor} from '../../game/factionColors.ts';
 import {MAP, PLAYABLE_COUNT} from '../../game/map.ts';
 import type {GameState} from '../../game/types.ts';
 import {FieldDispatches} from '../FieldDispatches.tsx';
+import {FactionSwatch} from '../FactionSwatch.tsx';
+import type {ArmyView, BattleView} from '../../render/armyViews.ts';
 import {Icon} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {Tip, TipRow, TipTitle} from '../Tooltip.tsx';
 import {DOMINATION_DAYS, victoryTarget, type FactionSummary, type RegionSummary} from './hudModel.ts';
 import {NationRow} from './NationsPanel.tsx';
 
-const NATION_ROWS = 5, REGION_ROWS = 6;
+const NATION_ROWS = 5, REGION_ROWS = 6, ARMY_ROWS = 5, BATTLE_ROWS = 5;
 
 function OutlinerSection({id, title, aside, open, onToggle, children}: {id: string; title: string; aside?: ReactNode; open: boolean; onToggle: () => void; children: ReactNode}) {
  return <section className="outliner-section" data-section={id} data-open={open}>
@@ -25,12 +27,16 @@ function OutlinerSection({id, title, aside, open, onToggle, children}: {id: stri
  * the player's own regions and the dispatch feed. Every row is a shortcut
  * that moves the camera, like a grand-strategy outliner.
  */
-export function Outliner({state, actor, owned, factions, regions, language, open, onFocusNation, onSelectRegion, onShowNations}: {
- state: GameState; actor: number; owned: number; factions: FactionSummary[]; regions: RegionSummary[]; language: Language; open: boolean;
- onFocusNation: (id: number) => void; onSelectRegion: (id: number) => void; onShowNations: () => void;
+export function Outliner({state, actor, owned, factions, regions, armies = [], battles = [], selectedArmy = null, language, open, onFocusNation, onSelectRegion, onSelectArmy, onShowNations}: {
+ state: GameState; actor: number; owned: number; factions: FactionSummary[]; regions: RegionSummary[]; armies?: ArmyView[]; battles?: BattleView[]; selectedArmy?: number | null;
+ language: Language; open: boolean; onFocusNation: (id: number) => void; onSelectRegion: (id: number) => void; onSelectArmy?: (army: ArmyView) => void; onShowNations: () => void;
 }) {
  const text = (key: string) => t(language, key), goal = victoryTarget();
- const [expanded, setExpanded] = useState({objective: true, nations: true, regions: true});
+ const [expanded, setExpanded] = useState({objective: true, nations: true, armies: true, battles: true, regions: true});
+ const regionName = (id: number) => MAP[id].name[language === 'zh' ? 0 : 1];
+ const mine = armies.filter(army => army.owner === actor).sort((a, b) => b.count - a.count || a.id - b.id);
+ const involved = (battle: BattleView) => battle.sides.some(side => side.owner === actor);
+ const fights = battles.slice().sort((a, b) => Number(involved(b)) - Number(involved(a)) || b.sides.reduce((n, s) => n + s.count, 0) - a.sides.reduce((n, s) => n + s.count, 0) || a.id - b.id);
  const toggle = (key: keyof typeof expanded) => setExpanded(current => ({...current, [key]: !current[key]}));
  const domination = state.domination[actor] ?? 0;
  const self = factions.findIndex(faction => faction.id === actor);
@@ -63,6 +69,28 @@ export function Outliner({state, actor, owned, factions, regions, language, open
      <NationRow faction={faction} rank={factions.indexOf(faction) + 1} state={state} actor={actor} language={language} onFocus={onFocusNation} compact/>
     </li>)}</ol>
     <button type="button" className="outliner-more" data-testid="outliner-all-nations" onClick={onShowNations}>{text('allNations')}<span aria-hidden="true">›</span></button>
+   </OutlinerSection>
+   <OutlinerSection id="armies" title={text('armies')} aside={mine.length} open={expanded.armies} onToggle={() => toggle('armies')}>
+    {mine.length ? <ol className="outliner-armies">{mine.slice(0, ARMY_ROWS).map(army => <li key={army.id}>
+     <button type="button" className="army-row" data-testid="outliner-army" data-selected={army.id === selectedArmy} onClick={() => onSelectArmy?.(army)}>
+      <FactionSwatch state={state} id={army.owner} language={language} className="army-row-flag"/>
+      <b className="army-row-count">{army.count}</b>
+      <span className="army-row-target"><bdi>{text('armyTarget').replace('{region}', regionName(army.to))}</bdi></span>
+     </button>
+    </li>)}</ol> : <p className="outliner-note">{text('noArmies')}</p>}
+    {mine.length > ARMY_ROWS && <p className="outliner-note">{text('moreItems').replace('{count}', String(mine.length - ARMY_ROWS))}</p>}
+    {selectedArmy !== null && mine.some(army => army.id === selectedArmy) && <p className="outliner-note army-hint">{text('armySelectedHint')}</p>}
+   </OutlinerSection>
+   <OutlinerSection id="battles" title={text('battles')} aside={fights.length} open={expanded.battles} onToggle={() => toggle('battles')}>
+    {fights.length ? <ol className="outliner-battles">{fights.slice(0, BATTLE_ROWS).map(battle => <li key={battle.key}>
+     <button type="button" className="battle-row" data-testid="outliner-battle" data-involved={involved(battle)} onClick={() => onSelectRegion(battle.region)}>
+      <span className="battle-row-name"><Icon name="sabres" size={12}/><bdi>{regionName(battle.region)}</bdi></span>
+      <span className="battle-row-sides">{battle.sides.slice(0, 4).map(side => <span key={side.owner} className="battle-row-side" title={side.owner < 0 ? text('neutralSide') : playerName(language, state.players[side.owner])}>
+       <FactionSwatch state={state} id={side.owner} language={language} className="battle-row-flag"/>{side.count}
+      </span>)}</span>
+     </button>
+    </li>)}</ol> : <p className="outliner-note">{text('noBattles')}</p>}
+    {fights.length > BATTLE_ROWS && <p className="outliner-note">{text('moreItems').replace('{count}', String(fights.length - BATTLE_ROWS))}</p>}
    </OutlinerSection>
    <OutlinerSection id="regions" title={text('myRegions')} aside={regions.length} open={expanded.regions} onToggle={() => toggle('regions')}>
     <ol className="outliner-regions">{regions.slice(0, REGION_ROWS).map(region => {

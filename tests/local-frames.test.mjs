@@ -26,6 +26,6 @@ test('immutable paths are reused, replaced, halted and removed with their origin
 test('local decoding rejects sequence gaps, duplicate units and inconsistent optional-field flags',()=>{
  const state=structuredClone(fixture),first=encodeLocalFrame(state),current=applyLocalFrame(null,wire(first));
  const gap=encodeLocalFrame({...state,tick:2},first.base).frame;gap.baseTick=99;assert.throws(()=>applyLocalFrame(current,gap),/snapshotGap/);
- const duplicate=encodeLocalFrame(state,first.base).frame;duplicate.units[19]=duplicate.units[0];assert.throws(()=>applyLocalFrame(current,duplicate),/invalidSnapshot/);
+ const duplicate=encodeLocalFrame(state,first.base).frame,width=duplicate.units.length/state.units.length;duplicate.units[width]=duplicate.units[0];assert.throws(()=>applyLocalFrame(current,duplicate),/invalidSnapshot/);
  const flags=encodeLocalFrame(state,first.base).frame;flags.units[18]=2;assert.throws(()=>applyLocalFrame(current,flags),/invalidSnapshot/);
 });
