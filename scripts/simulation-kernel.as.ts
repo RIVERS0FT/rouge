@@ -123,9 +123,12 @@ export function solve(tick:u32):void {
      if((at(remaining,ai)<1e-7||word(attempts,ai)>=12)&&(at(remaining,bi)<1e-7||word(attempts,bi)>=12))continue;
      let x:f64,z:f64;
      if(d>1e-9){x=dx/d;z=dz/d;}else{const direction=(i32(aid)*73856093^i32(bid)*19349663)&7;x=fallbackX(direction);z=fallbackZ(direction);}
+     // Mirrors collision.ts: head-on marching bodies both keep right and slide past.
+     const sidestep=groundMode&&headOn(ai,bi,x,z);
      const ma=at(mobility,ai),mb=at(mobility,bi),sum=ma+mb,share=ma/(sum!=0?sum:1);
      const movedA=push(ai,-x,-z,overlap*share),movedB=push(bi,x,z,overlap-movedA);
      if(movedB<overlap-movedA-1e-6)push(ai,-x,-z,overlap-movedA-movedB);
+     if(sidestep){const side=overlap*.5;push(ai,z,-x,side);push(bi,-z,x,side);}
     }
     if(visited>=96)break;
    }
@@ -247,6 +250,16 @@ function groundLegal(index:i32,x:f64,z:f64):bool {
  if(travel&&!kernelLocalSegment(x,z,qx,qz,-2))return false;
  put(groundClearance,index,after);store<i32>(groundTriangles+usize(index)*4,kernelTerrainAt(x,z,true));return true;
 }
+@external("host","atan2") declare function hostAtan2(y:f64,x:f64):f64;
+/** Mirrors collision.ts motionAngle. */
+@inline function motionAngle(dx:f64,dz:f64):f64 {return dx!=0||dz!=0?hostAtan2(dz,dx):NaN;}
+/** Mirrors collision.ts: both marching bodies moved into the contact normal (a to b) within 60 degrees
+ * this tick. Ground metadata slot 0 of a marching body holds that direction (NaN when it stood still). */
+function headOn(a:i32,b:i32,x:f64,z:f64):bool {
+ const ma=a*6,mb=b*6;if(at(groundMeta,ma+1)==0||at(groundMeta,mb+1)==0)return false;
+ const motionA=at(groundMeta,ma),motionB=at(groundMeta,mb);
+ return x*hostCos(motionA)+z*hostSin(motionA)>.5&&x*hostCos(motionB)+z*hostSin(motionB)< -.5;
+}
 function push(index:i32,x:f64,z:f64,amount:f64):f64 {
  if(!groundMode)return hostPush(index,x,z,amount);
  amount=Math.min(amount,at(remaining,index));if(amount<1e-7)return 0;
@@ -351,8 +364,17 @@ function moveUnit(unit:i32):void {
   nx=qd?currentX+qx/qd*step:currentX;nz=qd?currentZ+qz/qd*step:currentZ;
  }}
  const last=index==i32(u(unit,12))-1,aheadScale=goalDistance?Math.min(5/goalDistance,1):0,aheadX=currentX+(px-currentX)*aheadScale,aheadZ=currentZ+(pz-currentZ)*aheadScale;
- if(!sea&&(!kernelBuildingSegment(currentX,currentZ,nx,nz,radius)||!kernelBuildingSegment(currentX,currentZ,aheadX,aheadZ,radius))){
-  nativeBuildingStep(unit,px,pz,radius,move);nx=buildingX;nz=buildingZ;
+ let detour=!sea&&(!kernelBuildingSegment(currentX,currentZ,nx,nz,radius)||!kernelBuildingSegment(currentX,currentZ,aheadX,aheadZ,radius)),shadow=false;
+ // Corridor steering must not step into a town's shadow: the house planner would
+ // walk the unit straight back out on the next tick, forever. It plans this step too.
+ if(!detour&&steering){
+  const nextDistance=norm2(px-nx,pz-nz),nextScale=nextDistance?Math.min(5/nextDistance,1):0;
+  shadow=detour=!kernelBuildingSegment(nx,nz,nx+(px-nx)*nextScale,nz+(pz-nz)*nextScale,radius);
+ }
+ if(detour){
+  nativeBuildingStep(unit,px,pz,radius,move,last?target:-1);
+  // Without a planned way past the town, the clear corridor step still beats standing still.
+  if(!shadow||buildingX!=currentX||buildingZ!=currentZ){nx=buildingX;nz=buildingZ;}
  }
  const nearbyArrival=last&&!sea&&goalDistance<=2.3&&kernelPointInProvince(target,nx,nz);
  let nearbyWaypoint=false;
@@ -385,13 +407,16 @@ function detourLegal(unit:i32,ax:f64,az:f64,bx:f64,bz:f64):bool {
 function graphAdvance(x:f64,z:f64,toX:f64,toZ:f64,step:f64):void {
  const dx=toX-x,dz=toZ-z,d=norm2(dx,dz),f=d?Math.min(step/d,1):0;buildingX=x+dx*f;buildingZ=z+dz*f;
 }
-function nativeBuildingStep(unit:i32,goalX:f64,goalZ:f64,radius:f64,step:f64):void {
+// Mirrors buildings.ts buildingStep, including the arrival region of a final leg.
+function nativeBuildingStep(unit:i32,goalX:f64,goalZ:f64,radius:f64,step:f64,arrival:i32):void {
  const x=u(unit,2),z=u(unit,3),d=norm2(x-goalX,z-goalZ),scale=d?Math.min(5/d,1):0,targetX=x+(goalX-x)*scale,targetZ=z+(goalZ-z)*scale;
  const directDistance=norm2(x-goalX,z-goalZ),f=directDistance?Math.min(step/directDistance,1):0,directX=x+(goalX-x)*f,directZ=z+(goalZ-z)*f;
- if((kernelBuildingSegment(x,z,targetX,targetZ,radius)||!kernelBuildingSegment(targetX,targetZ,targetX,targetZ,radius))&&kernelBuildingSegment(x,z,directX,directZ,radius)&&detourLegal(unit,x,z,directX,directZ)){buildingX=directX;buildingZ=directZ;return;}
+ const covered=!kernelBuildingSegment(targetX,targetZ,targetX,targetZ,radius),arriving=arrival>=0&&covered;
+ if(!arriving&&(covered||kernelBuildingSegment(x,z,targetX,targetZ,radius))&&kernelBuildingSegment(x,z,directX,directZ,radius)&&detourLegal(unit,x,z,directX,directZ)){buildingX=directX;buildingZ=directZ;return;}
  const reach=radius+.5+gh10,size=gh7,minX=i32(gh3),minZ=i32(gh4),cols=i32(gh5),rows=i32(gh6);
  const left=i32(Math.floor((Math.min(x,targetX)-reach)/size))-minX,right=i32(Math.floor((Math.max(x,targetX)+reach)/size))-minX,top=i32(Math.floor((Math.min(z,targetZ)-reach)/size))-minZ,bottom=i32(Math.floor((Math.max(z,targetZ)+reach)/size))-minZ;
  let townCount=0;
+ if(arriving){setWord(graphTowns,0,u32(arrival));townCount=1;}
  for(let cx=left;cx<=right&&townCount<4;cx++)for(let cz=top;cz<=bottom&&townCount<4;cz++){
   if(cx<0||cz<0||cx>=cols||cz>=rows)continue;const cell=cz*cols+cx,offsets=usize(gh2),ids=usize(gh1),provinces=usize(gh11);
   for(let i=i32(word(offsets,cell)),end=i32(word(offsets,cell+1));i<end&&townCount<4;i++){
@@ -407,10 +432,10 @@ function nativeBuildingStep(unit:i32,goalX:f64,goalZ:f64,radius:f64,step:f64):vo
    if(kernelBuildingSegment(px,pz,px,pz,radius)){put(graphX,count,px);put(graphZ,count,pz);count++;}
   }
  }
- for(let i=0;i<count;i++){put(graphCost,i,Infinity);setWord(graphPrevious,i,u32(-1));setWord(graphDone,i,0);}put(graphCost,0,0);
+ for(let i=0;i<count;i++){put(graphCost,i,Infinity);setWord(graphPrevious,i,u32(-1));setWord(graphDone,i,0);}put(graphCost,0,0);let found=-1;
  for(let k=0;k<count;k++){
   let current=-1;for(let i=0;i<count;i++)if(!word(graphDone,i)&&(current<0||at(graphCost,i)<at(graphCost,current)))current=i;
-  if(current<0||!isFinite(at(graphCost,current)))break;if(current==1)break;setWord(graphDone,current,1);
+  if(current<0||!isFinite(at(graphCost,current)))break;if(graphReached(current,arriving,arrival,goalX,goalZ)){found=current;break;}setWord(graphDone,current,1);
   const ax=at(graphX,current),az=at(graphZ,current);
   for(let i=1;i<count;i++)if(!word(graphDone,i)){
    const bx=at(graphX,i),bz=at(graphZ,i),cost=at(graphCost,current)+norm2(ax-bx,az-bz);
@@ -418,10 +443,19 @@ function nativeBuildingStep(unit:i32,goalX:f64,goalZ:f64,radius:f64,step:f64):vo
    put(graphCost,i,cost);setWord(graphPrevious,i,u32(current));
   }
  }
- if(i32(word(graphPrevious,1))>=0){let index=1;while(i32(word(graphPrevious,index))>0)index=i32(word(graphPrevious,index));graphAdvance(x,z,at(graphX,index),at(graphZ,index),step);return;}
+ if(found>0){let index=found;while(i32(word(graphPrevious,index))>0)index=i32(word(graphPrevious,index));graphAdvance(x,z,at(graphX,index),at(graphZ,index),step);return;}
+ if(arriving&&kernelBuildingSegment(x,z,directX,directZ,radius)&&detourLegal(unit,x,z,directX,directZ)){buildingX=directX;buildingZ=directZ;return;}
  buildingX=x;buildingZ=z;
 }
+// The local target, or on a final leg any detour node inside the arrival region near its center.
+function graphReached(i:i32,arriving:bool,arrival:i32,goalX:f64,goalZ:f64):bool {
+ if(i==1)return true;if(!arriving||i<2)return false;
+ const x=at(graphX,i),z=at(graphZ,i);return norm2(x-goalX,z-goalZ)<=2.3&&kernelPointInProvince(arrival,x,z);
+}
 export function solveBattalionPhysics(tick:u32):void {
+ // Units without a transport keep their start position in the idle transport lanes (17 = -1 marks it),
+ // so the ground solver sees how far each marching body moved (engine.ts records the same).
+ for(let i=0;i<unitCount;i++)if(u(i,14)==0){setU(i,15,u(i,2));setU(i,16,u(i,3));setU(i,17,-1);}
  updateBattalions();let n=0,minBX=Infinity,minBZ=Infinity,maxBX=-Infinity,maxBZ=-Infinity;
  const bodyUnits:usize=30*1024*1024;
  for(let i=0;i<unitCount;i++)if(u(i,4)-u(i,20)>0&&(i32(u(i,14))&2)==0){setWord(bodyUnits,n++,u32(i));const x=Math.floor(u(i,2)/1.24),z=Math.floor(u(i,3)/1.24);minBX=Math.min(minBX,x);maxBX=Math.max(maxBX,x);minBZ=Math.min(minBZ,z);maxBZ=Math.max(maxBZ,z);}
@@ -430,7 +464,8 @@ export function solveBattalionPhysics(tick:u32):void {
  prepare(n,cap,cols*rows,cols,left,top);
  for(let i=0;i<n;i++){
   const unit=i32(word(bodyUnits,i)),travel=u(unit,11)>=0,index=i32(u(unit,13)),meta=i*6;
-  put(xs,i,u(unit,2));put(zs,i,u(unit,3));put(radii,i,u(unit,29));put(ids,i,u(unit,0));put(mobility,i,travel?.15:1);put(groundMeta,meta,u(unit,6));put(groundMeta,meta+1,travel?1:0);
+  put(xs,i,u(unit,2));put(zs,i,u(unit,3));put(radii,i,u(unit,29));put(ids,i,u(unit,0));put(mobility,i,travel?.15:1);put(groundMeta,meta+1,travel?1:0);
+  put(groundMeta,meta,!travel?u(unit,6):u(unit,17)==-1?motionAngle(u(unit,2)-u(unit,15),u(unit,3)-u(unit,16)):NaN);
   if(travel){put(groundMeta,meta+2,path(unit,index-1,0));put(groundMeta,meta+3,path(unit,index-1,1));put(groundMeta,meta+4,path(unit,index,0));put(groundMeta,meta+5,path(unit,index,1));}
  }
  solveGround(tick);

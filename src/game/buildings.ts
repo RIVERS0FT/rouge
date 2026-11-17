@@ -68,31 +68,40 @@ function townDetourNodes(id:number,radius:number):Vec2[]{
  for(let i=0;i<16;i++){const a=i*Math.PI/8,p={x:c.x+Math.cos(a)*r,z:c.z+Math.sin(a)*r};if(buildingSegment(p,p,radius))nodes.push(p);}
  if(detourNodes.size>=512)detourNodes.delete(detourNodes.keys().next().value!);detourNodes.set(key,nodes);return nodes;
 }
+/** Final arrival: within this distance of the region center, with the next step inside the region. */
+export const ARRIVAL_RADIUS=2.3;
 /** A small local visibility graph around existing towns. The terrain flow field
  * remains authoritative; callers constrain every candidate to its land corridor.
- * No persistent steering state: save/replay and array order stay deterministic. */
-export function buildingStep(from:Vec2,goal:Vec2,radius:number,step:number,legal:(a:Vec2,b:Vec2)=>boolean):Vec2 {
+ * No persistent steering state: save/replay and array order stay deterministic.
+ * On a final leg `arrival` is the target region. Its own houses cover its center,
+ * so any detour node inside that region and within ARRIVAL_RADIUS also counts as reached. */
+export function buildingStep(from:Vec2,goal:Vec2,radius:number,step:number,legal:(a:Vec2,b:Vec2)=>boolean,arrival=-1):Vec2 {
  const dist=(a:Vec2,b:Vec2)=>Math.hypot(a.x-b.x,a.z-b.z);
  const advance=(to:Vec2)=>{const d=dist(from,to),f=d?Math.min(step/d,1):0;return{x:from.x+(to.x-from.x)*f,z:from.z+(to.z-from.z)*f};};
  // Bound local work even when a route crosses a continent.
  const d=dist(from,goal),scale=d?Math.min(5/d,1):0,target={x:from.x+(goal.x-from.x)*scale,z:from.z+(goal.z-from.z)*scale},direct=advance(goal);
+ const covered=!buildingSegment(target,target,radius),arriving=arrival>=0&&covered;
  // Keep following the detour until the whole local connection is clear,
  // rather than being pulled back toward the blocked centerline each tick.
- if((buildingSegment(from,target,radius)||!buildingSegment(target,target,radius))&&buildingSegment(from,direct,radius)&&legal(from,direct))return direct;
- const towns=[...new Set(nearby(from,target,radius+.5).map(b=>b.province))].slice(0,4);
+ // An arriving unit plans first: pushing straight at a covered center would undo the detour.
+ if(!arriving&&(covered||buildingSegment(from,target,radius))&&buildingSegment(from,direct,radius)&&legal(from,direct))return direct;
+ let towns=[...new Set(nearby(from,target,radius+.5).map(b=>b.province))];
+ if(arriving)towns=[arrival,...towns.filter(id=>id!==arrival)];
  const nodes:Vec2[]=[from,target];
- for(const id of towns)nodes.push(...townDetourNodes(id,radius));
- const costs=nodes.map(()=>Infinity),previous=nodes.map(()=>-1),done=new Set<number>();costs[0]=0;
+ for(const id of towns.slice(0,4))nodes.push(...townDetourNodes(id,radius));
+ const reached=(i:number)=>i===1||(arriving&&i>1&&dist(nodes[i],goal)<=ARRIVAL_RADIUS&&pointInProvince(arrival,nodes[i].x,nodes[i].z));
+ const costs=nodes.map(()=>Infinity),previous=nodes.map(()=>-1),done=new Set<number>();costs[0]=0;let found=-1;
  for(let k=0;k<nodes.length;k++){
   let current=-1;for(let i=0;i<nodes.length;i++)if(!done.has(i)&&(current<0||costs[i]<costs[current]))current=i;
-  if(current<0||!Number.isFinite(costs[current]))break;if(current===1)break;done.add(current);
+  if(current<0||!Number.isFinite(costs[current]))break;if(reached(current)){found=current;break;}done.add(current);
   for(let i=1;i<nodes.length;i++)if(!done.has(i)){
    const cost=costs[current]+dist(nodes[current],nodes[i]);
    if(cost>=costs[i]-1e-8||!buildingSegment(nodes[current],nodes[i],radius)||!legal(nodes[current],nodes[i]))continue;
    costs[i]=cost;previous[i]=current;
   }
  }
- if(previous[1]>=0){let i=1;while(previous[i]>0)i=previous[i];return advance(nodes[i]);}
+ if(found>0){let i=found;while(previous[i]>0)i=previous[i];return advance(nodes[i]);}
+ if(arriving&&buildingSegment(from,direct,radius)&&legal(from,direct))return direct;
  // A blocked objective is not a license to walk into a house or off an island.
  return from;
 }

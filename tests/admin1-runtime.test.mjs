@@ -4,7 +4,7 @@ import {MAP,PLAYABLE_COUNT,TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING,pointIn
 import {validateTerritoryGrouping} from '../src/game/territoryGrouping.ts';
 import {MAP_ID} from '../src/game/content.ts';
 test('new atlas uses complete real NE Admin1 IDs, explicit old-map isolation and no fabricated 675 target',()=>{
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(MAP.length,finalRegionCount);assert.equal(PLAYABLE_COUNT,finalPlayableCount);assert.equal(INITIAL_TERRITORY_GROUPING.groups.length,finalRegionCount);
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(MAP.length,finalRegionCount);assert.equal(PLAYABLE_COUNT,finalPlayableCount);assert.equal(INITIAL_TERRITORY_GROUPING.groups.length,finalRegionCount);
  assert.ok(MAP.some(p=>p.code==='CHN-1808'));assert.equal(MAP.some(p=>p.code.startsWith('STATE_')),false);
  assert.equal(validateTerritoryGrouping(TERRITORY_TOPOLOGY,INITIAL_TERRITORY_GROUPING),true);assert.match(MAP_METADATA.source,/Natural Earth/i);
 });

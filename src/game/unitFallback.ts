@@ -3,7 +3,7 @@ import {DT,stats} from './content.ts';
 import type {Kind,Unit,GameState} from './types.ts';
 import {UNIT_RADIUS} from './collision.ts';
 import {combatLanes,secondaryMultiplier,secondaryTargets,MODE_TARGET_MASK,MODE_VS_MARCHING,MODE_VS_GARRISON,MODE_POINT_BLANK,MODE_SPLASH_RESIST,TARGET_BONUS,POINT_BLANK_BONUS,POINT_BLANK_RANGE_SQUARED,SPLASH_RESIST_FACTOR} from './talentEffects.ts';
-import {buildingSegment,buildingStep} from './buildings.ts';
+import {ARRIVAL_RADIUS,buildingSegment,buildingStep} from './buildings.ts';
 import {terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 /** Exact JavaScript path for scratch limits or unavailable parallel workers. */
 export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:number,kind:Kind)=>ReturnType<typeof stats>,s:GameState,damage:Map<number,{amount:number;attacker:number}>,halt:(u:Unit)=>void):void {
@@ -82,14 +82,23 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
         const q=travelCorridorPoint(travel,u),qx=q.x-u.x,qz=q.z-u.z,qd=Math.hypot(qx,qz),step=Math.min(qd,landSpeed*DT);
         nx=qd?u.x+qx/qd*step:u.x;nz=qd?u.z+qz/qd*step:u.z;
       }
-      const last=travel.index===travel.points.length-1;
+      const last=travel.index===travel.points.length-1,radius=UNIT_RADIUS[u.kind];
       // A garrison occupies an area, not one exact point. Let arriving troops
       // settle around the objective instead of forever driving into its center.
       const aheadScale=goalDistance?Math.min(5/goalDistance,1):0,ahead={x:u.x+(point.x-u.x)*aheadScale,z:u.z+(point.z-u.z)*aheadScale};
-      if(!point.sea&&(!buildingSegment(u,{x:nx,z:nz},UNIT_RADIUS[u.kind])||!buildingSegment(u,ahead,UNIT_RADIUS[u.kind]))){
-        const resolved=buildingStep(u,point,UNIT_RADIUS[u.kind],move,(a,b)=>terrainLocalSegment(a,b)&&distanceToTravelSegment(travel,b)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(b,travelCorridorPoint(travel,b)));nx=resolved.x;nz=resolved.z;
+      let detour=!point.sea&&(!buildingSegment(u,{x:nx,z:nz},radius)||!buildingSegment(u,ahead,radius)),shadow=false;
+      // Corridor steering must not step into a town's shadow: the house planner would
+      // walk the unit straight back out on the next tick, forever. It plans this step too.
+      if(!detour&&steering!==point){
+        const nextDistance=Math.hypot(point.x-nx,point.z-nz),nextScale=nextDistance?Math.min(5/nextDistance,1):0;
+        shadow=detour=!buildingSegment({x:nx,z:nz},{x:nx+(point.x-nx)*nextScale,z:nz+(point.z-nz)*nextScale},radius);
       }
-      const nearbyArrival=last&&!point.sea&&goalDistance<=2.3&&pointInProvince(u.target,nx,nz);
+      if(detour){
+        const resolved=buildingStep(u,point,radius,move,(a,b)=>terrainLocalSegment(a,b)&&distanceToTravelSegment(travel,b)<=TRAVEL_LOCAL_OFFSET&&terrainLocalSegment(b,travelCorridorPoint(travel,b)),last?u.target:-1);
+        // Without a planned way past the town, the clear corridor step still beats standing still.
+        if(!shadow||resolved.x!==u.x||resolved.z!==u.z){nx=resolved.x;nz=resolved.z;}
+      }
+      const nearbyArrival=last&&!point.sea&&goalDistance<=ARRIVAL_RADIUS&&pointInProvince(u.target,nx,nz);
       const candidate={x:nx,z:nz},nextPlan={...travel,index:travel.index+1};
       // Advance only within the next certified land corridor; a house can
       // occupy the original waypoint, but coast transitions are never skipped.

@@ -3,7 +3,7 @@ import {UNIT_RADIUS,type CircleBody,type CollisionReport} from './collision.ts';
 import type {Unit} from './types.ts';
 // Type-only: map.ts imports this module, so it must not load talent rules (which read the map) at runtime.
 import type {CombatLanes} from './talentEffects.ts';
-export const kernel=new WebAssembly.Instance(new WebAssembly.Module(KERNEL_BYTES),{host:{push(){throw Error('Generic callback unavailable in ground kernel');},hypot2:Math.hypot,sin:Math.sin,cos:Math.cos}}).exports as any;
+export const kernel=new WebAssembly.Instance(new WebAssembly.Module(KERNEL_BYTES),{host:{push(){throw Error('Generic callback unavailable in ground kernel');},hypot2:Math.hypot,sin:Math.sin,cos:Math.cos,atan2:Math.atan2}}).exports as any;
 let nativeNorm=true,checkSeed=17;
 for(let i=0;i<2048;i++){checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const a=(checkSeed/2147483648)*10**((i%600)-300);checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const b=(checkSeed/2147483648)*10**(((i*7)%600)-300);if(!Object.is(kernel.scaledNorm(a,b),Math.hypot(a,b))){nativeNorm=false;break;}}
 kernel.configureMath(nativeNorm);
@@ -27,7 +27,8 @@ export function separateGround<T extends CircleBody&{unit:Unit}>(input:readonly 
  const pointer=kernel.prepare(bodies.length,capacity,cells,cols,minX,minZ),buffer=kernel.memory.buffer;
  const x=new Float64Array(buffer,pointer,capacity),z=new Float64Array(buffer,pointer+capacity*8,capacity),radii=new Float64Array(buffer,pointer+capacity*16,capacity),ids=new Float64Array(buffer,pointer+capacity*24,capacity),mobility=new Float64Array(buffer,pointer+capacity*32,capacity),metadata=new Float64Array(buffer,kernel.groundPointer(),capacity*6);
  for(let i=0;i<bodies.length;i++){
-  const b=bodies[i],u=b.unit,travel=u.travel;x[i]=b.x;z[i]=b.z;radii[i]=b.radius;ids[i]=b.id;mobility[i]=b.mobility??1;metadata[i*6]=u.province;metadata[i*6+1]=Number(!!travel);
+  // Slot 0 holds the province of a resting body, or the direction a marching body moved this tick.
+  const b=bodies[i],u=b.unit,travel=u.travel;x[i]=b.x;z[i]=b.z;radii[i]=b.radius;ids[i]=b.id;mobility[i]=b.mobility??1;metadata[i*6]=travel?b.motion??NaN:u.province;metadata[i*6+1]=Number(!!travel);
   if(travel){const a=travel.points[travel.index-1],end=travel.points[travel.index];metadata[i*6+2]=a.x;metadata[i*6+3]=a.z;metadata[i*6+4]=end.x;metadata[i*6+5]=end.z;}
  }
  kernel.solveGround(tick);let constraintLimited=0;const attempts=new Uint32Array(buffer,kernel.attemptsPointer(),capacity);

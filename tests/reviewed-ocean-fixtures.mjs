@@ -6,6 +6,9 @@ import southAmerica from '../data/south-america-gameplay-regions.json' with {typ
 import northAmerica from '../data/north-america-gameplay-regions.json' with {type:'json'};
 import adjacent from '../data/approved-adjacent-gameplay-regions.json' with {type:'json'};
 import classA from '../data/reviewed-class-a-gameplay-regions.json' with {type:'json'};
+import {readFileSync} from 'node:fs';
+// Read, not imported: an import would share the module the historical map fixture replaces.
+const anchorCorrections=JSON.parse(readFileSync(new URL('../data/gameplay-anchor-corrections.json',import.meta.url),'utf8'));
 const normalizeUserPlan=plan=>({regions:plan.regions.map(r=>({stateCode:r.target,anchorAtomId:r.anchorAtomId,displayName:r.displayName,
  members:Object.fromEntries([[r.target,r.targetSourceIds],...r.sources.map(s=>[s.group,s.sourceIds])])}))});
 const approved=normalizeUserPlan(adjacent);
@@ -31,6 +34,9 @@ export const isClassABatch=id=>classABySource.has(id);
 export const isApprovedAdjacentBatch=id=>approvedIds.has(id);
 export const oceanScopeOf=id=>bySource.get(id);
 export const isReviewedOceanBatch=id=>bySource.has(id);
+/** The current atlas reads the reviewed anchor through the final edge-anchor corrections. */
+const correctedAnchors=new Map(anchorCorrections.anchors.filter(row=>row.from).map(row=>[row.from,row.to]));
+export const correctedAnchor=anchorAtomId=>correctedAnchors.get(anchorAtomId)??anchorAtomId;
 export const finalRegionCount=884-plans.flatMap(plan=>plan.regions).reduce((n,row)=>n+Object.keys(row.members).length-1,0);
 export const finalPlayableCount=finalRegionCount-4;
 const beforeClassAEntries=plans.slice(0,-1).flatMap(entries);

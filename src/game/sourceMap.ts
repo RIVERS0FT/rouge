@@ -1,5 +1,6 @@
 import {createTerritoryGrouping,type TerritoryTopology} from './territoryGrouping.ts';
 import data from '../generated/world.js';
+import anchorCorrections from '../../data/gameplay-anchor-corrections.json' with {type:'json'};
 import { project, PROJECTION_ID, WORLD_BOUNDS, CROP_ID, NORTH_LATITUDE, SOUTH_LATITUDE } from './geo.ts';
 import { inRect, intersectBounds, clipSegment, visiblePart, signedArea } from './crop.ts';
 import type { Vec2, ProvinceDef } from './types.ts';
@@ -20,11 +21,19 @@ export function boundsOf(points: Vec2[]) {
   for (const p of points) { left = Math.min(left, p.x); right = Math.max(right, p.x); top = Math.min(top, p.z); bottom = Math.max(bottom, p.z); }
   return { left, right, top, bottom };
 }
+/** Reviewed fixes for towns that sat on a region's edge (data/gameplay-anchor-corrections.json):
+ * a capital-city point for an atom's label point, or another member atom as a group's anchor.
+ * The shipped atlas stays byte-for-byte the reviewed source; only its reading changes here. */
+const centerCorrections=new Map<string,readonly number[]>();
+for(const row of anchorCorrections.centers){
+  if(centerCorrections.has(row.atom)||row.lonLat.length!==2||!row.lonLat.every(Number.isFinite))throw new Error(`Invalid center correction ${row.atom}`);
+  centerCorrections.set(row.atom,row.lonLat);
+}
 export const SOURCE_MAP: ProvinceDef[] = data.provinces.map((p, id) => {
   // Keep the geographic source and all ring topology. The renderer clips individual
   // triangles AFTER hole-aware tessellation; queries intersect this topology with BOUNDS.
   const parts = p.geometry.map(poly => poly.map(ring => ring.slice(0, -1).map(v => project(v[0], v[1]))));
-  const originalCenter=project(p.center[0],p.center[1]);
+  const label=centerCorrections.get(p.code)??p.center,originalCenter=project(label[0],label[1]);
   const candidates=parts.map((part,partIndex)=>{
     const full=boundsOf(part[0]),bounds=intersectBounds(full,BOUNDS);if(!bounds)return null;
     const cropped=full.top<BOUNDS.top||full.bottom>BOUNDS.bottom||full.left<BOUNDS.left||full.right>BOUNDS.right;
@@ -32,9 +41,13 @@ export const SOURCE_MAP: ProvinceDef[] = data.provinces.map((p, id) => {
     const info=cropped?visiblePart(part,bounds):{area:Math.abs(signedArea(part[0]))-part.slice(1).reduce((sum,r)=>sum+Math.abs(signedArea(r)),0),anchor:originalCenter};
     return info&&info.area>1e-9?{partIndex,bounds,cropped,...info}:null;
   }).filter((v):v is NonNullable<typeof v>=>v!==null);
-  // Preserve the old main landmass while it remains visible; otherwise use the
-  // largest remaining component. Do not move an anchor into a lake or the ocean.
-  const primary=candidates.find(c=>c.partIndex===0)??candidates.sort((a,b)=>b.area-a.area)[0];
+  // The main landmass is the visible part holding the Natural Earth label point, otherwise
+  // the largest visible part. The first ring is often a tiny island or exclave (Bern,
+  // Western Australia), which used to pull the region's town onto it. Do not move an
+  // anchor into a lake or the ocean.
+  const labelled=candidates.find(c=>inRect(originalCenter,c.bounds)&&containsPart(parts[c.partIndex],originalCenter.x,originalCenter.z));
+  const primary=labelled??[...candidates].sort((a,b)=>b.area-a.area||a.partIndex-b.partIndex)[0];
+  if(centerCorrections.has(p.code)&&!labelled)throw new Error(`Center correction does not lie inside ${p.code}`);
   const navigationPart=primary?.partIndex??0,main=parts[navigationPart];
   let center=originalCenter;
   if(primary&&(!inRect(center,primary.bounds)||!containsPart(main,center.x,center.z)))center=visiblePart(main,primary.bounds)!.anchor;
@@ -87,16 +100,27 @@ const initialParts:string[][]=[];
 export const PREPROCESSED_GROUP_NAMES=new Map<string,[string,string]>();
 export const PREPROCESSED_GROUP_SEARCH_ALIASES=new Map<string,string[]>();
 export const PREPROCESSED_GROUP_ANCHORS=new Map<string,string>();
+// Each anchor correction states the anchor it replaces, so a change to an earlier reviewed
+// layer fails loudly instead of silently moving a town. An unnamed group would take the new
+// anchor's name, so the correction carries the current name.
+const anchorFixes=new Map<string,{to:string;displayName?:[string,string]}>();
+for(const row of anchorCorrections.anchors){
+  const g=data.gameplayGroups.find(group=>group.id===row.group),name=(row as {displayName?:[string,string]}).displayName;
+  if(!g||anchorFixes.has(row.group)||(g.anchorAtomId??null)!==row.from||row.to===row.from||!g.atomIds.includes(row.to)||(!g.displayName&&!(name?.length===2&&name.every(n=>typeof n==='string'&&n.length>0))))
+    throw new Error(`Anchor correction does not match ${row.group}`);
+  anchorFixes.set(row.group,{to:row.to,...(name?{displayName:name}:{})});
+}
 for(const g of data.gameplayGroups){
+  const fix=anchorFixes.get(g.id),displayName=g.displayName??fix?.displayName,anchor=fix?.to??g.anchorAtomId;
   const remaining=new Set(g.atomIds);
   for(const start of [...remaining].sort())if(remaining.delete(start)){
     const part=[start];for(let i=0;i<part.length;i++)for(const code of groupingNeighbors.get(part[i])!){if(remaining.delete(code))part.push(code);}
     initialParts.push(part);
     // Use a curated name only for the complete group, never for crop fragments.
     if(part.length===g.atomIds.length){
-      if(g.displayName)PREPROCESSED_GROUP_NAMES.set(start,g.displayName);
+      if(displayName)PREPROCESSED_GROUP_NAMES.set(start,displayName);
       if(g.searchAliases?.length)PREPROCESSED_GROUP_SEARCH_ALIASES.set(start,g.searchAliases);
-      if(g.anchorAtomId&&part.includes(g.anchorAtomId)&&byCode.get(g.anchorAtomId)?.playable)PREPROCESSED_GROUP_ANCHORS.set(start,g.anchorAtomId);
+      if(anchor&&part.includes(anchor)&&byCode.get(anchor)?.playable)PREPROCESSED_GROUP_ANCHORS.set(start,anchor);
     }
   }
 }

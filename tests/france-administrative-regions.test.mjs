@@ -55,7 +55,7 @@ test('modern metropolitan France has 13 bilingual locked regions and all 96 depa
   assert.equal(MAP.length,finalRegionCount);
   assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
   assert.equal(MAP_METADATA.sourceAtomCount,4596);
-  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v27');
+  assert.equal(MAP_METADATA.mapId,'earth-natural-earth-admin1-511-regions-v28');
 });
 
 test('the French repartition preserves original geometry and unrelated locked groups',()=>{
@@ -110,9 +110,9 @@ test('French partition rejects duplicate, foreign, missing and disconnected depa
 test('the modern map rejects prior saves and LAN snapshots without overwriting old storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'france-admin-regions');
-  assert.equal(STATE_VERSION,28);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
+  assert.equal(STATE_VERSION,29);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:6,map:'earth-natural-earth-admin1-511-regions-v5'};

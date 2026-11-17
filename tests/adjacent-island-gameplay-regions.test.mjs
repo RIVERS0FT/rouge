@@ -1,4 +1,4 @@
-import {isReviewedOceanBatch,oceanScopeOf,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {isReviewedOceanBatch,oceanScopeOf,correctedAnchor,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -138,14 +138,14 @@ test('unreviewed Guangdong additions or missing administrative links are rejecte
 
 test('all nine approved scopes are single playable regions and representative routes remain seaborne',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);assert.equal(RULES_ID,'admin1-locked-game-regions-v43');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,29);assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
  assert.equal(plan.regions.length,9);
  const targets=new Set(),nav=new TerrainNavigator();
  for(const row of plan.regions.slice(1)){
   const target=byCode(row.primary.slice(6));targets.add(target.id);
   const members=Object.values(row.members).flat().sort(),pacific=oceanScopeOf(members[0]);
   assert.deepEqual(target.name,pacific?.displayName??row.displayName);
-  assert.deepEqual(target.center,sourceByCode.get(pacific?.anchorAtomId??row.anchorAtomId).center);
+  assert.deepEqual(target.center,sourceByCode.get(correctedAnchor(pacific?.anchorAtomId??row.anchorAtomId)).center);
   assert.ok(target.playable&&target.locked&&terrainAt(target.center,true)>=0);
   if(pacific){
    assert.ok(members.every(id=>target.sourceAtoms.includes(id)));

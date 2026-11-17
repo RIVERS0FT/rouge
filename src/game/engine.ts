@@ -8,7 +8,7 @@ export { isEliminated } from './elimination.ts';
 import { chooseSpawnRegions, getSpawnCapacity } from './spawns.ts';
 import { MAP, BOUNDS, provinceAt, pointInProvince, PLAYABLE_COUNT } from './map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
-import {UNIT_RADIUS,COLLISION_MAX_PUSH,separateCircles,type CollisionReport} from './collision.ts';
+import {UNIT_RADIUS,COLLISION_MAX_PUSH,separateCircles,motionAngle,type CollisionReport} from './collision.ts';
 import {buildingSegment,buildingStep} from './buildings.ts';
 import {INITIAL_TERRITORY_GROUPING} from './map.ts';
 import {regionCapacity,regionProductionRate,applyGroupingCommand,reconcileGrouping,capacityFor} from './territoryEconomy.ts';
@@ -277,9 +277,14 @@ export class Engine{
     }
     return result;
   }
+  /** Positions of the prepared active units before movement, for head-on contacts in `separate`. */
+  private departure=new Float64Array(0);
   private prepareTick(){
     const s=this.state,topologyBefore=s.topology;s.tick++;
     const active=this.activeUnits();this.clearBuildings(active);
+    if(this.departure.length<active.length*2)this.departure=new Float64Array(active.length*2);
+    // Like the native solver, units with a transport have no recorded start (motion NaN).
+    for(let i=0;i<active.length;i++){const u=active[i];this.departure[i*2]=u.transport?NaN:u.x;this.departure[i*2+1]=u.transport?NaN:u.z;}
     const statCache=new Map<number,Map<Kind,ReturnType<typeof stats>>>();
     const unitStats=(owner:number,kind:Kind)=>{let values=statCache.get(owner);if(!values){values=new Map();statCache.set(owner,values);}let value=values.get(kind);if(!value){value=stats(s.players[owner],kind);values.set(kind,value);}return value;};
     // Talent combat lanes from orders, positions and ownership at the start of the tick.
@@ -555,7 +560,12 @@ export class Engine{
     }
   }
   private separate(active:readonly Unit[]):void {
-    const bodies=active.filter(u=>u.hp>0&&!u.transport?.embarked).map(unit=>({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,unit,terrainX:NaN,terrainZ:NaN,triangle:-1,freeTerrain:undefined as boolean|undefined}));
+    const bodies=[];
+    for(let i=0;i<active.length;i++){
+      const unit=active[i];if(unit.hp<=0||unit.transport?.embarked)continue;
+      const motion=unit.travel?motionAngle(unit.x-this.departure[i*2],unit.z-this.departure[i*2+1]):undefined;
+      bodies.push({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,motion,unit,terrainX:NaN,terrainZ:NaN,triangle:-1,freeTerrain:undefined as boolean|undefined});
+    }
     try{this.collision=separateGround(bodies,this.state.tick);}catch{const clearance=new Map<number,number>();this.collision=separateCircles(bodies,(body,to)=>{
       const u=body.unit,travel=u.travel;if(!buildingSegment(body,to,body.radius))return false;
       if(travel){if(distanceToTravelSegment(travel,to)>TRAVEL_LOCAL_OFFSET)return false;}

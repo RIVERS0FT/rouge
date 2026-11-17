@@ -25,6 +25,16 @@ three rendered soldiers are one battalion footprint, not three physics bodies.
 - Troops settle within 2.3 units of the final center, inside the actual target
   atom. Production searches a small deterministic formation for open space.
   Neither arrival nor reinforcement deliberately targets one occupied point.
+  A town's own houses cover its center, so on the final leg the house detour also
+  accepts any ring node inside the target region within 2.3 units: a battalion
+  stopped by a house just outside the region walks around into it instead of
+  standing still.
+- Corridor steering never steps where the 5-unit lookahead is house-blocked; the
+  house detour plans that step too (keeping the steering step only if it cannot
+  move), so the two rules no longer undo each other every tick near a town.
+- Two marching bodies that each moved straight into their contact this tick
+  (within 60 degrees) also slide half the overlap to their own right. Equal
+  pushes alone returned such a pair to the same spots forever; both now pass.
 - Original travel routes remain immutable. Pushed land positions must stay
   within 2.5 units of the current segment and have a certified short connector
   back to it. Movement follows a local lookahead with a safe connector fallback.
