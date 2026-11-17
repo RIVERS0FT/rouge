@@ -1,0 +1,693 @@
+{
+  "schema": 1,
+  "referenceVersion": "1.13.7",
+  "regions": [
+    {
+      "stateCode": "STATE_WEST_INDIES",
+      "primary": "group:AIA+99?",
+      "members": {
+        "group:ABW-5150": [
+          "ABW-5150"
+        ],
+        "group:AIA+99?": [
+          "AIA+99?",
+          "AIA-5114",
+          "AIA-5115",
+          "AIA-5116",
+          "AIA-5117",
+          "AIA-5118",
+          "AIA-5119",
+          "AIA-5120",
+          "AIA-5121",
+          "AIA-5122",
+          "AIA-5123",
+          "AIA-5124",
+          "AIA-5125",
+          "AIA-5126",
+          "AIA-5127",
+          "GRD-5069",
+          "GRD-5070",
+          "GRD-5071",
+          "GRD-5072",
+          "GRD-5073",
+          "GRD-5074",
+          "GRD-5075",
+          "LCA-5076",
+          "LCA-5077",
+          "LCA-5078",
+          "LCA-5079",
+          "LCA-5080",
+          "LCA-5081",
+          "LCA-5082",
+          "LCA-5083",
+          "LCA-5084",
+          "LCA-5085",
+          "LCA-5086"
+        ],
+        "group:ATG-5091": [
+          "ATG-5091",
+          "ATG-5092",
+          "ATG-5093",
+          "ATG-5094",
+          "ATG-5095",
+          "ATG-5096",
+          "ATG-5097",
+          "ATG-5098"
+        ],
+        "group:BLM-5113": [
+          "BLM-5113"
+        ],
+        "group:BRB-1989": [
+          "BRB-1989",
+          "BRB-1990",
+          "BRB-1991",
+          "BRB-1992",
+          "BRB-1993",
+          "BRB-1994",
+          "BRB-1995",
+          "BRB-1996",
+          "BRB-1997",
+          "BRB-1998",
+          "BRB-1999"
+        ],
+        "group:CUW-5151": [
+          "CUW-5151"
+        ],
+        "group:DMA-1432": [
+          "DMA-1432",
+          "DMA-1433",
+          "DMA-1434",
+          "DMA-1435",
+          "DMA-1436",
+          "DMA-1437",
+          "DMA-1438",
+          "DMA-1439",
+          "DMA-1440",
+          "DMA-1441"
+        ],
+        "group:FRA-1442": [
+          "FRA-1442"
+        ],
+        "group:FRA-4603": [
+          "FRA-4603"
+        ],
+        "group:KNA-5099": [
+          "KNA-5099",
+          "KNA-5100",
+          "KNA-5101",
+          "KNA-5102",
+          "KNA-5103",
+          "KNA-5104",
+          "KNA-5105",
+          "KNA-5106",
+          "KNA-5107",
+          "KNA-5108",
+          "KNA-5109",
+          "KNA-5110",
+          "KNA-5111",
+          "KNA-5112"
+        ],
+        "group:MAF-5145": [
+          "MAF-5145"
+        ],
+        "group:MSR-5087": [
+          "MSR-5087",
+          "MSR-5088",
+          "MSR-5089"
+        ],
+        "group:NLD-5147": [
+          "NLD-5147",
+          "NLD-5148",
+          "NLD-5149"
+        ],
+        "group:SXM-5146": [
+          "SXM-5146"
+        ],
+        "group:TTO-50": [
+          "TTO-50",
+          "TTO-5090"
+        ],
+        "group:TTO-51": [
+          "TTO-51",
+          "TTO-52",
+          "TTO-53",
+          "TTO-54",
+          "TTO-55",
+          "TTO-56",
+          "TTO-57",
+          "TTO-58",
+          "TTO-59",
+          "TTO-61",
+          "TTO-62",
+          "TTO-63",
+          "TTO-64"
+        ],
+        "group:TTO-60": [
+          "TTO-60"
+        ],
+        "group:VCT-5063": [
+          "VCT-5063",
+          "VCT-5064",
+          "VCT-5065",
+          "VCT-5066",
+          "VCT-5067",
+          "VCT-5068"
+        ],
+        "group:VGB+00?": [
+          "VGB+00?"
+        ],
+        "group:VIR-4868": [
+          "VIR-4868",
+          "VIR-4869",
+          "VIR-4870"
+        ],
+        "group:VEN-48": [
+          "VEN-48"
+        ]
+      },
+      "displayName": [
+        "西印度群岛",
+        "West Indies"
+      ],
+      "anchorAtomId": "LCA-5077",
+      "searchAliases": [
+        "小安的列斯群岛",
+        "多米尼克",
+        "蒙特塞拉特",
+        "特立尼达和多巴哥",
+        "英属维尔京群岛",
+        "美属维尔京群岛",
+        "玛格丽塔岛",
+        "Lesser Antilles",
+        "Dominica",
+        "Montserrat",
+        "Trinidad and Tobago",
+        "Margarita Island"
+      ]
+    },
+    {
+      "stateCode": "STATE_BAHAMAS",
+      "primary": "group:BHS-5009",
+      "members": {
+        "group:BHS-5009": [
+          "BHS-5009",
+          "BHS-5010",
+          "BHS-5011",
+          "BHS-5012",
+          "BHS-5014",
+          "BHS-5015",
+          "BHS-5016",
+          "BHS-5017",
+          "BHS-5018",
+          "BHS-5019",
+          "BHS-5020",
+          "BHS-5021",
+          "BHS-5022",
+          "BHS-5023",
+          "BHS-5024",
+          "BHS-5025",
+          "BHS-5026",
+          "BHS-5027",
+          "BHS-5028",
+          "BHS-5029",
+          "BHS-5030",
+          "BHS-5031",
+          "BHS-5032",
+          "BHS-5033",
+          "BHS-5034",
+          "BHS-5035",
+          "BHS-5036",
+          "BHS-5037",
+          "BHS-5038",
+          "BHS-5039"
+        ],
+        "group:TCA-5003": [
+          "TCA-5003",
+          "TCA-5004",
+          "TCA-5005",
+          "TCA-5006",
+          "TCA-5007",
+          "TCA-5008"
+        ]
+      },
+      "displayName": [
+        "巴哈马",
+        "Bahamas"
+      ],
+      "anchorAtomId": "BHS-5009",
+      "searchAliases": [
+        "特克斯和凯科斯群岛",
+        "Turks and Caicos Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_JAMAICA",
+      "primary": "group:JAM-1370",
+      "members": {
+        "group:JAM-1370": [
+          "JAM-1370",
+          "JAM-1371",
+          "JAM-1372",
+          "JAM-1373",
+          "JAM-1374",
+          "JAM-1375",
+          "JAM-1376",
+          "JAM-1377",
+          "JAM-1379",
+          "JAM-1380",
+          "JAM-1382",
+          "JAM-1383"
+        ],
+        "group:JAM-1378": [
+          "JAM-1378",
+          "JAM-1381"
+        ],
+        "group:CYM+00?": [
+          "CYM+00?"
+        ]
+      },
+      "displayName": [
+        "牙买加",
+        "Jamaica"
+      ],
+      "anchorAtomId": "JAM-1379",
+      "searchAliases": [
+        "开曼群岛",
+        "Cayman Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_WESTERN_CUBA",
+      "primary": "group:CUB-1321",
+      "members": {
+        "group:CUB-1321": [
+          "CUB-1321",
+          "CUB-1428",
+          "CUB-1429",
+          "CUB-1430",
+          "CUB-5489"
+        ],
+        "group:CUB-1320": [
+          "CUB-1320"
+        ]
+      },
+      "displayName": [
+        "古巴西部",
+        "Western Cuba"
+      ],
+      "anchorAtomId": "CUB-1430",
+      "searchAliases": [
+        "西古巴",
+        "青年岛",
+        "Isla de la Juventud"
+      ]
+    },
+    {
+      "stateCode": "STATE_CENTRAL_CUBA",
+      "primary": "group:CUB-1319",
+      "members": {
+        "group:CUB-1319": [
+          "CUB-1319",
+          "CUB-1322",
+          "CUB-1363",
+          "CUB-1364",
+          "CUB-1431"
+        ]
+      },
+      "displayName": [
+        "古巴中部",
+        "Central Cuba"
+      ],
+      "anchorAtomId": "CUB-1364",
+      "searchAliases": [
+        "中古巴"
+      ]
+    },
+    {
+      "stateCode": "STATE_EASTERN_CUBA",
+      "primary": "group:CUB-1365",
+      "members": {
+        "group:CUB-1365": [
+          "CUB-1365",
+          "CUB-1366",
+          "CUB-1367",
+          "CUB-1368",
+          "CUB-1369"
+        ]
+      },
+      "displayName": [
+        "古巴东部",
+        "Eastern Cuba"
+      ],
+      "anchorAtomId": "CUB-1367",
+      "searchAliases": [
+        "东古巴"
+      ]
+    },
+    {
+      "stateCode": "STATE_HAITI",
+      "primary": "group:HTI-1359",
+      "members": {
+        "group:HTI-1359": [
+          "HTI-1359",
+          "HTI-1361",
+          "HTI-1362",
+          "HTI-1384",
+          "HTI-1385",
+          "HTI-1386",
+          "HTI-1387",
+          "HTI-1388",
+          "HTI-1389"
+        ],
+        "group:HTI-1360": [
+          "HTI-1360"
+        ]
+      },
+      "displayName": [
+        "海地",
+        "Haiti"
+      ],
+      "anchorAtomId": "HTI-1384"
+    },
+    {
+      "stateCode": "STATE_SANTO_DOMINGO",
+      "primary": "group:DOM-1390",
+      "members": {
+        "group:DOM-1390": [
+          "DOM-1390",
+          "DOM-1391",
+          "DOM-1392",
+          "DOM-1393",
+          "DOM-1394",
+          "DOM-1395",
+          "DOM-1396",
+          "DOM-1964",
+          "DOM-1966",
+          "DOM-1968",
+          "DOM-1969",
+          "DOM-1970",
+          "DOM-1971",
+          "DOM-1972",
+          "DOM-1973",
+          "DOM-1974",
+          "DOM-1975",
+          "DOM-1976",
+          "DOM-1977",
+          "DOM-1978",
+          "DOM-1979",
+          "DOM-1980",
+          "DOM-1981",
+          "DOM-1984",
+          "DOM-1985",
+          "DOM-1986",
+          "DOM-1987",
+          "DOM-1988"
+        ],
+        "group:DOM-1965": [
+          "DOM-1965",
+          "DOM-1967",
+          "DOM-1982",
+          "DOM-1983"
+        ]
+      },
+      "displayName": [
+        "圣多明各",
+        "Santo Domingo"
+      ],
+      "anchorAtomId": "DOM-1393",
+      "searchAliases": [
+        "多米尼加",
+        "Dominican Republic"
+      ]
+    },
+    {
+      "stateCode": "STATE_PUERTO_RICO",
+      "primary": "group:PRI-5260",
+      "members": {
+        "group:PRI-5260": [
+          "PRI-5260"
+        ]
+      },
+      "displayName": [
+        "波多黎各",
+        "Puerto Rico"
+      ],
+      "anchorAtomId": "PRI-5260",
+      "searchAliases": [
+        "Porto Rico"
+      ]
+    },
+    {
+      "stateCode": "STATE_BERMUDA",
+      "primary": "group:BMU-5134",
+      "members": {
+        "group:BMU-5134": [
+          "BMU-5134",
+          "BMU-5135",
+          "BMU-5136",
+          "BMU-5137",
+          "BMU-5138",
+          "BMU-5139",
+          "BMU-5140",
+          "BMU-5141",
+          "BMU-5142",
+          "BMU-5143",
+          "BMU-5144"
+        ]
+      },
+      "displayName": [
+        "百慕大",
+        "Bermuda"
+      ],
+      "anchorAtomId": "BMU-5134"
+    },
+    {
+      "stateCode": "STATE_GREENLAND",
+      "primary": "group:GRL-2739",
+      "members": {
+        "group:GRL-2739": [
+          "GRL-2739",
+          "GRL-2740",
+          "GRL-2741",
+          "GRL-2742",
+          "GRL-2743"
+        ]
+      },
+      "displayName": [
+        "格陵兰",
+        "Greenland"
+      ],
+      "anchorAtomId": "GRL-2742"
+    },
+    {
+      "stateCode": "STATE_ICELAND",
+      "primary": "group:ISL-5131",
+      "members": {
+        "group:ISL-5131": [
+          "ISL-5131",
+          "ISL-690",
+          "ISL-695",
+          "ISL-697",
+          "ISL-702",
+          "ISL-704",
+          "ISL-705",
+          "ISL-709",
+          "ISL-710"
+        ],
+        "group:FRO-1443": [
+          "FRO-1443"
+        ]
+      },
+      "displayName": [
+        "冰岛",
+        "Iceland"
+      ],
+      "anchorAtomId": "ISL-705",
+      "searchAliases": [
+        "法罗群岛",
+        "Faroe Islands"
+      ]
+    },
+    {
+      "stateCode": "STATE_NEWFOUNDLAND",
+      "primary": "group:CAN-686",
+      "members": {
+        "group:CAN-686": [
+          "CAN-686"
+        ],
+        "group:SPM-4866": [
+          "SPM-4866",
+          "SPM-4867"
+        ]
+      },
+      "displayName": [
+        "纽芬兰",
+        "Newfoundland"
+      ],
+      "anchorAtomId": "CAN-686",
+      "searchAliases": [
+        "纽芬兰与拉布拉多",
+        "圣皮埃尔和密克隆",
+        "Newfoundland and Labrador",
+        "Saint Pierre and Miquelon"
+      ]
+    },
+    {
+      "stateCode": "STATE_AZORES",
+      "primary": "group:PRT-735",
+      "members": {
+        "group:PRT-735": [
+          "PRT-735"
+        ]
+      },
+      "displayName": [
+        "亚速尔",
+        "Azores"
+      ],
+      "anchorAtomId": "PRT-735",
+      "searchAliases": [
+        "亚速尔群岛"
+      ]
+    },
+    {
+      "stateCode": "STATE_MADEIRA",
+      "primary": "group:PRT-736",
+      "members": {
+        "group:PRT-736": [
+          "PRT-736"
+        ]
+      },
+      "displayName": [
+        "马德拉",
+        "Madeira"
+      ],
+      "anchorAtomId": "PRT-736"
+    },
+    {
+      "stateCode": "STATE_CANARY_ISLANDS",
+      "primary": "group:ESP-5842",
+      "members": {
+        "group:ESP-5829": [
+          "ESP-5829"
+        ],
+        "group:ESP-5842": [
+          "ESP-5842"
+        ]
+      },
+      "displayName": [
+        "加那利群岛",
+        "Canary Islands"
+      ],
+      "anchorAtomId": "ESP-5842",
+      "searchAliases": [
+        "加纳利群岛"
+      ]
+    },
+    {
+      "stateCode": "STATE_CAPE_VERDE",
+      "primary": "group:CPV-5041",
+      "members": {
+        "group:CPV-5041": [
+          "CPV-5041",
+          "CPV-5042",
+          "CPV-5043",
+          "CPV-5044",
+          "CPV-5045",
+          "CPV-5046",
+          "CPV-5047",
+          "CPV-5048",
+          "CPV-5049",
+          "CPV-5050",
+          "CPV-5051",
+          "CPV-5052",
+          "CPV-5053",
+          "CPV-5054",
+          "CPV-5055",
+          "CPV-5056",
+          "CPV-5057",
+          "CPV-5058",
+          "CPV-5059",
+          "CPV-5060",
+          "CPV-5061",
+          "CPV-5062"
+        ]
+      },
+      "displayName": [
+        "佛得角",
+        "Cape Verde"
+      ],
+      "anchorAtomId": "CPV-5053",
+      "searchAliases": [
+        "Cabo Verde"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_CAMEROON",
+      "primary": "group:CMR-1476",
+      "members": {
+        "group:CMR-1476": [
+          "CMR-1476",
+          "CMR-1481",
+          "CMR-803"
+        ],
+        "group:GNQ-1478": [
+          "GNQ-1478",
+          "GNQ-1479"
+        ],
+        "group:STP-4861": [
+          "STP-4861"
+        ],
+        "group:STP-4862": [
+          "STP-4862"
+        ]
+      },
+      "displayName": [
+        "南喀麦隆",
+        "South Cameroon"
+      ],
+      "anchorAtomId": "CMR-1481",
+      "searchAliases": [
+        "圣多美和普林西比",
+        "比奥科岛",
+        "São Tomé and Príncipe",
+        "Sao Tome and Principe",
+        "Bioko"
+      ]
+    },
+    {
+      "stateCode": "STATE_SOUTH_ATLANTIC_ISLANDS",
+      "primary": "group:FLK-5152",
+      "members": {
+        "group:FLK-5152": [
+          "FLK-5152"
+        ],
+        "group:SGS+00?": [
+          "SGS+00?"
+        ],
+        "group:SHN-4863": [
+          "SHN-4863"
+        ],
+        "group:SHN-4864": [
+          "SHN-4864"
+        ]
+      },
+      "displayName": [
+        "南大西洋群岛",
+        "South Atlantic Islands"
+      ],
+      "anchorAtomId": "FLK-5152",
+      "searchAliases": [
+        "福克兰群岛",
+        "马尔维纳斯群岛",
+        "南乔治亚岛",
+        "阿森松岛",
+        "圣赫勒拿岛",
+        "Falkland Islands",
+        "Malvinas",
+        "South Georgia",
+        "Ascension Island",
+        "Saint Helena"
+      ]
+    }
+  ]
+}

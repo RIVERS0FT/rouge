@@ -35,9 +35,9 @@ test('Indian Ocean historical grouping has exact whole-atom coverage, bilingual 
  }
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v21');
- assert.equal(STATE_VERSION,22);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v22.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v35');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v22');
+ assert.equal(STATE_VERSION,23);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v23.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v36');
 });
 
 test('Indian Ocean grouping leaves geographic country labels and the physical topology untouched',()=>{
