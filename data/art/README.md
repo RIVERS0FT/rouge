@@ -1,11 +1,15 @@
-# Rouge 原创步兵 v10
+# Rouge 原创步兵 v11
 
-`rouge-infantry-v10.glb` 是项目为 Rouge 绘制的原创 3D 步兵资源（6,438 三角面，含行走与射击），不依赖第三方游戏素材。
+`rouge-infantry-v11.glb` 是项目为 Rouge 绘制的原创 3D 步兵资源（6,230 三角面，含行走、射击与静态立正），不依赖第三方游戏素材。
 
-网页不会加载这个 GLB；它按需从部署站点取约 183 KiB 的共享实例资源。使用 Blender 4.3 重新生成：
+网页不会加载这个 GLB；它按需从部署站点取约 179 KiB 的共享实例资源。使用 Blender 4.3 重新生成：
 
 ```sh
-blender -b --factory-startup --python-exit-code 1 --python scripts/bake-infantry.py -- data/art/rouge-infantry-v10.glb src/render/assets/infantry.bin
+blender -b --factory-startup --python-exit-code 1 --python scripts/bake-infantry.py -- data/art/rouge-infantry-v11.glb src/render/assets/infantry.bin
 ```
 
 生成器保留材质基色与逐顶点绘制的纹理颜色、建模的法线、骨骼变形与道具动画，把同一几何与骨骼采样矩阵供全部可见陆上士兵实例共用；面板/UI 的地图切换与单位的存档、联机同步和模拟规则不因这项替换而改变。
+
+游戏根据士兵状态切换射击、行走或静态待机。待机使用一个固定的持枪站姿：双脚并拢、正视前方、枪身竖直、枪托着地、左手握持枪身、右臂自然下垂，带刺刀的枪与角色约等高，不进行时间采样，也不会为了待机额外刷新场景。
+
+右上臂臂章与胸前交叉背带直接画在原有布面，由游戏材质在模型局部坐标绘制并跟随动作；不另叠浮片或加载额外贴图。独立的腰带、背包及其带扣仍是原有模型。

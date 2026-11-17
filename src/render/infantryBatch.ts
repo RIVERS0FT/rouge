@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {parseInfantryAsset,type InfantryAsset} from './infantryAsset.ts';
+import {infantryPose} from './infantryIdle.ts';
+import {infantryFabricShader} from './infantryFabric.ts';
 
 let assetRequest:Promise<InfantryAsset>|undefined;
 async function loadAsset(){
@@ -15,6 +17,7 @@ const vertexHeader=`
 uniform highp sampler2D rougePoses;
 attribute vec3 rougeBaseColor;
 attribute float rougeTint;
+attribute float rougeFabricId;
 attribute float rougeGlow;
 attribute vec2 rougeJoints;
 attribute float rougeWeight;
@@ -22,6 +25,9 @@ attribute float rougeFrame;
 attribute vec3 rougeCountry;
 varying vec3 rougePigment;
 varying float rougeEmission;
+varying vec3 rougeFabricPoint;
+varying vec3 rougeArmbandColor;
+varying float rougeFabricKind;
 void rougeTransform(int j, int f, vec4 p, vec4 n, out vec3 v, out vec3 w) {
   int x = j * 3;
   vec4 a = texelFetch(rougePoses, ivec2(x, f), 0);
@@ -47,6 +53,12 @@ const transform=`
   }
   rougePigment = mix(rougeBaseColor, rougeCountry*0.68+rougeBaseColor*0.25, rougeTint);
   rougeEmission = rougeGlow;
+  // The placket is rigid on the chest; offset to match the skinned coat’s
+  // underlying rest space so the projected X is continuous across the seam.
+  rougeFabricPoint = position;
+  if(rougeFabricId > 2.5) rougeFabricPoint.y += 0.29;
+  rougeFabricKind = rougeFabricId > 2.5 ? 1.0 : rougeFabricId;
+  rougeArmbandColor = mix(vec3(0.094, 0.224, 0.4), rougeCountry*0.68+vec3(0.094, 0.224, 0.4)*0.25, 0.87);
 `;
 
 export class InfantryBatch {
@@ -64,13 +76,14 @@ export class InfantryBatch {
   count=0;
   walking=0;
   shooting=0;
+  idling=0;
   constructor(private readonly scene:THREE.Scene,private readonly invalidate:()=>void){}
   request(){
     if(this.started||this.disposed)return;this.started=true;
     void getModel().then(asset=>{
       if(this.disposed)return;
       this.asset=asset;
-      this.texture=new THREE.DataTexture(asset.palette,asset.joints*3,asset.walkFrames+asset.shootFrames,THREE.RGBAFormat,THREE.FloatType);
+      this.texture=new THREE.DataTexture(asset.palette,asset.joints*3,asset.poseCount,THREE.RGBAFormat,THREE.FloatType);
       this.texture.needsUpdate=true;
       this.material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95});
       this.material.onBeforeCompile=shader=>{
@@ -78,11 +91,11 @@ export class InfantryBatch {
         shader.vertexShader=vertexHeader+shader.vertexShader
           .replace('#include <beginnormal_vertex>',transform+'\nvec3 objectNormal = normalize(posedNormal);')
           .replace('#include <begin_vertex>','vec3 transformed = posedPosition;');
-        shader.fragmentShader='varying vec3 rougePigment; varying float rougeEmission;\n'+shader.fragmentShader
-          .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb *= rougePigment;')
+        shader.fragmentShader=infantryFabricShader+shader.fragmentShader
+          .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb *= rougeFabricPigment();')
           .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance += rougePigment * rougeEmission * 3.0;');
       };
-      this.material.customProgramCacheKey=()=> 'rouge-baked-infantry-v10';
+      this.material.customProgramCacheKey=()=> 'rouge-baked-infantry-fabric';
       this.rebuild();
       this.ready=true;
       this.invalidate();
@@ -96,6 +109,7 @@ export class InfantryBatch {
     geometry.setAttribute('position',new THREE.BufferAttribute(asset.positions,3));
     geometry.setAttribute('normal',new THREE.BufferAttribute(asset.normals,3,true));
     geometry.setAttribute('rougeBaseColor',new THREE.BufferAttribute(asset.colors,3,true));
+    geometry.setAttribute('rougeFabricId',new THREE.BufferAttribute(asset.fabric,1));
     geometry.setAttribute('rougeTint',new THREE.BufferAttribute(asset.tint,1,true));
     geometry.setAttribute('rougeGlow',new THREE.BufferAttribute(asset.glow,1,true));
     geometry.setAttribute('rougeJoints',new THREE.BufferAttribute(asset.jointPair,2));
@@ -108,21 +122,18 @@ export class InfantryBatch {
     this.mesh=next;this.scene.add(next);
   }
   begin(visible:boolean,required:number){
-    this.count=this.walking=this.shooting=0;
+    this.count=this.walking=this.shooting=this.idling=0;
     if(!this.ready)return;
     if(visible&&required>this.capacity){while(required>this.capacity)this.capacity*=2;this.rebuild();}
     this.mesh!.visible=visible;
   }
   add(matrix:THREE.Matrix4,color:THREE.Color,move:number,shot:number,id:number){
-    const asset=this.asset!,i=this.count++,fps=asset.fps/1000;
-    let frame=0;
-    if(shot>=0&&shot<(asset.shootFrames-1)/fps){
-      const sample=Math.floor(shot*fps);frame=asset.walkFrames+sample;this.shooting++;
-    }else if(move>0){
-      // Offset the gait per unit while synchronizing the displayed direction with motion.
-      frame=Math.floor((move*fps+id*.618)%(asset.walkFrames-1));this.walking++;
-    }
-    this.mesh!.setMatrixAt(i,matrix);this.country!.setXYZ(i,color.r,color.g,color.b);this.poseFrames!.setX(i,frame);
+    const asset=this.asset!,i=this.count++,pose=infantryPose(move,shot,id,asset.fps,asset.walkFrames,asset.shootFrames,asset.idleFrame);
+    if(pose.mode==='shoot')this.shooting++;
+    else if(pose.mode==='walk')this.walking++;
+    else this.idling++;
+    this.mesh!.setMatrixAt(i,matrix);this.country!.setXYZ(i,color.r,color.g,color.b);
+    this.poseFrames!.setX(i,pose.frame);
   }
   end(){
     if(!this.ready)return;

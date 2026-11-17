@@ -45,7 +45,11 @@ test('2D hides all armies and 3D models return without changing units or selecti
   await expect(canvas).toHaveAttribute('data-rendered-models',String(fixture.count));
   // All eight kinds in the marching fixture must share the real infantry asset,
   // not silently pass while the old fallback models are being drawn.
-  await expect(canvas).toHaveAttribute('data-unit-model-asset','infantry-v10',{timeout:20000});
+  await expect(canvas).toHaveAttribute('data-unit-model-asset','infantry-v11',{timeout:20000});
+  // All eight visible ordered units are frozen at rest in this fixture.
+  await expect(canvas).toHaveAttribute('data-rendered-idle-models',String(fixture.count));
+  await expect(canvas).toHaveAttribute('data-rendered-walking-models','0');
+  await expect(canvas).toHaveAttribute('data-rendered-shooting-models','0');
   await expect(canvas).toHaveAttribute('data-rendered-instances',String(fixture.count));
   await expect(canvas).toHaveAttribute('data-total-units',String(fixture.total));
   await expect(canvas).toHaveAttribute('data-selected-region',selected!);

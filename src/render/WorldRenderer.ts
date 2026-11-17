@@ -994,8 +994,9 @@ export class WorldRenderer {
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
     this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites='0';this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.infantry.count);this.renderer.domElement.dataset.unitSpritePixels='0';
-    this.renderer.domElement.dataset.unitModelAsset=!models?'none':batch?'infantry-v10':this.infantry.failed?'fallback':'loading';
+    this.renderer.domElement.dataset.unitModelAsset=!models?'none':batch?'infantry-v11':this.infantry.failed?'fallback':'loading';
     this.drawBattleBadges();
+    this.renderer.domElement.dataset.renderedIdleModels=String(this.infantry.idling);
     this.renderer.domElement.dataset.renderedWalkingModels=String(this.infantry.walking);
     this.renderer.domElement.dataset.renderedShootingModels=String(this.infantry.shooting);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
