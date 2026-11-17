@@ -4,7 +4,13 @@ import atlantic from '../data/atlantic-gameplay-regions.json' with {type:'json'}
 import africa from '../data/africa-gameplay-regions.json' with {type:'json'};
 import southAmerica from '../data/south-america-gameplay-regions.json' with {type:'json'};
 import northAmerica from '../data/north-america-gameplay-regions.json' with {type:'json'};
-const plans=[pacific,indian,atlantic,africa,southAmerica,northAmerica];
+import adjacent from '../data/approved-adjacent-gameplay-regions.json' with {type:'json'};
+import classA from '../data/reviewed-class-a-gameplay-regions.json' with {type:'json'};
+const normalizeUserPlan=plan=>({regions:plan.regions.map(r=>({stateCode:r.target,anchorAtomId:r.anchorAtomId,displayName:r.displayName,
+ members:Object.fromEntries([[r.target,r.targetSourceIds],...r.sources.map(s=>[s.group,s.sourceIds])])}))});
+const approved=normalizeUserPlan(adjacent);
+const reviewedClassA=normalizeUserPlan(classA);
+const plans=[pacific,indian,atlantic,africa,southAmerica,northAmerica,approved,reviewedClassA];
 
 const entries=plan=>plan.regions.flatMap(row=>Object.values(row.members).flat().map(id=>[id,row]));
 const bySource=new Map(plans.flatMap(entries));
@@ -17,8 +23,19 @@ const southAmericaIds=new Set(entries(southAmerica).map(([id])=>id));
 export const isAfricaBatch=id=>africaIds.has(id);
 const northAmericaIds=new Set(entries(northAmerica).map(([id])=>id));
 export const isSouthAmericaBatch=id=>southAmericaIds.has(id);
+const approvedIds=new Set(entries(approved).map(([id])=>id));
 export const isNorthAmericaBatch=id=>northAmericaIds.has(id);
+const classABySource=new Map(entries(reviewedClassA));
+export const classAScopeOf=id=>classABySource.get(id);
+export const isClassABatch=id=>classABySource.has(id);
+export const isApprovedAdjacentBatch=id=>approvedIds.has(id);
 export const oceanScopeOf=id=>bySource.get(id);
 export const isReviewedOceanBatch=id=>bySource.has(id);
 export const finalRegionCount=884-plans.flatMap(plan=>plan.regions).reduce((n,row)=>n+Object.keys(row.members).length-1,0);
 export const finalPlayableCount=finalRegionCount-4;
+const beforeClassAEntries=plans.slice(0,-1).flatMap(entries);
+const beforeClassABySource=new Map(beforeClassAEntries);
+export const preClassAOceanScopeOf=id=>beforeClassABySource.get(id);
+export const isPreClassAReviewedBatch=id=>beforeClassABySource.has(id);
+export const preClassARegionCount=771-adjacent.regions.reduce((n,r)=>n+r.sources.length,0);
+export const preClassAPlayableCount=preClassARegionCount-4;

@@ -22,5 +22,5 @@ test('European small sources keep their merged destinations searchable',async({p
  await page.getByTestId('settings-resume').click();
  expect(await select('Bremen','Niedersachsen')).toBe(lowerSaxony);
  expect(await select('Hamburg','Schleswig-Holstein')).toBe(schleswig);
- await select('Camenca','Bender');
+ await select('Camenca',"Dnipropetrovs'k");
 });

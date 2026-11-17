@@ -1,4 +1,5 @@
-import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
+import {isPreClassAReviewedBatch as isReviewedOceanBatch,preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -9,15 +10,8 @@ import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.m
 import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mjs';
 import {repartitionFrenchRegions} from '../scripts/apply-france-administrative-regions.mjs';
 import {consolidateStateRegions,applyCurrentStateMergers,applyAdministrativeGroupOverrides} from '../scripts/apply-state-region-consolidation.mjs';
-import {MAP,MAP_METADATA,PREPROCESSED_TOPOLOGY,SOURCE_MAP,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {TerrainNavigator,terrainSegment,validateTravel} from '../src/game/terrain-navigation.ts';
-import {createGame} from '../src/game/engine.ts';
-import {RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {checksum,decodeSave,encodeSave,listSaves,SAVE_PREFIX,writeSave} from '../src/game/save.ts';
-import {applyFrame} from '../src/platform/replication.ts';
 import plan from '../data/uk-administrative-regions.json' with {type:'json'};
 import france from '../data/france-administrative-regions.json' with {type:'json'};
-import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
@@ -25,6 +19,15 @@ import maldives from '../data/maldives-gameplay-regions.json' with {type:'json'}
 import adminOverrides from '../data/administrative-region-overrides.json' with {type:'json'};
 
 import {isAnyLatestGrouping as isSeaBatch} from './southeast-asia-fixtures.mjs';
+
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,PREPROCESSED_TOPOLOGY,SOURCE_MAP,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {TerrainNavigator,terrainSegment,validateTravel}=await import('../src/game/terrain-navigation.ts');
+const {createGame}=await import('../src/game/engine.ts');
+const {RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {checksum,decodeSave,encodeSave,listSaves,SAVE_PREFIX,writeSave}=await import('../src/game/save.ts');
+const {applyFrame}=await import('../src/platform/replication.ts');
+const {default:atlas}=await import('../src/generated/world.js');
 
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
@@ -133,9 +136,9 @@ test('UK preprocessing rejects missing island reviews and duplicate or foreign m
 test('the UK map rejects v6 saves and LAN snapshots without overwriting v7 storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'uk-admin-regions');
-  assert.equal(STATE_VERSION,26);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
+  assert.equal(STATE_VERSION,28);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:7,map:'earth-natural-earth-admin1-511-regions-v6'};

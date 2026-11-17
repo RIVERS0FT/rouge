@@ -32,7 +32,17 @@ test('shared reverse flow goes around walls and forbids diagonal corner cutting'
 });
 test('permission-free land flow is shared across factions and ownership changes',()=>{const e=fresh(),target=TARGET;const a=e.navigation.plan(MAP[HOME].center,MAP[target].center),builds=e.navigation.builds;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));e.state.topology++;assert.deepEqual(a,e.navigation.plan(MAP[HOME].center,MAP[target].center));assert.equal(e.navigation.builds,builds);});
 test('march, combat, capture and automatic production form a working loop',()=>{
- const e=fresh();e.state.players[1].ai=false;const target=TARGET;assert.ok(target!==undefined);
+ const e=fresh();e.state.players[1].ai=false;
+ // Prefer the closest actual land route for this local capture smoke test.
+ // A new map partition can reindex a seeded start and its adjacency list.
+ const available=MAP[HOME].neighbors.filter(id=>e.state.provinces[id].owner===-1).flatMap(id=>{
+  const route=e.navigation.plan(MAP[HOME].center,MAP[id].center);
+  if(!route||route.points.some(p=>p.sea))return [];
+  const distance=route.points.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-route.points[i].x,p.z-route.points[i].z),0);
+  return [{id,distance}];
+ }).sort((a,b)=>a.distance-b.distance||a.id-b.id);
+ assert.ok(available.length>0);
+ const target=available[0].id;
  // Assure the capture-loop fixture has a local advantage; staggered departures
  // need not beat an equally strong garrison in this specific terrain.
  const guards=e.state.units.filter(u=>u.owner===-1&&u.province===target);assert.equal(guards.length,5);

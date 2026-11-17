@@ -26,8 +26,8 @@ test('European map grouping keeps city and island aliases available after consol
  expect(await select('Mariehamn','Åland Islands')).toBe(aland);
  expect(await select('Saare','Tallinn')).toBe(tallinn);
  expect(await select('Jurmala','Courland')).toBe(courland);
- const andorra=await select('Ordino','Andorra');
- const liechtenstein=await select('Vaduz','Liechtenstein');
+ const andorra=await select('Ordino','Occitanie');
+ const liechtenstein=await select('Vaduz','East Switzerland');
  expect(andorra).not.toBe(liechtenstein);
  expect(await select('Izola','Ilirska Bistrica')).not.toBe(andorra);
 });

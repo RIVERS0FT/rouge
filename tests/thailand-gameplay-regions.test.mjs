@@ -1,4 +1,5 @@
-import {isReviewedOceanBatch,finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
+import {isPreClassAReviewedBatch as isReviewedOceanBatch,preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -10,10 +11,6 @@ import {repartitionMaldives} from '../scripts/apply-maldives-gameplay-regions.mj
 import {repartitionSwissRegions} from '../scripts/apply-swiss-gameplay-regions.mjs';
 import {repartitionPhilippines} from '../scripts/apply-philippines-gameplay-regions.mjs';
 import {repartitionThailand} from '../scripts/apply-thailand-gameplay-regions.mjs';
-import {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {MAP_ID,RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {TerrainNavigator,terrainAt,terrainSegment,validateTravel} from '../src/game/terrain-navigation.ts';
-import atlas from '../src/generated/world.js';
 import decisions from '../data/state-region-consolidation.json' with {type:'json'};
 import currentDecisions from '../data/state-region-1.15.1-overrides.json' with {type:'json'};
 import overlapAudit from '../data/admin1-overlap-audit.json' with {type:'json'};
@@ -26,6 +23,12 @@ import philippines from '../data/philippines-gameplay-regions.json' with {type:'
 import plan from '../data/thailand-gameplay-regions.json' with {type:'json'};
 
 import {isAnyLatestGrouping as isSeaBatch} from './southeast-asia-fixtures.mjs';
+
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,SOURCE_MAP,PREPROCESSED_TOPOLOGY,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {MAP_ID,RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {TerrainNavigator,terrainAt,terrainSegment,validateTravel}=await import('../src/game/terrain-navigation.ts');
+const {default:atlas}=await import('../src/generated/world.js');
 
 const readGzip=name=>JSON.parse(gunzipSync(readFileSync(new URL('../data/'+name+'.json.gz',import.meta.url))));
 const base=readGzip('natural-earth-admin1-base');
@@ -61,7 +64,7 @@ test('all Thai source areas and city anchors select exactly four locked gameplay
   for(const alias of aliases)assert.ok(searchProvinces(alias).some(r=>r.id===regions[i].id),alias);
  }
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');assert.equal(STATE_VERSION,26);assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');assert.equal(STATE_VERSION,28);assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
 });
 
 test('Phuket keeps its sea crossing while Nong Khai joins physically touching Northeast land',()=>{

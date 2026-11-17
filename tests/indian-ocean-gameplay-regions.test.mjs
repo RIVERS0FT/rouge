@@ -1,14 +1,17 @@
+import {usePreClassAMapFixture} from './pre-class-a-map-fixture.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
-import {MAP,MAP_METADATA,PREPROCESSED_TOPOLOGY,SOURCE_MAP,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces} from '../src/game/map.ts';
-import {MAP_ID,RULES_ID,STATE_VERSION} from '../src/game/content.ts';
-import {SAVE_PREFIX} from '../src/game/save.ts';
-import {terrainAt} from '../src/game/terrain-navigation.ts';
-import atlas from '../src/generated/world.js';
 import plan from '../data/indian-ocean-gameplay-regions.json' with {type:'json'};
-import {finalRegionCount,finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+import {preClassARegionCount as finalRegionCount,preClassAPlayableCount as finalPlayableCount} from './reviewed-ocean-fixtures.mjs';
+
+usePreClassAMapFixture();
+const {MAP,MAP_METADATA,PREPROCESSED_TOPOLOGY,SOURCE_MAP,SOURCE_TOPOLOGY,provinceAt,provinceByCode,searchProvinces}=await import('../src/game/map.ts');
+const {MAP_ID,RULES_ID,STATE_VERSION}=await import('../src/game/content.ts');
+const {SAVE_PREFIX}=await import('../src/game/save.ts');
+const {terrainAt}=await import('../src/game/terrain-navigation.ts');
+const {default:atlas}=await import('../src/generated/world.js');
 
 const base=JSON.parse(gunzipSync(readFileSync(new URL('../data/natural-earth-admin1-base.json.gz',import.meta.url))));
 const reference=JSON.parse(gunzipSync(readFileSync(new URL('../data/state-regions-1.13.7.json.gz',import.meta.url))));
@@ -35,9 +38,9 @@ test('Indian Ocean historical grouping has exact whole-atom coverage, bilingual 
  }
  assert.equal(MAP_METADATA.count,finalRegionCount);
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v25');
- assert.equal(STATE_VERSION,26);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v26.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v39');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v27');
+ assert.equal(STATE_VERSION,28);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v28.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v41');
 });
 
 test('Indian Ocean grouping leaves geographic country labels and the physical topology untouched',()=>{

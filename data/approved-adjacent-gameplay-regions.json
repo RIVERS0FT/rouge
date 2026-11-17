@@ -1,0 +1,822 @@
+{
+  "schema": 1,
+  "baseline": {
+    "revision": "07b1ee9bea1d8f93c588fdf4a08459eb0b12c9c2",
+    "atlasSha256": "a7b5e5fbe128774413f6cd1e2a128a018acebd3f42ed447126721c6590382635",
+    "regionCount": 771
+  },
+  "regions": [
+    {
+      "target": "group:ARE-338",
+      "displayName": [
+        "阿联酋",
+        "United Arab Emirates"
+      ],
+      "anchorAtomId": "ARE-349",
+      "targetSourceIds": [
+        "ARE-338",
+        "ARE-339",
+        "ARE-341",
+        "ARE-344",
+        "ARE-346",
+        "ARE-347",
+        "ARE-348",
+        "ARE-349",
+        "ARE-350"
+      ],
+      "sources": [
+        {
+          "group": "group:OMN-2425",
+          "sourceIds": [
+            "OMN-2425"
+          ],
+          "aliases": [
+            "穆桑代姆省",
+            "Musandam"
+          ],
+          "landEdges": [
+            [
+              "OMN-2425",
+              "ARE-338"
+            ],
+            [
+              "OMN-2425",
+              "ARE-341"
+            ],
+            [
+              "OMN-2425",
+              "ARE-348"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:ARM-1553",
+      "displayName": [
+        "格加尔库尼克省",
+        "Gegharkunik"
+      ],
+      "anchorAtomId": "ARM-1672",
+      "targetSourceIds": [
+        "ARM-1553",
+        "ARM-1554",
+        "ARM-1555",
+        "ARM-1670",
+        "ARM-1671",
+        "ARM-1672",
+        "ARM-1673",
+        "ARM-1674",
+        "ARM-1675",
+        "ARM-1732",
+        "ARM-1733"
+      ],
+      "sources": [
+        {
+          "group": "group:AZE-2415",
+          "sourceIds": [
+            "AZE-2415",
+            "AZE-2418",
+            "AZE-2419",
+            "AZE-2420",
+            "AZE-2421",
+            "AZE-2422",
+            "AZE-2423",
+            "AZE-5567"
+          ],
+          "aliases": [
+            "巴贝克区",
+            "Babək"
+          ],
+          "landEdges": [
+            [
+              "AZE-2415",
+              "ARM-1671"
+            ],
+            [
+              "AZE-2418",
+              "ARM-1732"
+            ],
+            [
+              "AZE-2419",
+              "ARM-1671"
+            ],
+            [
+              "AZE-2419",
+              "ARM-1733"
+            ],
+            [
+              "AZE-2420",
+              "ARM-1733"
+            ],
+            [
+              "AZE-2421",
+              "ARM-1732"
+            ],
+            [
+              "AZE-2423",
+              "ARM-1732"
+            ],
+            [
+              "AZE-2423",
+              "ARM-1733"
+            ],
+            [
+              "AZE-5567",
+              "ARM-1733"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:DEU-1599",
+      "displayName": [
+        "勃兰登堡",
+        "Brandenburg"
+      ],
+      "anchorAtomId": "DEU-3487",
+      "targetSourceIds": [
+        "DEU-1599",
+        "DEU-3487"
+      ],
+      "sources": [
+        {
+          "group": "group:POL-3143",
+          "sourceIds": [
+            "POL-3143"
+          ],
+          "aliases": [
+            "卢布斯卡省",
+            "Lubusz"
+          ],
+          "landEdges": [
+            [
+              "POL-3143",
+              "DEU-3487"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:CYP-3463",
+      "displayName": [
+        "尼科西亚区",
+        "Nicosia"
+      ],
+      "anchorAtomId": "CYP-3464",
+      "targetSourceIds": [
+        "CYP-3463",
+        "CYP-3464",
+        "CYP-3465",
+        "CYP-3466",
+        "CYP-3489"
+      ],
+      "sources": [
+        {
+          "group": "group:CYN+00?",
+          "sourceIds": [
+            "CYN+00?"
+          ],
+          "aliases": [
+            "北塞浦路斯",
+            "Northern Cyprus"
+          ],
+          "landEdges": [
+            [
+              "CYN+00?",
+              "CYP-3463"
+            ],
+            [
+              "CYN+00?",
+              "CYP-3464"
+            ],
+            [
+              "CYN+00?",
+              "CYP-3466"
+            ]
+          ]
+        },
+        {
+          "group": "group:ESB-5132",
+          "sourceIds": [
+            "ESB-5132"
+          ],
+          "aliases": [
+            "德凯利亚",
+            "Dhekelia"
+          ],
+          "landEdges": [
+            [
+              "ESB-5132",
+              "CYP-3463"
+            ],
+            [
+              "ESB-5132",
+              "CYP-3466"
+            ]
+          ]
+        },
+        {
+          "group": "group:WSB-5133",
+          "sourceIds": [
+            "WSB-5133"
+          ],
+          "aliases": [
+            "阿克罗蒂里",
+            "Akrotiri"
+          ],
+          "landEdges": [
+            [
+              "WSB-5133",
+              "CYP-3489"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:ROU-133",
+      "displayName": [
+        "图尔恰县",
+        "Tulcea"
+      ],
+      "anchorAtomId": "ROU-4847",
+      "targetSourceIds": [
+        "ROU-133",
+        "ROU-4847"
+      ],
+      "sources": [
+        {
+          "group": "group:BGR-2259",
+          "sourceIds": [
+            "BGR-2259",
+            "BGR-2261"
+          ],
+          "aliases": [
+            "多布里奇州",
+            "Dobrich"
+          ],
+          "landEdges": [
+            [
+              "BGR-2259",
+              "ROU-133"
+            ],
+            [
+              "BGR-2261",
+              "ROU-133"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:IND-3299",
+      "displayName": [
+        "阿鲁纳恰尔邦",
+        "Arunachal Pradesh"
+      ],
+      "anchorAtomId": "IND-3299",
+      "targetSourceIds": [
+        "IND-3299"
+      ],
+      "sources": [
+        {
+          "group": "group:BTN-2433",
+          "sourceIds": [
+            "BTN-2433",
+            "BTN-2434",
+            "BTN-2435",
+            "BTN-2436",
+            "BTN-2437",
+            "BTN-2438",
+            "BTN-2439",
+            "BTN-2440",
+            "BTN-2480",
+            "BTN-2481",
+            "BTN-2482",
+            "BTN-2483",
+            "BTN-2484",
+            "BTN-2485",
+            "BTN-2486",
+            "BTN-2487",
+            "BTN-2490",
+            "BTN-2491",
+            "BTN-2492",
+            "BTN-2493"
+          ],
+          "aliases": [
+            "不丹",
+            "Bhutan"
+          ],
+          "landEdges": [
+            [
+              "BTN-2484",
+              "IND-3299"
+            ],
+            [
+              "BTN-2492",
+              "IND-3299"
+            ],
+            [
+              "BTN-2493",
+              "IND-3299"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:POL-3139",
+      "displayName": [
+        "瓦尔米亚-马祖里省",
+        "Warmian-Masurian"
+      ],
+      "anchorAtomId": "POL-3139",
+      "targetSourceIds": [
+        "POL-3139"
+      ],
+      "sources": [
+        {
+          "group": "group:RUS-2324",
+          "sourceIds": [
+            "RUS-2324"
+          ],
+          "aliases": [
+            "加里宁格勒州",
+            "Kaliningrad"
+          ],
+          "landEdges": [
+            [
+              "RUS-2324",
+              "POL-3139"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:UZB-363",
+      "displayName": [
+        "塔什干州",
+        "Tashkent"
+      ],
+      "anchorAtomId": "UZB-372",
+      "targetSourceIds": [
+        "UZB-363",
+        "UZB-364",
+        "UZB-365",
+        "UZB-372",
+        "UZB-4828"
+      ],
+      "sources": [
+        {
+          "group": "group:KGZ-1119",
+          "sourceIds": [
+            "KGZ-1119"
+          ],
+          "aliases": [
+            "巴特肯州",
+            "Batken"
+          ],
+          "landEdges": [
+            [
+              "KGZ-1119",
+              "UZB-364"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:SAU-846",
+      "displayName": [
+        "哈伊勒",
+        "Ha'il"
+      ],
+      "anchorAtomId": "SAU-861",
+      "targetSourceIds": [
+        "SAU-846",
+        "SAU-847",
+        "SAU-861",
+        "SAU-862"
+      ],
+      "sources": [
+        {
+          "group": "group:JOR-850",
+          "sourceIds": [
+            "JOR-850"
+          ],
+          "aliases": [
+            "马弗拉克省",
+            "Mafraq"
+          ],
+          "landEdges": [
+            [
+              "JOR-850",
+              "SAU-861"
+            ],
+            [
+              "JOR-850",
+              "SAU-862"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:TUR-3040",
+      "displayName": [
+        "卡尔斯省",
+        "Kars"
+      ],
+      "anchorAtomId": "TUR-3040",
+      "targetSourceIds": [
+        "TUR-3040",
+        "TUR-4839",
+        "TUR-4840"
+      ],
+      "sources": [
+        {
+          "group": "group:GEO-3027",
+          "sourceIds": [
+            "GEO-3027"
+          ],
+          "aliases": [
+            "阿扎尔",
+            "Ajaria"
+          ],
+          "landEdges": [
+            [
+              "GEO-3027",
+              "TUR-4839"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:IND-20012",
+      "displayName": [
+        "拉达克",
+        "Ladakh"
+      ],
+      "anchorAtomId": "IND-20012",
+      "targetSourceIds": [
+        "IND-20012",
+        "IND-2431"
+      ],
+      "sources": [
+        {
+          "group": "group:PAK-1111",
+          "sourceIds": [
+            "PAK-1111"
+          ],
+          "aliases": [
+            "吉尔吉特－巴尔蒂斯坦",
+            "Northern Areas"
+          ],
+          "landEdges": [
+            [
+              "PAK-1111",
+              "IND-20012"
+            ],
+            [
+              "PAK-1111",
+              "IND-2431"
+            ]
+          ]
+        },
+        {
+          "group": "group:KAS+00?",
+          "sourceIds": [
+            "KAS+00?"
+          ],
+          "aliases": [
+            "克什米尔",
+            "Kashmir"
+          ],
+          "landEdges": [
+            [
+              "KAS+00?",
+              "IND-20012"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:ITA-5422",
+      "displayName": [
+        "罗马省",
+        "Roma"
+      ],
+      "anchorAtomId": "ITA-5422",
+      "targetSourceIds": [
+        "ITA-5422",
+        "ITA-5423",
+        "ITA-5424",
+        "ITA-5426"
+      ],
+      "sources": [
+        {
+          "group": "group:VAT+00?",
+          "sourceIds": [
+            "VAT+00?"
+          ],
+          "aliases": [
+            "梵蒂冈",
+            "Vatican"
+          ],
+          "landEdges": [
+            [
+              "VAT+00?",
+              "ITA-5422"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:ISR-3053",
+      "displayName": [
+        "南部区",
+        "HaDarom"
+      ],
+      "anchorAtomId": "ISR-3053",
+      "targetSourceIds": [
+        "ISR-3053",
+        "ISR-3054",
+        "ISR-3055",
+        "ISR-3056",
+        "ISR-3058"
+      ],
+      "sources": [
+        {
+          "group": "group:WEB+00?",
+          "sourceIds": [
+            "WEB+00?"
+          ],
+          "aliases": [
+            "约旦河西岸",
+            "West Bank"
+          ],
+          "landEdges": [
+            [
+              "WEB+00?",
+              "ISR-3053"
+            ],
+            [
+              "WEB+00?",
+              "ISR-3054"
+            ],
+            [
+              "WEB+00?",
+              "ISR-3055"
+            ],
+            [
+              "WEB+00?",
+              "ISR-3056"
+            ],
+            [
+              "WEB+00?",
+              "ISR-3058"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:ITA-5362",
+      "displayName": [
+        "博洛尼亚省",
+        "Bologna"
+      ],
+      "anchorAtomId": "ITA-5362",
+      "targetSourceIds": [
+        "ITA-5362",
+        "ITA-5363",
+        "ITA-5364",
+        "ITA-5365",
+        "ITA-5366"
+      ],
+      "sources": [
+        {
+          "group": "group:SMR-4883",
+          "sourceIds": [
+            "SMR-4883",
+            "SMR-4884",
+            "SMR-4885",
+            "SMR-4886",
+            "SMR-4887",
+            "SMR-4888",
+            "SMR-4889",
+            "SMR-4890",
+            "SMR-4891"
+          ],
+          "aliases": [
+            "圣马力诺",
+            "San Marino"
+          ],
+          "landEdges": [
+            [
+              "SMR-4883",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4884",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4885",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4886",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4887",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4888",
+              "ITA-5366"
+            ],
+            [
+              "SMR-4891",
+              "ITA-5366"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:HRV-1602",
+      "displayName": [
+        "奥西耶克-巴拉尼亚县",
+        "Osjecko-Baranjska"
+      ],
+      "anchorAtomId": "HRV-1603",
+      "targetSourceIds": [
+        "HRV-1602",
+        "HRV-1603",
+        "HRV-1604",
+        "HRV-1605",
+        "HRV-1606",
+        "HRV-1607"
+      ],
+      "sources": [
+        {
+          "group": "group:SRB-281",
+          "sourceIds": [
+            "SRB-281"
+          ],
+          "aliases": [
+            "斯雷姆州",
+            "Sremski"
+          ],
+          "landEdges": [
+            [
+              "SRB-281",
+              "HRV-1605"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:HUN-3138",
+      "displayName": [
+        "绍莫吉州",
+        "Somogy"
+      ],
+      "anchorAtomId": "HUN-3157",
+      "targetSourceIds": [
+        "HUN-3138",
+        "HUN-3155",
+        "HUN-3156",
+        "HUN-3157",
+        "HUN-3158",
+        "HUN-3159",
+        "HUN-3162",
+        "HUN-3163",
+        "HUN-3165",
+        "HUN-4903",
+        "HUN-4904",
+        "HUN-4905",
+        "HUN-4906",
+        "HUN-4907",
+        "HUN-4908",
+        "HUN-4909",
+        "HUN-4910",
+        "HUN-4911",
+        "HUN-4912",
+        "HUN-4913",
+        "HUN-4914"
+      ],
+      "sources": [
+        {
+          "group": "group:AUT-2322",
+          "sourceIds": [
+            "AUT-2322"
+          ],
+          "aliases": [
+            "布尔根兰州",
+            "Burgenland"
+          ],
+          "landEdges": [
+            [
+              "AUT-2322",
+              "HUN-3138"
+            ],
+            [
+              "AUT-2322",
+              "HUN-3156"
+            ],
+            [
+              "AUT-2322",
+              "HUN-4904"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:BEL-2",
+      "displayName": [
+        "卢森堡区",
+        "Luxembourg"
+      ],
+      "anchorAtomId": "BEL-3477",
+      "targetSourceIds": [
+        "BEL-2",
+        "BEL-3476",
+        "BEL-3477",
+        "BEL-3481"
+      ],
+      "sources": [
+        {
+          "group": "group:LUX-906",
+          "sourceIds": [
+            "LUX-906",
+            "LUX-907",
+            "LUX-908"
+          ],
+          "aliases": [
+            "迪基希区",
+            "Diekirch"
+          ],
+          "landEdges": [
+            [
+              "LUX-906",
+              "BEL-3477"
+            ],
+            [
+              "LUX-906",
+              "BEL-3481"
+            ],
+            [
+              "LUX-908",
+              "BEL-3477"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "target": "group:LBN-3022",
+      "displayName": [
+        "贝卡省",
+        "Beqaa"
+      ],
+      "anchorAtomId": "LBN-3022",
+      "targetSourceIds": [
+        "LBN-3022",
+        "LBN-3023",
+        "LBN-3025",
+        "LBN-3059",
+        "LBN-3060"
+      ],
+      "sources": [
+        {
+          "group": "group:LBN-3024",
+          "sourceIds": [
+            "LBN-3024"
+          ],
+          "aliases": [
+            "贝鲁特省",
+            "Beirut"
+          ],
+          "landEdges": [
+            [
+              "LBN-3024",
+              "LBN-3025"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
