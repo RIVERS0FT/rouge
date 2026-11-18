@@ -3,7 +3,7 @@ import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, stats } from './content.ts';
-import {validateTravel} from './terrain-navigation.ts';
+import {distanceToTravelSegment, terrainAt, terrainSegment, travelCorridorPoint, validateTravel} from './terrain-navigation.ts';
 import {validGroupingState} from './territoryEconomy.ts';
 import {isRegionGarrison} from './capacity.ts';
 import {isConstructionKind,MAX_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
@@ -44,7 +44,7 @@ export function validateState(value:unknown):value is GameState{
     if(p.lastMarchTick!==undefined&&(!MAP[p.id].playable||!integer(p.lastMarchTick,0,s.tick)))return false;
     if(p.march===undefined)continue;
     const order=p.march;
-    if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||order.to===p.id||!MAP[order.to].playable)return false;
+    if(!order||typeof order!=='object'||p.owner<0||!integer(order.to,0,MAP.length-1)||!MAP[order.to].playable)return false;
     if(order.owner!==p.owner||(order.reserved!==undefined&&order.reserved!==true)||(order.fraction!==undefined&&!isMarchFraction(order.fraction))||Object.hasOwn(order,'unitIds'))return false;
     if(order.army!==undefined&&s.armies.find(army=>army.id===order.army)?.owner!==order.owner)return false;
     const orderIds=order.pendingIds;
@@ -56,10 +56,30 @@ export function validateState(value:unknown):value is GameState{
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,Number.MIN_VALUE,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
-    const source=pending.get(u.id);if(source!==undefined){if(!isRegionGarrison(u,s.provinces[source].owner,source))return false;pending.delete(u.id);}
+    const army=u.army===undefined?undefined:armies.get(u.army),formation=army?.formation;
+    const source=pending.get(u.id);if(source!==undefined){
+      if(u.armyStatus==='queued'){
+        if(source!==formation?.from||s.provinces[source].march?.army!==u.army||u.province!==source)return false;
+      }else if(!isRegionGarrison(u,s.provinces[source].owner,source))return false;
+      pending.delete(u.id);
+    }
     if(u.assault!==undefined&&(u.owner<0||u.assault!==(u.target??u.province)))return false;
-    if(u.army!==undefined&&(armies.get(u.army)?.owner!==u.owner))return false;
+    if(u.army!==undefined&&army?.owner!==u.owner)return false;
     if(!Array.isArray(u.route)||u.route.length!==0)return false;
+    if(formation){
+      const status=u.armyStatus;
+      if(!status||!['queued','formed','field','sea','inside'].includes(status)||u.travel)return false;
+      if(status==='queued'){
+        if(source===undefined||u.target!==null||u.destination!==null||u.transport||u.origin!==u.province)return false;
+      }else{
+        if(u.origin!==formation.from||u.target!==army.to||u.destination!==army.to)return false;
+        if(status==='sea'){
+          if(formation.phase!=='sea'||!u.transport?.embarked||u.transport.from!==u.origin||u.transport.to!==u.target||u.transport.index!==formation.route.index||u.x!==formation.position.x||u.z!==formation.position.z)return false;
+        }else if(u.transport||status==='inside'&&(u.province!==army.to||formation.phase!=='enter'))return false;
+      }
+      ids.add(u.id);continue;
+    }
+    if(u.armyStatus)return false;
     if(u.target===null){if(u.travel||u.transport||u.destination!==null||u.origin!==u.province)return false;}
     else {
       if(u.destination!==u.target)return false;
@@ -92,6 +112,17 @@ function validArmyLedgers(s:GameState):boolean{
   const armyIds=new Set<number>();
   for(const army of s.armies){
     if(!army||typeof army!=='object'||!integer(army.id,1,s.nextArmy-1)||armyIds.has(army.id)||!integer(army.owner,0,s.players.length-1)||!integer(army.to,0,MAP.length-1)||!MAP[army.to].playable||!integer(army.formed,0,s.tick)||!integer(army.size,1,1e9))return false;
+    const f=army.formation;
+    if(f!==undefined){
+      if(!f||!integer(f.from,0,MAP.length-1)||!MAP[f.from].playable||!['assemble','march','sea','battle','enter'].includes(f.phase)||!number(f.heading,-Math.PI*4,Math.PI*4)||!integer(f.columns,1,Math.ceil(Math.sqrt(army.size)))||!integer(f.lastContact,0,s.tick))return false;
+      if(!f.position||!number(f.position.x,BOUNDS.left,BOUNDS.right)||!number(f.position.z,BOUNDS.top,BOUNDS.bottom)||terrainAt(f.position,f.phase!=='sea')<0)return false;
+      if(f.readyAt!==undefined&&!integer(f.readyAt,0,s.tick+1)||f.engaged!==undefined&&typeof f.engaged!=='boolean'||f.redirect!==undefined&&(!integer(f.redirect,0,MAP.length-1)||!MAP[f.redirect].playable))return false;
+      if(f.retryAt!==undefined&&!integer(f.retryAt,0,s.tick+12)||f.readyCount!==undefined&&!integer(f.readyCount,0,army.size))return false;
+      if(f.detour!==undefined&&(!Array.isArray(f.detour)||f.detour.length>250||f.detour.some(p=>!p||!number(p.x,BOUNDS.left,BOUNDS.right)||!number(p.z,BOUNDS.top,BOUNDS.bottom)||terrainAt(p,true)<0)))return false;
+      const route=f.route,previous=route?.points?.[route.index-1];
+      if(!previous||!validateTravel(route,previous,MAP[army.to].center))return false;
+      if(f.phase==='sea'&&route.points[route.index].sea&&(distanceToTravelSegment(route,f.position)>3||!terrainSegment(f.position,travelCorridorPoint(route,f.position),true)))return false;
+    }
     armyIds.add(army.id);
   }
   const battleIds=new Set<number>(),regions=new Set<number>();

@@ -53,20 +53,20 @@ test('army nameplate shows only flag and strength, follows its lead battalion, a
   await import('/src/ui/style.css');
   const {WorldRenderer}=await import('/src/render/WorldRenderer.ts');
   const {MAP}=await import('/src/game/map.ts');
-  const center=MAP.find((p:any)=>p.code.startsWith('USA-')&&p.playable).center;
+  const region=MAP.find((p:any)=>p.code.startsWith('USA-')&&p.playable),center=region.center;
   const selected:number[]=[];
   const world:any=new WorldRenderer(document.querySelector('#world')!,()=>{},()=>{},()=>{},(id:number)=>selected.push(id));
   cancelAnimationFrame(world.animation);
   const players=[{id:0,flag:{type:'preset',id:'fr'}},{id:1,flag:{type:'preset',id:'es'}}];
   const lead=(owner:number,x:number)=>({id:10+owner,owner,x:center.x+x,z:center.z,kind:'infantry',hp:100,target:1,province:1});
   world.actor=0;world.state={players};world.lang='en';
-  world.armies=[{id:4,owner:0,count:12,to:1,lead:lead(0,0)},{id:5,owner:1,count:7,to:1,lead:lead(1,40)}];
+  world.armies=[{id:4,owner:0,count:12,to:1,lead:lead(0,0),region:1,position:lead(0,0)},{id:5,owner:1,count:7,to:1,lead:lead(1,40),region:1,position:lead(1,40)}];
   // Resizing restarts the render loop; stop it so only this harness's camera projects nameplates.
   world.resize();cancelAnimationFrame(world.animation);
   const frame=(x:number,distance:number)=>{
    world.focus.set(x,0,center.z);world.camera.position.set(x,distance,center.z);world.camera.lookAt(world.focus);world.camera.updateMatrixWorld();world.drawArmyPlaques();
   };
-  (window as any).armyTest={world,frame,center,selected};frame(center.x+20,1000);
+  (window as any).armyTest={world,frame,center,selected,region};frame(center.x+20,1000);
  });
  const plaques=page.getByTestId('army-plaque');
  await expect(plaques).toHaveCount(2);
@@ -77,10 +77,22 @@ test('army nameplate shows only flag and strength, follows its lead battalion, a
  await own.click();await enemy.click({force:true});
  expect(await page.evaluate(()=>(window as any).armyTest.selected)).toEqual([4]);
  const before=(await own.boundingBox())!;
- await page.evaluate(()=>{const t=(window as any).armyTest;t.world.armies[0].lead={...t.world.armies[0].lead,x:t.center.x+10};t.frame(t.center.x+20,1000);});
+ await page.evaluate(()=>{const t=(window as any).armyTest;const view=t.world.armies[0];view.lead=view.position={...view.lead,x:t.center.x+10};t.frame(t.center.x+20,1000);});
  const moved=(await own.boundingBox())!;expect(moved.x).toBeGreaterThan(before.x+5);
  // Nameplates never overlap: the nearer enemy one gives way to the own army.
  await expect(enemy).toHaveCount(0);
  await page.evaluate(()=>{const t=(window as any).armyTest;t.world.setSelectedArmy(4);t.frame(t.center.x+20,1000);});
  await expect(own).toHaveAttribute('data-selected','true');
+ await page.evaluate(()=>{
+  const {world,frame,center,region}=(window as any).armyTest;
+  world.armies=[{...world.armies[0],phase:'enter',to:region.id,region:region.id,position:{x:center.x+80,z:center.z}}];
+  world.plaqueTerritories=[{id:region.id,anchor:center,name:region.name,members:[region.id]}];
+  world.state.provinces={[region.id]:{owner:1}};
+  frame(center.x+2,240);world.distance=240;
+  world.drawProvincePlaques(world.viewportWidth,world.viewportHeight);world.drawArmyPlaques();
+ });
+ const town=page.locator('.province-label:visible').first(),townBox=(await town.boundingBox())!,pinned=(await own.boundingBox())!;
+ expect(Math.abs(townBox.x+townBox.width/2-pinned.x-pinned.width/2)).toBeLessThan(1);
+ expect(pinned.y+pinned.height).toBeLessThanOrEqual(townBox.y+1);
+ await expect(own).toHaveAttribute('data-phase','enter');
 });

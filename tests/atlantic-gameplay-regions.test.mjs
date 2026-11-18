@@ -48,8 +48,8 @@ test('the reviewed Atlantic selections have exact bilingual names, real anchors 
  assert.equal(MAP_METADATA.playableCount,finalPlayableCount);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
- assert.equal(STATE_VERSION,29);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
+ assert.equal(STATE_VERSION,30);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
 });
 
 test('Atlantic grouping reuses every original map atom without changing raw jurisdiction, shape or physical topology',()=>{

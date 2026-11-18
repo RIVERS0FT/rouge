@@ -110,9 +110,9 @@ test('French partition rejects duplicate, foreign, missing and disconnected depa
 test('the modern map rejects prior saves and LAN snapshots without overwriting old storage',()=>{
   const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
   const current=createGame(players,42,'france-admin-regions');
-  assert.equal(STATE_VERSION,29);
-  assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
-  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
+  assert.equal(STATE_VERSION,30);
+  assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
   const currentSave=encodeSave(current,'New campaign');
   assert.deepEqual(decodeSave(currentSave).state,current);
   const old={...current,version:6,map:'earth-natural-earth-admin1-511-regions-v5'};

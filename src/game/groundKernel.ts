@@ -66,17 +66,22 @@ export function packBattleUnits(active:readonly Unit[],statsFor:(owner:number,ki
   else{flush();writeBattleUnit(data,i,unit,statsFor(unit.owner,unit.kind),state);}
  }flush();
  const owners=new Int32Array(buffer,kernel.provinceOwnersPointer(),state.provinces.length);for(let i=0;i<owners.length;i++)owners[i]=state.provinces[i].owner;
- writeCombatLanes(data,n,lanes);if(!kernel.buildUnitIndex(pointer,n,pathPointer,includeEmbarked))throw Error('Battle spatial capacity exceeded');
+ writeCombatLanes(data,active,state,lanes);if(!kernel.buildUnitIndex(pointer,n,pathPointer,includeEmbarked))throw Error('Battle spatial capacity exceeded');
  return {data,paths:paths.subarray(0,cachedPathLength),pathEpoch,pointer,n,pathPointer};
 }
 
 /** Talent lanes (talentEffects.combatLanes, computed by the engine) are rewritten every tick,
  * including rows reused from the parallel cache: 18 combat mode bits, 30 damage-taken reduction,
  * 31 damage-dealt bonus and 22 conditional land speed. Without lanes, rows carry no talent effects. */
-function writeCombatLanes(data:Float64Array,n:number,lanes?:CombatLanes):void {
- if(!lanes){for(let i=0;i<n;i++){const base=i*32;data[base+18]=0;data[base+30]=0;data[base+31]=0;}return;}
- const {mode,taken,dealt,speed}=lanes;
- for(let i=0;i<n;i++){const base=i*32,value=speed[i];data[base+18]=mode[i];data[base+30]=taken[i];data[base+31]=dealt[i];if(value===value)data[base+22]=value;}
+function writeCombatLanes(data:Float64Array,active:readonly Unit[],state:import('./types.ts').GameState,lanes?:CombatLanes):void {
+ const engaged=new Set(state.armies.filter(army=>army.formation?.engaged).map(army=>army.id));
+ for(let i=0;i<active.length;i++){
+  const base=i*32,status=active[i].armyStatus,value=lanes?.speed[i];
+  // The high bits describe army-controlled movement, collision and capture.
+  const formation=status?64|(status==='formed'||status==='queued'||status==='inside'&&!engaged.has(active[i].army!)?128:0)|(status==='formed'||status==='field'?256:0):0;
+  data[base+18]=(lanes?.mode[i]??0)|formation;data[base+30]=lanes?.taken[i]??0;data[base+31]=lanes?.dealt[i]??0;
+  if(value!==undefined&&value===value)data[base+22]=value;
+ }
 }
 export function commitBattleUnits(active:readonly Unit[],data:Float64Array,damage:Map<number,{amount:number;attacker:number}>,normalizeCache=false):void {
  for(let i=0;i<active.length;i++){

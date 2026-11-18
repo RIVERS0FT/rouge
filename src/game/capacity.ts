@@ -4,7 +4,7 @@ import type { GameState, Unit } from './types.ts';
  * Issuing an order removes it immediately, including while fighting en route
  * or embarked. Friendly arrival / completed capture clears the active order. */
 export function isRegionGarrison(unit:Unit,owner:number,region:number):boolean {
-  return unit.owner===owner&&unit.province===region&&unit.target===null&&!unit.travel&&!unit.transport?.embarked;
+  return unit.owner===owner&&unit.province===region&&unit.target===null&&!unit.armyStatus&&!unit.travel&&!unit.transport?.embarked;
 }
 export function regionGarrison(state:GameState,owner:number,region:number):number {
   return state.units.reduce((n,u)=>n+Number(isRegionGarrison(u,owner,region)),0);

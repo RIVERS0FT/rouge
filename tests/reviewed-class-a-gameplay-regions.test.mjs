@@ -46,8 +46,8 @@ test('A-page approval transfers precisely 63 groups into 50 existing labels and 
  assert.equal(MAP_METADATA.count,687);assert.equal(MAP_METADATA.playableCount,683);
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
- assert.equal(STATE_VERSION,29);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
+ assert.equal(STATE_VERSION,30);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
 });
 
 test('approved disconnected fragments share game ownership only, not terrain or physical routes',()=>{

@@ -1,12 +1,14 @@
 import {armyLeads} from '../game/armies.ts';
-import type {GameState,Unit} from '../game/types.ts';
+import type {ArmyFormation,GameState,Unit,Vec2} from '../game/types.ts';
 
 /** One nameplate per army: its flag and current strength, carried by the lead battalion. */
-export interface ArmyView {id:number;owner:number;count:number;to:number;lead:Unit}
-/** Armies still entirely queued at their source stay inside that region's plaque count. */
+export interface ArmyView {id:number;owner:number;count:number;ready?:number;to:number;lead?:Unit;region:number;position:Vec2;phase?:ArmyFormation['phase']}
 export function armyViews(state:Pick<GameState,'armies'|'units'|'provinces'>):ArmyView[]{
  const views:ArmyView[]=[];
- for(const {army,members,lead} of armyLeads(state).values())if(lead&&members>0)views.push({id:army.id,owner:army.owner,count:members,to:army.to,lead});
+ for(const {army,members,lead,region} of armyLeads(state).values()){
+  const f=army.formation,position=f?.position??lead;
+  if(position&&members>0)views.push({id:army.id,owner:army.owner,count:members,to:army.to,lead,region:f?.phase==='enter'?army.to:region,position,phase:f?.phase,...(f?.phase==='assemble'?{ready:f.readyCount??0}:{})});
+ }
  return views;
 }
 

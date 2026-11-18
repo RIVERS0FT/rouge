@@ -17,40 +17,35 @@ export interface ArmyLead {army:Army;members:number;lead:Unit|undefined;region:n
 export function armyLeads(s:Pick<GameState,'armies'|'units'|'provinces'>):Map<number,ArmyLead>{
  const leads=new Map<number,ArmyLead>(),queued=queuedMembers(s);
  if(!s.armies.length)return leads;
- for(const army of s.armies)leads.set(army.id,{army,members:0,lead:undefined,region:-1});
+ for(const army of s.armies)leads.set(army.id,{army,members:0,lead:undefined,region:army.formation?.from??-1});
  const best=new Map<number,number>();
  for(const u of s.units){
   if(u.army===undefined)continue;const entry=leads.get(u.army);
   if(!entry||entry.army.owner!==u.owner||(u.target===null&&queued.get(u.id)!==u.army))continue;
   entry.members++;
   if(u.target===null){if(entry.region<0&&!entry.lead)entry.region=u.province;continue;}
-  const goal=MAP[entry.army.to].center,d=(u.x-goal.x)**2+(u.z-goal.z)**2,previous=best.get(u.army);
+   const goal=MAP[entry.army.to].center,d=(u.x-goal.x)**2+(u.z-goal.z)**2,previous=best.get(u.army);
   if(previous===undefined||d<previous||(d===previous&&u.id<entry.lead!.id)){best.set(u.army,d);entry.lead=u;entry.region=u.province;}
  }
  return leads;
 }
 
-/** Per-tick upkeep: clear stale memberships, dissolve empty armies and merge armies of one
- * country that share a destination once their leads stand in the same region. */
+/** Keep each dispatch's identity and remove empty armies and obsolete queues. */
 export function settleArmies(s:GameState):void{
  if(!s.armies.length)return;
  const queued=queuedMembers(s),byId=new Map(s.armies.map(army=>[army.id,army]));
  for(const u of s.units){
   if(u.army===undefined)continue;const army=byId.get(u.army);
-  if(!army||army.owner!==u.owner||(u.target===null&&queued.get(u.id)!==u.army))delete u.army;
+   if(!army||army.owner!==u.owner||(u.target===null&&queued.get(u.id)!==u.army)){delete u.army;delete u.armyStatus;}
  }
- const leads=armyLeads(s);let armies=s.armies.filter(army=>leads.get(army.id)!.members>0);
- const meeting=new Map<string,Army>(),merged=new Map<number,number>();
- for(const army of armies){
-  const key=`${army.owner}:${army.to}:${leads.get(army.id)!.region}`,keep=meeting.get(key);
-  if(!keep){meeting.set(key,army);continue;}
-  keep.size+=army.size;merged.set(army.id,keep.id);
+ const alive=new Map(s.units.map(unit=>[unit.id,unit]));
+ for(const province of s.provinces){
+   const order=province.march;if(!order)continue;
+   const pendingIds=province.owner===order.owner?order.pendingIds.filter(id=>alive.get(id)?.target===null):[];
+   if(!pendingIds.length)delete province.march;
+   else if(pendingIds.length!==order.pendingIds.length)province.march={...order,pendingIds};
+   if(province.owner!==order.owner)for(const id of order.pendingIds){const u=alive.get(id);if(u&&u.army===order.army){delete u.army;delete u.armyStatus;}}
  }
- if(merged.size){
-  armies=armies.filter(army=>!merged.has(army.id));
-  for(const u of s.units)if(u.army!==undefined){const into=merged.get(u.army);if(into!==undefined)u.army=into;}
-  // Replace queue objects so snapshot deltas see the new owner army.
-  for(const province of s.provinces){const order=province.march;if(order?.army===undefined)continue;const into=merged.get(order.army);if(into!==undefined)province.march={...order,army:into};}
- }
+ const leads=armyLeads(s),armies=s.armies.filter(army=>leads.get(army.id)!.members>0);
  if(armies.length!==s.armies.length)s.armies=armies;
 }

@@ -106,6 +106,21 @@ export function terrainLocalSegment(a:Vec2,b:Vec2,startTriangle?:number):boolean
  }}
  return true;
 }
+
+/** A land rectangle can enclose a lake even when all four edges are on land. */
+export function terrainLandFootprint(corners:readonly Vec2[]):boolean {
+ for(let i=0;i<corners.length;i++)if(!terrainLocalSegment(corners[i],corners[(i+1)%corners.length]))return false;
+ const xs=corners.map(p=>p.x),zs=corners.map(p=>p.z);
+ const [left,top,right,bottom]=wallRange(Math.min(...xs),Math.min(...zs),Math.max(...xs),Math.max(...zs));
+ for(let z=top;z<=bottom;z++)for(let x=left;x<=right;x++){
+  const cell=z*wallCols+x;
+  for(let i=wallOffsets[cell];i<wallOffsets[cell+1];i++){
+   const at=wallIds[i],px=walls[at],pz=walls[at+1];
+   if(corners.every((a,j)=>{const b=corners[(j+1)%corners.length];return (b.x-a.x)*(pz-a.z)-(b.z-a.z)*(px-a.x)>1e-8;}))return false;
+  }
+ }
+ return true;
+}
 /** Clip a segment to each candidate triangle and check interval union. Exact
  * convex clipping avoids sampling through thin islands/lakes. No admin borders. */
 export function terrainSegment(a:Vec2,b:Vec2,sea:boolean):boolean {
@@ -190,8 +205,8 @@ export class TerrainNavigator {
   let memory=0;for(const field of this.fields.values())memory+=bytes(field);
   for(const [key,field]of this.fields){if(memory<=16*1024*1024&&this.fields.size<=32)break;if(field!==keep){memory-=bytes(field);this.fields.delete(key);}}
  }
- private field(goal:number,start:number,allowSea:boolean,landSpeed:number,seaSpeed:number):Field {
-  const key=`${goal}:${allowSea}:${landSpeed}:${seaSpeed}`;let f=this.fields.get(key);
+ private field(goal:number,start:number,allowSea:boolean,landSpeed:number,seaSpeed:number,transferCost:number):Field {
+   const key=`${goal}:${allowSea}:${landSpeed}:${seaSpeed}:${transferCost}`;let f=this.fields.get(key);
   if(!f){
    f=new Field();const page=f.page(goal);page.distance[goal&FIELD_PAGE_MASK]=0;page.next[goal&FIELD_PAGE_MASK]=goal;f.queue.push(goal,0);
    this.fields.set(key,f);this.builds++;
@@ -202,20 +217,22 @@ export class TerrainNavigator {
   const q=f.queue,lengths=edgeLengths??=new Float64Array(triangleCount*6).fill(NaN);
   while(q.length){const id=q.pop(),d=q.value,current=f.pages[id>>>FIELD_PAGE_BITS]!,currentOffset=id&FIELD_PAGE_MASK;if(d>current.distance[currentOffset]+1e-9)continue;for(let k=0;k<3;k++){const slot=id*3+k,n=neighborData[slot];if(n<0||!allowSea&&surfaces[n]!==1)continue;const offset=slot*2;
    if(Number.isNaN(lengths[offset])){const edge=portal(id,n),mid={x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2};lengths[offset]=length(center(id),mid);lengths[offset+1]=length(center(n),mid);}
-   const nd=d+lengths[offset]/(surfaces[id]===2?seaSpeed:landSpeed)+lengths[offset+1]/(surfaces[n]===2?seaSpeed:landSpeed);
+     const nd=d+lengths[offset]/(surfaces[id]===2?seaSpeed:landSpeed)+lengths[offset+1]/(surfaces[n]===2?seaSpeed:landSpeed)+(surfaces[id]===surfaces[n]?0:transferCost);
    let page=f.pages[n>>>FIELD_PAGE_BITS];const offsetInPage=n&FIELD_PAGE_MASK,old=page?.distance[offsetInPage]??Infinity;
     if(nd<old-1e-9){page??=f.page(n);page.distance[offsetInPage]=nd;page.next[offsetInPage]=id;q.push(n,nd);}else if(Math.abs(nd-old)<=1e-9&&id<page!.next[offsetInPage])page!.next[offsetInPage]=id;
   }current.settled[currentOffset]=1;if(id===start)break;}
   this.trimFields(f);return f;
  }
- plan(from:Vec2,to:Vec2,landSpeed=1,seaSpeed=1):TravelPlan|null {
+ plan(from:Vec2,to:Vec2,landSpeed=1,seaSpeed=1,fromSea=false,transferCost=0):TravelPlan|null {
   if(!Number.isFinite(landSpeed)||landSpeed<=0||!Number.isFinite(seaSpeed)||seaSpeed<=0)return null;
-  const start=terrainAt(from,true),goal=terrainAt(to,true);if(start<0||goal<0)return null;
-  if(terrainSegment(from,to,false))return{revision:TERRAIN_REVISION,index:1,points:[{...from,sea:false},{...to,sea:false}]};
-  const allowSea=landComponents[start]!==landComponents[goal],before=Number(kernel.navigationBuilds.value),native=kernel.navigationField(goal,start,allowSea,landSpeed,seaSpeed,this.nativeOwner);this.builds+=Number(kernel.navigationBuilds.value)-before;if(native===-1)return null;
-  const f=native===-2?this.field(goal,start,allowSea,landSpeed,seaSpeed):undefined;if(f&&!f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK])return null;
+   let start=terrainAt(from,!fromSea);
+   if(fromSea&&start>=0&&surfaces[start]!==2)start=bucket(Math.floor(from.x/size),Math.floor(from.z/size)).find(id=>surfaces[id]===2&&inTriangle(id,from))??-1;
+   const goal=terrainAt(to,true);if(start<0||goal<0)return null;
+   if(!fromSea&&terrainSegment(from,to,false))return{revision:TERRAIN_REVISION,index:1,points:[{x:from.x,z:from.z,sea:false},{x:to.x,z:to.z,sea:false}]};
+   const allowSea=fromSea||landComponents[start]!==landComponents[goal],before=Number(kernel.navigationBuilds.value),native=kernel.navigationField(goal,start,allowSea,landSpeed,seaSpeed,this.nativeOwner,transferCost);this.builds+=Number(kernel.navigationBuilds.value)-before;if(native===-1)return null;
+   const f=native===-2?this.field(goal,start,allowSea,landSpeed,seaSpeed,transferCost):undefined;if(f&&!f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK])return null;
   const next=native>=0?new Int32Array(kernel.memory.buffer,native,triangleCount):undefined;
-  const raw:TravelPoint[]=[{...from,sea:false},{...center(start),sea:false}];let id=start,count=0;
+   const raw:TravelPoint[]=[{x:from.x,z:from.z,sea:fromSea},{...center(start),sea:fromSea}];let id=start,count=0;
   while(id!==goal){const n=next?next[id]:f!.pages[id>>>FIELD_PAGE_BITS]!.next[id&FIELD_PAGE_MASK];if(n<0||count++>triangleCount)return null;const edge=portal(id,n);raw.push({x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2,sea:surfaces[id]===2},{...center(n),sea:surfaces[n]===2});id=n;}
   raw.push({...to,sea:false});
   // String-pull within each continuous physical surface. Never skip coast changes.

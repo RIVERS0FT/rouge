@@ -1,6 +1,6 @@
 import {ARROW_ART_UNIT,dispatchRibbon,type ScreenPoint} from './dispatchRibbon.ts';
 import type {ArrowProjection} from './groundArrowProjection.ts';
-import type {PaintedPreview,RoutePaintLayer} from './routePaintLayer.ts';
+import type {PaintedPreview,PaintedView,RoutePaintLayer} from './routePaintLayer.ts';
 
 const ns='http://www.w3.org/2000/svg';
 let nextPreview=0;
@@ -27,6 +27,7 @@ export class DispatchPreview {
  private started=0;
  private releaseAt=0;
  private drawn:Omit<PaintedPreview,'markers'|'opacity'>|null=null;
+ private drawnView:PaintedView|undefined;
  private paintedMarkers:PaintedPreview['markers']=[];
  private readonly layer?:RoutePaintLayer;
  constructor(host:HTMLElement,layer?:RoutePaintLayer){
@@ -58,6 +59,7 @@ export class DispatchPreview {
   if(this.targetMask.getAttribute('d')!==targetPath)attrs(this.targetMask,{d:targetPath});
   attrs(this.reticle,{cx:cursor.x,cy:cursor.y,r:9});
   this.drawn={d,target:targetOutline,targetMask:targetPath,cx:cursor.x,cy:cursor.y};
+  this.drawnView=this.layer?.captureView();
   this.paint(performance.now());
  }
  showTier(fraction:number,count:number,language:'zh'|'en',touch:boolean){
@@ -72,12 +74,12 @@ export class DispatchPreview {
  clear(){
   cancelAnimationFrame(this.animation);this.animation=0;this.active=null;this.releaseAt=0;
   this.element.style.display='none';this.element.style.opacity=this.layer?'0':'';this.tier.hidden=true;
-  this.drawn=null;this.paintedMarkers=[];this.layer?.setPreview(null);
+  this.drawn=null;this.drawnView=undefined;this.paintedMarkers=[];this.layer?.setPreview(null);
   delete this.element.dataset.phase;delete this.element.dataset.target;delete this.element.dataset.source;
  }
  dispose(){this.clear();this.element.remove();this.tier.remove();}
  private paint(time:number){
-  if(this.layer&&this.drawn)this.layer.setPreview({...this.drawn,markers:this.paintedMarkers,opacity:this.releaseAt?Math.max(0,1-(time-this.releaseAt)/180):1});
+  if(this.layer&&this.drawn)this.layer.setPreview({...this.drawn,markers:this.paintedMarkers,opacity:this.releaseAt?Math.max(0,1-(time-this.releaseAt)/180):1},this.drawnView);
  }
  private frame=(time:number)=>{
   if(this.releaseAt){

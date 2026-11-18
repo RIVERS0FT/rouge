@@ -28,7 +28,7 @@ import {OCEAN_FALLBACK} from './mapSurfaceConfig.ts';
 import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryLetterSpacing,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY,selectionOverlayLift} from './selectionGlow.ts';
-import {unitRenderMode,unitPresentationChanged,mapUnitVisible} from './unitPresentation.ts';
+import {unitRenderMode,unitPresentationChanged,mapUnitsWithShips} from './unitPresentation.ts';
 import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
 import {unitMotionSegment} from './unitMotionSegment.ts';
 import {InfantryBatch} from './infantryBatch.ts';
@@ -125,6 +125,7 @@ export class WorldRenderer {
   private dispatchTarget:{id:number;camera:string;path:string;outline:string}|null=null;
   private dispatchBoundaries=new Map<number,{members:number[];edges:BorderEdge[]}>();
   private provinceLabels=new Map<number,Plaque>();
+  private provincePlaquePositions=new Map<number,{x:number;y:number}>();
   private visiblePlaques=new Set<number>();
   private plaqueTerritories:PlaqueTerritory[]=[];
   private provinceAreas=this.countryGeometry.map(parts=>parts.reduce((area,part)=>area+part.area,0));
@@ -175,7 +176,7 @@ export class WorldRenderer {
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
     this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
-    this.routeLayer=new RoutePaintLayer(this.scene,()=>{this.invalidated=true;});
+    this.routeLayer=new RoutePaintLayer(this.scene,this.camera,LAND_Y,()=>{this.invalidated=true;});
     this.attackArrows=new AttackArrows(host,this.routeLayer);
     this.battleBadges=new BattleBadges(host);
     this.dispatchPreview=new DispatchPreview(host,this.routeLayer);host.append(this.provinceLayer);
@@ -328,12 +329,12 @@ export class WorldRenderer {
   update(state:GameState,selected:number,lang:'zh'|'en',actor:number) {
     // Do not redraw the global atlas for HP/cooldown/tick-only snapshots. Tiny
     // movements accumulate from the last rendered state, never the previous tick.
-    const battleChange=this.state?.units!==state.units||this.state?.players!==state.players||this.actor!==actor;
+    const battleChange=this.state?.units!==state.units||this.state?.armies!==state.armies||this.state?.players!==state.players||this.actor!==actor;
     if(this.state!==state){
       this.attacks=this.attackTracker.read(state);
       const attackKey=this.attacks.map(route=>`${route.owner}:${route.from}:${route.to}`).join('|');
       if(attackKey!==this.attackKey){this.attackKey=attackKey;this.invalidated=true;}
-      this.mapUnits=state.units.filter(mapUnitVisible);
+      this.mapUnits=mapUnitsWithShips(state.units);
       const garrisons=plaqueGarrisons(state);
       if(provinceNamesVisible(this.distance)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
       this.provinceGarrisons=garrisons;
@@ -824,6 +825,7 @@ export class WorldRenderer {
   }
   private drawProvincePlaques(width:number,height:number):number {
     const next=new Set<number>();
+    this.provincePlaquePositions.clear();
     if(this.state&&provinceNamesVisible(this.distance)){
       const state=this.state,flags=factionFlags(state.players),point=new THREE.Vector3();
       const candidates:{territory:PlaqueTerritory;x:number;y:number;rect:LabelRect;pixelWidth:number;count:string;name:string;copy:number;selected:boolean}[]=[];
@@ -847,6 +849,7 @@ export class WorldRenderer {
       for(const {territory:{id,anchor},x,y,rect,pixelWidth,count,name,copy,selected} of candidates){
         if(accepted.some(other=>overlaps(other,rect,3)))continue;
         accepted.push(rect);next.add(id);
+        this.provincePlaquePositions.set(id,{x,y});
         const owner=state.provinces[id].owner,flag=flags[owner];
         let plaque=this.provinceLabels.get(id);
         if(!plaque){
@@ -995,6 +998,7 @@ export class WorldRenderer {
     this.infantry.begin(batch,models?this.mapUnits.length:0);
     this.bodies.visible=this.heads.visible=models;
     let n=0,fallback=0;this.visibleUnitIds.clear();
+    const shipHeadings=new Map(this.state?.armies?.flatMap(a=>a.formation?.phase==='sea'?[[a.id,a.formation.heading] as const]:[])??[]);
     if(models)for(const u of this.mapUnits) {
       const pos=this.unitMotion.position(u,time);
       if(!inRect(pos,BOUNDS))continue;
@@ -1016,7 +1020,8 @@ export class WorldRenderer {
       }else{
         // Embarked troops keep the vessel marker, which also serves as land fallback during loading.
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,u.id,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(fallback,this.dummy.matrix);this.bodies.setColorAt(fallback,unitColor);
+        const shipHeading=u.army===undefined?undefined:shipHeadings.get(u.army);
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,shipHeading===undefined?u.id:-shipHeading,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(fallback,this.dummy.matrix);this.bodies.setColorAt(fallback,unitColor);
         this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(fallback++,this.dummy.matrix);
       }
       n++;
@@ -1067,16 +1072,23 @@ export class WorldRenderer {
       return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};
     },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner));
   }
-  /** Army nameplates ride above each army's lead battalion: interpolated models in 3D,
-   * authoritative positions in 2D, where individual battalions are not drawn. */
+  /** Project the formation, or attach a besieging army to its destination plaque. */
   private drawArmyPlaques(){
     if(!this.state)return;
     const state=this.state,time=performance.now(),near=unitRenderMode(this.blend)==='3d';
     // An army fighting in a region with a battle badge is shown by that badge (its flag and troops).
     const fighting=new Set(this.battles.map(battle=>battle.region));
-    const armies=this.actor<0?[]:fighting.size?this.armies.filter(view=>!fighting.has(view.lead.province)):this.armies;
+    const armies=this.actor<0?[]:this.armies.filter(view=>view.phase==='enter'||!fighting.has(view.region));
+    const stacked=new Map<number,number>();
     this.armyPlaques.draw(armies,state.players,this.actor,this.selectedArmy,view=>{
-      const at=near?this.unitMotion.position(view.lead,time):view.lead;
+      const province=view.phase==='enter'?this.plaqueTerritories.find(t=>t.members.includes(view.to)):undefined;
+      const plaque=province&&this.provincePlaquePositions.get(province.id);
+      if(plaque){
+        const row=stacked.get(province.id)??0;stacked.set(province.id,row+1);
+        return {x:plaque.x,y:plaque.y-4-row*24};
+      }
+      const anchor=view.phase==='enter'?(province?.anchor??MAP[view.to].center):undefined;
+      const at=anchor??(near&&view.lead&&(!view.phase||view.phase==='sea')?this.unitMotion.position(view.lead,time):view.position);
       const p=this.unitPoint.set(nearestWorldX(at.x,this.focus.x),LAND_Y+(near?1.5:1.1),at.z).project(this.camera);
       if(p.z<-1||p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;
       return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};

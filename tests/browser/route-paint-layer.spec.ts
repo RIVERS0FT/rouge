@@ -1,5 +1,45 @@
 import {test,expect} from '@playwright/test';
 
+test('painted arrows stay on the ground through camera motion without repainting, including fading previews',async({page})=>{
+ await page.route('**/ground-route-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"></body>'}));
+ await page.goto('/ground-route-harness');
+ const info=await page.evaluate(async()=>{
+  const THREE=await import('/node_modules/three/build/three.module.js');
+  const {RoutePaintLayer}=await import('/src/render/routePaintLayer.ts');
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,128/96,.1,100);
+  const move=(x:number,y:number,z:number)=>{camera.up.set(0,0,-1);camera.position.set(x,y,z);camera.lookAt(x,0,0);camera.updateMatrixWorld();};
+  move(0,4,0);
+  const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});
+  renderer.setSize(128,96);renderer.setClearColor('#142c9c');document.body.append(renderer.domElement);
+  const layer=new RoutePaintLayer(scene,camera,0,()=>{});layer.resize(128,96,1);
+  const d='M64,36L80,36L80,52L64,52Z';layer.setCommitted([{d,outline:''}]);layer.flush();
+  const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(72/64-1,1-44/48),camera);
+  const anchor=ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3())!;
+  const get=(x:number,y:number)=>{const gl=renderer.getContext(),rgba=new Uint8Array(4);gl.readPixels(Math.round(x),95-Math.round(y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,rgba);return Array.from(rgba);};
+  const point=()=>{const p=anchor.clone().project(camera);return{x:(p.x+1)*64,y:(1-p.y)*48};};
+  const sample=()=>{renderer.render(scene,camera);const p=point();return{...p,color:get(p.x,p.y)};};
+  const texture=layer.mesh.material.uniforms.routeTexture.value,version=texture.version;
+  const initial=sample();move(.5,4,0);const pan=sample(),oldPixel=get(initial.x,initial.y);
+  move(0,2,0);const zoom=sample();move(0,3.3,1.5);const tilt=sample();
+  const unchanged=texture.version===version;
+  // Released previews retain the view they were drawn in, even when a newer
+  // committed route is painted under the current camera during their fade.
+  move(0,4,0);const view=layer.captureView();
+  const preview={d,target:'',targetMask:'',cx:120,cy:80,opacity:1,markers:[]};
+  layer.setCommitted([]);layer.setPreview(preview,view);layer.flush();
+  move(.5,4,0);layer.setCommitted([{d:'M4,4L12,4L12,12L4,12Z',outline:''}]);
+  layer.setPreview({...preview,opacity:.6},view);layer.flush();const faded=sample(),fadedOldPixel=get(72,44);
+  const heights=Array.from(layer.mesh.geometry.getAttribute('position').array).filter((_v,i)=>i%3===1);
+  layer.dispose();renderer.dispose();renderer.domElement.remove();
+  return{initial,pan,zoom,tilt,oldPixel,unchanged,faded,fadedOldPixel,heights};
+ });
+ for(const sample of [info.initial,info.pan,info.zoom,info.tilt])expect(sample.color[0]).toBeGreaterThan(sample.color[2]);
+ expect(info.faded.color[0]).toBeGreaterThan(60);expect(info.faded.color[2]).toBeLessThan(140);
+ expect(info.pan.x).toBeLessThan(info.initial.x-15);expect(info.zoom.x-info.initial.x).toBeGreaterThan(7);
+ expect(info.oldPixel).toEqual([20,44,156,255]);expect(info.fadedOldPixel).toEqual(info.oldPixel);
+ expect(info.unchanged).toBe(true);expect(info.heights).toEqual([0,0,0,0]);
+});
+
 test('route overlay pixels lie over map labels, behind depth-tested models and clip the preview markers',async({page})=>{
  await page.route('**/route-overlay-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"></body>'}));
  await page.goto('/route-overlay-harness');
@@ -8,17 +48,17 @@ test('route overlay pixels lie over map labels, behind depth-tested models and c
   const {RoutePaintLayer}=await import('/src/render/routePaintLayer.ts');
   const {layerMapEntity,MAP_LAYERS}=await import('/src/render/mapLayers.ts');
   const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,10);
-  camera.position.z=2;camera.updateMatrixWorld();
+  camera.up.set(0,0,-1);camera.position.y=2;camera.lookAt(0,0,0);camera.updateMatrixWorld();
   const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});
   renderer.setSize(128,96);document.body.append(renderer.domElement);
   const block=(w:number,h:number,color:string,order:number,depth:boolean)=>{
    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color,transparent:true,depthTest:depth,depthWrite:depth,toneMapped:false}));
-   m.renderOrder=order;scene.add(m);return m;
+   m.rotation.x=-Math.PI/2;m.renderOrder=order;scene.add(m);return m;
   };
   const label=block(2,2,'#142c9c',MAP_LAYERS.countryName,false),entity=block(.30,.50,'#00af40',0,true);
   layerMapEntity(entity,entity.material);
   let invalidations=0;
-  const layer=new RoutePaintLayer(scene,()=>invalidations++);
+  const layer=new RoutePaintLayer(scene,camera,0,()=>invalidations++);
   const ribbon='M12,30L114,30L114,62L12,62Z';
   const get=(x:number,y:number)=>{
    const gl=renderer.getContext(),r=new Uint8Array(4);

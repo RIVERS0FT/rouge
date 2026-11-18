@@ -336,7 +336,7 @@ function moveUnit(unit:i32):void {
    cooldown+=1/u(unit,25);
   }setU(unit,10,cooldown);return;
  }
- setU(unit,10,Math.max(0,cooldown));let currentX=x,currentZ=z;
+ setU(unit,10,Math.max(0,cooldown));if((i32(u(unit,18))&64)!=0)return;let currentX=x,currentZ=z;
  if(u(unit,11)<0&&!embarked){
   const center=usize(gm23),province=i32(u(unit,6)),dx=at(center,province*2)-x,dz=at(center,province*2+1)-z,d=norm2(dx,dz),step=Math.min(d,u(unit,22)*.05);
   const toX=d?x+dx/d*step:x,toZ=d?z+dz/d*step:z;let crowded=false;
@@ -458,7 +458,7 @@ export function solveBattalionPhysics(tick:u32):void {
  for(let i=0;i<unitCount;i++)if(u(i,14)==0){setU(i,15,u(i,2));setU(i,16,u(i,3));setU(i,17,-1);}
  updateBattalions();let n=0,minBX=Infinity,minBZ=Infinity,maxBX=-Infinity,maxBZ=-Infinity;
  const bodyUnits:usize=30*1024*1024;
- for(let i=0;i<unitCount;i++)if(u(i,4)-u(i,20)>0&&(i32(u(i,14))&2)==0){setWord(bodyUnits,n++,u32(i));const x=Math.floor(u(i,2)/1.24),z=Math.floor(u(i,3)/1.24);minBX=Math.min(minBX,x);maxBX=Math.max(maxBX,x);minBZ=Math.min(minBZ,z);maxBZ=Math.max(maxBZ,z);}
+ for(let i=0;i<unitCount;i++)if(u(i,4)-u(i,20)>0&&(i32(u(i,14))&2)==0&&(i32(u(i,18))&128)==0){setWord(bodyUnits,n++,u32(i));const x=Math.floor(u(i,2)/1.24),z=Math.floor(u(i,3)/1.24);minBX=Math.min(minBX,x);maxBX=Math.max(maxBX,x);minBZ=Math.min(minBZ,z);maxBZ=Math.max(maxBZ,z);}
  let cap=16;while(cap<n)cap*=2;
  const left=n?i32(minBX)-2:0,top=n?i32(minBZ)-2:0,cols=n?i32(maxBX)-left+3:5,rows=n?i32(maxBZ)-top+3:5;
  prepare(n,cap,cols*rows,cols,left,top);
@@ -608,14 +608,14 @@ function prepareNavLengths(id:i32,n:i32,slot:i32):void {
  for(let k=0;k<3;k++){const p=id*12+k*4,x=at(planes,p),z=at(planes,p+1);for(let j=0;j<3;j++){const q=n*12+j*4;if(x==at(planes,q)&&z==at(planes,q+1)){if(!found){ax=x;az=z;found=true;}else{bx=x;bz=z;}break;}}}
  const mx=(ax+bx)/2,mz=(az+bz)/2;put(navLengths,slot*2,norm2(at(navCenters,id*2)-mx,at(navCenters,id*2+1)-mz));put(navLengths,slot*2+1,norm2(at(navCenters,n*2)-mx,at(navCenters,n*2+1)-mz));
 }
-export function navigationField(goal:i32,start:i32,sea:bool,landSpeed:f64,seaSpeed:f64,owner:i32):i32 {
+export function navigationField(goal:i32,start:i32,sea:bool,landSpeed:f64,seaSpeed:f64,owner:i32,transferCost:f64):i32 {
  const dataSize=(usize(navCount)*13+7)&~usize(7),stride=dataSize+usize(NAV_CAP)*12;
  let slot=-1,oldest:u32=u32.MAX_VALUE,eviction=0;navClock++;
- for(let i=0;i<navigationCacheSlots;i++){const meta=navMeta(i);if(load<u32>(meta)!=0&&load<i32>(meta+4)==goal&&load<i32>(meta+8)==i32(sea)&&load<i32>(meta+32)==owner&&load<f64>(meta+16)==landSpeed&&load<f64>(meta+24)==seaSpeed){slot=i;break;}const age=load<u32>(meta);if(age<oldest){oldest=age;eviction=i;}}
+ for(let i=0;i<navigationCacheSlots;i++){const meta=navMeta(i);if(load<u32>(meta)!=0&&load<i32>(meta+4)==goal&&load<i32>(meta+8)==i32(sea)&&load<i32>(meta+32)==owner&&load<f64>(meta+16)==landSpeed&&load<f64>(meta+24)==seaSpeed&&load<f64>(meta+40)==transferCost){slot=i;break;}const age=load<u32>(meta);if(age<oldest){oldest=age;eviction=i;}}
  const initialize=slot<0;if(initialize)slot=eviction;const required=NAV_BASE+stride*usize(slot+1),pages=i32((required+65535)>>16);if(pages>memory.size())memory.grow(pages-memory.size());const meta=navMeta(slot),base=NAV_BASE+usize(slot)*stride;
  navDistance=base;navNext=base+usize(navCount)*8;navSettled=navNext+usize(navCount)*4;navHeapIds=base+dataSize;navHeapCosts=navHeapIds+usize(NAV_CAP)*4;
  if(initialize){
-  navigationBuilds++;store<i32>(meta+32,owner);store<i32>(meta+4,goal);store<i32>(meta+8,i32(sea));store<f64>(meta+16,landSpeed);store<f64>(meta+24,seaSpeed);memory.fill(navSettled,0,usize(navCount));memory.fill(navNext,255,usize(navCount)*4);
+  navigationBuilds++;store<i32>(meta+32,owner);store<i32>(meta+4,goal);store<i32>(meta+8,i32(sea));store<f64>(meta+16,landSpeed);store<f64>(meta+24,seaSpeed);store<f64>(meta+40,transferCost);memory.fill(navSettled,0,usize(navCount));memory.fill(navNext,255,usize(navCount)*4);
   for(let i=0;i<navCount;i++)put(navDistance,i,Infinity);put(navDistance,goal,0);setWord(navNext,goal,u32(goal));navHeapLength=0;heapPush(goal,0);
  }else navHeapLength=load<i32>(meta+12);
  store<u32>(meta,navClock);
@@ -626,7 +626,8 @@ export function navigationField(goal:i32,start:i32,sea:bool,landSpeed:f64,seaSpe
   for(let k=0;k<3;k++){
    const edge=id*3+k,n=load<i32>(navNeighbors+usize(edge)*4);if(n<0||!sea&&load<u8>(surfaces+usize(n))!=1)continue;
    if(isNaN(at(navLengths,edge*2)))prepareNavLengths(id,n,edge);
-   const nd=d+at(navLengths,edge*2)/(load<u8>(surfaces+usize(id))==2?seaSpeed:landSpeed)+at(navLengths,edge*2+1)/(load<u8>(surfaces+usize(n))==2?seaSpeed:landSpeed),old=at(navDistance,n);
+   const fromSurface=load<u8>(surfaces+usize(id)),toSurface=load<u8>(surfaces+usize(n));
+   const nd=d+at(navLengths,edge*2)/(fromSurface==2?seaSpeed:landSpeed)+at(navLengths,edge*2+1)/(toSurface==2?seaSpeed:landSpeed)+(fromSurface==toSurface?0:transferCost),old=at(navDistance,n);
    if(nd<old-1e-9){put(navDistance,n,nd);setWord(navNext,n,u32(id));if(!heapPush(n,nd)){store<u32>(meta,0);return -2;}}else if(Math.abs(nd-old)<=1e-9&&id<load<i32>(navNext+usize(n)*4))setWord(navNext,n,u32(id));
   }
   store<u8>(navSettled+usize(id),1);if(id==start)break;
@@ -662,6 +663,7 @@ export function unitCensus(provinces:i32,players:i32):usize {
  for(let i=0;i<unitCount;i++){
   if(u(i,4)-u(i,20)<=0||(i32(u(i,14))&2)!=0)continue;const p=i32(u(i,6)),owner=i32(u(i,1));if(p<0||p>=provinces)continue;
   setWord(occupants,p,word(occupants,p)+1);const cell=(owner+1)*provinces+p;setWord(counts,cell,word(counts,cell)+1);
+  if((i32(u(i,18))&256)!=0&&load<i32>(usize(gm24)+usize(p)*4)!=owner)continue;
   if(norm2(u(i,2)-at(centers,p*2),u(i,3)-at(centers,p*2+1))>=3.7)continue;
   const previous=load<i32>(nearOwner+usize(p)*4);if(previous==-2)store<i32>(nearOwner+usize(p)*4,owner);else if(previous!=owner)store<i32>(nearOwner+usize(p)*4,-3);
   if(u(i,5)==1)store<u8>(engineers+usize(p),1);

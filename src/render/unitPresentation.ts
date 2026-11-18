@@ -3,7 +3,17 @@ import type {Kind,Unit} from '../game/types.ts';
 
 /** Keep the same definition as dispatch and garrison totals, including neutral units. */
 export function mapUnitVisible(unit:Unit):boolean {
-  return !isRegionGarrison(unit,unit.owner,unit.province);
+  return unit.armyStatus!=='queued'&&unit.armyStatus!=='inside'&&unit.armyStatus!=='sea'&&!isRegionGarrison(unit,unit.owner,unit.province);
+}
+
+/** Use one embarked member as the shared ship model and interpolation track. */
+export function mapUnitsWithShips(units:readonly Unit[]):Unit[] {
+  const ships=new Set<number>();
+  return units.filter(unit=>{
+    if(unit.armyStatus!=='sea'||unit.army===undefined)return mapUnitVisible(unit);
+    if(ships.has(unit.army))return false;
+    ships.add(unit.army);return true;
+  });
 }
 
 /** The existing map switches its UI mode at this same relief threshold. */

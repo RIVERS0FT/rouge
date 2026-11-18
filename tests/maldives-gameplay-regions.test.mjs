@@ -106,13 +106,13 @@ test('Maldives grouping rejects duplicated or noneligible members and a wrong an
  assert.throws(()=>repartitionMaldives(base,prior,wrongAnchor),/Expected one reviewed Maldives/);
 });
 
-test('map v28 and save v29 reject the previous map and LAN data without changing old slots',()=>{
+test('map v28 and save v30 reject the previous map and LAN data without changing old slots',()=>{
  const players=[{name:'Human',leader:'warden',loadout:['infantry']},{name:'Friend',leader:'steward',loadout:['infantry']}];
  const current=createGame(players,42,'maldives-gameplay-regions');
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
- assert.equal(STATE_VERSION,29);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
- assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v29.');
+ assert.equal(STATE_VERSION,30);
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+ assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
  const currentSave=encodeSave(current,'Current campaign');
  assert.deepEqual(decodeSave(currentSave).state,current);
  const old={...current,version:27,map:'earth-natural-earth-admin1-511-regions-v26'};

@@ -27,6 +27,17 @@ function nearby(a:Vec2,b:Vec2,r:number):Building[]{
  return out;
 }
 function local(b:Building,p:Vec2):Vec2 {const x=p.x-b.x,z=p.z-b.z,c=Math.cos(b.rotation),s=Math.sin(b.rotation);return{x:c*x-s*z,z:s*x+c*z};}
+export function buildingFootprint(center:Vec2,heading:number,halfLength:number,halfWidth:number):boolean {
+ const span=(angle:number,x:number,z:number)=>Math.abs(Math.cos(angle))*x+Math.abs(Math.sin(angle))*z;
+ return !nearby(center,center,Math.hypot(halfLength,halfWidth)).some(b=>{
+  const angle=-b.rotation;
+  for(const axis of [heading,heading+Math.PI/2,angle,angle+Math.PI/2]){
+   const separation=Math.abs((center.x-b.x)*Math.cos(axis)+(center.z-b.z)*Math.sin(axis));
+   if(separation>=span(heading-axis,halfLength,halfWidth)+span(angle-axis,HOUSE_WIDTH/2,HOUSE_DEPTH/2)-1e-8)return false;
+  }
+  return true;
+ });
+}
 export function buildingClearance(p:Vec2,radius:number):number {
  let gap=radius;
  for(const b of nearby(p,p,radius)){const q=local(b,p);gap=Math.min(gap,Math.hypot(Math.max(0,Math.abs(q.x)-HOUSE_WIDTH/2),Math.max(0,Math.abs(q.z)-HOUSE_DEPTH/2)));}

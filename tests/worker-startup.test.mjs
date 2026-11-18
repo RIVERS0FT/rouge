@@ -40,7 +40,17 @@ test('actual worker uses the authoritative percentage march contract and ignores
  assert.deepEqual(current,before);
  await receive({type:'command',command:action});
  assert.deepEqual(messages.at(-2),{type:'result',result:{ok:true}});
- assert.equal(current.provinces[from].march.pendingIds.length,5);
+ assert.equal(current.provinces[from].march.pendingIds.length,6);
+});
+test('small loaded campaigns use the existing synchronous path without starting physics workers',async()=>{
+ const previous=globalThis.Worker;
+ let workers=0;
+ globalThis.Worker=class {constructor(){workers++;throw Error('Unexpected physics worker');}};
+ try{
+  const {e}=garrisonFixture();
+  await receive({type:'init',state:e.state});await advance();await advance();
+  assert.equal(workers,0);assert.equal(current.tick,2);
+ }finally{if(previous===undefined)delete globalThis.Worker;else globalThis.Worker=previous;}
 });
 test('actual worker explicitly rejects invalid initialization instead of appearing inert',async()=>{
  await receive({type:'init',state:{}});assert.deepEqual(messages.at(-1),{type:'error',error:'invalidSave'});
