@@ -176,7 +176,7 @@ export class WorldRenderer {
     this.renderer.domElement.setAttribute('aria-label','世界战场');host.append(this.renderer.domElement);
     this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
-    this.routeLayer=new RoutePaintLayer(this.scene,()=>{this.invalidated=true;});
+    this.routeLayer=new RoutePaintLayer(this.scene,this.camera,LAND_Y,()=>{this.invalidated=true;});
     this.attackArrows=new AttackArrows(host,this.routeLayer);
     this.battleBadges=new BattleBadges(host);
     this.dispatchPreview=new DispatchPreview(host,this.routeLayer);host.append(this.provinceLayer);
