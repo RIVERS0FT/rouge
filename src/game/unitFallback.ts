@@ -51,7 +51,8 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
           u.cooldown+=1/st.attackSpeed;
         }return;
       }
-      u.cooldown=Math.max(0,u.cooldown);
+       u.cooldown=Math.max(0,u.cooldown);
+       if(u.armyStatus)return;
       // The terrain objective stays at the town anchor. Resting/capturing
       // troops approach it until houses and neighboring footprints stop them;
       // no ring slots, angles or cosmetic offsets are assigned.

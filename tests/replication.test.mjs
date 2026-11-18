@@ -44,7 +44,9 @@ test('full snapshots reject a different projection before rendering foreign coor
 });
 
 test('local moving units reuse immutable route points across updates, replacement, arrival and death',()=>{
- const {e,from,to}=garrisonFixture({count:3});assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
+ const {e,from,to}=garrisonFixture({count:3});
+ const original=e.state.units[0],goal=MAP[to].center;
+ Object.assign(original,{target:to,destination:to,travel:e.navigation.plan(original,goal)});
  const initial=encodeFrame(e.state,undefined,0,true);let base=initial.base,client=applyFrame(null,structuredClone(initial.frame));
  const first=client,frozen=structuredClone(first),id=e.state.units.find(u=>u.travel).id;
  e.step(2);const second=encodeFrame(e.state,base,0,true),wire=structuredClone(second.frame);

@@ -25,8 +25,9 @@ test('remote terrain order saves actual waypoints, crosses boundaries without te
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);
  assert.ok(findRegionRoute(from,target).length>=3);const before=e.state.units.map(u=>({x:u.x,z:u.z}));
  assert.equal(e.command(0,{type:'march',from,to:target,fraction:1}).ok,true);assert.deepEqual(e.state.units.map(u=>({x:u.x,z:u.z})),before);
- assert.equal(e.state.units.filter(u=>u.destination===target).length,1);
- for(const u of e.state.units.filter(u=>u.destination===target)){assert.deepEqual(u.route,[]);assert.ok(validateTravel(u.travel,u,MAP[target].center));}
+ assert.equal(e.state.units.filter(u=>u.army===e.state.armies[0].id).length,regionCapacity(from));
+ const f=e.state.armies[0].formation;assert.ok(validateTravel(f.route,f.position,MAP[target].center));
+ assert.ok(e.state.units.every(u=>!u.travel&&u.route.length===0));
  const restored=decodeSave(encodeSave(e.state,'Moving')).state;assert.deepEqual(restored,e.state);const other=new Engine(restored);
  for(let i=0;i<150;i++){e.step(20);other.step(20);invariant(e.state);}assert.deepEqual(e.state,other.state);
  assert.equal(e.state.provinces[target].owner,0);assert.ok(e.state.units.some(u=>u.owner===0&&u.province===target&&!u.travel));assert.ok(validateState(e.state));
@@ -56,12 +57,12 @@ test('incoming queued and marching units constrain only destination training',()
  const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;add(e.state,from,0,3);add(e.state,target,0,regionCapacity(target)-2);ready(e);
  const targetState=e.state.provinces[target];targetState.production=13.99;
  assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);
- assert.equal(regionReservations(e.state,0,target),1);
- assert.equal(e.state.provinces[from].march.pendingIds.length,2);
+ assert.equal(regionReservations(e.state,0,target),0);
+ assert.equal(e.state.provinces[from].march.pendingIds.length,3);
  // The single release on its own is not enough to block training. The other
  // two troops are still queued at the source and count toward training only.
  e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);assert.equal(targetState.production,13.99);
- e.step(2*MARCH_INTERVAL_TICKS-1);assert.equal(regionReservations(e.state,0,target),3);
+ e.step(2*MARCH_INTERVAL_TICKS);assert.equal(regionReservations(e.state,0,target),3);
  assert.equal(e.state.provinces[from].march,undefined);assert.equal(targetState.production,13.99);
 });
 test('a normal friendly march arrives above training capacity and round-trips through save and LAN',()=>{
@@ -69,7 +70,7 @@ test('a normal friendly march arrives above training capacity and round-trips th
  const cap=regionCapacity(target);add(e.state,from,0,1);add(e.state,target,0,cap);ready(e);
  const moving=e.state.units[0],targetState=e.state.provinces[target];targetState.production=13.99;
  assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(moving.assault,undefined);
- for(let i=0;i<3000&&moving.target!==null;i++)e.step();
+ for(let i=0;i<3000&&moving.army!==undefined;i++)e.step();
  assert.equal(moving.target,null);assert.equal(moving.province,target);assert.equal(regionGarrison(e.state,0,target),cap+1);
  assert.equal(targetState.production,13.99);assert.ok(validateState(e.state));invariant(e.state);
  assert.deepEqual(decodeSave(encodeSave(e.state,'Overflow')).state,e.state);
@@ -81,13 +82,13 @@ test('dispatch never creates a free home production slot before troops physicall
 });
 test('continuous terrain travel does not route through or require capture of intermediate administrative centers',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,1);ready(e);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);
- const u=e.state.units[0];assert.deepEqual(u.route,[]);assert.equal(u.target,target);assert.ok(validateTravel(u.travel,u,MAP[target].center));
- const direct=Math.hypot(MAP[target].center.x-u.x,MAP[target].center.z-u.z),distance=u.travel.points.slice(1).reduce((n,p,i)=>n+Math.hypot(p.x-u.travel.points[i].x,p.z-u.travel.points[i].z),0);assert.ok(distance>=direct-1e-6);
+ const u=e.state.units[0],f=e.state.armies[0].formation;assert.deepEqual(u.route,[]);assert.equal(e.state.armies[0].to,target);assert.ok(validateTravel(f.route,f.position,MAP[target].center));
+ const direct=Math.hypot(MAP[target].center.x-f.position.x,MAP[target].center.z-f.position.z),distance=f.route.points.slice(1).reduce((n,p,i)=>n+Math.hypot(p.x-f.route.points[i].x,p.z-f.route.points[i].z),0);assert.ok(distance>=direct-1e-6);
  e.step(3000);assert.equal(e.state.provinces[target].owner,0);invariant(e.state);
 });
 test('save still rejects forged terrain waypoints without imposing a garrison limit',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from)+1);ready(e);assert.ok(validateState(e.state));
- assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);const moving=e.state.units.find(u=>u.travel);assert.ok(moving);moving.travel.points.at(-1).x+=100;assert.equal(validateState(e.state),false);
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);e.state.armies[0].formation.route.points.at(-1).x+=100;assert.equal(validateState(e.state),false);
 });
 test('new-map save namespace preserves old pixel-map saves',()=>{
  const map=new Map([['rouge.save.state-regions.v1.keep','old-campaign']]);const storage={get length(){return map.size},key:i=>[...map.keys()][i]??null,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};

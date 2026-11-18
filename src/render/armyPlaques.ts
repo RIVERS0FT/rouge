@@ -33,7 +33,7 @@ export class ArmyPlaques {
   visible.sort((a,b)=>Number(b.view.id===selected)-Number(a.view.id===selected)||Number(b.view.owner===actor)-Number(a.view.owner===actor)||b.view.count-a.view.count||a.view.id-b.view.id);
   for(const {view,at} of visible){
    if(shown.length>=MAX_VISIBLE)break;
-   const count=String(view.count),half=(30+count.length*8)/2;
+   const count=view.ready===undefined?String(view.count):`${view.ready}/${view.count}`,half=(30+count.length*8)/2;
    if(shown.some(p=>Math.abs(at.x-p.x)<half+p.half+2&&Math.abs(at.y-p.y)<22))continue;
    shown.push({x:at.x,y:at.y,half});seen.add(view.id);
    let e=this.entries.get(view.id);if(!e){e=this.make(view);this.entries.set(view.id,e);}
@@ -45,6 +45,7 @@ export class ArmyPlaques {
    if(e.node.dataset.own!==own){e.node.dataset.own=own;e.node.tabIndex=own==='true'?0:-1;}
    if(e.node.getAttribute('aria-label')!==name){e.node.setAttribute('aria-label',name);e.node.title=name;}
    e.node.dataset.army=String(view.id);e.node.dataset.owner=String(view.owner);e.node.dataset.selected=String(view.id===selected);
+   e.node.dataset.phase=view.phase??'';
    e.node.style.setProperty('--army-color',color(view.owner));
    // Lifted above the lead battalion so it clears the region plaque at a town anchor.
    e.node.style.transform=`translate3d(${at.x.toFixed(1)}px,${(at.y-12).toFixed(1)}px,0) translate(-50%,-100%)`;

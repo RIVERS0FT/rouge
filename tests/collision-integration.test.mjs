@@ -24,15 +24,17 @@ test('resting stack resolves on land without province drift and remains save/LAN
  const initial=encodeFrame(s,undefined,0),client=applyFrame(null,structuredClone(initial.frame));e.step();
  assert.deepEqual(applyFrame(client,structuredClone(encodeFrame(s,initial.base,0).frame)),s);
 });
-test('mid-route pushes retain bounded local corridors, shared navigation and deterministic save replay',()=>{
+test('formation slots move with one shared route and deterministic save replay',()=>{
  const {e,s,from}=fixture(),to=provinceByCode('DEU-1574');assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
- const builds=e.navigation.builds,ids=s.units.filter(u=>u.travel).map(u=>u.id);e.step(3);
- assert.equal(e.navigation.builds,builds);assert.ok(s.units.some(u=>u.travel&&distanceToTravelSegment(u.travel,u)>1e-4));
- for(const u of s.units.filter(u=>ids.includes(u.id)&&u.travel))assert.ok(validateTravel(u.travel,u,MAP[to].center));
+ const builds=e.navigation.builds,f=s.armies[0].formation;
+ for(let i=0;i<300&&f.phase!=='march';i++)e.step();
+ assert.equal(f.phase,'march');assert.equal(e.navigation.builds,builds);
+ assert.ok(s.units.every(u=>u.armyStatus==='formed'&&!u.travel));
+ assert.ok(validateTravel(f.route,f.position,MAP[to].center));
  assert.ok(validateState(s));const restored=new Engine(decodeSave(encodeSave(s,'crowded march')).state);
  e.step(40);restored.step(40);assert.deepEqual(e.state,restored.state);
- const forged=structuredClone(s),u=forged.units.find(u=>u.travel);u.x+=100;assert.equal(validateState(forged),false);
- const route=structuredClone(s);route.units.find(u=>u.travel).travel.points.at(-1).x+=1;assert.equal(validateState(route),false);
+ const forged=structuredClone(s);forged.units[0].x+=100;assert.equal(validateState(forged),false);
+ const route=structuredClone(s);route.armies[0].formation.route.points.at(-1).x+=1;assert.equal(validateState(route),false);
 });
 test('coastal separation preserves land segments and never worsens footprint clearance',()=>{
  const {e,s}=fixture(2),province=MAP.find(p=>p.playable&&regionCapacity(p.id)>=2&&terrainClearance(p.center,.46)<.4);

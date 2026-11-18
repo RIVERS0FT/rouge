@@ -26,5 +26,5 @@ test('the 20 locked Bhutan source districts are preserved and find their new rec
   assert.ok(searchProvinces(q).some(p=>p.id===bhutan.id),q);
  }
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
- assert.equal(STATE_VERSION,29);
+ assert.equal(STATE_VERSION,30);
 });

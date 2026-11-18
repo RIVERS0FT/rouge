@@ -67,15 +67,15 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  await expect(source).toHaveText('12');
  await page.mouse.up();
  await expect(arrow).toBeHidden();await expect(tier).toBeHidden();
- await expect(source).toHaveText('11');
+ await expect(source).toHaveText('3');
  const orders=await saveOrders(page);
- expect(orders.map((unit:{destination:number})=>unit.destination)).toEqual([mapOrderFixture.target]);
+ expect(orders.map((army:{to:number;size:number})=>[army.to,army.size])).toEqual([[mapOrderFixture.target,9]]);
  const queue=await page.evaluate(({savePrefix,source})=>{
   const save=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup'))
    .map(k=>JSON.parse(localStorage.getItem(k)!)).find(s=>s.name==='Map order result');
   return JSON.parse(save.body).provinces[source].march;
  },{savePrefix:mapOrderFixture.savePrefix,source:mapOrderFixture.source});
- expect(queue.fraction).toBe(.75);expect(queue.pendingIds).toHaveLength(8);
+ expect(queue.fraction).toBe(.75);expect(queue.pendingIds).toHaveLength(9);
 });
 
 test.describe('touch garrison dispatch',()=>{
@@ -103,10 +103,10 @@ test.describe('touch garrison dispatch',()=>{
    await expect(source).toHaveText('12');
    await touch(cancelled?'touchCancel':'touchEnd');
    await expect(arrow).toBeHidden();await expect(tier).toBeHidden();
-   await expect(source).toHaveText(cancelled?'12':'11');
+   await expect(source).toHaveText(cancelled?'12':'9');
   }
   await cdp.detach();
   const orders=await saveOrders(page);
-  expect(orders.map((unit:{destination:number})=>unit.destination)).toEqual([mapOrderFixture.target]);
+  expect(orders.map((army:{to:number;size:number})=>[army.to,army.size])).toEqual([[mapOrderFixture.target,3]]);
  });
 });

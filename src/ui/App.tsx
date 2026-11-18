@@ -360,7 +360,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={id => {if(compact) closeDock(); focusNation(id);}} onClose={closeDock}/>}
    </div>
    <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} battles={battleList} selectedArmy={selectedArmy} language={language} open={outlinerOpen}
-    onSelectArmy={army => {setSelectedArmy(army.id); world.current?.focusProvince(army.lead.province);}}
+    onSelectArmy={army => {setSelectedArmy(army.id); world.current?.focusProvince(army.region);}}
     onFocusNation={focusNation} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>
    <CommanderPortrait player={player} language={language} color={factionColor(actor)} onTalents={() => setModal('talents')}/>
    {paused && solo && <div className="pause-banner" role="status"><span aria-hidden="true">Ⅱ</span>{text('paused')}</div>}

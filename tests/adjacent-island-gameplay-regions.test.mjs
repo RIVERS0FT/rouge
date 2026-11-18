@@ -138,7 +138,7 @@ test('unreviewed Guangdong additions or missing administrative links are rejecte
 
 test('all nine approved scopes are single playable regions and representative routes remain seaborne',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,29);assert.equal(RULES_ID,'admin1-locked-game-regions-v44');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,30);assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
  assert.equal(plan.regions.length,9);
  const targets=new Set(),nav=new TerrainNavigator();
  for(const row of plan.regions.slice(1)){

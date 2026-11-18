@@ -29,6 +29,6 @@ export async function saveOrders(page:Page){
   const saves=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
   const save=saves.find(s=>s.name==='Map order result');
   if(!save)throw Error('Map order result save missing');
-  return JSON.parse(save.body).units.filter((u:any)=>u.owner===0&&u.destination!==null);
+  return JSON.parse(save.body).armies.filter((army:any)=>army.owner===0);
  }, mapOrderFixture.savePrefix);
 }

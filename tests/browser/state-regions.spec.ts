@@ -28,7 +28,7 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  const plan=mapOrderFixture;
  await expect(page.getByTestId('region-capacity')).toContainText(/\/\s*[1-9]\d*/);
  await page.mouse.click(point.x,point.y,{button:'right'});
- await expect(page.getByTestId('region-capacity')).toContainText('11 / 12');
+ await expect(page.getByTestId('region-capacity')).toContainText('0 / 12');
  await page.screenshot({path:'artifacts/remote-order.png'});
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();
@@ -36,9 +36,9 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  const routes=await page.evaluate(savePrefix=>{
   const saves=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
   const state=JSON.parse(saves.find(s=>s.name==='Remote order').body);
-  return state.units.filter((u:any)=>u.owner===0&&u.destination!==null).map((u:any)=>({origin:u.origin,destination:u.destination,route:u.route,travel:u.travel,province:u.province}));
+  return state.armies.filter((army:any)=>army.owner===0);
  }, plan.savePrefix);
- expect(routes.length).toBeGreaterThan(0);expect(routes.every(r=>r.destination===plan.target&&r.route.length===0&&r.travel?.points.length>=2&&r.province===plan.source)).toBe(true);
+ expect(routes.length).toBeGreaterThan(0);expect(routes.every((army:any)=>army.to===plan.target&&army.formation.route.points.length>=2)).toBe(true);
  await page.reload();await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Remote order'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.getByTestId('open-settings')).toBeVisible();expect(errors).toEqual([]);
 });

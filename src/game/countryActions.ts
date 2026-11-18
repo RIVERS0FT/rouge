@@ -16,7 +16,7 @@ export type CountryAction =
   | {type:'mergeGroups';groups:string[];expectedRevision:number}
   | {type:'splitGroup';group:string;atoms:string[];expectedRevision:number}
   | {type:'march';from:number;to:number;fraction:MarchFraction}
-  /** One dispatch from every chosen region of a territory forms a single army. */
+  /** Dispatch a separate army from each chosen region of a territory. */
   | {type:'muster';sources:number[];to:number;fraction:MarchFraction}
   /** Redirect an army that is marching or attacking. */
   | {type:'armyMarch';army:number;to:number}

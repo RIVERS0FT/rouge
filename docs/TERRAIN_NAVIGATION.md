@@ -12,11 +12,11 @@ This is shortest-path integration on the terrain graph, not a claim of a mathema
 
 ## Simulation
 
-Units store versioned coordinate `travel` points and segment index. `route` is empty, `target/destination` is the final administrative target, and province membership is updated from actual position. Intermediate boundaries do not cause stopping, detours, hostile-permission rejection or zero-capacity barriers. Combat and existing proximity-based capture still apply when troops actually meet enemies or remain near an administrative center; pathfinding does not deliberately visit those centers.
+Each dispatched army stores one versioned coordinate route and its current segment. Its battalions retain their own positions and use the terrain locally to form up, fight and enter the destination. Over water, the entire army shares one ship and a coastal transition. Administrative borders do not form physical obstacles. Formed armies begin capturing their ordered target after at least one battalion enters the town around its anchor.
 
 Capacity applies to final garrisons, not crossing a boundary during travel. Production counts physical occupants/reservations and cannot create units just because the grouping changes. Sea mode is mirrored in `transport` for rendering/combat; it is not the old province-port route protocol.
 
-The new map namespace rejects old pixel-map saves explicitly with `incompatibleMap`. New saves validate coordinate route segments, destination, current on-segment position and terrain revision. The server/worker plans movement; network snapshots include travel, not the static navigation atlas. Group split/merge or ownership changes do not invalidate flow fields. Replacing actual terrain requires a new atlas/revision and new validated route state.
+The save validator checks route geometry, destination and terrain revision, along with formation phases and battalion membership. The server and local Worker plan movement and send shared route points once per army. Ordered deltas can reuse those points until the route changes. Group split/merge or ownership changes do not invalidate physical flow fields. Replacing terrain requires a new atlas revision and validated route state.
 
 ## Assets, bounds and performance
 

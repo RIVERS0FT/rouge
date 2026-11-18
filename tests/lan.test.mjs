@@ -47,7 +47,8 @@ test('real HTTP LAN accepts percentage march orders and rejects forged ownership
   }
   assert.deepEqual(await post(path+'/command',{actor:0,command:action},b.token),{status:400,data:{ok:false,error:'notOwner'}});
   assert.deepEqual(await post(path+'/command',{command:action},a.token),{status:200,data:{ok:true}});
-  assert.equal(e.state.provinces[from].march.pendingIds.length,5);
+  assert.equal(e.state.provinces[from].march.pendingIds.length,6);
+  e.step();
   assert.equal(e.state.units.filter(u=>u.origin===from&&u.target===to).length,1);
  }finally{await host.close();}
 });

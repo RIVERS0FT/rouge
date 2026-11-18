@@ -17,6 +17,7 @@ import {STARTING_FUNDS,MAX_FUNDS,captureReward,recoveryDuration,constructionCost
 import {talentContext,combatLanes,tradeBonus,academyExperience,bastionAttrition,encircledBy,PULSE_TICKS,SAPPER_INTERVAL_TICKS,type TalentContext,type CombatLanes} from './talentEffects.ts';
 import {aiTalentChoice} from './talentBuilds.ts';
 import {settleArmies} from './armies.ts';
+import {armyMembers, orderMember, planDeployment, redirectFormation, updateFormations} from './armyMovement.ts';
 import {CombatLog,settleBattles} from './battles.ts';
 import {isRegionGarrison} from './capacity.ts';
 import { DT, MAP_ID, STATE_VERSION, KINDS, STATS, UNITS, stats, upgradeCostFor, validateSetup, TALENT_BY_ID, talentApplies, talentAppliesToKind, hasTalent } from './content.ts';
@@ -94,6 +95,7 @@ function experience(s:GameState,id:number,amount:number):void{
   while(p.level<8&&p.xp>=60+p.level*45){p.xp-=60+p.level*45;p.level++;p.drafts++;s.events.push({tick:s.tick,key:'level',player:id});}draft(s,p);
 }
 export const MARCH_INTERVAL_TICKS=Math.max(1,Math.round(.25/DT));
+export const PARALLEL_MIN_UNITS=256;
 // Static land certificates cover the entire cell, all collision displacement,
 // battalion footprints and the optional short corridor connector.
 const openLandCells=new Map<number,Map<number,boolean>>();
@@ -107,7 +109,8 @@ function openLandCell(p:{x:number;z:number},reach:number):boolean {
 function buildUnitCensus(s:GameState,counts:Uint32Array,occupants:Uint32Array,nearOwner:Int32Array,engineers:Uint8Array):void {
  counts.fill(0);occupants.fill(0);nearOwner.fill(-2);engineers.fill(0);
  for(const u of s.units){
-  if(u.transport?.embarked)continue;const id=u.province,center=MAP[id].center;occupants[id]++;counts[(u.owner+1)*MAP.length+id]++;
+  if(u.transport?.embarked||u.hp<=0)continue;const id=u.province,center=MAP[id].center;occupants[id]++;counts[(u.owner+1)*MAP.length+id]++;
+  if(u.armyStatus&&u.armyStatus!=='inside'&&u.armyStatus!=='queued'&&s.provinces[id].owner!==u.owner)continue;
   if(Math.hypot(u.x-center.x,u.z-center.z)>=3.7)continue;
   if(nearOwner[id]===-2)nearOwner[id]=u.owner;else if(nearOwner[id]!==u.owner)nearOwner[id]=-3;
   if(u.kind==='engineer')engineers[id]=1;
@@ -151,7 +154,13 @@ export class Engine{
         if(!Number.isInteger(c.army)||!Number.isInteger(c.to))return fail('invalidCommand');
         const army=s.armies.find(candidate=>candidate.id===c.army);if(!army||army.owner!==actor)return fail('notOwner');
         if(!MAP[c.to]?.playable)return fail('invalidCommand');
-        if(army.to===c.to)return{ok:true};
+        if(army.to===c.to){if(army.formation)delete army.formation.redirect;return{ok:true};}
+        if(army.formation){
+          const members=armyMembers(s).get(army.id)!;
+          if(!members.length||!redirectFormation(s,this.navigation,army,members,c.to))return fail('unreachable');
+          for(const u of members)this.physicsDirty.units.add(u);
+          return{ok:true};
+        }
         const friendly=s.provinces[c.to].owner===actor,members=s.units.filter(u=>u.army===army.id&&u.target!==null);
         // Troops under way re-plan from where they stand. A battalion at sea, or one with no
         // route from its position, keeps its old order and leaves the army.
@@ -237,7 +246,8 @@ export class Engine{
   }
   prewarmNavigation():void {
     const s=this.state,units=new Map(s.units.map(u=>[u.id,u]));
-    for(const province of s.provinces){const order=province.march;if(!order||order.owner!==province.owner)continue;
+    const formed=new Set(s.armies.filter(army=>army.formation).map(army=>army.id));
+    for(const province of s.provinces){const order=province.march;if(!order||order.owner!==province.owner||order.army!==undefined&&formed.has(order.army))continue;
       for(const id of order.pendingIds){const u=units.get(id);if(!u||!isRegionGarrison(u,order.owner,province.id))continue;const st=stats(s.players[u.owner],u.kind);if(this.navigation.plan(u,MAP[order.to].center,st.speed,st.seaSpeed))break;}
     }
   }
@@ -281,6 +291,7 @@ export class Engine{
   private departure=new Float64Array(0);
   private prepareTick(){
     const s=this.state,topologyBefore=s.topology;s.tick++;
+    updateFormations(s,this.navigation,MARCH_INTERVAL_TICKS,u=>this.halt(u),u=>this.physicsDirty.units.add(u));
     const active=this.activeUnits();this.clearBuildings(active);
     if(this.departure.length<active.length*2)this.departure=new Float64Array(active.length*2);
     // Like the native solver, units with a transport have no recorded start (motion NaN).
@@ -303,7 +314,7 @@ export class Engine{
     if(this.parallelBusy)throw Error('A simulation step is already running');this.parallelBusy=true;
     try{for(let i=0;i<count;i++){
       if(this.state.winner!==null)return;const frame=this.prepareTick();
-      if(frame.active.length<256){this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
+      if(frame.active.length<PARALLEL_MIN_UNITS){this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
       let result;
       try{this.awaitingPhysics=true;result=await run(frame.active,frame.unitStats,this.state,this.physicsDirty,frame.lanes);}
       catch{this.awaitingPhysics=false;this.physicsDirty.all=true;this.updatePrepared(frame);continue;}
@@ -352,7 +363,7 @@ export class Engine{
         if(province.captor!==attacker){province.captor=attacker;province.capture=0;}
         const player=s.players[attacker],engineers=Boolean(this.censusEngineers[province.id]),profile=context.profiles[attacker];
         province.capture+=DT*(profile.stormTroops?1:captureSpeedMultiplier(province))*(engineers?1.5:1)*(player.talents.includes('conqueror')?1.3:1)*(profile.encirclement&&encircledBy(context,province.id,attacker)?1.5:1);
-        if(province.capture>=8){const previous=province.owner;province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});this.captureTalents(province,previous,player);for(const u of s.units)if(!u.transport?.embarked&&u.province===province.id&&Math.hypot(u.x-MAP[province.id].center.x,u.z-MAP[province.id].center.z)<3.7&&u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
+        if(province.capture>=8){const previous=province.owner;province.owner=attacker;province.capture=0;province.captor=-1;province.recovery=recoveryDuration(player);province.production=0;province.kind=player.loadout[0];s.topology++;experience(s,attacker,50);player.funds=Math.min(MAX_FUNDS,player.funds+captureReward(player));s.events.push({tick:s.tick,key:'capture',player:attacker,province:province.id});this.captureTalents(province,previous,player);for(const u of s.units)if(!u.transport?.embarked&&(!u.armyStatus||u.armyStatus==='inside')&&u.province===province.id&&Math.hypot(u.x-MAP[province.id].center.x,u.z-MAP[province.id].center.z)<3.7&&u.owner===attacker&&u.target===province.id){u.province=province.id;this.advance(u);}}
       }else if(!(nearOwner===-2&&province.captor>=0&&context.profiles[province.captor]?.siegeLines)){province.capture=Math.max(0,province.capture-DT*2);if(!province.capture)province.captor=-1;}
       if(province.owner<0)continue;
       const owner=s.players[province.owner],profile=context.profiles[province.owner],rate=regionProductionRate(province.id),recovery=recoveryMultiplier(province.recovery,owner);
@@ -374,17 +385,13 @@ export class Engine{
         else{
           if(levy)owner.funds=Math.max(0,owner.funds-5);
           const fresh=s.units[s.units.length-1];this.indexSpawned(fresh);
-          // Full departures pull in fresh recruits only until the queue closes.
-          // Replace the order object so LAN/broadcast deltas see the new ID.
-          const order=province.march;
-          if(order?.fraction===1&&order.owner===province.owner){province.march={...order,pendingIds:[...order.pendingIds,fresh.id]};if(order.army!==undefined)fresh.army=order.army;}
         }
       }
     }
     this.dailyTalents(context,academy,damage,pulse);
-    this.releaseMarches();settleArmies(s);
+    this.releaseMarches();
     // All captures have settled: losing then gaining a region in this tick is not defeat.
-    if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);
+    if(s.topology!==topologyBefore)s.grouping=reconcileGrouping(s);settleEliminations(s);settleArmies(s);
     if(s.tick>=80)this.ai();
     const territoryCounts=new Map<number,number>();
     for(const v of s.provinces)if(MAP[v.id].playable&&v.owner>=0)territoryCounts.set(v.owner,(territoryCounts.get(v.owner)??0)+1);
@@ -464,9 +471,9 @@ export class Engine{
   private releaseMarches():void {
     const s=this.state;
     if(!s.provinces.some(p=>p.march))return;
-    const units=new Map(s.units.map(u=>[u.id,u]));
+    const units=new Map(s.units.map(u=>[u.id,u])),formed=new Set(s.armies.filter(a=>a.formation).map(a=>a.id));
     for(const province of s.provinces){
-      const order=province.march;if(!order)continue;
+      const order=province.march;if(!order||order.army!==undefined&&formed.has(order.army))continue;
       const owner=province.owner;
       if(owner<0||order.owner!==owner){delete province.march;continue;}
       const pending=order.pendingIds.filter(id=>{const u=units.get(id);return u&&isRegionGarrison(u,owner,province.id);});
@@ -481,44 +488,37 @@ export class Engine{
       if(pending.length)province.march={...order,pendingIds:pending};else delete province.march;
     }
   }
-  /** One dispatch across one or more source regions forms one army. Each source keeps the
-   * original rules: an identical queued order is a no-op, a new order replaces troops still
-   * waiting there, and departures leave one by one. Fails only if no source could send troops. */
+  /** Each source contributes its own formation. Plan before changing an existing order. */
   private muster(actor:number,sources:readonly number[],to:number,fraction:MarchFraction):Result{
     const s=this.state,target=s.provinces[to],fail=(error:string):Result=>({ok:false,error});
     // Same error order as the original single-region march command.
     for(const from of sources){const p=s.provinces[from];if(!p||!target||p.owner!==actor)return fail('notOwner');}
     for(const from of sources)if(!MAP[from].playable||!MAP[to].playable||from===to)return fail('invalidCommand');
-    const army={id:s.nextArmy,owner:actor,to,formed:s.tick,size:0};let unchanged=false,unreachable=false;
+    let sent=false,unchanged=false,unreachable=false;
     for(const from of sources){
-      const result=this.orderFrom(actor,from,to,fraction,army.id);
-      if(result==='unchanged')unchanged=true;else if(result==='unreachable')unreachable=true;else if(result>0)army.size+=result;
+      const result=this.orderFrom(actor,from,to,fraction);
+      if(result==='unchanged')unchanged=true;else if(result==='unreachable')unreachable=true;else if(result>0)sent=true;
     }
-    if(army.size){s.nextArmy++;s.armies.push(army);return{ok:true};}
+    if(sent)return{ok:true};
     return unchanged?{ok:true}:fail(unreachable?'unreachable':'noTroops');
   }
-  private orderFrom(actor:number,from:number,to:number,fraction:MarchFraction,army:number):number|'unchanged'|'unreachable'{
+  private orderFrom(actor:number,from:number,to:number,fraction:MarchFraction):number|'unchanged'|'unreachable'{
     const s=this.state,province=s.provinces[from];
     const queued=province.march?.owner===actor?province.march:undefined;
     if(queued?.to===to&&(queued.fraction??1)===fraction)return 'unchanged';
-    // A new order chooses from troops still at the source. Marchers have
-    // their own routes and must not be changed, even while near the source.
-    const garrison=s.units.filter(u=>isRegionGarrison(u,actor,from));
+    const waiting=new Set(queued?.pendingIds);
+    const garrison=s.units.filter(u=>u.owner===actor&&u.province===from&&(isRegionGarrison(u,actor,from)||waiting.has(u.id)));
     const available=garrison.slice(0,marchDispatchCount(garrison.length,fraction));
     if(!available.length)return 0;
-    const friendly=s.provinces[to].owner===actor;
-    const startsNow=province.lastMarchTick===undefined||s.tick-province.lastMarchTick>=MARCH_INTERVAL_TICKS;
-    // Check reachability before replacing a valid order even when the
-    // current departure interval prevents us from sending anyone now.
-    if(!startsNow&&!available.some(u=>this.planMarch(u,to)))return 'unreachable';
-    // Troops still waiting for a replaced order return to the garrison before joining the new army.
-    if(queued?.army!==undefined){const waiting=new Set(queued.pendingIds);for(const u of s.units)if(waiting.has(u.id)&&u.army===queued.army)delete u.army;}
-    const first=startsNow?this.dispatchOne(available,to):null;
-    if(startsNow&&!first)return 'unreachable';
-    if(first)province.lastMarchTick=s.tick;
-    for(const u of available)u.army=army;
-    const pendingIds=available.filter(u=>u.id!==first).map(u=>u.id);
-    if(pendingIds.length)province.march={to,owner:actor,pendingIds,fraction,army,...(friendly?{reserved:true}:{})};else delete province.march;
+    const formation=planDeployment(s,this.navigation,from,to,available);
+    if(!formation)return 'unreachable';
+    for(const u of garrison)if(waiting.has(u.id))this.halt(u);
+    const army={id:s.nextArmy++,owner:actor,to,formed:s.tick,size:available.length,formation};
+    s.armies.push(army);
+    for(const u of available){orderMember(s,army,u);this.physicsDirty.units.add(u);}
+    if(formation.phase==='assemble')province.march={to,owner:actor,pendingIds:available.map(u=>u.id),fraction,army:army.id,...(s.provinces[to].owner===actor?{reserved:true}:{})};
+    else delete province.march;
+    settleArmies(s);
     return available.length;
   }
   private planMarch(unit:Unit,to:number){
@@ -534,14 +534,14 @@ export class Engine{
     }
     return null;
   }
-  private halt(unit:Unit):void {this.physicsDirty.units.add(unit);delete unit.army;delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
+  private halt(unit:Unit):void {this.physicsDirty.units.add(unit);delete unit.army;delete unit.armyStatus;delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   /** Keep loaded and newly disembarked units clear of houses.
    * Only same-land, same-province (or certified route corridor) candidates count. */
   private clearBuildings(units:readonly Unit[]=this.state.units):void {
     let ordered=units;for(let i=1;i<units.length;i++)if(units[i].id<units[i-1].id){ordered=[...units].sort((a,b)=>a.id-b.id);break;}
     const blocked=units.length<=65536?blockedByBuildings(ordered):ordered.filter(u=>!(u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)&&!buildingSegment(u,u,UNIT_RADIUS[u.kind]));
     for(const u of blocked){
-      const radius=UNIT_RADIUS[u.kind];if((u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)||buildingSegment(u,u,radius))continue;
+      const radius=UNIT_RADIUS[u.kind];if(u.armyStatus==='formed'||u.armyStatus==='inside'||(u.transport?.embarked&&u.travel?.points[u.travel.index]?.sea!==false)||buildingSegment(u,u,radius))continue;
       const neighbors=this.state.units.filter(v=>v.id!==u.id&&!v.transport?.embarked&&Math.abs(v.x-u.x)<4.3&&Math.abs(v.z-u.z)<4.3),beforeClearance=terrainClearance(u,radius);
       let found=false,fallback:{x:number;z:number}|undefined,bestGap=-Infinity;
       for(let ring=1;ring<=15&&!found;ring++)for(let i=0;i<32;i++){
@@ -562,7 +562,7 @@ export class Engine{
   private separate(active:readonly Unit[]):void {
     const bodies=[];
     for(let i=0;i<active.length;i++){
-      const unit=active[i];if(unit.hp<=0||unit.transport?.embarked)continue;
+      const unit=active[i];if(unit.hp<=0||unit.transport?.embarked||unit.armyStatus==='formed'||unit.armyStatus==='queued'||unit.armyStatus==='inside'&&!this.state.armies.some(army=>army.id===unit.army&&army.formation?.engaged))continue;
       const motion=unit.travel?motionAngle(unit.x-this.departure[i*2],unit.z-this.departure[i*2+1]):undefined;
       bodies.push({id:unit.id,x:unit.x,z:unit.z,radius:UNIT_RADIUS[unit.kind],mobility:unit.travel ? .15 : 1,motion,unit,terrainX:NaN,terrainZ:NaN,triangle:-1,freeTerrain:undefined as boolean|undefined});
     }

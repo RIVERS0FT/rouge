@@ -1,9 +1,36 @@
 import {validGroupingState} from '../game/territoryEconomy.ts';
 import {MAP_ID, STATE_VERSION} from '../game/content.ts';
-import type {GameState, Province, Unit} from '../game/types.ts';
+import type {Army, GameState, Province, Unit} from '../game/types.ts';
+
+export type ArmyPaths=Map<number,NonNullable<Army['formation']>['route']['points']>;
+
+export function encodeArmyPaths(armies:Army[],previous?:ArmyPaths){
+  const paths:ArmyPaths=new Map(),reused:number[]=[];
+  const records=armies.map(army=>{
+    const f=army.formation;if(!f)return army;
+    paths.set(army.id,f.route.points);
+    const route={...f.route};
+    if(previous?.get(army.id)===f.route.points){reused.push(army.id);route.points=[];}
+    return {...army,formation:{...f,route}};
+  });
+  return {records,paths,reused};
+}
+
+export function applyArmyPaths(armies:Army[],previous:Army[],reused:number[]):Army[]{
+  const ids=new Set(reused),old=new Map(previous.map(army=>[army.id,army.formation?.route]));
+  if(ids.size!==reused.length)throw Error('invalidSnapshot');
+  const records=armies.map(army=>{
+    if(!ids.delete(army.id))return army;
+    const f=army.formation,route=old.get(army.id);
+    if(!f||!route||route.revision!==f.route.revision||f.route.points.length)throw Error('invalidSnapshot');
+    return {...army,formation:{...f,route:{...f.route,points:route.points}}};
+  });
+  if(ids.size)throw Error('invalidSnapshot');
+  return records;
+}
 
 /** Full state on connection; reliable ordered deltas thereafter. Static GIS never travels here. */
-export interface SnapshotBase { campaign:string; tick:number; groupingRevision:number; provinces:Province[]; neutral?:Map<number,Unit>; paths?:Map<number,NonNullable<Unit['travel']>['points']> }
+export interface SnapshotBase { campaign:string; tick:number; groupingRevision:number; provinces:Province[]; neutral?:Map<number,Unit>; paths?:Map<number,NonNullable<Unit['travel']>['points']>; armyPaths?:ArmyPaths }
 type NeutralChanges={updated:Unit[];removed:number[]};
 export type StateFrame = {type:'state';state:GameState} | {
   type:'delta';campaign:string;baseTick:number;state:Omit<GameState,'provinces'|'grouping'>&{grouping?:GameState['grouping']};provinces:Province[];
@@ -11,6 +38,7 @@ export type StateFrame = {type:'state';state:GameState} | {
   neutral?:NeutralChanges;
   /** Local worker only: these units retain their previous immutable route points. */
   reusedPaths?:number[];
+  reusedArmyPaths?:number[];
 };
 const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture&&a.march===b.march&&a.lastMarchTick===b.lastMarchTick&&a.construction?.kind===b.construction?.kind&&a.construction?.level===b.construction?.level;
 // Neutral guards are not assigned travel or transport orders. Fall back to a
@@ -36,8 +64,9 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
   // Engine replaces a route on dispatch and only advances its index afterward.
   // Identity therefore proves unchanged points without scanning long AI routes.
   const paths=authoritativeLocal?new Map(state.units.filter(u=>u.travel).map(u=>[u.id,u.travel!.points])):undefined;
+  const fleet=encodeArmyPaths(state.armies,delta?base.armyPaths:undefined);
   let frame:StateFrame;
-  if(!delta)frame={type:'state',state:{...state,players}};
+  if(!delta)frame={type:'state',state:{...state,armies:fleet.records,players}};
   else {
     const {provinces,grouping,...rest}=state,sparse=!!previous&&!!current,reusedPaths:number[]=[];
     let units=sparse?fieldUnits:state.units;
@@ -45,9 +74,9 @@ export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:nu
       if(!u.travel||base.paths?.get(u.id)!==u.travel.points)return u;
       reusedPaths.push(u.id);return {...u,travel:{...u.travel,points:[]}};
     });
-    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,players,units,...(grouping.revision!==base.groupingRevision?{grouping}:{})},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i])),...(sparse?{neutral:{updated,removed}}:{}),...(reusedPaths.length?{reusedPaths}:{})};
+    frame={type:'delta',campaign:state.campaign,baseTick:base.tick,state:{...rest,armies:fleet.records,players,units,...(grouping.revision!==base.groupingRevision?{grouping}:{})},provinces:provinces.filter((p,i)=>!sameProvince(p,base.provinces[i])),...(sparse?{neutral:{updated,removed}}:{}),...(reusedPaths.length?{reusedPaths}:{}),...(fleet.reused.length?{reusedArmyPaths:fleet.reused}:{})};
   }
-  return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current,paths}};
+  return {frame,base:{campaign:state.campaign,tick:state.tick,groupingRevision:state.grouping.revision,provinces:state.provinces.map(p=>({...p})),neutral:current,paths,armyPaths:fleet.paths}};
 }
 export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
   if(frame.state.map!==MAP_ID||frame.state.version!==STATE_VERSION||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw new Error('incompatibleMap');
@@ -56,6 +85,7 @@ export function applyFrame(current:GameState|null,frame:StateFrame):GameState {
   const provinces=current.provinces.slice();
   for(const p of frame.provinces){if(!Number.isInteger(p.id)||p.id<0||p.id>=provinces.length)throw new Error('invalidSnapshot');provinces[p.id]=p;}
   const next={...frame.state,grouping:frame.state.grouping??current.grouping,provinces};
+  if(frame.reusedArmyPaths)next.armies=applyArmyPaths(next.armies,current.armies,frame.reusedArmyPaths);
   if(frame.reusedPaths){
     const ids=new Set(frame.reusedPaths),previous=new Map(current.units.filter(u=>u.travel).map(u=>[u.id,u.travel!]));
     if(ids.size!==frame.reusedPaths.length)throw new Error('invalidSnapshot');
