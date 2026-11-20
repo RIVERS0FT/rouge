@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('incremental cache matches a whole-image render across borders, coast shadows and tile seams; swaps atomically',async({page})=>{
- await page.route('http://127.0.0.1:5187/',route=>route.fulfill({contentType:'text/html',body:'<html><body></body></html>'}));await page.goto('/');
+ await page.route('**/flat-cache-quality',route=>route.fulfill({contentType:'text/html',body:'<html><body></body></html>'}));await page.goto('/flat-cache-quality');
  const result=await page.evaluate(async()=>{
   // @ts-expect-error Vite URL
   const THREE=await import('/node_modules/three/build/three.module.js');

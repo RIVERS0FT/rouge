@@ -14,12 +14,14 @@ const LABELS = {
 } as const;
 function label(language: Language, key: keyof typeof LABELS) {return LABELS[key][language === 'zh' ? 0 : 1];}
 
-/** The nation's colours in a brass mount at the top-left, like a state banner. */
-export const FactionIdentity = memo(function FactionIdentity({actor, language, color, flag}: {flag?: Flag; actor: number; language: Language; color: string}) {
+/** The nation's colours in a brass mount at the top-left, like a state banner.
+ * With `onOpen`, the whole banner opens the country's details window. */
+export const FactionIdentity = memo(function FactionIdentity({actor, language, color, flag, onOpen, openLabel}: {flag?: Flag; actor: number; language: Language; color: string; onOpen?: () => void; openLabel?: string}) {
  return <div className="faction-identity" data-testid="faction-identity" data-actor={actor}>
   <div className="faction-emblem-frame" style={{'--faction-color': color} as CSSProperties}>
    {flag ? <FlagImage flag={flag} language={language}/> : <span className="faction-emblem" aria-hidden="true">◇</span>}
   </div>
+  {onOpen && <button type="button" className="faction-identity-open" data-testid="open-own-country" onClick={onOpen} title={openLabel} aria-label={openLabel}/>}
  </div>;
 });
 

@@ -6,7 +6,9 @@ import {availableTalentIds,canRerollTalent} from '../src/game/talentReroll.ts';
 import {SAMPLE_BUILDS,aiBuildPlan,aiTalentChoice,formedBuilds} from '../src/game/talentBuilds.ts';
 import {checksum,decodeSave,encodeSave} from '../src/game/save.ts';
 import {STRINGS} from '../src/ui/i18n.ts';
+import {BALANCE} from '../src/game/balance.ts';
 
+const T=BALANCE.talents;
 const close=(value,want)=>assert.ok(Math.abs(value-want)<1e-8,`${value} != ${want}`);
 const LEGACY=['industry','forcedMarch','entrenchment','veterans','logistics','conqueror','fieldMedicine','protectiveGear','combatDrills','rangefinding',
  'navalLogistics','warSpoils','taxReform','publicWorks','rapidRecovery','charge','barrage','sappers','shieldWall','forwardMarksmen','lightSaddles',
@@ -106,14 +108,14 @@ test('static unit modifiers apply only to the matching unit kind',()=>{
   upgrades:Object.fromEntries(KINDS.map(k=>[k,{attack:0,health:0,speed:0}]))};
  for(const kind of KINDS){
   const st=stats(p,kind),b=UNITS[kind];
-  close(st.hp,b.hp*(kind==='infantry'?.9:1));
-  close(st.attack,b.attack*1.12*.9);
-  close(st.defense,b.defense+8+(kind==='heavyCavalry'?10:0));
-  close(st.attackSpeed,b.attackSpeed*1.12);
-  close(st.range,b.range*1.1);
-  close(st.seaSpeed,b.seaSpeed*1.25);
-  close(st.speed,b.speed*1.2*(kind==='skirmisher'?1.15:1));
-  close(st.splash,kind==='heavyCavalry'?1:kind==='artillery'?b.splash*1.25:b.splash);
+  close(st.hp,b.hp*(kind==='infantry'?T.shieldWall.hp:1));
+  close(st.attack,b.attack*T.veterans.attack*T.mercantilism.attack);
+  close(st.defense,b.defense+T.protectiveGear.defense+(kind==='heavyCavalry'?T.cuirass.defense:0));
+  close(st.attackSpeed,b.attackSpeed*T.combatDrills.attackSpeed);
+  close(st.range,b.range*T.rangefinding.range);
+  close(st.seaSpeed,b.seaSpeed*T.navalLogistics.seaSpeed);
+  close(st.speed,b.speed*T.forcedMarch.speed*(kind==='skirmisher'?T.lightInfantry.speed:1));
+  close(st.splash,kind==='heavyCavalry'?b.splash+T.breakthrough.splash:kind==='artillery'?b.splash*T.wideSalvo.splash:b.splash);
  }
  // Former family attack/range/defense bonuses are now conditional effects, not stats.
  const signature={talents:['charge','barrage','breachDrills','forwardMarksmen','armoredSappers','lightSaddles'],upgrades:p.upgrades};
@@ -124,7 +126,7 @@ test('Human Wave scales deployed troops; old saves with reworked health talents 
  const e=game(),s=e.state,p=s.players[0],u=s.units.find(unit=>unit.owner===0);
  u.hp=50;Object.assign(p,{level:2,drafts:1,choices:['shieldWall']});
  assert.deepEqual(e.command(0,{type:'talent',id:'shieldWall'}),{ok:true});
- close(u.hp,45);
+ close(u.hp,50*T.shieldWall.hp);
  // An older save: Field Medicine and Infantry Line both used to add 15% maximum health.
  const old=game().state,legacy=old.units.find(unit=>unit.owner===0);
  old.players[0].talents=['fieldMedicine','shieldWall'];legacy.hp=UNITS.infantry.hp*1.15*1.15;

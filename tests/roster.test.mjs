@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {KINDS,UNITS,TALENTS,stats,talentApplies,validateSetup} from '../src/game/content.ts';
+import {DT,KINDS,UNITS,TALENTS,stats,talentApplies,validateSetup} from '../src/game/content.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {encodeSave,decodeSave,checksum,validateState} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
@@ -48,8 +49,8 @@ test('every new kind can capture without engineer bonuses and AI can upgrade its
   const e=fresh(k),s=e.state,p=s.players[0],target=MAP.find(r=>r.playable&&s.provinces[r.id].owner===-1).id;
   const u=s.units.find(u=>u.owner===0);Object.assign(u,{province:target,origin:target,x:MAP[target].center.x,z:MAP[target].center.z});s.units=[u];
   e.step(20);assert.ok(Math.abs(s.provinces[target].capture-1)<1e-8);
-  e.step(141);assert.equal(s.provinces[target].owner,0);assert.equal(s.provinces[target].kind,k);
-  p.ai=true;p.funds=1000;e.step(80);assert.ok(Object.values(p.upgrades[k]).some(x=>x>0));
+  e.step(Math.round(BALANCE.capture.days/DT)-20+1);assert.equal(s.provinces[target].owner,0);assert.equal(s.provinces[target].kind,k);
+  p.ai=true;p.funds=BALANCE.ai.upgradeAbove+1000;e.step(Math.round(BALANCE.ai.intervalDays/DT));assert.ok(Object.values(p.upgrades[k]).some(x=>x>0));
  }
 });
 for(const kind of NEW)test(kind+': real sea transport, landing and occupation preserve kind and valid save',()=>{

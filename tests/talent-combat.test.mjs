@@ -6,7 +6,9 @@ import {MAP,provinceByCode} from '../src/game/map.ts';
 import {updateBattleUnits} from '../src/game/groundKernel.ts';
 import {updateUnitsFallback} from '../src/game/unitFallback.ts';
 import {combatLanes,MAX_DAMAGE_REDUCTION,MODE_VS_MARCHING,MODE_VS_GARRISON,MODE_POINT_BLANK,MODE_SECONDARY_HEAVY,MODE_SECONDARY_HALF,MODE_WIDE_SALVO,MODE_SPLASH_RESIST} from '../src/game/talentEffects.ts';
+import {BALANCE} from '../src/game/balance.ts';
 
+const T=BALANCE.talents;
 const close=(value,want)=>assert.ok(Math.abs(value-want)<1e-7,`${value} != ${want}`);
 const engines=new Map();
 /** Two countries on clear ground in one region; player 0 also owns a neighbour.
@@ -55,14 +57,16 @@ test('combat lanes apply each condition to the right units and cap the damage re
  // Shock Assault, Charge, War Chest and Interior Lines on cavalry: 1 assaults, 2 marches home, 3 is garrisoned.
  let {s}=scenario('cavalry',['shockAssault','charge','warChest','logistics'],'infantry',[],-1,{funds:345});
  let lanes=combatLanes(s.units,s,statsFor(s));
- close(lanes.dealt[0],.25+.35+.09);close(lanes.dealt[1],.35+.09);close(lanes.dealt[2],-.1+.09);
- close(lanes.speed[1],stats(s.players[0],'cavalry').speed*1.4);close(lanes.speed[0],stats(s.players[0],'cavalry').speed);
+ const chest=Math.min(T.warChest.max,T.warChest.bonus*Math.floor(345/T.warChest.per));
+ close(lanes.dealt[0],T.shockAssault.assaultBonus+T.charge.damageBonus+chest);close(lanes.dealt[1],T.charge.damageBonus+chest);close(lanes.dealt[2],-T.shockAssault.garrisonPenalty+chest);
+ close(lanes.speed[1],stats(s.players[0],'cavalry').speed*T.logistics.speed);close(lanes.speed[0],stats(s.players[0],'cavalry').speed);
  assert.ok(Number.isNaN(lanes.speed[3]),'no speed change for a country without Interior Lines');
- // Defensive stack: friendly territory, level-3 fortress, eight troops and recovery would exceed the 75% cap.
+ // Defensive stack: friendly territory, level-3 fortress, eight troops and recovery; the sum is capped.
  ({s}=scenario('infantry',[],'infantry',['entrenchment','fortressDoctrine','massedRanks','pursuit'],1,{extra:[[9,1,'infantry',1.5,1],[10,1,'infantry',2,1],[11,1,'infantry',2.4,0]]}));
  s.provinces[s.units[0].province].construction={kind:'fortress',level:3};s.provinces[s.units[0].province].recovery=5;
  lanes=combatLanes(s.units,s,statsFor(s));
- close(lanes.taken[3],MAX_DAMAGE_REDUCTION);close(lanes.dealt[3],.2);
+ const stack=T.entrenchment.damageReduction+T.fortressDoctrine.damageReduction[2]+(8>=T.massedRanks.minUnits?T.massedRanks.damageReduction:0)+T.pursuit.damageReduction;
+ close(lanes.taken[3],Math.min(MAX_DAMAGE_REDUCTION,stack));close(lanes.dealt[3],T.pursuit.damageBonus);
  for(let i=0;i<3;i++)close(lanes.taken[i],0);
  // Signature bits only on their own unit kind.
  for(const [kind,talent,bit]of [['skirmisher','forwardMarksmen',MODE_VS_MARCHING],['artillery','barrage',MODE_VS_GARRISON],['horseArtillery','pointBlank',MODE_POINT_BLANK],
@@ -72,11 +76,11 @@ test('combat lanes apply each condition to the right units and cap the damage re
  }
 });
 
-test('encircled defenders take 30% more damage from everyone',()=>{
+test('encircled defenders take more damage from everyone',()=>{
  const {s,province}=scenario('infantry',['encirclement'],'infantry',[],1);
  const region=MAP[province];for(const id of region.neighbors)if(MAP[id].playable)s.provinces[id].owner=0;
  const lanes=combatLanes(s.units,s,(owner,kind)=>stats(s.players[owner],kind));
- for(let i=3;i<8;i++)close(lanes.taken[i],-.3);
+ for(let i=3;i<8;i++)close(lanes.taken[i],Math.max(-BALANCE.combat.maxDamageIncrease,-T.encirclement.damageTaken));
  for(let i=0;i<3;i++)close(lanes.taken[i],0);
 });
 
@@ -90,23 +94,23 @@ function strike(kind,talents,{defenderKind='infantry',defenderTalents=[],distanc
  return new Map(e.state.units.map(u=>[u.id,10000-u.hp]));
 }
 test('damage formulas: conditional bonuses multiply attack before armor; splash talents change targets and shares',()=>{
- const infantryArmor=100/110;
- close(strike('cavalry',['charge'],{attackerOrder:true}).get(2),24*1.35*infantryArmor);
- close(strike('cavalry',['charge']).get(2),24*infantryArmor);
- close(strike('skirmisher',['forwardMarksmen'],{defenderOrder:true}).get(2),12*1.4*infantryArmor);
- close(strike('skirmisher',['forwardMarksmen']).get(2),12*infantryArmor);
- close(strike('artillery',['barrage']).get(2),40*1.4*infantryArmor);
- close(strike('artillery',['barrage'],{defenderOrder:true}).get(2),40*infantryArmor);
- close(strike('horseArtillery',['pointBlank'],{distance:2.5}).get(2),28*1.5*infantryArmor);
- close(strike('horseArtillery',['pointBlank'],{distance:3.5}).get(2),28*infantryArmor);
- // Wide Salvo reaches four secondary targets; Grenade Volley doubles their share; Cuirass resists it.
- // Five enemies behind the target inside the 1.5 splash radius: the four nearest (ties by id) are hit, the fifth is not.
+ const infantryArmor=100/(100+UNITS.infantry.defense);
+ close(strike('cavalry',['charge'],{attackerOrder:true}).get(2),UNITS.cavalry.attack*(1+T.charge.damageBonus)*infantryArmor);
+ close(strike('cavalry',['charge']).get(2),UNITS.cavalry.attack*infantryArmor);
+ close(strike('skirmisher',['forwardMarksmen'],{defenderOrder:true}).get(2),UNITS.skirmisher.attack*(1+T.forwardMarksmen.damageBonus)*infantryArmor);
+ close(strike('skirmisher',['forwardMarksmen']).get(2),UNITS.skirmisher.attack*infantryArmor);
+ close(strike('artillery',['barrage']).get(2),UNITS.artillery.attack*(1+T.barrage.damageBonus)*infantryArmor);
+ close(strike('artillery',['barrage'],{defenderOrder:true}).get(2),UNITS.artillery.attack*infantryArmor);
+ close(strike('horseArtillery',['pointBlank'],{distance:T.pointBlank.range-.5}).get(2),UNITS.horseArtillery.attack*(1+T.pointBlank.damageBonus)*infantryArmor);
+ close(strike('horseArtillery',['pointBlank'],{distance:T.pointBlank.range+.5}).get(2),UNITS.horseArtillery.attack*infantryArmor);
+ // Wide Salvo reaches more secondary targets; Grenade Volley raises their share; Cuirass resists it.
+ // Five enemies behind the target inside the widened splash radius, nearest first (ties by id): only the first wideSalvo.targets are hit.
  const salvo=strike('artillery',['wideSalvo'],{bystanders:[[3,.3,0],[4,0,.3],[5,0,-.3],[6,.2,.25],[7,.5,.5]]});
- close(salvo.get(7),0);
- for(const id of [3,4,5,6])close(salvo.get(id),40*.35*infantryArmor);
- const volley=strike('grenadier',['grenadeVolley'],{bystanders:[[3,.3,0]]});close(volley.get(3),18*.7*infantryArmor);
+ for(const [rank,id]of [3,4,5,6,7].entries())close(salvo.get(id),rank<T.wideSalvo.targets?UNITS.artillery.attack*BALANCE.combat.splashDamage*infantryArmor:0);
+ const volley=strike('grenadier',['grenadeVolley'],{bystanders:[[3,.3,0]]});close(volley.get(3),UNITS.grenadier.attack*T.grenadeVolley.splashDamage*infantryArmor);
  const armored=strike('grenadier',['grenadeVolley'],{defenderKind:'heavyCavalry',defenderTalents:['cuirass'],bystanders:[[3,.3,0]]});
- close(armored.get(2),18*100/135);close(armored.get(3),18*.7*.4*100/135);
- const cleave=strike('heavyCavalry',['breakthrough'],{bystanders:[[3,.3,0]]});close(cleave.get(3),30*.5*infantryArmor);
- assert.equal(UNITS.heavyCavalry.splash,0,'Breakthrough adds the splash radius');
+ const cuirassArmor=100+UNITS.heavyCavalry.defense+T.cuirass.defense;
+ close(armored.get(2),UNITS.grenadier.attack*100/cuirassArmor);close(armored.get(3),UNITS.grenadier.attack*T.grenadeVolley.splashDamage*T.cuirass.splashTaken*100/cuirassArmor);
+ const cleave=strike('heavyCavalry',['breakthrough'],{bystanders:[[3,.3,0]]});close(cleave.get(3),UNITS.heavyCavalry.attack*T.breakthrough.splashDamage*infantryArmor);
+ assert.equal(stats({talents:['breakthrough'],upgrades:{}},'heavyCavalry').splash,UNITS.heavyCavalry.splash+T.breakthrough.splash,'Breakthrough adds the splash radius');
 });

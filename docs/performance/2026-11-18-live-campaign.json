@@ -1,0 +1,1450 @@
+{
+  "date": "2026-11-18",
+  "head": "3b2f688d5dd4fdd12a3d0c30329df87acf2ded32",
+  "sourceSha256": {
+    "reference": "4a9740abba5dbabcf34e081ffad521ca1e782858b27a673d665ffe5d6bdd3426",
+    "benchmarked2D": "2a482c4645d6608090e8ab81f6ece236cefc9e22422373760ddc77f9dbca3b5d",
+    "integrationBuild": "04b05f35a0956efaf1110b75af4f3b726aff631ddf78efba3cd473c38b207e20"
+  },
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00009BC5) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "browser": "153.0.8010.12",
+    "viewport": {
+      "width": 1510,
+      "height": 1090
+    },
+    "dpr": 1.25
+  },
+  "real": {
+    "campaign": "f9cfc2e3-a380-4de5-9aa1-25b858d1593c",
+    "initialTick": 20638,
+    "initialUnits": 10065,
+    "initialArmies": 1686,
+    "sha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd"
+  },
+  "baseline": [
+    {
+      "file": "reference-real-flat900.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60034.8,
+      "durationMs": 60034.8,
+      "draws": 760,
+      "fps": 12.659,
+      "ticks": 712,
+      "ticksPerSecond": 11.86,
+      "tickRange": [
+        21436,
+        22146
+      ],
+      "frameGap": {
+        "meanMs": 79.097,
+        "p95Ms": 111.3,
+        "maxMs": 340.6
+      },
+      "frameCPU": {
+        "meanMs": 50.68,
+        "p95Ms": 65.1,
+        "maxMs": 169.5
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10642,
+        11110
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 88820.441,
+      "longTaskCount": 603,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "reference-real-near60.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 60027.9,
+      "durationMs": 60041.8,
+      "draws": 714,
+      "fps": 11.892,
+      "ticks": 748,
+      "ticksPerSecond": 12.458,
+      "tickRange": [
+        21548,
+        22294
+      ],
+      "frameGap": {
+        "meanMs": 84.21,
+        "p95Ms": 111.1,
+        "maxMs": 242.8
+      },
+      "frameCPU": {
+        "meanMs": 11.209,
+        "p95Ms": 16.8,
+        "maxMs": 24.6
+      },
+      "focus": [
+        -82.305,
+        -412.428
+      ],
+      "unitRange": [
+        10654,
+        11255
+      ],
+      "visible": [
+        192,
+        204
+      ],
+      "motionTracks": [
+        5269,
+        5576
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 1289089.14,
+      "longTaskCount": 15,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    }
+  ],
+  "instrumentedBaseline": [
+    {
+      "file": "base-real-flat900-1.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60000.1,
+      "durationMs": 60034.5,
+      "draws": 746,
+      "fps": 12.426,
+      "ticks": 640,
+      "ticksPerSecond": 10.661,
+      "tickRange": [
+        21302,
+        21942
+      ],
+      "frameGap": {
+        "meanMs": 80.583,
+        "p95Ms": 132.1,
+        "maxMs": 319.6
+      },
+      "frameCPU": {
+        "meanMs": 55.558,
+        "p95Ms": 82.6,
+        "maxMs": 262
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10609,
+        10983
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": null,
+      "trianglesPerFrame": 77353.784,
+      "longTaskCount": 661,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": true
+    },
+    {
+      "file": "base-real-near60-1.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 60000.2,
+      "durationMs": 60020.4,
+      "draws": 702,
+      "fps": 11.696,
+      "ticks": 592,
+      "ticksPerSecond": 9.863,
+      "tickRange": [
+        21360,
+        21952
+      ],
+      "frameGap": {
+        "meanMs": 85.621,
+        "p95Ms": 146,
+        "maxMs": 257.1
+      },
+      "frameCPU": {
+        "meanMs": 12.912,
+        "p95Ms": 21.6,
+        "maxMs": 42
+      },
+      "focus": [
+        -82.305,
+        -412.428
+      ],
+      "unitRange": [
+        10630,
+        10982
+      ],
+      "visible": [
+        192,
+        196
+      ],
+      "motionTracks": [
+        5166,
+        5467
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": null,
+      "trianglesPerFrame": 1262867.274,
+      "longTaskCount": 11,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": true
+    }
+  ],
+  "replays": [
+    {
+      "file": "tuned-real-flat900-1.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60069.6,
+      "durationMs": 60014.4,
+      "draws": 2372,
+      "fps": 39.524,
+      "ticks": 692,
+      "ticksPerSecond": 11.531,
+      "tickRange": [
+        21130,
+        21822
+      ],
+      "frameGap": {
+        "meanMs": 25.312,
+        "p95Ms": 103.8,
+        "maxMs": 298.5
+      },
+      "frameCPU": {
+        "meanMs": 5.813,
+        "p95Ms": 10.2,
+        "maxMs": 21
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10418,
+        10884
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 49447.722,
+      "longTaskCount": 9,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-real-near60-1.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 60013.7,
+      "durationMs": 60069.5,
+      "draws": 804,
+      "fps": 13.384,
+      "ticks": 774,
+      "ticksPerSecond": 12.885,
+      "tickRange": [
+        21628,
+        22402
+      ],
+      "frameGap": {
+        "meanMs": 74.797,
+        "p95Ms": 90.2,
+        "maxMs": 326.6
+      },
+      "frameCPU": {
+        "meanMs": 10.623,
+        "p95Ms": 16.1,
+        "maxMs": 23.4
+      },
+      "focus": [
+        -82.305,
+        -412.428
+      ],
+      "unitRange": [
+        10752,
+        11326
+      ],
+      "visible": [
+        192,
+        208
+      ],
+      "motionTracks": [
+        5352,
+        5655
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 1299153.943,
+      "longTaskCount": 17,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "tuned-real-flat900-2.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60021.1,
+      "durationMs": 60014.1,
+      "draws": 1224,
+      "fps": 20.395,
+      "ticks": 306,
+      "ticksPerSecond": 5.099,
+      "tickRange": [
+        21496,
+        21800
+      ],
+      "frameGap": {
+        "meanMs": 49.071,
+        "p95Ms": 152.9,
+        "maxMs": 749.7
+      },
+      "frameCPU": {
+        "meanMs": 9.686,
+        "p95Ms": 17.5,
+        "maxMs": 135.1
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10636,
+        10863
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 48539.462,
+      "longTaskCount": 27,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-real-near60-2.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 60020.9,
+      "durationMs": 60006.8,
+      "draws": 813,
+      "fps": 13.548,
+      "ticks": 796,
+      "ticksPerSecond": 13.265,
+      "tickRange": [
+        21622,
+        22418
+      ],
+      "frameGap": {
+        "meanMs": 73.891,
+        "p95Ms": 90.1,
+        "maxMs": 243.2
+      },
+      "frameCPU": {
+        "meanMs": 10.487,
+        "p95Ms": 15.8,
+        "maxMs": 22.4
+      },
+      "focus": [
+        -82.305,
+        -412.428
+      ],
+      "unitRange": [
+        10747,
+        11345
+      ],
+      "visible": [
+        192,
+        208
+      ],
+      "motionTracks": [
+        5352,
+        5651
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 1299987.718,
+      "longTaskCount": 16,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "tuned-real-flat900-3.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60034.4,
+      "durationMs": 60013.8,
+      "draws": 1458,
+      "fps": 24.294,
+      "ticks": 282,
+      "ticksPerSecond": 4.699,
+      "tickRange": [
+        21450,
+        21732
+      ],
+      "frameGap": {
+        "meanMs": 41.19,
+        "p95Ms": 146,
+        "maxMs": 659.8
+      },
+      "frameCPU": {
+        "meanMs": 8.945,
+        "p95Ms": 15.6,
+        "maxMs": 193.4
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10630,
+        10826
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 38863.315,
+      "longTaskCount": 18,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-real-near60-3.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 60014,
+      "durationMs": 60041.8,
+      "draws": 650,
+      "fps": 10.826,
+      "ticks": 858,
+      "ticksPerSecond": 14.29,
+      "tickRange": [
+        21636,
+        22494
+      ],
+      "frameGap": {
+        "meanMs": 92.503,
+        "p95Ms": 118.4,
+        "maxMs": 208.5
+      },
+      "frameCPU": {
+        "meanMs": 9.481,
+        "p95Ms": 14.4,
+        "maxMs": 23.3
+      },
+      "focus": [
+        -82.305,
+        -412.428
+      ],
+      "unitRange": [
+        10758,
+        11389
+      ],
+      "visible": [
+        192,
+        208
+      ],
+      "motionTracks": [
+        5349,
+        5659
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 1315840.317,
+      "longTaskCount": 16,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    }
+  ],
+  "exact": {
+    "warmup": 5,
+    "steps": 400,
+    "fullStateIdentical": true,
+    "collisionReportsIdentical": true,
+    "before": {
+      "meanMs": 100.129,
+      "p95Ms": 175.134,
+      "maxMs": 744.072,
+      "ticksPerSecond": 9.987
+    },
+    "after": {
+      "meanMs": 84.769,
+      "p95Ms": 140.292,
+      "maxMs": 757.21,
+      "ticksPerSecond": 11.797
+    }
+  },
+  "worker": {
+    "warmup": 60,
+    "durationMs": 60165.1,
+    "initialTick": 21814,
+    "endTick": 22906,
+    "ticksPerSecond": 18.15,
+    "passed": false,
+    "checks": {
+      "stepBudget": false,
+      "nominalWallClock": false
+    }
+  },
+  "autosave": {
+    "before": {
+      "valid": true,
+      "validateMs": 97.6,
+      "encodeMs": 113.3,
+      "bytes": 4597026,
+      "saveMs": 142.9,
+      "tick": 20638,
+      "matched": true,
+      "tasks": [
+        {
+          "at": 4797.6,
+          "ms": 119
+        }
+      ]
+    },
+    "after": {
+      "valid": true,
+      "validateMs": 100.4,
+      "encodeMs": 121.9,
+      "bytes": 4597026,
+      "saveMs": 2388.7,
+      "tick": 20638,
+      "matched": true,
+      "tasks": []
+    }
+  },
+  "pure": {
+    "conditionsPassed": true,
+    "averageFps": 96.85,
+    "p95GapMs": 20.7,
+    "accepted": true
+  },
+  "synthetic": [
+    {
+      "file": "base-synthetic-flat900-check.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 12090.6,
+      "durationMs": 12076.3,
+      "draws": 52,
+      "fps": 4.306,
+      "ticks": 186,
+      "ticksPerSecond": 15.402,
+      "tickRange": [
+        510,
+        694
+      ],
+      "frameGap": {
+        "meanMs": 236.79,
+        "p95Ms": 313,
+        "maxMs": 346.9
+      },
+      "frameCPU": {
+        "meanMs": 75.823,
+        "p95Ms": 117.6,
+        "maxMs": 169.4
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        7748,
+        8933
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 533139.192,
+      "longTaskCount": 66,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-synthetic-flat900-check.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 12055.3,
+      "durationMs": 12118.3,
+      "draws": 44,
+      "fps": 3.631,
+      "ticks": 196,
+      "ticksPerSecond": 16.174,
+      "tickRange": [
+        526,
+        720
+      ],
+      "frameGap": {
+        "meanMs": 281.821,
+        "p95Ms": 340.6,
+        "maxMs": 548.8
+      },
+      "frameCPU": {
+        "meanMs": 30.707,
+        "p95Ms": 43.6,
+        "maxMs": 260.2
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        7635,
+        8802
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        99,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 624339.977,
+      "longTaskCount": 45,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "base-synthetic-near60-check.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 12048.3,
+      "durationMs": 12021,
+      "draws": 145,
+      "fps": 12.062,
+      "ticks": 184,
+      "ticksPerSecond": 15.307,
+      "tickRange": [
+        440,
+        624
+      ],
+      "frameGap": {
+        "meanMs": 83.479,
+        "p95Ms": 117.7,
+        "maxMs": 180.7
+      },
+      "frameCPU": {
+        "meanMs": 16.212,
+        "p95Ms": 23.4,
+        "maxMs": 25.9
+      },
+      "focus": [
+        1357.535,
+        -368.36
+      ],
+      "unitRange": [
+        8117,
+        9401
+      ],
+      "visible": [
+        45,
+        68
+      ],
+      "motionTracks": [
+        5488,
+        7652
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 477025.807,
+      "longTaskCount": 10,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-synthetic-near60-check.json",
+      "mode": [
+        "3d"
+      ],
+      "warmupMs": 12013.6,
+      "durationMs": 12034.9,
+      "draws": 148,
+      "fps": 12.298,
+      "ticks": 200,
+      "ticksPerSecond": 16.618,
+      "tickRange": [
+        444,
+        644
+      ],
+      "frameGap": {
+        "meanMs": 81.87,
+        "p95Ms": 97.7,
+        "maxMs": 194.4
+      },
+      "frameCPU": {
+        "meanMs": 14.88,
+        "p95Ms": 19.9,
+        "maxMs": 25.8
+      },
+      "focus": [
+        1357.535,
+        -368.36
+      ],
+      "unitRange": [
+        7995,
+        9384
+      ],
+      "visible": [
+        49,
+        71
+      ],
+      "motionTracks": [
+        5251,
+        7607
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 475725.689,
+      "longTaskCount": 17,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    }
+  ],
+  "gpuDiagnostic": {
+    "drawBuildings": {
+      "samples": 132,
+      "meanMs": 0.225,
+      "p95Ms": 0.6
+    },
+    "drawLabels": {
+      "samples": 132,
+      "meanMs": 0.012,
+      "p95Ms": 0.1
+    },
+    "politicalTint": {
+      "samples": 132,
+      "meanMs": 0.048,
+      "p95Ms": 0.1
+    },
+    "drawMapNames": {
+      "samples": 132,
+      "meanMs": 0.388,
+      "p95Ms": 0.8
+    },
+    "drawAttackArrows": {
+      "samples": 132,
+      "meanMs": 6.236,
+      "p95Ms": 11.9
+    },
+    "routeFlush": {
+      "samples": 132,
+      "meanMs": 1.037,
+      "p95Ms": 1.7
+    },
+    "threeRender": {
+      "samples": 269,
+      "meanMs": 1.683,
+      "p95Ms": 4.4
+    },
+    "coastMask": {
+      "samples": 132,
+      "meanMs": 0.829,
+      "p95Ms": 1.8
+    },
+    "drawBattleBadges": {
+      "samples": 132,
+      "meanMs": 0.014,
+      "p95Ms": 0.1
+    },
+    "drawArmyPlaques": {
+      "samples": 132,
+      "meanMs": 0.009,
+      "p95Ms": 0.1
+    },
+    "gpuCoastMs": {
+      "samples": 129,
+      "meanMs": 0.275,
+      "p95Ms": 0.239
+    },
+    "gpuMainMs": {
+      "samples": 128,
+      "meanMs": 64.146,
+      "p95Ms": 92.159
+    },
+    "gpuPoliticalMs": {
+      "samples": 5,
+      "meanMs": 24.822,
+      "p95Ms": 30.408
+    }
+  },
+  "accepted": false,
+  "syntheticLong": [
+    {
+      "file": "base-synthetic-flat900-long.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60006.8,
+      "durationMs": 60159.8,
+      "draws": 355,
+      "fps": 5.901,
+      "ticks": 1056,
+      "ticksPerSecond": 17.553,
+      "tickRange": [
+        1260,
+        2314
+      ],
+      "frameGap": {
+        "meanMs": 169.943,
+        "p95Ms": 201.7,
+        "maxMs": 292
+      },
+      "frameCPU": {
+        "meanMs": 48.257,
+        "p95Ms": 65,
+        "maxMs": 101.8
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        5981,
+        6628
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        80,
+        92
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 329033.859,
+      "longTaskCount": 399,
+      "errors": [],
+      "autosaveTick": 1460,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-synthetic-flat900-long.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60006.8,
+      "durationMs": 60083.2,
+      "draws": 294,
+      "fps": 4.893,
+      "ticks": 1140,
+      "ticksPerSecond": 18.974,
+      "tickRange": [
+        1402,
+        2540
+      ],
+      "frameGap": {
+        "meanMs": 205.062,
+        "p95Ms": 257.4,
+        "maxMs": 326.3
+      },
+      "frameCPU": {
+        "meanMs": 17.656,
+        "p95Ms": 33.3,
+        "maxMs": 64.5
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        5829,
+        6470
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        77,
+        89
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 403436.571,
+      "longTaskCount": 107,
+      "errors": [],
+      "autosaveTick": 1460,
+      "stageMeasurements": false
+    },
+    {
+      "file": "native-synthetic-flat900-long.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60034.6,
+      "durationMs": 60006.6,
+      "draws": 352,
+      "fps": 5.866,
+      "ticks": 1158,
+      "ticksPerSecond": 19.298,
+      "tickRange": [
+        1376,
+        2530
+      ],
+      "frameGap": {
+        "meanMs": 170.959,
+        "p95Ms": 208.2,
+        "maxMs": 242.4
+      },
+      "frameCPU": {
+        "meanMs": 14.85,
+        "p95Ms": 26.5,
+        "maxMs": 42.6
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        5830,
+        6485
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        77,
+        89
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 325140.847,
+      "longTaskCount": 71,
+      "errors": [],
+      "autosaveTick": 1460,
+      "stageMeasurements": false
+    },
+    {
+      "file": "adaptive-synthetic-flat900-long.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60035.1,
+      "durationMs": 60097.2,
+      "draws": 352,
+      "fps": 5.857,
+      "ticks": 1140,
+      "ticksPerSecond": 18.969,
+      "tickRange": [
+        1356,
+        2494
+      ],
+      "frameGap": {
+        "meanMs": 171.217,
+        "p95Ms": 215,
+        "maxMs": 250
+      },
+      "frameCPU": {
+        "meanMs": 16.791,
+        "p95Ms": 30.9,
+        "maxMs": 55.1
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        5832,
+        6527
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        78,
+        89
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 331006.233,
+      "longTaskCount": 96,
+      "errors": [],
+      "autosaveTick": 1460,
+      "stageMeasurements": false
+    },
+    {
+      "file": "tuned-synthetic-flat900-long.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60236.1,
+      "durationMs": 60173.8,
+      "draws": 254,
+      "fps": 4.221,
+      "ticks": 454,
+      "ticksPerSecond": 7.545,
+      "tickRange": [
+        698,
+        1150
+      ],
+      "frameGap": {
+        "meanMs": 237.841,
+        "p95Ms": 291.7,
+        "maxMs": 389.1
+      },
+      "frameCPU": {
+        "meanMs": 32.115,
+        "p95Ms": 78.5,
+        "maxMs": 155.9
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        6708,
+        7735
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        93,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 177430.461,
+      "longTaskCount": 325,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    }
+  ],
+  "previousFlat": [
+    {
+      "file": "release-real-flat900-1.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60041.5,
+      "durationMs": 60034.9,
+      "draws": 2430,
+      "fps": 40.476,
+      "ticks": 710,
+      "ticksPerSecond": 11.826,
+      "tickRange": [
+        21632,
+        22342
+      ],
+      "frameGap": {
+        "meanMs": 24.716,
+        "p95Ms": 104.4,
+        "maxMs": 270.9
+      },
+      "frameCPU": {
+        "meanMs": 5.74,
+        "p95Ms": 9.8,
+        "maxMs": 116.1
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10757,
+        11282
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 49250.61,
+      "longTaskCount": 16,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-real-flat900-2.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60055.6,
+      "durationMs": 60006.6,
+      "draws": 2578,
+      "fps": 42.962,
+      "ticks": 688,
+      "ticksPerSecond": 11.465,
+      "tickRange": [
+        21578,
+        22266
+      ],
+      "frameGap": {
+        "meanMs": 23.285,
+        "p95Ms": 97.6,
+        "maxMs": 180.5
+      },
+      "frameCPU": {
+        "meanMs": 5.766,
+        "p95Ms": 10,
+        "maxMs": 19.7
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10696,
+        11230
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 45237.031,
+      "longTaskCount": 11,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    },
+    {
+      "file": "release-real-flat900-3.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60048.9,
+      "durationMs": 60068.9,
+      "draws": 2506,
+      "fps": 41.719,
+      "ticks": 716,
+      "ticksPerSecond": 11.92,
+      "tickRange": [
+        21652,
+        22366
+      ],
+      "frameGap": {
+        "meanMs": 23.98,
+        "p95Ms": 104,
+        "maxMs": 264.1
+      },
+      "frameCPU": {
+        "meanMs": 5.619,
+        "p95Ms": 9.8,
+        "maxMs": 24.2
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10773,
+        11299
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 44409.38,
+      "longTaskCount": 17,
+      "errors": [],
+      "autosaveTick": 21838,
+      "stageMeasurements": false
+    }
+  ],
+  "lateBaseline": [
+    {
+      "file": "base-late-real.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60048.9,
+      "durationMs": 60152.8,
+      "draws": 390,
+      "fps": 6.483,
+      "ticks": 350,
+      "ticksPerSecond": 5.819,
+      "tickRange": [
+        21016,
+        21366
+      ],
+      "frameGap": {
+        "meanMs": 154.634,
+        "p95Ms": 250,
+        "maxMs": 347.5
+      },
+      "frameCPU": {
+        "meanMs": 106.628,
+        "p95Ms": 167.1,
+        "maxMs": 284.9
+      },
+      "focus": [
+        122.074,
+        -549.509
+      ],
+      "unitRange": [
+        10322,
+        10639
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 95596.341,
+      "longTaskCount": 402,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    },
+    {
+      "file": "base-late-synthetic.json",
+      "mode": [
+        "2d"
+      ],
+      "warmupMs": 60104.2,
+      "durationMs": 60250,
+      "draws": 229,
+      "fps": 3.801,
+      "ticks": 448,
+      "ticksPerSecond": 7.436,
+      "tickRange": [
+        704,
+        1152
+      ],
+      "frameGap": {
+        "meanMs": 264.254,
+        "p95Ms": 374.8,
+        "maxMs": 472.5
+      },
+      "frameCPU": {
+        "meanMs": 120.531,
+        "p95Ms": 193.4,
+        "maxMs": 268.3
+      },
+      "focus": [
+        133.865,
+        -524.681
+      ],
+      "unitRange": [
+        6708,
+        7720
+      ],
+      "visible": [
+        0,
+        0
+      ],
+      "motionTracks": [
+        0,
+        0
+      ],
+      "activeAI": [
+        93,
+        100
+      ],
+      "fullDPR": true,
+      "actualFieldModelCountsMatch": true,
+      "trianglesPerFrame": 265626.576,
+      "longTaskCount": 306,
+      "errors": [],
+      "autosaveTick": null,
+      "stageMeasurements": false
+    }
+  ],
+  "validation": {
+    "finalRouteBrowserTests": 7,
+    "coreTests": 629,
+    "browserTests": 18,
+    "productionSaveRoundTrip": true,
+    "productionBuild": true
+  }
+}

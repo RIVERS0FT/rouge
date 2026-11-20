@@ -6,7 +6,7 @@ import {MAP} from '../src/game/map.ts';
 import {MARCH_FRACTIONS,marchDispatchCount} from '../src/game/countryActions.ts';
 import {isRegionGarrison,regionGarrison,regionReservations} from '../src/game/capacity.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
-import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
+import {validateState,encodeSave,decodeSave,checksum} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 
@@ -43,6 +43,26 @@ test('new recruits stay behind even while a full dispatch is gathering',()=>{
  assert.equal(reinforcement.army,undefined);assert.equal(reinforcement.target,null);
  const later=e.state.nextId;trainNext(e,from);e.step();
  assert.ok(isRegionGarrison(e.state.units.find(u=>u.id===later),0,from));assert.ok(validateState(e.state));
+});
+
+test('friendly dispatch clears a captured source assault marker and old snapshots save again',()=>{
+ const {e,from,to}=garrisonFixture({count:1}),unit=e.state.units[0];
+ unit.assault=from;
+ assert.ok(order(e,from,to).ok);
+ assert.equal(unit.assault,from);
+ e.step();
+ assert.equal(unit.target,to);
+ assert.equal(unit.assault,undefined);
+ assert.ok(validateState(e.state));
+ const old=structuredClone(e.state),oldUnit=old.units.find(u=>u.id===unit.id);
+ oldUnit.assault=from;
+ assert.equal(validateState(old),false);
+ assert.deepEqual(decodeSave(encodeSave(old,'Recovered')).state,e.state);
+ assert.equal(oldUnit.assault,from,'saving does not modify the running match');
+ const body=JSON.stringify(old);
+ assert.deepEqual(decodeSave(JSON.stringify({version:1,name:'Old',savedAt:new Date().toISOString(),hash:checksum(body),body})).state,e.state);
+ oldUnit.assault=MAP.length;
+ assert.throws(()=>encodeSave(old,'Forged'),/invalidSave/);
 });
 
 test('percentage orders use a deterministic per-source count; partial orders do not add later recruits',()=>{

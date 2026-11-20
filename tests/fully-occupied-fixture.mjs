@@ -9,19 +9,12 @@ export const FULLY_OCCUPIED_UNIT_TARGET=5200;
 
 export function createFullyOccupiedFixture(seed=77){
  const state=createGame([{name:'Performance Commander',leader:'warden',loadout:['infantry']},...makeAISetups(100,seed)],seed,`full-map-100-ai-${seed}`);
- const origins=state.players.map(player=>MAP[state.provinces.find(p=>p.owner===player.id).id].center),width=BOUNDS.right-BOUNDS.left;
- // Expand each existing seat to its nearest provinces. Keep contiguous-looking
- // countries rather than manufacturing a checkerboard of maximum borders.
- for(const province of state.provinces){
-  if(!MAP[province.id].playable)continue;
-  if(province.owner<0){
-   const center=MAP[province.id].center;let nearest=Infinity;
-   for(const [owner,origin] of origins.entries()){
-    const dx=Math.abs(center.x-origin.x),distance=Math.min(dx,width-dx)**2+(center.z-origin.z)**2;
-    if(distance<nearest){nearest=distance;province.owner=owner;}
-   }
-  }
-  province.kind=state.players[province.owner].loadout[0];
+ const capitals=state.players.map(player=>state.provinces.find(p=>p.owner===player.id).id),width=BOUNDS.right-BOUNDS.left;
+ const distance=(id,home)=>{const center=MAP[id].center,origin=MAP[home].center,dx=Math.abs(center.x-origin.x);return Math.min(dx,width-dx)**2+(center.z-origin.z)**2;};
+ // Seed the original legal garrison positions before distributing the seats.
+ for(const p of state.provinces)if(MAP[p.id].playable){
+  if(p.owner<0){let nearest=Infinity;for(const [owner,id] of capitals.entries()){const d=distance(p.id,id);if(d<nearest){nearest=d;p.owner=owner;}}}
+  p.kind=state.players[p.owner].loadout[0];
  }
  // Retain the engine's legal, separated starting positions and all garrisons.
  // Production, movement, combat and AI then run through the ordinary worker.
@@ -39,5 +32,23 @@ export function createFullyOccupiedFixture(seed=77){
  }
  if(prepared.units.length<FULLY_OCCUPIED_UNIT_TARGET)throw new Error('Could not construct the full synthetic performance workload');
  prepared.units.length=FULLY_OCCUPIED_UNIT_TARGET;
+ // After production, distribute the same 5,200 troops and regions. Seats take
+ // turns claiming nearby land, with an ordinary fortress on their first two.
+ const remaining=new Set(MAP.filter(p=>p.playable).map(p=>p.id));
+ function assign(id,owner,fortified){
+  const province=prepared.provinces[id];
+  province.owner=owner;province.kind=prepared.players[owner].loadout[0];
+  if(fortified)province.construction={kind:'fortress',level:2};
+  remaining.delete(id);
+ }
+ capitals.forEach((id,owner)=>assign(id,owner,true));
+ for(let round=0;remaining.size;round++)for(const [owner,home] of capitals.entries()){
+  if(!remaining.size)break;
+  let nearest=Infinity,best;
+  for(const id of remaining){const d=distance(id,home);if(d<nearest){nearest=d;best=id;}}
+  assign(best,owner,round===0);
+ }
+ for(const u of prepared.units){const p=prepared.provinces[u.province];u.owner=p.owner;u.kind=p.kind;u.hp=stats(prepared.players[u.owner],u.kind).hp;}
+ prepared.topology++;prepared.grouping=reconcileGrouping(prepared);
  return {state:prepared,canvas:{selectedRegion:provinceByCode('DEU-3487')}};
 }

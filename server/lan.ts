@@ -5,9 +5,9 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { makeAISetups, getSpawnCapacity } from '../src/game/spawns.ts';
 import { Engine, createGame } from '../src/game/engine.ts';
-import { encodeFrame, type SnapshotBase } from '../src/platform/replication.ts';
-import { validateSetup, MAP_ID, RULES_ID, VERSION } from '../src/game/content.ts';
-import type { PlayerSetup } from '../src/game/types.ts';
+import { encodeFrame, type SnapshotBase, type StateFrame } from '../src/platform/replication.ts';
+import { validateSetup, MAP_ID, LAN_RULES_ID, VERSION } from '../src/game/content.ts';
+import type { Player, PlayerSetup } from '../src/game/types.ts';
 interface Seat {id:number;setup:PlayerSetup;token:string;requests:number;window:number}
 interface Room {code:string;aiCount:number;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
 const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json'};
@@ -24,22 +24,36 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
   function emitEncoded(res:ServerResponse,data:string){if(!writable(res))return false;res.write(data);return true;}
   function serialize(event:unknown){return `data: ${JSON.stringify(event)}\n\n`;}
   function broadcast(room:Room){const data=serialize({type:'room',room:info(room)});for(const res of room.streams.values())emitEncoded(res,data);}
+  // A frame ends with its seat-specific players array. Encode the much larger
+  // public world once and write the same UTF-8 bytes to each matching stream.
+  function publicFrame(frame:StateFrame){
+    const {state,...envelope}=frame,{players,...world}=state;
+    const head=JSON.stringify(envelope).slice(0,-1),body=JSON.stringify(world).slice(0,-1);
+    return {prefix:Buffer.from(`data: ${head},"state":${body},"players":`),players,tails:new Map<number,Buffer>()};
+  }
   // Cache only within this synchronous broadcast. Bases use object identity, not
   // tick: a command can change provinces several times within the same tick.
   // Empty-choice viewers share one frame; pending private choices stay per actor.
   function snapshot(room:Room,streams:Iterable<[number,ServerResponse]>=room.streams){
     if(!room.engine)return;
-    const frames=new Map<SnapshotBase|undefined,Map<number,string>>();
+    const frames=new Map<SnapshotBase|undefined,ReturnType<typeof publicFrame>>();
     let nextBase:SnapshotBase|undefined;
     for(const[actor,res]of streams){
       if(!writable(res))continue;
-      const base=bases.get(res),viewer=room.engine.state.players[actor]?.choices.length?actor:-1;
-      let variants=frames.get(base);if(!variants){variants=new Map();frames.set(base,variants);}
-      let data=variants.get(viewer);
-      if(data===undefined){const encoded=encodeFrame(room.engine.state,base,actor);nextBase??=encoded.base;data=serialize(encoded.frame);variants.set(viewer,data);}
+      const base=bases.get(res),seat=room.engine.state.players[actor],viewer=seat?.choices.length?actor:-1;
+      let shared=frames.get(base);
+      if(!shared){
+        const encoded=encodeFrame(room.engine.state,base,-1);nextBase??=encoded.base;
+        shared=publicFrame(encoded.frame);frames.set(base,shared);
+      }
+      let tail=shared.tails.get(viewer);
+      if(!tail){
+        const players:Player[]=viewer<0?shared.players:shared.players.map(p=>p.id===viewer?{...p,choices:seat.choices}:p);
+        tail=Buffer.from(JSON.stringify(players)+'}}\n\n');shared.tails.set(viewer,tail);
+      }
       // All successfully sent views describe the same current province state.
       // Converging bases lets the next broadcast reuse deltas across recipients.
-      if(emitEncoded(res,data))bases.set(res,nextBase!);
+      res.write(shared.prefix);res.write(tail);bases.set(res,nextBase!);
     }
   }
   async function body(req:IncomingMessage):Promise<any>{const chunks:Buffer[]=[];let bytes=0;for await(const chunk of req){const data=Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk);bytes+=data.length;if(bytes>8192)throw new Error('tooLarge');chunks.push(data);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new Error('invalidJson');}}
@@ -48,9 +62,9 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
     try{
       // Same-origin only: the server also serves the built game. No permissive CORS.
       if(req.headers.origin){const origin=new URL(req.headers.origin);if(origin.host!==req.headers.host){json(res,403,{error:'originDenied'});return;}}
-      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:VERSION,map:MAP_ID,rules:RULES_ID});return;}
+      if(url.pathname==='/api/health'){json(res,200,{ok:true,version:VERSION,map:MAP_ID,rules:LAN_RULES_ID});return;}
       if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-map']!==MAP_ID){json(res,409,{error:'incompatibleMap'});return;}
-      if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-rules']!==RULES_ID){json(res,409,{error:'incompatibleRules'});return;}
+      if(url.pathname.startsWith('/api/rooms')&&req.headers['x-rouge-rules']!==LAN_RULES_ID){json(res,409,{error:'incompatibleRules'});return;}
       if(req.method==='POST'&&url.pathname==='/api/rooms'){
         if(rooms.size>=(options.maxRooms??16)){json(res,503,{error:'serverFull'});return;}
         const input=await body(req);if(!validateSetup(input?.setup)||input.setup.ai===true){json(res,400,{error:'invalidSetup'});return;}

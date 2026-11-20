@@ -2,7 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Engine,createGame} from '../src/game/engine.ts';
 import {MAP} from '../src/game/map.ts';
-import {CONSTRUCTION,CONSTRUCTION_KINDS,STARTING_FUNDS,availableFunds,fundsIncomeRate,recoveryMultiplier} from '../src/game/construction.ts';
+import {BASE_FUNDS_INCOME,CONSTRUCTION,CONSTRUCTION_KINDS,STARTING_FUNDS,availableFunds,fundsIncomeRate,recoveryMultiplier} from '../src/game/construction.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {DT} from '../src/game/content.ts';
 import {decodeSave,encodeSave,validateState} from '../src/game/save.ts';
 import {regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
@@ -62,7 +63,7 @@ test('a market augments shared funds income; a barracks augments only local prod
  expectClose(market.state.players[0].funds-mb-(a.state.players[0].funds-ab),regionProductionRate(home)*CONSTRUCTION.market.benefits[0]);
  for(const tile of a.state.provinces){
   expectClose(market.state.provinces[tile.id].production,tile.production);
-  expectClose(barracks.state.provinces[tile.id].production,tile.production*(tile.id===home?1.25:1));
+  expectClose(barracks.state.provinces[tile.id].production,tile.production*(tile.id===home?1+CONSTRUCTION.barracks.benefits[0]:1));
  }
 });
 
@@ -77,23 +78,26 @@ test('fortress slows only post-combat capture; ownership change retains faciliti
  }
  assert.equal(fort.command(0,order(home,'fortress')).ok,true);
  assert.equal(normal.command(0,order(home,'market')).ok,true);
- normal.step(20);fort.step(20);
+ // Step counts follow balance.ts: one day, the capture time plus five ticks, the fortress's extra time, then recovery in two halves.
+ const day=Math.round(1/DT),captureTicks=Math.round(BALANCE.capture.days/DT),fortTicks=Math.round(BALANCE.capture.days*CONSTRUCTION.fortress.benefits[0]/DT);
+ const recoveryTicks=Math.round(BALANCE.economy.recoveryDays/DT),halfRecovery=Math.round(recoveryTicks/2),fullIncome=BASE_FUNDS_INCOME+CONSTRUCTION.market.benefits[0];
+ normal.step(day);fort.step(day);
  const n=normal.state.provinces[home],f=fort.state.provinces[home];
- expectClose(n.capture,1);expectClose(f.capture,.8);
- normal.step(145);fort.step(145);
+ expectClose(n.capture,1);expectClose(f.capture,1/(1+CONSTRUCTION.fortress.benefits[0]));
+ normal.step(captureTicks-day+5);fort.step(captureTicks-day+5);
  assert.equal(n.owner,1);
  assert.deepEqual(n.construction,{kind:'market',level:1});
- assert.ok(n.recovery>14&&n.recovery<15);
+ assert.ok(n.recovery>BALANCE.economy.recoveryDays-1&&n.recovery<BALANCE.economy.recoveryDays);
  assert.equal(f.owner,0);
- fort.step(40);assert.equal(f.owner,1);
+ fort.step(fortTicks);assert.equal(f.owner,1);
  const start=fundsIncomeRate(n,1);
- normal.step(150);
+ normal.step(halfRecovery);
  const midway=fundsIncomeRate(n,1);
- assert.ok(start<midway&&midway<1.75);
- normal.step(150);
+ assert.ok(start<midway&&midway<fullIncome);
+ normal.step(recoveryTicks-halfRecovery);
  assert.equal(n.recovery,0);
  expectClose(recoveryMultiplier(n.recovery),1);
- expectClose(fundsIncomeRate(n,1),1.75);
+ expectClose(fundsIncomeRate(n,1),fullIncome);
 });
 
 test('merge and split can never grant a duplicate construction slot or funds',()=>{

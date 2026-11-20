@@ -1,14 +1,18 @@
 import pkg from '../../package.json' with {type: 'json'};
 import { validFlag } from './flags.ts';
+import { BALANCE, BALANCE_ID } from './balance.ts';
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION=pkg.version;
 // Bump the LAN protocol identity when shared simulation rules, commands, or state shape change.
 export const RULES_ID='admin1-locked-game-regions-v45';
+/** What LAN peers compare: the rules identity plus a fingerprint of every number in
+ * balance.ts, so a retune alone already keeps mismatched builds out of the same room. */
+export const LAN_RULES_ID=`${RULES_ID}+balance-${BALANCE_ID}`;
 export const STATE_VERSION=30;
 export const MAP_ID='earth-natural-earth-admin1-511-regions-v28' as const;
 // Per-faction physical capacity in one management region; no player/world army cap.
-export const PROVINCE_CAP=12;
+export const PROVINCE_CAP=BALANCE.regions.slots;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];
 export type UnitFamily='infantry'|'cavalry'|'artillery'|'engineer';
 export const UNIT_FAMILY:Record<Kind,UnitFamily>={infantry:'infantry',cavalry:'cavalry',artillery:'artillery',engineer:'engineer',skirmisher:'infantry',grenadier:'infantry',heavyCavalry:'cavalry',horseArtillery:'artillery'};
@@ -17,16 +21,11 @@ export const LEADERS:Leader[]=['warden','vanguard','steward'];
 export const STATS:Upgrade[]=['attack','health','speed'];
 export interface UnitStats {hp:number;attack:number;defense:number;attackSpeed:number;splash:number;range:number;train:number;speed:number;seaSpeed:number}
 export const UNIT_ATTRIBUTES:(keyof UnitStats)[]=['hp','attack','defense','attackSpeed','splash','range','train','speed','seaSpeed'];
-export const UNITS:Record<Kind,UnitStats>={
-  infantry:{hp:100,attack:14,defense:10,attackSpeed:1,splash:0,range:3.1,train:14,speed:2.4,seaSpeed:3},
-  cavalry:{hp:120,attack:24,defense:15,attackSpeed:0.8,splash:0,range:1.8,train:22,speed:4,seaSpeed:3},
-  artillery:{hp:80,attack:40,defense:0,attackSpeed:0.5,splash:1.2,range:7.2,train:28,speed:1.8,seaSpeed:3},
-  engineer:{hp:100,attack:12,defense:10,attackSpeed:1,splash:0,range:2.6,train:18,speed:2.5,seaSpeed:3},
-  skirmisher:{hp:75,attack:12,defense:0,attackSpeed:1,splash:0,range:4.6,train:18,speed:3,seaSpeed:3},
-  grenadier:{hp:130,attack:18,defense:20,attackSpeed:0.8,splash:0.7,range:2.3,train:24,speed:2.2,seaSpeed:3},
-  heavyCavalry:{hp:155,attack:30,defense:25,attackSpeed:0.65,splash:0,range:1.6,train:32,speed:3.4,seaSpeed:3},
-  horseArtillery:{hp:70,attack:28,defense:0,attackSpeed:0.55,splash:0.8,range:5.8,train:30,speed:2.8,seaSpeed:3},
-};
+export const UNITS:Record<Kind,UnitStats>=BALANCE.units;
+const UPGRADES=BALANCE.upgrades,T=BALANCE.talents;
+export const MAX_UPGRADE_LEVEL=UPGRADES.maxLevel,MAX_LEADER_LEVEL=BALANCE.leader.maxLevel;
+/** Experience needed to rise from `level` to the next leader level. */
+export function experienceForLevel(level:number):number{return BALANCE.leader.xpBase+level*BALANCE.leader.xpPerLevel;}
 type UnitModifier={readonly stat:keyof UnitStats;readonly factor?:number;readonly bonus?:number};
 /** Shared quantities that talents read (trigger/condition) or write (effect).
  * Design metadata only: rules never read it. Builds are not tagged anywhere;
@@ -50,14 +49,14 @@ const talent=(id:string,reads:readonly TalentKeyword[],writes:readonly TalentKey
 export const TALENTS:readonly Talent[]=[
   // Existing universal talents, unchanged.
   talent('industry',[],['training','garrison']),
-  talent('forcedMarch',[],['march'],{unit:[{stat:'speed',factor:1.2}]}),
+  talent('forcedMarch',[],['march'],{unit:[{stat:'speed',factor:T.forcedMarch.speed}]}),
   talent('entrenchment',['territory'],['hp']),
-  talent('veterans',[],['kill'],{unit:[{stat:'attack',factor:1.12}]}),
+  talent('veterans',[],['kill'],{unit:[{stat:'attack',factor:T.veterans.attack}]}),
   talent('conqueror',[],['capture','territory']),
-  talent('protectiveGear',[],['hp'],{unit:[{stat:'defense',bonus:8}]}),
-  talent('combatDrills',[],['kill'],{unit:[{stat:'attackSpeed',factor:1.12}]}),
-  talent('rangefinding',[],['kill'],{unit:[{stat:'range',factor:1.10}]}),
-  talent('navalLogistics',[],['march'],{unit:[{stat:'seaSpeed',factor:1.25}]}),
+  talent('protectiveGear',[],['hp'],{unit:[{stat:'defense',bonus:T.protectiveGear.defense}]}),
+  talent('combatDrills',[],['kill'],{unit:[{stat:'attackSpeed',factor:T.combatDrills.attackSpeed}]}),
+  talent('rangefinding',[],['kill'],{unit:[{stat:'range',factor:T.rangefinding.range}]}),
+  talent('navalLogistics',[],['march'],{unit:[{stat:'seaSpeed',factor:T.navalLogistics.seaSpeed}]}),
   talent('warSpoils',['capture'],['funds']),
   talent('taxReform',['territory'],['funds']),
   talent('publicWorks',['funds'],['building','market','barracks','fortress']),
@@ -75,37 +74,37 @@ export const TALENTS:readonly Talent[]=[
   talent('bounty',['kill'],['funds']),
   talent('battleHardened',['kill'],['xp']),
   talent('martyrs',['death','territory'],['training','garrison']),
-  talent('livingOffLand',['kill','capture'],['funds'],{tradeoff:true,minLevel:4}),
+  talent('livingOffLand',['kill','capture'],['funds'],{tradeoff:true,minLevel:T.livingOffLand.minLevel}),
   talent('massedRanks',['garrison'],['hp']),
   talent('grandGarrison',['training'],['garrison','death'],{tradeoff:true}),
   talent('militia',['territory'],['training','garrison','death']),
   talent('shockAssault',['march'],['kill','capture','territory','death'],{tradeoff:true}),
   talent('supplyColumns',['march'],['hp']),
-  talent('encirclement',['territory'],['capture','territory','kill'],{minLevel:4}),
+  talent('encirclement',['territory'],['capture','territory','kill'],{minLevel:T.encirclement.minLevel}),
   talent('treasury',['funds'],['funds']),
   talent('warChest',['funds'],['kill']),
   talent('levy',['funds'],['training','garrison']),
   talent('arsenal',['funds'],['kill','hp']),
-  talent('mercantilism',['territory'],['funds'],{tradeoff:true,unit:[{stat:'attack',factor:.9}]}),
+  talent('mercantilism',['territory'],['funds'],{tradeoff:true,unit:[{stat:'attack',factor:T.mercantilism.attack}]}),
   talent('fortressDoctrine',['fortress'],['hp','building','fortress']),
   talent('bastionGuns',['fortress'],['kill']),
   talent('tradeRoutes',['market'],['funds']),
   talent('academy',['barracks'],['xp']),
   talent('conscription',['barracks'],['garrison']),
-  talent('industrialBase',['building','funds'],['fortress','market','barracks','building'],{minLevel:4}),
+  talent('industrialBase',['building','funds'],['fortress','market','barracks','building'],{minLevel:T.industrialBase.minLevel}),
   // Signature talents: one unit kind each.
-  talent('shieldWall',['training'],['garrison','death'],{kinds:['infantry'],tradeoff:true,unit:[{stat:'hp',factor:.9}]}),
+  talent('shieldWall',['training'],['garrison','death'],{kinds:['infantry'],tradeoff:true,unit:[{stat:'hp',factor:T.shieldWall.hp}]}),
   talent('pensions',['death'],['funds'],{kinds:['infantry']}),
   talent('forwardMarksmen',['march'],['kill'],{kinds:['skirmisher']}),
-  talent('lightInfantry',['territory'],['march','hp'],{kinds:['skirmisher'],unit:[{stat:'speed',factor:1.15}]}),
+  talent('lightInfantry',['territory'],['march','hp'],{kinds:['skirmisher'],unit:[{stat:'speed',factor:T.lightInfantry.speed}]}),
   talent('stormTroops',['fortress','capture'],['capture','territory','hp'],{kinds:['grenadier']}),
   talent('grenadeVolley',['garrison'],['kill'],{kinds:['grenadier']}),
   talent('charge',['march'],['kill','capture'],{kinds:['cavalry']}),
   talent('lightSaddles',['march'],['funds','training'],{kinds:['cavalry']}),
-  talent('cuirass',['garrison'],['hp'],{kinds:['heavyCavalry'],unit:[{stat:'defense',bonus:10}]}),
-  talent('breakthrough',['garrison'],['kill'],{kinds:['heavyCavalry'],unit:[{stat:'splash',bonus:1}]}),
+  talent('cuirass',['garrison'],['hp'],{kinds:['heavyCavalry'],unit:[{stat:'defense',bonus:T.cuirass.defense}]}),
+  talent('breakthrough',['garrison'],['kill'],{kinds:['heavyCavalry'],unit:[{stat:'splash',bonus:T.breakthrough.splash}]}),
   talent('barrage',['garrison','fortress'],['kill','capture'],{kinds:['artillery']}),
-  talent('wideSalvo',['garrison'],['kill'],{kinds:['artillery'],unit:[{stat:'splash',factor:1.25}]}),
+  talent('wideSalvo',['garrison'],['kill'],{kinds:['artillery'],unit:[{stat:'splash',factor:T.wideSalvo.splash}]}),
   talent('flyingBattery',['march'],['hp'],{kinds:['horseArtillery']}),
   talent('pointBlank',[],['kill'],{kinds:['horseArtillery']}),
   talent('sappers',['building','garrison'],['building','fortress','market','barracks'],{kinds:['engineer']}),
@@ -115,14 +114,14 @@ export const TALENTS:readonly Talent[]=[
 export const TALENT_BY_ID:ReadonlyMap<string,Talent>=new Map(TALENTS.map(t=>[t.id,t]));
 export function talentAppliesToKind(t:Pick<Talent,'kinds'>,kind:Kind):boolean{return !t.kinds||t.kinds.includes(kind);}
 export function hasTalent(p:Pick<Player,'talents'>|undefined,id:string):boolean{return p?.talents.includes(id)??false;}
-export function upgradeCost(level:number):number {return Math.floor(30*Math.pow(level+1,1.65));}
+export function upgradeCost(level:number):number {return Math.floor(UPGRADES.costBase*Math.pow(level+1,UPGRADES.costExponent));}
 /** Funds for the next unit upgrade, including the Arsenal discount. */
 export function upgradeCostFor(p:Pick<Player,'talents'>|undefined,level:number):number {
-  const base=upgradeCost(level);return hasTalent(p,'arsenal')?Math.floor(base*.7):base;
+  const base=upgradeCost(level);return hasTalent(p,'arsenal')?Math.floor(base*T.arsenal.cost):base;
 }
 export function stats(p:Pick<Player,'talents'|'upgrades'>|undefined,kind:Kind):UnitStats {
   const b=UNITS[kind],u=p?.upgrades[kind];
-  const result={...b,hp:b.hp+(u?.health??0)*12,attack:b.attack+(u?.attack??0)*2,speed:b.speed+(u?.speed??0)*0.16};
+  const result={...b,hp:b.hp+(u?.health??0)*UPGRADES.healthPerLevel,attack:b.attack+(u?.attack??0)*UPGRADES.attackPerLevel,speed:b.speed+(u?.speed??0)*UPGRADES.speedPerLevel};
   if(p)for(const id of p.talents){
     const definition=TALENT_BY_ID.get(id);
     if(!definition?.unit||!talentAppliesToKind(definition,kind))continue;

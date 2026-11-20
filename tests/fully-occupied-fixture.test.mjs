@@ -13,7 +13,9 @@ test('acceptance fixture has 100 living AI and every playable region occupied, w
   if(province.owner>=0)assert.equal(province.kind,state.players[province.owner].loadout[0]);
  }
  for(const player of state.players){
-  assert.ok(state.provinces.some(p=>p.owner===player.id));
+  const territories=state.provinces.filter(p=>p.owner===player.id);
+  assert.ok(territories.length>=Math.floor(MAP.filter(p=>p.playable).length/state.players.length));
+  assert.equal(territories.filter(p=>p.construction?.kind==='fortress').length,2);
   assert.ok(state.units.some(u=>u.owner===player.id));
  }
  assert.ok(FULLY_OCCUPIED_UNIT_TARGET>5000);

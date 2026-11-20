@@ -2,7 +2,7 @@ import {Icon, type IconName} from '../icons.tsx';
 import {t, type Language} from '../i18n.ts';
 import {Tip, TipNote, TipTitle} from '../Tooltip.tsx';
 
-export type Dock = 'region' | 'military' | 'nations';
+export type Dock = 'region' | 'country' | 'military' | 'nations';
 
 type RailItem = {
  key: string; icon: IconName; label: string; testId: string; hint?: string;
@@ -25,8 +25,8 @@ export function CommandRail({language, dock, outlinerOpen, hasRegion, pendingTal
    expanded: outlinerOpen, controls: 'strategic-panel', onClick: onOutliner},
   {key: 'military', icon: 'military', label: text('railMilitary'), testId: 'open-upgrades', hint: text('upgrades'),
    expanded: dock === 'military', controls: dock === 'military' ? 'military-panel' : undefined, onClick: () => onDock('military')},
-  {key: 'nations', icon: 'globe', label: text('railNations'), testId: 'open-nations', hint: text('nationsTitle'),
-   expanded: dock === 'nations', controls: dock === 'nations' ? 'nations-panel' : undefined, onClick: () => onDock('nations')},
+  {key: 'country', icon: 'banner', label: text('railCountry'), testId: 'open-country', hint: text('nationDetails'),
+   expanded: dock === 'country', controls: dock === 'country' ? 'country-panel' : undefined, onClick: () => onDock('country')},
   {key: 'talents', icon: 'laurel', label: text('railTalents'), testId: 'mobile-talents', hint: text('talents'),
    popup: true, badge: pendingTalents, onClick: onTalents},
  ];

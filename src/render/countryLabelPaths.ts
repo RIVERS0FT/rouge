@@ -40,9 +40,18 @@ function raster(edges:readonly Edge[],bounds:Rect):Grid{
  const left=bounds.left-cell*2,top=bounds.top-cell*2,cols=Math.ceil((bounds.right-bounds.left)/cell)+4,rows=Math.ceil((bounds.bottom-bounds.top)/cell)+4;
  const inside=new Uint8Array(cols*rows);
  // Union boundaries have no administrative seams. Even/odd spans preserve holes.
+ const scanlines:number[][]=Array.from({length:rows},()=>[]);
+ for(const {a,b} of edges){
+  // Keep the exact half-open crossing test at both ends of each span.
+  const first=Math.max(0,Math.floor((Math.min(a.z,b.z)-top)/cell-.5)-1);
+  const last=Math.min(rows-1,Math.ceil((Math.max(a.z,b.z)-top)/cell-.5)+1);
+  for(let y=first;y<=last;y++){
+   const z=top+(y+.5)*cell;
+   if((a.z>z)!==(b.z>z))scanlines[y].push(a.x+(b.x-a.x)*(z-a.z)/(b.z-a.z));
+  }
+ }
  for(let y=0;y<rows;y++){
-  const z=top+(y+.5)*cell,crossings:number[]=[];
-  for(const {a,b} of edges)if((a.z>z)!==(b.z>z))crossings.push(a.x+(b.x-a.x)*(z-a.z)/(b.z-a.z));
+  const crossings=scanlines[y];
   crossings.sort((a,b)=>a-b);
   for(let j=0;j+1<crossings.length;j+=2){const start=Math.max(0,Math.ceil((crossings[j]-left)/cell-.5)),end=Math.min(cols,Math.ceil((crossings[j+1]-left)/cell-.5));inside.fill(1,y*cols+start,y*cols+end);}
  }
@@ -68,7 +77,34 @@ function distanceSquaredToSegment(p:Vec2,{a,b}:Edge):number{
  return (p.x-a.x-t*dx)**2+(p.z-a.z-t*dz)**2;
 }
 
-function curveFromRidge(ridge:Vec2[],edges:readonly Edge[],bounds:Rect):CountryCurve|null{
+/** Neighbouring ring edges tend to occupy a small rectangle. Keep their
+ * original order and skip blocks outside both the ray and nearest-edge query. */
+function outlineClearance(edges:readonly Edge[]){
+ const blocks:(Rect&{start:number;end:number})[]=[];
+ for(let start=0;start<edges.length;start+=24){
+  const end=Math.min(start+24,edges.length);
+  let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;
+  for(let i=start;i<end;i++){const {a,b}=edges[i];left=Math.min(left,a.x,b.x);right=Math.max(right,a.x,b.x);top=Math.min(top,a.z,b.z);bottom=Math.max(bottom,a.z,b.z);}
+  blocks.push({start,end,left,right,top,bottom});
+ }
+ return (p:Vec2)=>{
+  let inside=false,square=Infinity;
+  for(const block of blocks){
+   const dx=Math.max(0,block.left-p.x,p.x-block.right),dz=Math.max(0,block.top-p.z,p.z-block.bottom);
+   const nearest=dx*dx+dz*dz<=square+1e-8;
+   const crosses=block.top<=p.z&&p.z<block.bottom&&p.x<=block.right+1e-8;
+   if(!nearest&&!crosses)continue;
+   for(let i=block.start;i<block.end;i++){
+    const edge=edges[i],{a,b}=edge;
+    if(nearest)square=Math.min(square,distanceSquaredToSegment(p,edge));
+    if(crosses&&(a.z>p.z)!==(b.z>p.z)&&p.x<a.x+(b.x-a.x)*(p.z-a.z)/(b.z-a.z))inside=!inside;
+   }
+  }
+  return inside?Math.sqrt(square):-1;
+ };
+}
+
+function curveFromRidge(ridge:Vec2[],clearanceAt:(p:Vec2)=>number,bounds:Rect):CountryCurve|null{
  if(ridge.length<6)return null;
  const start=ridge[0],end=ridge[ridge.length-1];let cx=0,cz=0,denominator=0;
  // Least-squares quadratic with exactly one control point. Its signed curvature
@@ -78,10 +114,8 @@ function curveFromRidge(ridge:Vec2[],edges:readonly Edge[],bounds:Rect):CountryC
  for(let k=0;k<=64;k++){const t=k/64,s=1-t;points.push({x:s*s*start.x+2*s*t*control.x+t*t*end.x,z:s*s*start.z+2*s*t*control.z+t*t*end.z});}
  let clearance=Infinity,length=0,longestStep=0;
  for(let i=0;i<points.length;i++){
-  const p=points[i];let inside=false,d=Math.min(p.z-bounds.top,bounds.bottom-p.z),square=Infinity;
-  for(const edge of edges){square=Math.min(square,distanceSquaredToSegment(p,edge));const {a,b}=edge;if((a.z>p.z)!==(b.z>p.z)&&p.x<a.x+(b.x-a.x)*(p.z-a.z)/(b.z-a.z))inside=!inside;}
-  d=Math.min(d,Math.sqrt(square));
-  if(!inside)return null;clearance=Math.min(clearance,d);
+  const p=points[i],edgeClearance=clearanceAt(p);
+  if(edgeClearance<0)return null;clearance=Math.min(clearance,p.z-bounds.top,bounds.bottom-p.z,edgeClearance);
   if(i){const step=Math.hypot(p.x-points[i-1].x,p.z-points[i-1].z);length+=step;longestStep=Math.max(longestStep,step);}
  }
  // Distance is 1-Lipschitz: protect the intervals between validation samples too.
@@ -103,7 +137,7 @@ export function countryCurveSegment(curve:CountryCurve,length:number):{points:Ve
  return {points:Array.from({length:65},(_,i)=>at(t0+(t1-t0)*i/64)),control};
 }
 
-function candidates(grid:Grid,edges:readonly Edge[],bounds:Rect):CountryCurve[]{
+function candidates(grid:Grid,clearanceAt:(p:Vec2)=>number,bounds:Rect):CountryCurve[]{
  const curves:CountryCurve[]=[];let maximum=0;for(const d of grid.distance)maximum=Math.max(maximum,d);
  for(const vertical of [false,true])for(const fraction of [.25,.45,.65]){
   const cols=vertical?grid.rows:grid.cols,rows=vertical?grid.cols:grid.rows,threshold=Math.max(1.5,maximum*fraction),parent=new Int16Array(cols*rows);parent.fill(-1);
@@ -122,8 +156,8 @@ function candidates(grid:Grid,edges:readonly Edge[],bounds:Rect):CountryCurve[]{
   const ridge:Vec2[]=[];
   for(let x=bestX,y=bestY;x>=0&&y>=0;x--){const gx=vertical?y:x,gy=vertical?x:y;ridge.push({x:grid.left+(gx+.5)*grid.cell,z:grid.top+(gy+.5)*grid.cell});y=parent[x*rows+y];}
   ridge.reverse();if(vertical)ridge.reverse();
-  const curve=curveFromRidge(ridge,edges,bounds);if(curve)curves.push(curve);
-  else for(const [from,to] of [[.12,.88],[0,.6],[.4,1],[.25,.75]]){const smaller=curveFromRidge(ridge.slice(Math.floor(from*ridge.length),Math.ceil(to*ridge.length)),edges,bounds);if(smaller)curves.push(smaller);}
+  const curve=curveFromRidge(ridge,clearanceAt,bounds);if(curve)curves.push(curve);
+  else for(const [from,to] of [[.12,.88],[0,.6],[.4,1],[.25,.75]]){const smaller=curveFromRidge(ridge.slice(Math.floor(from*ridge.length),Math.ceil(to*ridge.length)),clearanceAt,bounds);if(smaller)curves.push(smaller);}
  }
  return curves.sort((a,b)=>b.length*Math.sqrt(b.clearance)-a.length*Math.sqrt(a.clearance)).slice(0,4);
 }
@@ -170,15 +204,12 @@ function preservesCorridors(placement:CountryPlacement,previous:string,next:read
   return true;
  });
 }
-function curveStillFits(curve:CountryCurve,edges:readonly Edge[],bounds:Rect,referenceX:number):boolean{
+function curveStillFits(curve:CountryCurve,clearanceAt:(p:Vec2)=>number,bounds:Rect,referenceX:number):boolean{
  let clearance=Infinity,longestStep=0;
  for(let i=0;i<curve.points.length;i++){
-  const original=curve.points[i],p={x:nearestWorldX(original.x,referenceX),z:original.z};let inside=false,square=Infinity;
-  for(const edge of edges){square=Math.min(square,distanceSquaredToSegment(p,edge));const {a,b}=edge;
-   if((a.z>p.z)!==(b.z>p.z)&&p.x<a.x+(b.x-a.x)*(p.z-a.z)/(b.z-a.z))inside=!inside;
-  }
-  if(!inside)return false;
-  clearance=Math.min(clearance,p.z-bounds.top,bounds.bottom-p.z,Math.sqrt(square));
+  const original=curve.points[i],p={x:nearestWorldX(original.x,referenceX),z:original.z},edgeClearance=clearanceAt(p);
+  if(edgeClearance<0)return false;
+  clearance=Math.min(clearance,p.z-bounds.top,bounds.bottom-p.z,edgeClearance);
   if(i)longestStep=Math.max(longestStep,Math.hypot(original.x-curve.points[i-1].x,original.z-curve.points[i-1].z));
  }
  // Use the same conservative between-sample bound as curveFromRidge.
@@ -207,15 +238,24 @@ export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonl
    old.members=signature;old.pendingGrowth=materialGrowth||undefined;result.set(label.owner,old.placement);
   }else{changed.push(label);if(materialGrowth)growth.add(label.owner);}
  }
- const needsLayout=new Set(changed.map(label=>label.owner));
- if(needsLayout.size)for(const edge of borders){const held=[...new Set(edge.atoms.map(id=>owners[id]??-1))];if(edge.atoms.length>1&&held.length===1)continue;
-  for(const owner of held)if(needsLayout.has(owner)){const list=outlines.get(owner)??[];list.push(edge);outlines.set(owner,list);}
+ for(const label of changed)outlines.set(label.owner,[]);
+ if(outlines.size)for(const edge of borders){
+  if(edge.atoms.length<=2){
+   const first=owners[edge.atoms[0]]??-1,second=edge.atoms.length===2?owners[edge.atoms[1]]??-1:undefined;
+   if(first===second)continue;
+   outlines.get(first)?.push(edge);
+   if(second!==undefined)outlines.get(second)?.push(edge);
+   continue;
+  }
+  const held=[...new Set(edge.atoms.map(id=>owners[id]??-1))];if(held.length===1)continue;
+  for(const owner of held)outlines.get(owner)?.push(edge);
  }
  for(const label of changed){
   const signature=(members.get(label.owner)??[]).join(','),old=cache.get(label.owner);
   const edges=(outlines.get(label.owner)??[]).map(({a,b})=>({a:{x:nearestWorldX(a.x,label.anchor.x),z:a.z},b:{x:nearestWorldX(b.x,label.anchor.x),z:b.z}}));
+  const clearanceAt=outlineClearance(edges);
   if(old&&!growth.has(label.owner)){
-   const valid=old.placement.curves.filter(curve=>curveStillFits(curve,edges,bounds,label.anchor.x));
+   const valid=old.placement.curves.filter(curve=>curveStillFits(curve,clearanceAt,bounds,label.anchor.x));
    if(valid.length){
     const placement=valid.length===old.placement.curves.length?old.placement:{...old.placement,curves:valid};
     cache.set(label.owner,{members:signature,placement});result.set(label.owner,placement);continue;
@@ -229,7 +269,7 @@ export function buildCountryPlacements(map:readonly ProvinceDef[],owners:readonl
    // not consume the resolution needed for its bays, narrow necks and lakes.
    let x0=grid.cols,x1=0,y0=grid.rows,y1=0;
    for(let y=0;y<grid.rows;y++)for(let x=0;x<grid.cols;x++)if(grid.inside[y*grid.cols+x]){x0=Math.min(x0,x);x1=Math.max(x1,x+1);y0=Math.min(y0,y);y1=Math.max(y1,y+1);}
-   if(x1>x0&&y1>y0){grid=raster(edges,{left:grid.left+x0*grid.cell,right:grid.left+x1*grid.cell,top:grid.top+y0*grid.cell,bottom:grid.top+y1*grid.cell});curves=candidates(grid,edges,bounds);}
+   if(x1>x0&&y1>y0){grid=raster(edges,{left:grid.left+x0*grid.cell,right:grid.left+x1*grid.cell,top:grid.top+y0*grid.cell,bottom:grid.top+y1*grid.cell});curves=candidates(grid,clearanceAt,bounds);}
   }
   if(old&&growth.has(label.owner))curves=growthCountryCurves(old.placement.curves,curves);
   const placement={owner:label.owner,area:label.area,curves};cache.set(label.owner,{members:signature,placement});result.set(label.owner,placement);

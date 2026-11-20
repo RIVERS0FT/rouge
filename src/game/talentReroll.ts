@@ -1,8 +1,10 @@
+import {BALANCE} from './balance.ts';
 import {TALENTS,talentApplies} from './content.ts';
 import type {Player} from './types.ts';
 
 export function talentRerollCost(player:Pick<Player,'rerollsUsed'|'level'>):number{
- return 30+10*Math.max(0,player.level-2)+15*player.rerollsUsed;
+ const price=BALANCE.reroll;
+ return price.base+price.perLevel*Math.max(0,player.level-price.freeLevels)+price.perUse*player.rerollsUsed;
 }
 
 /** Unowned talents this country can draw now. Drafts are not weighted by any

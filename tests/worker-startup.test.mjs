@@ -7,6 +7,7 @@ import {applyFrame} from '../src/platform/replication.ts';
 import {applyLocalFrame} from '../src/platform/localFrames.ts';
 import {MAP} from '../src/game/map.ts';
 import {reconcileGrouping} from '../src/game/territoryEconomy.ts';
+import {BALANCE} from '../src/game/balance.ts';
 const messages=[],timers=[];
 let current=null;
 const oldSelf=globalThis.self,oldTimeout=globalThis.setTimeout,oldClearTimeout=globalThis.clearTimeout;
@@ -64,7 +65,7 @@ test('switching to double speed at an odd paused tick keeps publishing complete 
 test('victory on an odd tick publishes the terminal state before stopping the clock',async()=>{
  const state=fresh();for(const p of state.provinces)if(MAP[p.id].playable&&p.owner!==1)p.owner=0;
  for(const u of state.units)u.owner=state.provinces[u.province].owner;
- state.grouping=reconcileGrouping(state);state.domination[0]=29.99;
+ state.grouping=reconcileGrouping(state);state.domination[0]=BALANCE.victory.days-.01;
  await receive({type:'init',state});assert.equal(current.winner,null);await advance();assert.equal(current.tick,1);assert.equal(current.winner,0);
  assert.equal(timers.some(timer=>timer.active),false);
 });

@@ -34,6 +34,22 @@ test('synchronous recovery replaces census views detached by navigation memory g
  kernel.memory.grow(1);assert.equal(e.censusOccupants.length,0);
  await e.stepParallel(async()=>{throw Error('Worker unavailable');});assert.deepEqual(e.state,expected.state);
 });
+test('daily fortress damage settles before a dying unit participates in collision or capture',async()=>{
+ const state=fixture(),region=state.provinces.find(p=>p.owner===0);
+ state.players[0].talents.push('bastionGuns');region.construction={kind:'fortress',level:1};
+ const attacker=state.units.find(u=>u.owner===1);
+ Object.assign(attacker,{...MAP[region.id].center,province:region.id,hp:.01});
+ // Exceed the worker threshold using the same legal, positive entity ids as normal play.
+ for(let i=0;i<300;i++)state.units.push({...attacker,id:state.nextId++});
+ const sync=new Engine(state),parallel=new Engine(state);
+ let called=false;
+ sync.step();
+ await parallel.stepParallel(async()=>{called=true;throw Error('Combined kernel ran before fortress damage');});
+ assert.equal(called,false);
+ assert.equal(sync.state.units.some(u=>u.id===attacker.id),false);
+ assert.deepEqual(parallel.state,sync.state);
+ assert.deepEqual(parallel.collision,sync.collision);
+});
 class FakeWorker {
  terminated=false;onmessage;onerror;onmessageerror;
  constructor(fail=false){this.fail=fail;}

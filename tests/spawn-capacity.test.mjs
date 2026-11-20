@@ -15,7 +15,7 @@ test('every eligible single start is offered once and has equal resources and a 
  for(const id of regions){
   assert.ok(MAP[id].playable&&MAP[id].locked);
   assert.equal(regionCapacity(id),12);assert.equal(regionProductionRate(id),1);
-  assert.ok(MAP[id].neighbors.some(n=>MAP[n].playable&&[nav.plan(MAP[id].center,MAP[n].center),nav.plan(MAP[n].center,MAP[id].center)].every(r=>r&&r.points.every(p=>!p.sea))));
+  assert.ok(MAP[id].neighbors.some(n=>MAP[n].playable&&[nav.planLand(MAP[id].center,MAP[n].center),nav.planLand(MAP[n].center,MAP[id].center)].every(r=>r&&r.points.every(p=>!p.sea))));
  }
  for(const seed of [0,1234,0xffffffff]){assert.equal(chooseSpawnRegions(seed,capacity).length,capacity);assert.deepEqual(chooseSpawnRegions(seed,5),chooseSpawnRegions(seed,capacity).slice(0,5));}
  assert.throws(()=>chooseSpawnRegions(42,capacity+1),/invalidSetup/);assert.throws(()=>makeAISetups(capacity),/invalidAI/);

@@ -1,0 +1,4516 @@
+{
+  "fixtures": {
+    "real": {
+      "sha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+      "tick": 20638,
+      "armies": 1686,
+      "units": 10065
+    },
+    "active": {
+      "sha256": "34824427630b3eb3e937d6df84cb3d5f0541e0bde29110a1222213c0dfb00535",
+      "tick": 260,
+      "armies": 333,
+      "units": 10000
+    },
+    "full": {
+      "sha256": "14d0b49fbe2fa4d550ee425a5a500041546baf12efa59e67866bf14ad91138ac",
+      "tick": 3,
+      "armies": 0,
+      "units": 5200
+    },
+    "late": {
+      "sha256": "a49bc704ffa15868e8277d9f09c52545a6ca541810dbb855dea2db0b153510b2",
+      "tick": 22180,
+      "armies": 3241,
+      "units": 25431
+    },
+    "march-330": {
+      "sha256": "15f06feb79ef0db9d98df76474e27da1da9a7e96f675bb0688c5224ac00fc8ac",
+      "tick": 20638,
+      "armies": 330,
+      "units": 10000
+    },
+    "march-1600": {
+      "sha256": "0b75733ca3b0052042fbc4badcb641966856a683528206424d0af1c7cc001b12",
+      "tick": 20638,
+      "armies": 1600,
+      "units": 10000
+    },
+    "bottleneck-330": {
+      "sha256": "b0d652b5be978855d4b554c1343dac585c6b4c6af509fac840eedec5f9e34300",
+      "tick": 20638,
+      "armies": 330,
+      "units": 10000
+    },
+    "bottleneck-1600": {
+      "sha256": "b9889e77fc4034005a595543f76e8dabf637d0ceb27c73d530f74016a3afe607",
+      "tick": 20638,
+      "armies": 1600,
+      "units": 10000
+    },
+    "landing-330": {
+      "sha256": "ac20dbc1d8e8397287de555ad605ac2cef4816260efaccf40c9d27e489a8d463",
+      "tick": 20638,
+      "armies": 330,
+      "units": 10000
+    },
+    "landing-1600": {
+      "sha256": "d43f7f21be0719134bfeb11f81e16cef27e1346298b4ee5d89df41461c3a9d90",
+      "tick": 20638,
+      "armies": 1600,
+      "units": 10000
+    },
+    "battle-330": {
+      "sha256": "75f5f92d3c12ba99da1bd13922b7187086b74be47e6b6fcafa068d297c570ad8",
+      "tick": 20638,
+      "armies": 330,
+      "units": 10000
+    },
+    "battle-1600": {
+      "sha256": "f2623037f3977f9a66221641f049226faa14f5536fa8cc9fb964091f4e6359fb",
+      "tick": 20638,
+      "armies": 1600,
+      "units": 10000
+    }
+  },
+  "builds": {
+    "before": "ae5814afb7fce43e6ebf7463de458cff710e8c065b2d936f2e52e4cf92e07211",
+    "after": "fe7a56d8419f1905680d2294fe3c1f47499616667ef6428e02fcfb89c31fd67a"
+  },
+  "lanRuntime": {
+    "node": "v24.15.0",
+    "server": {
+      "before": "d37682ff1ae8e48953cd11c1b83f8aff3128a987aaeb988197e18905a4d5d42b",
+      "after": "f8b376b23039351bfdffe78fe2a1308317ccc72fcfad0694eb1aa5d6448a2ff5"
+    }
+  },
+  "harnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+  "scenarioSignatures": {
+    "real2d": "9a828e42cd0c97e543b1a87269ec4b13ac4a2f2e987d574aa640f96b69877dba",
+    "real3d": "83e0e3acd7a82e305527db61700aa0bad4fe3af8ed034e8f4be1d01ba28461db",
+    "active2d": "552a95dd4fdc1aa0b8367b258ec462b6f08792c44c8d903c047d3fdadb3493bc",
+    "active3d": "f4ce4ff62cc6076fd114b2ec9c8182adfdb0c00ab30c6f246fe3169d40fab05e",
+    "map3d": "c9631d8fbf8923492c994d3d63f1385c7f3f342586faef6a324a9051681c612d",
+    "ai2d": "1c8731b35273672f1b2569c2832db280919155f750002811f7f6e43b7ffc8692",
+    "ai3d": "05cb765f7c48788f3a6c72a3f4a36a35664389db6735eee904b376fa37cc3a77",
+    "fixed-worker": "803d19f1259af3fba0f206cbe6cb0c5eaa66a8f5ed0f9ec73be443c0f73df48b",
+    "fixed-2d": "95fdb00853b47580a84760389a0ad4af5c5785dd8b0ad80af280744a5171e0b2",
+    "fixed-3d": "1e84cb69ded824a1f1edf0e4d4dd1c0e1db6e82f35f1d4b310782444918bd516",
+    "double2d": "9c183c8a7c78da3f5324a935770d5035f48b76b774b1c3d2263bfbec46030a97",
+    "double3d": "0486daf4dba9dda7accd9821ec24f8b9a0e09393b4f67abaa854949d0c1a14e3",
+    "input": "07a5cc6b949ead1217c5bd6a4a4ed1e687675e8d83abf1153906b2bce623c794",
+    "touch": "d844b82c36274a439525f250395cf93f20735c633ee41f54f5053a61ec68b1e5",
+    "soak": "b015bfa7bcbc20f28c3106a2bc4431ae07a2f831f2e50f6fe593b9712e0c63c7",
+    "lan": "ad90d0c780299fc882f63e8712e22be1558bd8021dd23ac84cc19761427ad11e",
+    "late2d": "61ea3d0ace8bb6946f112b8e5aafe8cd0de35e1fcc8a60d882cd062737d29076",
+    "late3d": "c903422e0507d725a4fd3de5c37efc1f2bb8946d959f5cd2375d33f66d127a1c",
+    "march-330": "4f398c0fccb06e331a620d66e1e7abffc2453dff83bdd710b25011c601c94ef5",
+    "march-1600": "490423d2a04ba017a568e7a3f83f2b037f97ed019d9624930f2850076ac1364a",
+    "bottleneck-330": "37241ed5c4eeff4f282342d3f04f238700b38d34e015b88aac856c187ffff6a0",
+    "bottleneck-1600": "302f30284b8218890714a4e57cac4b9ffc0f5bdee26ecafd343539607c29e61f",
+    "landing-330": "6888e3efcb73cf883db8c117b7240990ea3976f64467d46706ea98338a5b7a4a",
+    "landing-1600": "081d8332207a11ee88cd4c437ea54d78ae24794c0d16cc910f620c290d22f130",
+    "battle-330": "424bb8d4e8d847f581498f93a756825b41c71866b8f0828259e8ce24efec0fcd",
+    "battle-1600": "f06f9a61faa499aab05f4d1fd288d80b48b924356154856245e92dc5fe89e1d5"
+  },
+  "rounds": 3,
+  "selected": [
+    "ai2d",
+    "ai3d",
+    "map3d",
+    "fixed-worker",
+    "fixed-2d",
+    "fixed-3d",
+    "input",
+    "touch",
+    "lan",
+    "late2d",
+    "late3d",
+    "double2d",
+    "double3d",
+    "march-330",
+    "march-1600",
+    "bottleneck-330",
+    "bottleneck-1600",
+    "landing-330",
+    "landing-1600",
+    "battle-330",
+    "battle-1600",
+    "real2d",
+    "real3d",
+    "active2d",
+    "active3d",
+    "soak"
+  ],
+  "results": [
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "ai2d",
+      "rawSha256": "8f3986bff18ef041e3348d3d3588c7cb549a5fcd80ce1ed95b5b00fd08a6d9ff",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 6.536415150512184,
+      "ticksPerSecond": 19.991783742787902,
+      "p95GapMs": 218.89999999999418,
+      "maxGapMs": 250.20000000001164,
+      "failedChecks": [],
+      "initialTick": 1275,
+      "endTick": 2477,
+      "units": [
+        3571,
+        3724
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 21.034300135615656,
+          "p95": 29.5,
+          "max": 56.099853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 1.1127090200633305,
+          "p95": 7.10009765625,
+          "max": 27.89990234375
+        },
+        "encodeMs": {
+          "mean": 2.585217244601329,
+          "p95": 4.199951171875,
+          "max": 6.89990234375
+        },
+        "deliveryMs": {
+          "mean": 8.00147336028343,
+          "p95": 26.5,
+          "max": 87.300048828125
+        },
+        "applyMs": {
+          "mean": 1.4521614150747508,
+          "p95": 2.699951171875,
+          "max": 4.400146484375
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.8,
+      "refreshEligible": false,
+      "clockPassed": true,
+      "elapsedMs": 60124.70000000001,
+      "passed": false,
+      "focus": [
+        108.36177002222502,
+        -529.809858749427
+      ],
+      "raw": "before/ai2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "ai2d",
+      "rawSha256": "076dd8b398ade95fc89deb9cba6ae1593dd6a92fe3cdae9c7b5bc6d0f7fceaf1",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 30.766564111452972,
+      "ticksPerSecond": 19.99993333355556,
+      "p95GapMs": 31.70000000001164,
+      "maxGapMs": 125,
+      "failedChecks": [],
+      "initialTick": 1271,
+      "endTick": 2471,
+      "units": [
+        3563,
+        3719
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 22.295501098632812,
+          "p95": 31.800048828125,
+          "max": 66.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 0.9054178873697917,
+          "p95": 5,
+          "max": 21.89990234375
+        },
+        "encodeMs": {
+          "mean": 3.294164632161458,
+          "p95": 5.39990234375,
+          "max": 8.2001953125
+        },
+        "deliveryMs": {
+          "mean": 14.184947509765625,
+          "p95": 31.10009765625,
+          "max": 62.699951171875
+        },
+        "applyMs": {
+          "mean": 1.678167724609375,
+          "p95": 3.300048828125,
+          "max": 8.699951171875
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.798728050877966,
+      "refreshEligible": false,
+      "clockPassed": true,
+      "elapsedMs": 60000.19999999998,
+      "passed": false,
+      "focus": [
+        108.36177002222502,
+        -529.809858749427
+      ],
+      "raw": "after/ai2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "ai3d",
+      "rawSha256": "15ca66b470c4fc512cb8ba0a34ac6b370519d4d0af1079524f154c5567e46103",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 13.059875531390345,
+      "ticksPerSecond": 19.9896054051893,
+      "p95GapMs": 125.30000000000291,
+      "maxGapMs": 250.09999999999127,
+      "failedChecks": [],
+      "initialTick": 1271,
+      "endTick": 2471,
+      "units": [
+        3554,
+        3726
+      ],
+      "visibleUnits": [
+        0,
+        35
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 20.99441630045573,
+          "p95": 33.099853515625,
+          "max": 57.5
+        },
+        "scheduleDelayMs": {
+          "mean": 1.3283797200520833,
+          "p95": 9.400146484375,
+          "max": 27.300048828125
+        },
+        "encodeMs": {
+          "mean": 2.535331217447917,
+          "p95": 4.10009765625,
+          "max": 6.800048828125
+        },
+        "deliveryMs": {
+          "mean": 5.382001546223958,
+          "p95": 12.5,
+          "max": 178.599853515625
+        },
+        "applyMs": {
+          "mean": 1.4039986165364584,
+          "p95": 2.300048828125,
+          "max": 4.300048828125
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.80092620197563,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60031.2,
+      "passed": false,
+      "focus": [
+        -971.3865388067188,
+        -202.89909080911116
+      ],
+      "raw": "before/ai3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "ai3d",
+      "rawSha256": "6768183c48321b3730fddc1440d77593861227772ddac2daed2c8e41f1e4a3c2",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 31.93328011119981,
+      "ticksPerSecond": 19.99996666672222,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 93.39999999999418,
+      "failedChecks": [],
+      "initialTick": 1271,
+      "endTick": 2471,
+      "units": [
+        3563,
+        3720
+      ],
+      "visibleUnits": [
+        0,
+        35
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 22.734083658854168,
+          "p95": 41.300048828125,
+          "max": 96.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 2.6913323974609376,
+          "p95": 14.800048828125,
+          "max": 76.199951171875
+        },
+        "encodeMs": {
+          "mean": 3.25916748046875,
+          "p95": 5.800048828125,
+          "max": 20.199951171875
+        },
+        "deliveryMs": {
+          "mean": 5.1134025065104165,
+          "p95": 12.7998046875,
+          "max": 99.39990234375
+        },
+        "applyMs": {
+          "mean": 1.5740018717447917,
+          "p95": 3.10009765625,
+          "max": 4.199951171875
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.80092620197563,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60000.100000000006,
+      "passed": true,
+      "focus": [
+        -971.3865388067188,
+        -202.89909080911116
+      ],
+      "raw": "after/ai3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "map3d",
+      "rawSha256": "bfde3a0d104ff33b0b90ce236fe0e0d3583002ea6f22220a4a093b8cb9896901",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 31.999840000799995,
+      "ticksPerSecond": 0,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 31.800000000017462,
+      "failedChecks": [],
+      "initialTick": 3,
+      "endTick": 3,
+      "units": [
+        5200,
+        5200
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": null,
+      "denseFraction": 0,
+      "refreshHz": 31.8,
+      "refreshEligible": false,
+      "clockPassed": true,
+      "elapsedMs": 60000.3,
+      "passed": false,
+      "raw": "before/map3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "map3d",
+      "rawSha256": "2aedb6bcc0ced2c56edae3e407ca46ac2da26652313148fca0b7772db8a648fd",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 31.983280027866616,
+      "ticksPerSecond": 0,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.70000000001164,
+      "failedChecks": [],
+      "initialTick": 3,
+      "endTick": 3,
+      "units": [
+        5200,
+        5200
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        100,
+        100
+      ],
+      "worker": null,
+      "denseFraction": 0,
+      "refreshHz": 31.799364012719742,
+      "refreshEligible": false,
+      "clockPassed": true,
+      "elapsedMs": 60000.100000000006,
+      "passed": false,
+      "raw": "after/map3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-worker",
+      "rawSha256": "b4c02b0e22e7f1fa00450f80510196090ea08a8f47ae2d22a2042612ed04af7a",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "ticksPerSecond": 19.46910979277923,
+      "elapsedMs": 61636.10009765625,
+      "valid": true,
+      "passed": null,
+      "raw": "before/fixed-worker-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-worker",
+      "rawSha256": "951220478f6146910c53e00d3fcfa722e35961397080c25dc342842b33beac35",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "ticksPerSecond": 19.76447335913695,
+      "elapsedMs": 60715,
+      "valid": true,
+      "passed": null,
+      "raw": "after/fixed-worker-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-2d",
+      "rawSha256": "15145f1cfc613689b000e3327e3d2f88fc2613e4f6ad7d558656ca9b5d0fe39c",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 23.166499304124162,
+      "ticksPerSecond": 15.100379774551328,
+      "p95GapMs": 124.70000000000073,
+      "maxGapMs": 250.3000000000029,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10065,
+        10907
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 61.61658081054688,
+          "p95": 87.199951171875,
+          "max": 300.10009765625
+        },
+        "scheduleDelayMs": {
+          "mean": 111.82699442545572,
+          "p95": 231.400146484375,
+          "max": 248.699951171875
+        },
+        "encodeMs": {
+          "mean": 5.269503987630208,
+          "p95": 8.10009765625,
+          "max": 12.39990234375
+        },
+        "deliveryMs": {
+          "mean": 11.55849853515625,
+          "p95": 17.7998046875,
+          "max": 171.400146484375
+        },
+        "applyMs": {
+          "mean": 4.43733154296875,
+          "p95": 6.5,
+          "max": 10.60009765625
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.799364012719742,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 79468.20000000001,
+      "passed": null,
+      "raw": "before/fixed-2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-2d",
+      "rawSha256": "27e6de69cfc41871669d74a3bae8c213ecc6ed64293012a59a299e602b7e3870",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 31.91146116481253,
+      "ticksPerSecond": 17.67947986970223,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.69999999999709,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10065,
+        10908
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 51.73683125813802,
+          "p95": 76,
+          "max": 311.599853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 103.62941935221355,
+          "p95": 234,
+          "max": 249.699951171875
+        },
+        "encodeMs": {
+          "mean": 6.731164957682291,
+          "p95": 10.199951171875,
+          "max": 12.60009765625
+        },
+        "deliveryMs": {
+          "mean": 5.006015218098958,
+          "p95": 10.499755859375,
+          "max": 23.19970703125
+        },
+        "applyMs": {
+          "mean": 3.9450093587239583,
+          "p95": 5.599853515625,
+          "max": 9.199951171875
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.798092114473132,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 67875.3,
+      "passed": null,
+      "raw": "after/fixed-2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-3d",
+      "rawSha256": "231a87fc087779a31254eac973e1c029e07ad235d5ab2c017d23a8000181ad58",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 9.447023996205893,
+      "ticksPerSecond": 15.298824285353671,
+      "p95GapMs": 155.8000000000029,
+      "maxGapMs": 249.89999999999418,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10065,
+        10907
+      ],
+      "visibleUnits": [
+        192,
+        197
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 60.832251180013024,
+          "p95": 88.800048828125,
+          "max": 287.900146484375
+        },
+        "scheduleDelayMs": {
+          "mean": 119.14998942057292,
+          "p95": 233.699951171875,
+          "max": 249.900146484375
+        },
+        "encodeMs": {
+          "mean": 5.111164957682291,
+          "p95": 7.599853515625,
+          "max": 19.699951171875
+        },
+        "deliveryMs": {
+          "mean": 11.660788167317708,
+          "p95": 17.199951171875,
+          "max": 165.39990234375
+        },
+        "applyMs": {
+          "mean": 4.468828531901042,
+          "p95": 6.300048828125,
+          "max": 10.5
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.80282250049692,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 78437.4,
+      "passed": null,
+      "raw": "before/fixed-3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-3d",
+      "rawSha256": "bccfe5d255faa91430716124c5373159e58ed9d4bfeb063f90a738db372395bc",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "valid": true,
+      "fps": 31.917015759026533,
+      "ticksPerSecond": 16.62344570782632,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.700000000004366,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10065,
+        10908
+      ],
+      "visibleUnits": [
+        192,
+        197
+      ],
+      "activeAI": [
+        15,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 55.532337036132816,
+          "p95": 77,
+          "max": 290.699951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 122.84233459472657,
+          "p95": 236,
+          "max": 250
+        },
+        "encodeMs": {
+          "mean": 7.050336100260417,
+          "p95": 10.89990234375,
+          "max": 13.7998046875
+        },
+        "deliveryMs": {
+          "mean": 6.143826904296875,
+          "p95": 13.89990234375,
+          "max": 31.099853515625
+        },
+        "applyMs": {
+          "mean": 4.144163004557291,
+          "p95": 6.2998046875,
+          "max": 9.89990234375
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.801558276355543,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 72187.2,
+      "passed": null,
+      "raw": "after/fixed-3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "input",
+      "rawSha256": "6b59e0877cf5222447fb5108264e5d340f2da6aaedc11ccdbfee4857ef50556f",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "groups": {
+        "select": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 149.09999990463257,
+          "p95SettledMs": 149.09999990463257
+        },
+        "drag": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 158.2999997138977,
+          "p95SettledMs": 158.2999997138977
+        },
+        "dispatch": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 163.59999990463257,
+          "p95SettledMs": 253
+        },
+        "wheel": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 439.59999990463257,
+          "p95SettledMs": 1002.9000000953674
+        },
+        "to2d": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 432.2999997138977,
+          "p95SettledMs": 1542.9000000953674
+        },
+        "to3d": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 355.80000019073486,
+          "p95SettledMs": 1396
+        }
+      },
+      "passed": false,
+      "raw": "before/input-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "input",
+      "rawSha256": "5c0f3fdad2582160d45d49c7e6ec58e090e40f8f2d6ee88ddbdff2a65afaef08",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "groups": {
+        "select": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 79.69999980926514,
+          "p95SettledMs": 79.69999980926514
+        },
+        "drag": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 43.59999990463257,
+          "p95SettledMs": 43.59999990463257
+        },
+        "dispatch": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 75.7999997138977,
+          "p95SettledMs": 197.40000009536743
+        },
+        "wheel": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 284.80000019073486,
+          "p95SettledMs": 753.5999999046326
+        },
+        "to2d": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 88.40000009536743,
+          "p95SettledMs": 1265.8000001907349
+        },
+        "to3d": {
+          "samples": 30,
+          "verified": 30,
+          "p95Ms": 128.2000002861023,
+          "p95SettledMs": 1135.5
+        }
+      },
+      "passed": false,
+      "raw": "after/input-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "touch",
+      "rawSha256": "68efb924a313be551b7c35ac81f9f88b82a84642747186b4f862c5a7bd2c1925",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "passed": null,
+      "p95InputMs": 157.40000009536743,
+      "gestures": [
+        {
+          "kind": "pan",
+          "count": 30,
+          "confirmed": 30,
+          "p95Ms": 164.90000009536743
+        },
+        {
+          "kind": "pinch",
+          "count": 30,
+          "confirmed": 30,
+          "p95Ms": 121.90000009536743
+        }
+      ],
+      "raw": "before/touch-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "touch",
+      "rawSha256": "b9f9a3c3e8924bd761901b8e3e813461fdb6dca7b35aaa4d57d1cd22ac74500b",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "passed": null,
+      "p95InputMs": 104.2000002861023,
+      "gestures": [
+        {
+          "kind": "pan",
+          "count": 30,
+          "confirmed": 30,
+          "p95Ms": 99.80000019073486
+        },
+        {
+          "kind": "pinch",
+          "count": 30,
+          "confirmed": 30,
+          "p95Ms": 105
+        }
+      ],
+      "raw": "after/touch-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "lan",
+      "rawSha256": "55dd10cbed6be259657cc6cc20adcf098326307f8aae6433f1d018782b6b5f38",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "passed": null,
+      "reconnected": true,
+      "clients": [
+        {
+          "fps": 3.53114402403282,
+          "commands": 30,
+          "p95CommandMs": 251.5
+        },
+        {
+          "fps": 3.5811190080800035,
+          "commands": 30,
+          "p95CommandMs": 351.8999996185303
+        }
+      ],
+      "ticksPerSecond": 7.382792005234595,
+      "fps": 3.53114402403282,
+      "p95InputMs": 291,
+      "raw": "before/lan-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "lan",
+      "rawSha256": "06a2895f7dd416d7dcf49628fcbc49620883b0060e56f3da772c8a2cf7b025fb",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "passed": null,
+      "reconnected": true,
+      "clients": [
+        {
+          "fps": 20.840893428526307,
+          "commands": 30,
+          "p95CommandMs": 344.3999996185303
+        },
+        {
+          "fps": 21.80433356968565,
+          "commands": 30,
+          "p95CommandMs": 387
+        }
+      ],
+      "ticksPerSecond": 6.178709136699214,
+      "fps": 20.840893428526307,
+      "p95InputMs": 374,
+      "raw": "after/lan-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "late2d",
+      "rawSha256": "1bf46fdd053c49bcd7acaef6b7b316d3a7fdba39f64d6c3a489b5a66552f95c3",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 26.55,
+      "ticksPerSecond": 6.466666666666667,
+      "p95GapMs": 93.30000000000291,
+      "maxGapMs": 156.5,
+      "failedChecks": [],
+      "initialTick": 22598,
+      "endTick": 22986,
+      "units": [
+        25065,
+        25213
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 147.01340571138047,
+          "p95": 188.400146484375,
+          "max": 353.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 100.84818857723904,
+          "p95": 230.5,
+          "max": 250.199951171875
+        },
+        "encodeMs": {
+          "mean": 10.202575054365335,
+          "p95": 15.199951171875,
+          "max": 18.300048828125
+        },
+        "deliveryMs": {
+          "mean": 17.37829715689433,
+          "p95": 24.10009765625,
+          "max": 33
+        },
+        "applyMs": {
+          "mean": 9.425255215045103,
+          "p95": 12.699951171875,
+          "max": 14.699951171875
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.19937601247975,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60000,
+      "passed": null,
+      "focus": [
+        118.78966100280765,
+        -540.3853327944923
+      ],
+      "raw": "before/late2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "late2d",
+      "rawSha256": "0641eb08206ea43d32fa78a7bc2503c9213e57a71e7bed93730274a4f6369f68",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.933288245818026,
+      "ticksPerSecond": 8.595501687450236,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.89999999999418,
+      "failedChecks": [],
+      "initialTick": 22682,
+      "endTick": 23198,
+      "units": [
+        25035,
+        25166
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 109.5091079593629,
+          "p95": 151.5,
+          "max": 476.2998046875
+        },
+        "scheduleDelayMs": {
+          "mean": 108.6589118898377,
+          "p95": 235.199951171875,
+          "max": 250.300048828125
+        },
+        "encodeMs": {
+          "mean": 12.145346944646318,
+          "p95": 16.300048828125,
+          "max": 47.300048828125
+        },
+        "deliveryMs": {
+          "mean": 4.39651370972626,
+          "p95": 9.10009765625,
+          "max": 20.60009765625
+        },
+        "applyMs": {
+          "mean": 6.888370011203973,
+          "p95": 9.800048828125,
+          "max": 15.699951171875
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.801558276355543,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.399999999994,
+      "passed": null,
+      "focus": [
+        118.78966100280765,
+        -540.3853327944923
+      ],
+      "raw": "after/late2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "late3d",
+      "rawSha256": "7cebb021f7e84ed4f3f7efc100c66322d95578609c0e8b90c2b000e79e9dbc38",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 6.0468556350697655,
+      "ticksPerSecond": 7.262889963885448,
+      "p95GapMs": 218.5,
+      "maxGapMs": 250.1999999999971,
+      "failedChecks": [],
+      "initialTick": 22644,
+      "endTick": 23080,
+      "units": [
+        25041,
+        25190
+      ],
+      "visibleUnits": [
+        464,
+        658
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 130.40023383744267,
+          "p95": 178.2001953125,
+          "max": 459.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 106.63210527612529,
+          "p95": 239.300048828125,
+          "max": 248.900146484375
+        },
+        "encodeMs": {
+          "mean": 8.883944730146215,
+          "p95": 11.300048828125,
+          "max": 30.800048828125
+        },
+        "deliveryMs": {
+          "mean": 14.521083446817661,
+          "p95": 26.300048828125,
+          "max": 51.89990234375
+        },
+        "applyMs": {
+          "mean": 7.364235414277523,
+          "p95": 11.10009765625,
+          "max": 13.300048828125
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.802190375862136,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.19999999998,
+      "passed": null,
+      "focus": [
+        112.92105685770856,
+        -593.4542611894875
+      ],
+      "raw": "before/late3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "late3d",
+      "rawSha256": "2b7ec9e7563c2d9d33e9b72ff99ebcc1f8df468037b2606061ea772f5508492b",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.217048439730615,
+      "ticksPerSecond": 7.062982144314717,
+      "p95GapMs": 31.69999999999709,
+      "maxGapMs": 94,
+      "failedChecks": [],
+      "initialTick": 22746,
+      "endTick": 23170,
+      "units": [
+        25037,
+        25105
+      ],
+      "visibleUnits": [
+        459,
+        658
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 133.10447606500588,
+          "p95": 195,
+          "max": 336.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 100.5870332537957,
+          "p95": 231.5,
+          "max": 248.800048828125
+        },
+        "encodeMs": {
+          "mean": 14.425939020120873,
+          "p95": 21.699951171875,
+          "max": 27.199951171875
+        },
+        "deliveryMs": {
+          "mean": 9.726415094339623,
+          "p95": 22.300048828125,
+          "max": 33.800048828125
+        },
+        "applyMs": {
+          "mean": 8.3273660911704,
+          "p95": 12.900146484375,
+          "max": 19.699951171875
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.8,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.29999999999,
+      "passed": null,
+      "focus": [
+        112.92105685770856,
+        -593.4542611894875
+      ],
+      "raw": "after/late3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "double2d",
+      "rawSha256": "1cd2551dcb707a186b0de260399c92e98aa2e99e04bbb124f29df1f488c2d328",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "fps": 23.071374670795635,
+      "ticksPerSecond": 13.792850705717536,
+      "p95GapMs": 124.80000000000291,
+      "maxGapMs": 218.6999999999971,
+      "failedChecks": [],
+      "initialTick": 21746,
+      "endTick": 22574,
+      "units": [
+        10830,
+        11460
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 135.43163354846016,
+          "p95": 201.199951171875,
+          "max": 469.400146484375
+        },
+        "scheduleDelayMs": {
+          "mean": 102.83479404910175,
+          "p95": 235.7001953125,
+          "max": 248.699951171875
+        },
+        "encodeMs": {
+          "mean": 5.917393191425121,
+          "p95": 9.5,
+          "max": 22.800048828125
+        },
+        "deliveryMs": {
+          "mean": 9.98976142625302,
+          "p95": 15.500244140625,
+          "max": 146.2001953125
+        },
+        "applyMs": {
+          "mean": 3.711595618206522,
+          "p95": 5.699951171875,
+          "max": 8.699951171875
+        }
+      },
+      "targetTicksPerSecond": 40,
+      "denseFraction": 0,
+      "refreshHz": 31.798728050877966,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.100000000006,
+      "passed": null,
+      "focus": [
+        122.074327145583,
+        -549.508845705757
+      ],
+      "raw": "before/double2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "double2d",
+      "rawSha256": "b35452c6100ef9bdaeda5f05c5eb93a29559481b3205dec6011ee3107c30f049",
+      "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+      "valid": true,
+      "fps": 31.933128663689352,
+      "ticksPerSecond": 16.524602834835594,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.80000000001746,
+      "failedChecks": [],
+      "initialTick": 21832,
+      "endTick": 22824,
+      "units": [
+        10898,
+        11694
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 111.86875374086442,
+          "p95": 153.199951171875,
+          "max": 298.599853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 107.45242949455015,
+          "p95": 234.199951171875,
+          "max": 249.39990234375
+        },
+        "encodeMs": {
+          "mean": 7.5112890428112395,
+          "p95": 11.10009765625,
+          "max": 15
+        },
+        "deliveryMs": {
+          "mean": 4.374039188508065,
+          "p95": 9.800048828125,
+          "max": 19.10009765625
+        },
+        "applyMs": {
+          "mean": 3.3199689311365925,
+          "p95": 4.800048828125,
+          "max": 10.400146484375
+        }
+      },
+      "targetTicksPerSecond": 40,
+      "denseFraction": 0,
+      "refreshHz": 31.8,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.7,
+      "passed": null,
+      "focus": [
+        122.074327145583,
+        -549.508845705757
+      ],
+      "raw": "after/double2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "double3d",
+      "rawSha256": "7c03649178c320bfab4469a3bc71de22f0b8cf08357d815c3db8ec7339d47776",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 9.934485644917851,
+      "ticksPerSecond": 15.342706473390718,
+      "p95GapMs": 125.30000000001746,
+      "maxGapMs": 218.5,
+      "failedChecks": [],
+      "initialTick": 21696,
+      "endTick": 22618,
+      "units": [
+        10808,
+        11497
+      ],
+      "visibleUnits": [
+        192,
+        208
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 121.95509824938992,
+          "p95": 163.199951171875,
+          "max": 230.89990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 106.19523147285113,
+          "p95": 236.699951171875,
+          "max": 250.800048828125
+        },
+        "encodeMs": {
+          "mean": 5.290021586056128,
+          "p95": 7.699951171875,
+          "max": 11.5
+        },
+        "deliveryMs": {
+          "mean": 9.159748466309653,
+          "p95": 13.800048828125,
+          "max": 155.400146484375
+        },
+        "applyMs": {
+          "mean": 3.5180044443126355,
+          "p95": 5.39990234375,
+          "max": 9.599853515625
+        }
+      },
+      "targetTicksPerSecond": 40,
+      "denseFraction": 1,
+      "refreshHz": 31.8,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60093.70000000001,
+      "passed": null,
+      "focus": [
+        -82.3046755766882,
+        -412.427772597611
+      ],
+      "raw": "before/double3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "double3d",
+      "rawSha256": "8e245b82b38c3d16b2e5bbbb130ba82a7bc18ae468567eac188ce69bfe9fbc84",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.96671064379856,
+      "ticksPerSecond": 16.091632351177388,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.60000000000582,
+      "failedChecks": [],
+      "initialTick": 21876,
+      "endTick": 22842,
+      "units": [
+        10937,
+        11719
+      ],
+      "visibleUnits": [
+        192,
+        218
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 115.20538039434524,
+          "p95": 155.7998046875,
+          "max": 258.400146484375
+        },
+        "scheduleDelayMs": {
+          "mean": 105.90248275346144,
+          "p95": 238.10009765625,
+          "max": 250.400146484375
+        },
+        "encodeMs": {
+          "mean": 7.554866435364906,
+          "p95": 10.800048828125,
+          "max": 15.89990234375
+        },
+        "deliveryMs": {
+          "mean": 5.181148805480072,
+          "p95": 12,
+          "max": 26.900146484375
+        },
+        "applyMs": {
+          "mean": 3.4072391991783126,
+          "p95": 5,
+          "max": 8.300048828125
+        }
+      },
+      "targetTicksPerSecond": 40,
+      "denseFraction": 1,
+      "refreshHz": 31.798092114473132,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.2,
+      "passed": null,
+      "focus": [
+        -82.3046755766882,
+        -412.427772597611
+      ],
+      "raw": "after/double3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "march-330",
+      "rawSha256": "4002c7c02243d4d333127dc6daeaf929faaae57557e46d666b47bec38bfe6efa",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 12.72012560291564,
+      "ticksPerSecond": 19.979254873689488,
+      "p95GapMs": 94.19999999999709,
+      "maxGapMs": 156.40000000000146,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        9850,
+        10513
+      ],
+      "visibleUnits": [
+        121,
+        152
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 29.598664957682292,
+          "p95": 40,
+          "max": 197.699951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 3.637953287760417,
+          "p95": 9.39990234375,
+          "max": 153.89990234375
+        },
+        "encodeMs": {
+          "mean": 3.012838134765625,
+          "p95": 4.300048828125,
+          "max": 7.39990234375
+        },
+        "deliveryMs": {
+          "mean": 3.4869974772135417,
+          "p95": 7.900146484375,
+          "max": 40.89990234375
+        },
+        "applyMs": {
+          "mean": 2.1536649576822917,
+          "p95": 3.199951171875,
+          "max": 5.7001953125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 16378.301666666666,
+          "p95": 26413,
+          "max": 47467
+        },
+        "contacts": {
+          "mean": 1032.57,
+          "p95": 2109,
+          "max": 8911
+        },
+        "maxPenetration": {
+          "mean": 0.5839618237909686,
+          "p95": 1.2265640521144823,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 1505.3916666666667,
+          "p95": 2562,
+          "max": 3260
+        },
+        "constraintLimited": {
+          "mean": 67.19583333333334,
+          "p95": 122,
+          "max": 160
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.79936401271975,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60062.299999999996,
+      "passed": null,
+      "raw": "before/march-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "march-330",
+      "rawSha256": "ef362e5671949041c6a6d1847692db2a078c1a161a8146820421b64f11bc3e31",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.966701352757543,
+      "ticksPerSecond": 19.979188345473464,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.79999999999927,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        9840,
+        10513
+      ],
+      "visibleUnits": [
+        121,
+        152
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 28.71324910481771,
+          "p95": 42,
+          "max": 187.900146484375
+        },
+        "scheduleDelayMs": {
+          "mean": 3.4460496012369792,
+          "p95": 14.60009765625,
+          "max": 144.300048828125
+        },
+        "encodeMs": {
+          "mean": 3.5591670735677083,
+          "p95": 5.300048828125,
+          "max": 11.60009765625
+        },
+        "deliveryMs": {
+          "mean": 3.749769694010417,
+          "p95": 10.400146484375,
+          "max": 66.5
+        },
+        "applyMs": {
+          "mean": 2.229166259765625,
+          "p95": 3.699951171875,
+          "max": 7.89990234375
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 16340.533333333333,
+          "p95": 26541,
+          "max": 47607
+        },
+        "contacts": {
+          "mean": 1033.1108333333334,
+          "p95": 2102,
+          "max": 8915
+        },
+        "maxPenetration": {
+          "mean": 0.5805436788389393,
+          "p95": 1.2265640521144823,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 1504.045,
+          "p95": 2551,
+          "max": 3254
+        },
+        "constraintLimited": {
+          "mean": 67.17833333333333,
+          "p95": 122,
+          "max": 157
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.803454650261386,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60062.5,
+      "passed": null,
+      "raw": "after/march-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "march-1600",
+      "rawSha256": "de2fb7b4a660533286d3574e6499dfd69c78d7c1904c85e2d8ca492fcac58319",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 12.886213738890197,
+      "ticksPerSecond": 19.87590808055043,
+      "p95GapMs": 94,
+      "maxGapMs": 125.19999999999709,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        9844,
+        10780
+      ],
+      "visibleUnits": [
+        121,
+        153
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 32.59908732096354,
+          "p95": 49.099853515625,
+          "max": 250.7001953125
+        },
+        "scheduleDelayMs": {
+          "mean": 10.62656941731771,
+          "p95": 71.89990234375,
+          "max": 240.39990234375
+        },
+        "encodeMs": {
+          "mean": 2.385328776041667,
+          "p95": 4,
+          "max": 10
+        },
+        "deliveryMs": {
+          "mean": 6.571691487630209,
+          "p95": 11.699951171875,
+          "max": 20.599853515625
+        },
+        "applyMs": {
+          "mean": 2.06633056640625,
+          "p95": 3,
+          "max": 5.300048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 4671.92,
+          "p95": 9056,
+          "max": 15604
+        },
+        "contacts": {
+          "mean": 23.625,
+          "p95": 50,
+          "max": 1584
+        },
+        "maxPenetration": {
+          "mean": 0.05512504195863394,
+          "p95": 0.4101346048035074,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 25.054166666666667,
+          "p95": 101,
+          "max": 658
+        },
+        "constraintLimited": {
+          "mean": 0.9741666666666666,
+          "p95": 3,
+          "max": 41
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.997440204783615,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60374.6,
+      "passed": null,
+      "raw": "before/march-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "march-1600",
+      "rawSha256": "09e0e006b52421484199afe0402865d51847cc1426e478930599f8e2618c7622",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.93366296043645,
+      "ticksPerSecond": 19.91704550546972,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.799999999995634,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        9839,
+        10780
+      ],
+      "visibleUnits": [
+        121,
+        153
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 21.659332071940103,
+          "p95": 37.89990234375,
+          "max": 213.699951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 8.902486165364584,
+          "p95": 30.5,
+          "max": 210.199951171875
+        },
+        "encodeMs": {
+          "mean": 3.6068318684895835,
+          "p95": 5.900146484375,
+          "max": 16.39990234375
+        },
+        "deliveryMs": {
+          "mean": 4.1500016276041665,
+          "p95": 10.39990234375,
+          "max": 19.7998046875
+        },
+        "applyMs": {
+          "mean": 1.9616670735677084,
+          "p95": 3.199951171875,
+          "max": 6.300048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 4671.92,
+          "p95": 9056,
+          "max": 15604
+        },
+        "contacts": {
+          "mean": 23.625,
+          "p95": 50,
+          "max": 1584
+        },
+        "maxPenetration": {
+          "mean": 0.05512504195863394,
+          "p95": 0.4101346048035074,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 25.054166666666667,
+          "p95": 101,
+          "max": 658
+        },
+        "constraintLimited": {
+          "mean": 0.9741666666666666,
+          "p95": 3,
+          "max": 41
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 32.000318015582764,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60249.899999999994,
+      "passed": null,
+      "raw": "after/march-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "bottleneck-330",
+      "rawSha256": "2453d794823c3e57606dcdc77d19f0b3d1bde9b6b195b4047a02d612e2323608",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 8.220481979838187,
+      "ticksPerSecond": 19.968782137258753,
+      "p95GapMs": 155.79999999999927,
+      "maxGapMs": 156.70000000000437,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        11616
+      ],
+      "visibleUnits": [
+        1182,
+        1182
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 28.83917277018229,
+          "p95": 41.599853515625,
+          "max": 188.10009765625
+        },
+        "scheduleDelayMs": {
+          "mean": 4.003817342122396,
+          "p95": 22.7998046875,
+          "max": 140.599853515625
+        },
+        "encodeMs": {
+          "mean": 2.9316642252604166,
+          "p95": 4.10009765625,
+          "max": 6.7998046875
+        },
+        "deliveryMs": {
+          "mean": 3.0491402180989584,
+          "p95": 5.10009765625,
+          "max": 15.80029296875
+        },
+        "applyMs": {
+          "mean": 2.353837483723958,
+          "p95": 3.2001953125,
+          "max": 5
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 6766.399166666667,
+          "p95": 10068,
+          "max": 36776
+        },
+        "contacts": {
+          "mean": 209.50083333333333,
+          "p95": 680,
+          "max": 7031
+        },
+        "maxPenetration": {
+          "mean": 0.31079580452591415,
+          "p95": 0.8771109530992431,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 301.91083333333336,
+          "p95": 1201,
+          "max": 1587
+        },
+        "constraintLimited": {
+          "mean": 14.4775,
+          "p95": 48,
+          "max": 69
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.59936801263975,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60093.799999999996,
+      "passed": null,
+      "raw": "before/bottleneck-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "bottleneck-330",
+      "rawSha256": "a623b6b5772e253a7cab35192ec93d29f6f7ab8ed6685427faf8db47d8730f5d",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 23.875010822006303,
+      "ticksPerSecond": 19.97908855398017,
+      "p95GapMs": 62.799999999995634,
+      "maxGapMs": 156.20000000000073,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        11616
+      ],
+      "visibleUnits": [
+        1182,
+        1182
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 24.203417358398436,
+          "p95": 33.699951171875,
+          "max": 175.199951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 4.042998860677083,
+          "p95": 13.89990234375,
+          "max": 128.10009765625
+        },
+        "encodeMs": {
+          "mean": 3.5101688639322917,
+          "p95": 5,
+          "max": 12.89990234375
+        },
+        "deliveryMs": {
+          "mean": 2.574377034505208,
+          "p95": 7.099853515625,
+          "max": 11.5
+        },
+        "applyMs": {
+          "mean": 2.2989982096354167,
+          "p95": 3.400146484375,
+          "max": 7.300048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 6766.399166666667,
+          "p95": 10068,
+          "max": 36776
+        },
+        "contacts": {
+          "mean": 209.50083333333333,
+          "p95": 680,
+          "max": 7031
+        },
+        "maxPenetration": {
+          "mean": 0.31079580452591415,
+          "p95": 0.8771109530992431,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 301.91083333333336,
+          "p95": 1201,
+          "max": 1587
+        },
+        "constraintLimited": {
+          "mean": 14.4775,
+          "p95": 48,
+          "max": 69
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.798728050877962,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60062.799999999996,
+      "passed": null,
+      "raw": "after/bottleneck-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "bottleneck-1600",
+      "rawSha256": "4f0c50474d7170eb96eab1887a8348d58cb5b457cc0be99ce1dab55560cd7682",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 8.513747582063067,
+      "ticksPerSecond": 19.57183352198406,
+      "p95GapMs": 125.60000000000582,
+      "maxGapMs": 187.90000000000146,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        11599
+      ],
+      "visibleUnits": [
+        1182,
+        1182
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 40.21658223470052,
+          "p95": 53.800048828125,
+          "max": 243.89990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 25.43824279785156,
+          "p95": 194.099853515625,
+          "max": 248.300048828125
+        },
+        "encodeMs": {
+          "mean": 3.438668212890625,
+          "p95": 4.699951171875,
+          "max": 7.7998046875
+        },
+        "deliveryMs": {
+          "mean": 6.8848783365885415,
+          "p95": 11.300048828125,
+          "max": 22.60009765625
+        },
+        "applyMs": {
+          "mean": 2.5908390299479165,
+          "p95": 3.800048828125,
+          "max": 7.800048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 4918.3375,
+          "p95": 9436,
+          "max": 9884
+        },
+        "contacts": {
+          "mean": 11.958333333333334,
+          "p95": 52,
+          "max": 606
+        },
+        "maxPenetration": {
+          "mean": 0.053661855090504945,
+          "p95": 0.2795858087035722,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 17.746666666666666,
+          "p95": 105,
+          "max": 310
+        },
+        "constraintLimited": {
+          "mean": 0.7158333333333333,
+          "p95": 3,
+          "max": 20
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.799364012719742,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 61312.6,
+      "passed": null,
+      "raw": "before/bottleneck-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "bottleneck-1600",
+      "rawSha256": "b110ad2e78bbf53330fa7051271e823d71a9f370732c61de132230bd1f0921a0",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 21.13915250459872,
+      "ticksPerSecond": 19.958287179794226,
+      "p95GapMs": 62.89999999999418,
+      "maxGapMs": 124.90000000000146,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        11599
+      ],
+      "visibleUnits": [
+        1182,
+        1182
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 30.366333211263022,
+          "p95": 42.900146484375,
+          "max": 256.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 8.015599568684896,
+          "p95": 61.60009765625,
+          "max": 207.60009765625
+        },
+        "encodeMs": {
+          "mean": 4.781337076822917,
+          "p95": 6.599853515625,
+          "max": 11.300048828125
+        },
+        "deliveryMs": {
+          "mean": 3.2654024251302083,
+          "p95": 8.499755859375,
+          "max": 13.699951171875
+        },
+        "applyMs": {
+          "mean": 2.424496663411458,
+          "p95": 3.800048828125,
+          "max": 7.300048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 4918.3375,
+          "p95": 9436,
+          "max": 9884
+        },
+        "contacts": {
+          "mean": 11.958333333333334,
+          "p95": 52,
+          "max": 606
+        },
+        "maxPenetration": {
+          "mean": 0.053661855090504945,
+          "p95": 0.2795858087035722,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 17.746666666666666,
+          "p95": 105,
+          "max": 310
+        },
+        "constraintLimited": {
+          "mean": 0.7158333333333333,
+          "p95": 3,
+          "max": 20
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.797456203503717,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60125.40000000001,
+      "passed": null,
+      "raw": "after/bottleneck-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "landing-330",
+      "rawSha256": "897bd16ba6934b7ffd19df5beda48d7648c2a9dd39acf36d74c0d99bbfad12e7",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 15.352075936285564,
+      "ticksPerSecond": 19.937760956215016,
+      "p95GapMs": 93.70000000000073,
+      "maxGapMs": 94.20000000000437,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        12177
+      ],
+      "visibleUnits": [
+        17,
+        17
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 10.672498168945312,
+          "p95": 16.699951171875,
+          "max": 193.099853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 5.690536295572917,
+          "p95": 14.5,
+          "max": 152.5
+        },
+        "encodeMs": {
+          "mean": 2.359166666666667,
+          "p95": 3.5,
+          "max": 6.199951171875
+        },
+        "deliveryMs": {
+          "mean": 3.015366617838542,
+          "p95": 5.60009765625,
+          "max": 13.400146484375
+        },
+        "applyMs": {
+          "mean": 2.3849947102864584,
+          "p95": 3.10009765625,
+          "max": 10.800048828125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 7314.529166666666,
+          "p95": 12608,
+          "max": 27304
+        },
+        "contacts": {
+          "mean": 100.385,
+          "p95": 495,
+          "max": 3012
+        },
+        "maxPenetration": {
+          "mean": 0.15668420216763532,
+          "p95": 0.7423921260576775,
+          "max": 0.9190668672237393
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 126.59916666666666,
+          "p95": 647,
+          "max": 902
+        },
+        "constraintLimited": {
+          "mean": 5.656666666666666,
+          "p95": 21,
+          "max": 31
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.998080115193087,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60187.299999999996,
+      "passed": null,
+      "raw": "before/landing-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "landing-330",
+      "rawSha256": "56e3239f01acc6dce986533e1eafd596e433187af80856ea992e81f082a7126e",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.900129464270858,
+      "ticksPerSecond": 19.968782137258753,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.599999999998545,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        12177
+      ],
+      "visibleUnits": [
+        17,
+        17
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 9.26033182779948,
+          "p95": 14.800048828125,
+          "max": 200.199951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 6.653616333007813,
+          "p95": 14.89990234375,
+          "max": 150.89990234375
+        },
+        "encodeMs": {
+          "mean": 2.63783447265625,
+          "p95": 4,
+          "max": 33.800048828125
+        },
+        "deliveryMs": {
+          "mean": 2.103240966796875,
+          "p95": 4,
+          "max": 6.60009765625
+        },
+        "applyMs": {
+          "mean": 2.2673295084635416,
+          "p95": 3.199951171875,
+          "max": 6.10009765625
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 7314.529166666666,
+          "p95": 12608,
+          "max": 27304
+        },
+        "contacts": {
+          "mean": 100.385,
+          "p95": 495,
+          "max": 3012
+        },
+        "maxPenetration": {
+          "mean": 0.15668420216763532,
+          "p95": 0.7423921260576775,
+          "max": 0.9190668672237393
+        },
+        "limited": {
+          "mean": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "constraints": {
+          "mean": 126.59916666666666,
+          "p95": 647,
+          "max": 902
+        },
+        "constraintLimited": {
+          "mean": 5.656666666666666,
+          "p95": 21,
+          "max": 31
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.598736050557978,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60093.799999999996,
+      "passed": null,
+      "raw": "after/landing-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "landing-1600",
+      "rawSha256": "03926b845a11e37b77212816080ed54db43601244c4f5070a716c0264ad49246",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 14.96097678555102,
+      "ticksPerSecond": 19.94796904740136,
+      "p95GapMs": 93.89999999999782,
+      "maxGapMs": 187.70000000000073,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        12144
+      ],
+      "visibleUnits": [
+        82,
+        82
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 17.265836181640626,
+          "p95": 24.2001953125,
+          "max": 264.39990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 6.72659423828125,
+          "p95": 15.5,
+          "max": 214.2001953125
+        },
+        "encodeMs": {
+          "mean": 3.058836669921875,
+          "p95": 4.099853515625,
+          "max": 6.60009765625
+        },
+        "deliveryMs": {
+          "mean": 6.8454345703125,
+          "p95": 9.2001953125,
+          "max": 146.699951171875
+        },
+        "applyMs": {
+          "mean": 3.1148335774739584,
+          "p95": 4,
+          "max": 10.39990234375
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 8864.568333333333,
+          "p95": 13055,
+          "max": 70358
+        },
+        "contacts": {
+          "mean": 284.4891666666667,
+          "p95": 545,
+          "max": 16867
+        },
+        "maxPenetration": {
+          "mean": 0.2837572798721921,
+          "p95": 0.8928667921464295,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 2.7316666666666665,
+          "p95": 0,
+          "max": 717
+        },
+        "constraints": {
+          "mean": 295.86,
+          "p95": 890,
+          "max": 1069
+        },
+        "constraintLimited": {
+          "mean": 12.464166666666667,
+          "p95": 40,
+          "max": 50
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.59936801263975,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60156.5,
+      "passed": null,
+      "raw": "before/landing-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "landing-1600",
+      "rawSha256": "72252b696da959d66fa1c553d630753fe0be3568d509a01fac6b1a70e6c853bd",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.93346390719826,
+      "ticksPerSecond": 19.96881536666905,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.799999999995634,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        10000,
+        12144
+      ],
+      "visibleUnits": [
+        82,
+        82
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 15.270834350585938,
+          "p95": 21.5,
+          "max": 237.5
+        },
+        "scheduleDelayMs": {
+          "mean": 7.348848673502604,
+          "p95": 16,
+          "max": 187.7001953125
+        },
+        "encodeMs": {
+          "mean": 4.237666422526042,
+          "p95": 5.5,
+          "max": 10.199951171875
+        },
+        "deliveryMs": {
+          "mean": 2.2882124837239584,
+          "p95": 4.800048828125,
+          "max": 8.5
+        },
+        "applyMs": {
+          "mean": 2.6413374837239583,
+          "p95": 3.400146484375,
+          "max": 5.7001953125
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 8866.264166666666,
+          "p95": 13055,
+          "max": 70358
+        },
+        "contacts": {
+          "mean": 284.6666666666667,
+          "p95": 545,
+          "max": 16867
+        },
+        "maxPenetration": {
+          "mean": 0.2838761273223592,
+          "p95": 0.8928667921464295,
+          "max": 0.92
+        },
+        "limited": {
+          "mean": 2.7316666666666665,
+          "p95": 0,
+          "max": 717
+        },
+        "constraints": {
+          "mean": 296.37666666666667,
+          "p95": 890,
+          "max": 1069
+        },
+        "constraintLimited": {
+          "mean": 12.495833333333334,
+          "p95": 40,
+          "max": 50
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.799364012719742,
+      "refreshEligible": true,
+      "clockPassed": true,
+      "elapsedMs": 60093.7,
+      "passed": null,
+      "raw": "after/landing-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "battle-330",
+      "rawSha256": "8d7626db6040a83139d61c4911779af64e158091df50e97110cbd8d75fe0bf6f",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 15.202765443230415,
+      "ticksPerSecond": 7.68463291148968,
+      "p95GapMs": 125.10000000000218,
+      "maxGapMs": 406.2000000000007,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        4209,
+        10001
+      ],
+      "visibleUnits": [
+        486,
+        4000
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 111.4081679280599,
+          "p95": 649.199951171875,
+          "max": 1017.599853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 24.276199951171876,
+          "p95": 179.300048828125,
+          "max": 249.2001953125
+        },
+        "encodeMs": {
+          "mean": 1.6463350423177083,
+          "p95": 2.60009765625,
+          "max": 4.60009765625
+        },
+        "deliveryMs": {
+          "mean": 2.896143391927083,
+          "p95": 4.300048828125,
+          "max": 9.10009765625
+        },
+        "applyMs": {
+          "mean": 1.0348335774739583,
+          "p95": 1.800048828125,
+          "max": 3.699951171875
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 503512.4583333333,
+          "p95": 2682089,
+          "max": 3840000
+        },
+        "contacts": {
+          "mean": 62882.55333333334,
+          "p95": 342097,
+          "max": 898205
+        },
+        "maxPenetration": {
+          "mean": 0.6454386303991593,
+          "p95": 1.239996312032606,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 4051.55,
+          "p95": 24559,
+          "max": 39777
+        },
+        "constraints": {
+          "mean": 9765.060833333333,
+          "p95": 30958,
+          "max": 40985
+        },
+        "constraintLimited": {
+          "mean": 209.3825,
+          "p95": 620,
+          "max": 745
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.802190375862143,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 156155.8,
+      "passed": null,
+      "raw": "before/battle-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "battle-330",
+      "rawSha256": "3e89d30d6447be74b36e765dcf4ce7f4db090a7f09f430031484ee42d429a909",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 20.37006504592572,
+      "ticksPerSecond": 10.637109684556512,
+      "p95GapMs": 94.20000000000073,
+      "maxGapMs": 312.5,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        4207,
+        10001
+      ],
+      "visibleUnits": [
+        499,
+        4000
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 71.71333557128906,
+          "p95": 365,
+          "max": 563.599853515625
+        },
+        "scheduleDelayMs": {
+          "mean": 22.076510620117187,
+          "p95": 168.60009765625,
+          "max": 248
+        },
+        "encodeMs": {
+          "mean": 1.863831787109375,
+          "p95": 3.199951171875,
+          "max": 5.60009765625
+        },
+        "deliveryMs": {
+          "mean": 2.8228857421875,
+          "p95": 5.300048828125,
+          "max": 9.89990234375
+        },
+        "applyMs": {
+          "mean": 1.1153287760416666,
+          "p95": 2,
+          "max": 4.10009765625
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 503512.4583333333,
+          "p95": 2682089,
+          "max": 3840000
+        },
+        "contacts": {
+          "mean": 62882.55333333334,
+          "p95": 342097,
+          "max": 898205
+        },
+        "maxPenetration": {
+          "mean": 0.6454386303991593,
+          "p95": 1.239996312032606,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 4051.55,
+          "p95": 24559,
+          "max": 39777
+        },
+        "constraints": {
+          "mean": 9765.060833333333,
+          "p95": 30958,
+          "max": 40985
+        },
+        "constraintLimited": {
+          "mean": 209.3825,
+          "p95": 620,
+          "max": 745
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.999360012799748,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 112812.6,
+      "passed": null,
+      "raw": "after/battle-330-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "battle-1600",
+      "rawSha256": "8ebd3a08ca7503af10354dcddb21ef93f41b2ad9ded728359173b38b7bae3ecd",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 15.927158164897662,
+      "ticksPerSecond": 6.9932637387036936,
+      "p95GapMs": 125,
+      "maxGapMs": 374.59999999999854,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        3987,
+        10002
+      ],
+      "visibleUnits": [
+        288,
+        4000
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 133.17358174641927,
+          "p95": 736.599853515625,
+          "max": 947.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 45.992200724283855,
+          "p95": 217.900146484375,
+          "max": 248.39990234375
+        },
+        "encodeMs": {
+          "mean": 2.573830159505208,
+          "p95": 3.7001953125,
+          "max": 5.900146484375
+        },
+        "deliveryMs": {
+          "mean": 5.17569091796875,
+          "p95": 7.699951171875,
+          "max": 12.099853515625
+        },
+        "applyMs": {
+          "mean": 1.4121630859375,
+          "p95": 2.5,
+          "max": 7
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 423813.31666666665,
+          "p95": 2707892,
+          "max": 3840000
+        },
+        "contacts": {
+          "mean": 52374.9575,
+          "p95": 348374,
+          "max": 895526
+        },
+        "maxPenetration": {
+          "mean": 0.6456098934833965,
+          "p95": 1.2398592302519555,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 3479.5441666666666,
+          "p95": 24594,
+          "max": 39659
+        },
+        "constraints": {
+          "mean": 7497.265833333333,
+          "p95": 30808,
+          "max": 39597
+        },
+        "constraintLimited": {
+          "mean": 147.12333333333333,
+          "p95": 509,
+          "max": 589
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.799030129581045,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 171593.7,
+      "passed": null,
+      "raw": "before/battle-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "battle-1600",
+      "rawSha256": "4fe4c9f35a951047d12cbd8987be35bbd6a9ee743e20641e080d2de81d66e193",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 21.012513597483192,
+      "ticksPerSecond": 9.391067529601427,
+      "p95GapMs": 94,
+      "maxGapMs": 312.3000000000029,
+      "failedChecks": [],
+      "initialTick": 20638,
+      "endTick": 21838,
+      "units": [
+        3983,
+        10002
+      ],
+      "visibleUnits": [
+        290,
+        4000
+      ],
+      "activeAI": [
+        16,
+        16
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 91.42457926432292,
+          "p95": 474.699951171875,
+          "max": 632.60009765625
+        },
+        "scheduleDelayMs": {
+          "mean": 30.911254272460937,
+          "p95": 195.400146484375,
+          "max": 250
+        },
+        "encodeMs": {
+          "mean": 3.6239937337239585,
+          "p95": 5,
+          "max": 8.5
+        },
+        "deliveryMs": {
+          "mean": 3.683768717447917,
+          "p95": 6.900146484375,
+          "max": 10.60009765625
+        },
+        "applyMs": {
+          "mean": 1.414833984375,
+          "p95": 2.60009765625,
+          "max": 7.099853515625
+        }
+      },
+      "collisions": {
+        "candidates": {
+          "mean": 423813.31666666665,
+          "p95": 2707892,
+          "max": 3840000
+        },
+        "contacts": {
+          "mean": 52374.9575,
+          "p95": 348374,
+          "max": 895526
+        },
+        "maxPenetration": {
+          "mean": 0.6456098934833965,
+          "p95": 1.2398592302519555,
+          "max": 1.24
+        },
+        "limited": {
+          "mean": 3479.5441666666666,
+          "p95": 24594,
+          "max": 39659
+        },
+        "constraints": {
+          "mean": 7497.265833333333,
+          "p95": 30808,
+          "max": 39597
+        },
+        "constraintLimited": {
+          "mean": 147.12333333333333,
+          "p95": 509,
+          "max": 589
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.7968203179682,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 127781.00000000001,
+      "passed": null,
+      "raw": "after/battle-1600-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "real2d",
+      "rawSha256": "c9b41019521f05709e09f2a49e5984acc7f83fb5fdf9fd78b2b2138d65795349",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 23.949880250598753,
+      "ticksPerSecond": 14.2999285003575,
+      "p95GapMs": 94,
+      "maxGapMs": 218.89999999999418,
+      "failedChecks": [],
+      "initialTick": 21724,
+      "endTick": 22582,
+      "units": [
+        10819,
+        11470
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 65.3616542149257,
+          "p95": 97.2998046875,
+          "max": 234.699951171875
+        },
+        "scheduleDelayMs": {
+          "mean": 117.85666839670746,
+          "p95": 234.400146484375,
+          "max": 249.900146484375
+        },
+        "encodeMs": {
+          "mean": 5.521223161604021,
+          "p95": 8.900146484375,
+          "max": 13.400146484375
+        },
+        "deliveryMs": {
+          "mean": 9.88242153354458,
+          "p95": 15.800048828125,
+          "max": 155.699951171875
+        },
+        "applyMs": {
+          "mean": 3.606529538170163,
+          "p95": 5.699951171875,
+          "max": 10.5
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.801558276355536,
+      "refreshEligible": false,
+      "clockPassed": false,
+      "elapsedMs": 60000.29999999999,
+      "passed": false,
+      "focus": [
+        122.074327145583,
+        -549.508845705757
+      ],
+      "raw": "before/real2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "real2d",
+      "rawSha256": "377f85015b5ca795fb1703c18e948699e90dd18bd3748b47ecf5c37b4bde5d79",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.966613388977688,
+      "ticksPerSecond": 16.63330561115732,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.30000000000291,
+      "failedChecks": [],
+      "initialTick": 21840,
+      "endTick": 22838,
+      "units": [
+        10907,
+        11714
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 55.600902977830664,
+          "p95": 78.7998046875,
+          "max": 223.39990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 123.55622695586486,
+          "p95": 236.7001953125,
+          "max": 251.60009765625
+        },
+        "encodeMs": {
+          "mean": 7.451308867735471,
+          "p95": 11.10009765625,
+          "max": 17.400146484375
+        },
+        "deliveryMs": {
+          "mean": 4.159464925945641,
+          "p95": 9.400146484375,
+          "max": 20.5
+        },
+        "applyMs": {
+          "mean": 3.1963810433366735,
+          "p95": 4.60009765625,
+          "max": 8
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.803454650261386,
+      "refreshEligible": false,
+      "clockPassed": false,
+      "elapsedMs": 60000.09999999999,
+      "passed": false,
+      "focus": [
+        122.074327145583,
+        -549.508845705757
+      ],
+      "raw": "after/real2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "real3d",
+      "rawSha256": "562773832b174e5e6761b21d1e94a8ee009fe0f8bc9042932a1262196777a79f",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 9.93330022233259,
+      "ticksPerSecond": 15.399948666837775,
+      "p95GapMs": 125.5,
+      "maxGapMs": 281.3999999999942,
+      "failedChecks": [],
+      "initialTick": 21702,
+      "endTick": 22626,
+      "units": [
+        10811,
+        11507
+      ],
+      "visibleUnits": [
+        192,
+        208
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 60.511796959550864,
+          "p95": 87.300048828125,
+          "max": 269.800048828125
+        },
+        "scheduleDelayMs": {
+          "mean": 121.79598589480182,
+          "p95": 235.199951171875,
+          "max": 250.7001953125
+        },
+        "encodeMs": {
+          "mean": 5.310598662405303,
+          "p95": 7.5,
+          "max": 12
+        },
+        "deliveryMs": {
+          "mean": 9.606471734645563,
+          "p95": 16.30029296875,
+          "max": 153.7001953125
+        },
+        "applyMs": {
+          "mean": 3.4896145114650974,
+          "p95": 5.300048828125,
+          "max": 7.900146484375
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.802190375862136,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60000.20000000001,
+      "passed": false,
+      "focus": [
+        -82.3046755766882,
+        -412.427772597611
+      ],
+      "raw": "before/real3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "real3d",
+      "rawSha256": "dc4e911458f9d1544e5e7689d132f4885abbf69134eef95fc4ab00817ba49395",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.95026553036108,
+      "ticksPerSecond": 15.392098722655703,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 62.79999999998836,
+      "failedChecks": [],
+      "initialTick": 21830,
+      "endTick": 22754,
+      "units": [
+        10893,
+        11652
+      ],
+      "visibleUnits": [
+        192,
+        214
+      ],
+      "activeAI": [
+        15,
+        15
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 60.14350950563109,
+          "p95": 87,
+          "max": 246.60009765625
+        },
+        "scheduleDelayMs": {
+          "mean": 115.83701367398878,
+          "p95": 235.39990234375,
+          "max": 249.599853515625
+        },
+        "encodeMs": {
+          "mean": 7.996110131730249,
+          "p95": 12.5,
+          "max": 15.39990234375
+        },
+        "deliveryMs": {
+          "mean": 5.196172805059524,
+          "p95": 11.699951171875,
+          "max": 36.300048828125
+        },
+        "applyMs": {
+          "mean": 3.398265227610931,
+          "p95": 5,
+          "max": 7.699951171875
+        }
+      },
+      "denseFraction": 1,
+      "refreshHz": 31.80092620197563,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60030.8,
+      "passed": false,
+      "focus": [
+        -82.3046755766882,
+        -412.427772597611
+      ],
+      "raw": "after/real3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "active2d",
+      "rawSha256": "d687af77f55d7cfee219bdbbd320e2031bd9da981c9c39291e6c7710d84e74ed",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 5.222479280561899,
+      "ticksPerSecond": 19.592613351916935,
+      "p95GapMs": 250.19999999998254,
+      "maxGapMs": 312.3999999999942,
+      "failedChecks": [],
+      "initialTick": 1456,
+      "endTick": 2634,
+      "units": [
+        5828,
+        6425
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        77,
+        89
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 45.356024802034696,
+          "p95": 62.2001953125,
+          "max": 109.89990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 62.96617035792922,
+          "p95": 194.60009765625,
+          "max": 244.39990234375
+        },
+        "encodeMs": {
+          "mean": 5.451786164314516,
+          "p95": 7.7001953125,
+          "max": 10.10009765625
+        },
+        "deliveryMs": {
+          "mean": 11.061069974267827,
+          "p95": 36.800048828125,
+          "max": 74.699951171875
+        },
+        "applyMs": {
+          "mean": 2.7217306710261036,
+          "p95": 4,
+          "max": 9.10009765625
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.6,
+      "refreshEligible": false,
+      "clockPassed": false,
+      "elapsedMs": 60124.7,
+      "passed": false,
+      "focus": [
+        130.569052210416,
+        -527.2027826447132
+      ],
+      "raw": "before/active2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "active2d",
+      "rawSha256": "4aa382e92255718848f1dd51d1e5f79f9f871960502b3f8644d613da7fde693d",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 22.754758343133755,
+      "ticksPerSecond": 18.02390082523479,
+      "p95GapMs": 62.80000000000291,
+      "maxGapMs": 156.5,
+      "failedChecks": [],
+      "initialTick": 1278,
+      "endTick": 2360,
+      "units": [
+        5934,
+        6622
+      ],
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "activeAI": [
+        80,
+        92
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 51.0313646379872,
+          "p95": 68.39990234375,
+          "max": 139.5
+        },
+        "scheduleDelayMs": {
+          "mean": 115.41403209503287,
+          "p95": 237,
+          "max": 250
+        },
+        "encodeMs": {
+          "mean": 6.769919082247463,
+          "p95": 9.599853515625,
+          "max": 15.60009765625
+        },
+        "deliveryMs": {
+          "mean": 32.3787841796875,
+          "p95": 61.300048828125,
+          "max": 100.699951171875
+        },
+        "applyMs": {
+          "mean": 3.2429816326971865,
+          "p95": 4.89990234375,
+          "max": 12.300048828125
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.8,
+      "refreshEligible": false,
+      "clockPassed": false,
+      "elapsedMs": 60031.40000000001,
+      "passed": false,
+      "focus": [
+        130.569052210416,
+        -527.2027826447132
+      ],
+      "raw": "after/active2d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "active3d",
+      "rawSha256": "492c7d9b73930fe14d3b4e4e473c78a44759deafbe91bcf089e9fcf5634ae68b",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 9.21660522263185,
+      "ticksPerSecond": 19.899867334217774,
+      "p95GapMs": 156.40000000002328,
+      "maxGapMs": 187.89999999999418,
+      "failedChecks": [],
+      "initialTick": 1360,
+      "endTick": 2554,
+      "units": [
+        5826,
+        6517
+      ],
+      "visibleUnits": [
+        65,
+        110
+      ],
+      "activeAI": [
+        77,
+        89
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 40.11289888570457,
+          "p95": 56.60009765625,
+          "max": 120.89990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 14.080527760874686,
+          "p95": 83.699951171875,
+          "max": 246.10009765625
+        },
+        "encodeMs": {
+          "mean": 4.176549659102806,
+          "p95": 7.10009765625,
+          "max": 10.89990234375
+        },
+        "deliveryMs": {
+          "mean": 6.349222921246859,
+          "p95": 17.5,
+          "max": 63.900146484375
+        },
+        "applyMs": {
+          "mean": 2.1470720300722363,
+          "p95": 3.599853515625,
+          "max": 18.300048828125
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 31.998720051197946,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60000.399999999994,
+      "passed": false,
+      "focus": [
+        -22.89726450126766,
+        -559.7849996981499
+      ],
+      "raw": "before/active3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "active3d",
+      "rawSha256": "909fd17e41861ffbf172bb1d00b21f129b6486ddc796b23b8ee96d54afe43489",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "fps": 31.700235377995735,
+      "ticksPerSecond": 18.05730696255774,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 63,
+      "failedChecks": [],
+      "initialTick": 1376,
+      "endTick": 2460,
+      "units": [
+        5841,
+        6485
+      ],
+      "visibleUnits": [
+        66,
+        111
+      ],
+      "activeAI": [
+        78,
+        89
+      ],
+      "worker": {
+        "computeMs": {
+          "mean": 50.67136266437903,
+          "p95": 68.199951171875,
+          "max": 131.39990234375
+        },
+        "scheduleDelayMs": {
+          "mean": 110.53522549061924,
+          "p95": 228.7001953125,
+          "max": 250
+        },
+        "encodeMs": {
+          "mean": 6.6887683622525325,
+          "p95": 9.199951171875,
+          "max": 12.5
+        },
+        "deliveryMs": {
+          "mean": 9.648102537264043,
+          "p95": 23.999755859375,
+          "max": 45.19970703125
+        },
+        "applyMs": {
+          "mean": 3.0200712369072282,
+          "p95": 4.5,
+          "max": 7.39990234375
+        }
+      },
+      "denseFraction": 0,
+      "refreshHz": 32,
+      "refreshEligible": true,
+      "clockPassed": false,
+      "elapsedMs": 60031.100000000006,
+      "passed": false,
+      "focus": [
+        -22.89726450126766,
+        -559.7849996981499
+      ],
+      "raw": "after/active3d-1.json"
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "soak",
+      "rawSha256": "e59707d3bafc7458992accbe230d711296fa029c3945e090ae3710569fb55cf1",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "passed": null,
+      "coldLoadMs": 11389,
+      "reloadMs": 9826,
+      "heapBytes": [
+        301421604,
+        387196116,
+        188123152,
+        292397680,
+        219230168,
+        185977368,
+        398190120,
+        438174708,
+        442213624,
+        353677948,
+        281353100,
+        425646084,
+        289312184,
+        434216736,
+        184786712,
+        300895840,
+        315624192,
+        350291112,
+        340142224,
+        327075052,
+        218840056,
+        447714900,
+        329456312,
+        261873780,
+        499763012,
+        337226216,
+        511431036,
+        340469680,
+        518094816,
+        300747456
+      ],
+      "saves": [
+        {
+          "method": "auto",
+          "tick": 1460,
+          "started": 98976.2999997139,
+          "ok": true,
+          "elapsedMs": 3353.4000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 2660,
+          "started": 158930.2999997139,
+          "ok": true,
+          "elapsedMs": 3129.1000003814697
+        },
+        {
+          "method": "write",
+          "tick": 2728,
+          "started": 162663.19999980927,
+          "ok": true,
+          "elapsedMs": 93.2000002861023
+        },
+        {
+          "method": "auto",
+          "tick": 3860,
+          "started": 219796.09999990463,
+          "ok": true,
+          "elapsedMs": 3248.5999999046326
+        },
+        {
+          "method": "auto",
+          "tick": 5060,
+          "started": 280050.90000009537,
+          "ok": true,
+          "elapsedMs": 2946.0999999046326
+        },
+        {
+          "method": "auto",
+          "tick": 6260,
+          "started": 340150,
+          "ok": true,
+          "elapsedMs": 3462.2999997138977
+        },
+        {
+          "method": "auto",
+          "tick": 7460,
+          "started": 400620.09999990463,
+          "ok": true,
+          "elapsedMs": 3063.300000190735
+        },
+        {
+          "method": "auto",
+          "tick": 8660,
+          "started": 460617.59999990463,
+          "ok": true,
+          "elapsedMs": 3686.5
+        },
+        {
+          "method": "auto",
+          "tick": 9860,
+          "started": 523601,
+          "ok": true,
+          "elapsedMs": 3464.0999999046326
+        },
+        {
+          "method": "auto",
+          "tick": 11060,
+          "started": 589730.4000000954,
+          "ok": true,
+          "elapsedMs": 3211.5
+        },
+        {
+          "method": "auto",
+          "tick": 12260,
+          "started": 666382.0999999046,
+          "ok": true,
+          "elapsedMs": 2992.300000190735
+        },
+        {
+          "method": "auto",
+          "tick": 13460,
+          "started": 745137.7999997139,
+          "ok": true,
+          "elapsedMs": 2975.800000190735
+        },
+        {
+          "method": "auto",
+          "tick": 14660,
+          "started": 834136.7999997139,
+          "ok": true,
+          "elapsedMs": 3055.7000002861023
+        },
+        {
+          "method": "auto",
+          "tick": 15860,
+          "started": 929784.5,
+          "ok": true,
+          "elapsedMs": 2992.699999809265
+        },
+        {
+          "method": "auto",
+          "tick": 17060,
+          "started": 1033160,
+          "ok": true,
+          "elapsedMs": 3126.5
+        },
+        {
+          "method": "auto",
+          "tick": 18260,
+          "started": 1144763.1999998093,
+          "ok": true,
+          "elapsedMs": 3201.2000002861023
+        },
+        {
+          "method": "auto",
+          "tick": 19460,
+          "started": 1263863.9000000954,
+          "ok": true,
+          "elapsedMs": 2997.5
+        },
+        {
+          "method": "auto",
+          "tick": 20660,
+          "started": 1392303.9000000954,
+          "ok": true,
+          "elapsedMs": 2986.5
+        },
+        {
+          "method": "auto",
+          "tick": 21860,
+          "started": 1529184.6999998093,
+          "ok": true,
+          "elapsedMs": 3071.9000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 23060,
+          "started": 1676123,
+          "ok": true,
+          "elapsedMs": 3324.7999997138977
+        },
+        {
+          "method": "auto",
+          "tick": 24260,
+          "started": 1832167.9000000954,
+          "ok": true,
+          "elapsedMs": 3146.8999996185303
+        }
+      ],
+      "manualUi": {
+        "elapsedMs": 1000.0999999046326,
+        "rafP95Ms": 93.90000000002328,
+        "rafMaxMs": 156.29999999998836
+      },
+      "autosaveFrames": [
+        {
+          "tick": 1460,
+          "p95GapMs": 125.30000000000291,
+          "maxGapMs": 125.30000000000291,
+          "drawIntervals": 15
+        },
+        {
+          "tick": 2660,
+          "p95GapMs": 187.39999999999418,
+          "maxGapMs": 187.5,
+          "drawIntervals": 25
+        },
+        {
+          "tick": 3860,
+          "p95GapMs": 219.20000000001164,
+          "maxGapMs": 219.20000000001164,
+          "drawIntervals": 20
+        },
+        {
+          "tick": 5060,
+          "p95GapMs": 156.5,
+          "maxGapMs": 156.60000000003492,
+          "drawIntervals": 33
+        },
+        {
+          "tick": 6260,
+          "p95GapMs": 93.5,
+          "maxGapMs": 156.19999999995343,
+          "drawIntervals": 93
+        },
+        {
+          "tick": 7460,
+          "p95GapMs": 156.5,
+          "maxGapMs": 187.5,
+          "drawIntervals": 37
+        },
+        {
+          "tick": 8660,
+          "p95GapMs": 187.59999999997672,
+          "maxGapMs": 219.10000000003492,
+          "drawIntervals": 28
+        },
+        {
+          "tick": 9860,
+          "p95GapMs": 156.29999999998836,
+          "maxGapMs": 156.5,
+          "drawIntervals": 41
+        },
+        {
+          "tick": 11060,
+          "p95GapMs": 187.5,
+          "maxGapMs": 187.59999999997672,
+          "drawIntervals": 25
+        },
+        {
+          "tick": 12260,
+          "p95GapMs": 93.70000000006985,
+          "maxGapMs": 125.09999999997672,
+          "drawIntervals": 30
+        },
+        {
+          "tick": 13460,
+          "p95GapMs": 124.69999999995343,
+          "maxGapMs": 156.40000000002328,
+          "drawIntervals": 43
+        },
+        {
+          "tick": 14660,
+          "p95GapMs": 156.40000000002328,
+          "maxGapMs": 187.59999999997672,
+          "drawIntervals": 26
+        },
+        {
+          "tick": 15860,
+          "p95GapMs": 156.19999999995343,
+          "maxGapMs": 187.70000000006985,
+          "drawIntervals": 27
+        },
+        {
+          "tick": 17060,
+          "p95GapMs": 93.90000000002328,
+          "maxGapMs": 218.80000000004657,
+          "drawIntervals": 47
+        },
+        {
+          "tick": 18260,
+          "p95GapMs": 124.80000000004657,
+          "maxGapMs": 125.10000000009313,
+          "drawIntervals": 44
+        },
+        {
+          "tick": 19460,
+          "p95GapMs": 93.69999999995343,
+          "maxGapMs": 124.80000000004657,
+          "drawIntervals": 49
+        },
+        {
+          "tick": 20660,
+          "p95GapMs": 94,
+          "maxGapMs": 125.19999999995343,
+          "drawIntervals": 47
+        },
+        {
+          "tick": 21860,
+          "p95GapMs": 93.79999999981374,
+          "maxGapMs": 94.19999999995343,
+          "drawIntervals": 49
+        },
+        {
+          "tick": 23060,
+          "p95GapMs": 94,
+          "maxGapMs": 125.19999999995343,
+          "drawIntervals": 46
+        },
+        {
+          "tick": 24260,
+          "p95GapMs": 125.4000000001397,
+          "maxGapMs": 218.60000000009313,
+          "drawIntervals": 31
+        }
+      ],
+      "postLoadCommand": true,
+      "manualTick": 2728,
+      "restoredTick": 2728,
+      "priorWorkers": 13,
+      "closedWorkers": 13,
+      "minutes": [
+        {
+          "fps": 5.1779224044207135,
+          "ticksPerSecond": 19.046762799541145,
+          "p95GapMs": 281.09999999999854,
+          "maxGapMs": 531.4000000000015
+        },
+        {
+          "fps": 12.210256282118554,
+          "ticksPerSecond": 20.02282135212347,
+          "p95GapMs": 156.10000000000582,
+          "maxGapMs": 187.5
+        },
+        {
+          "fps": 6.5863224038080945,
+          "ticksPerSecond": 19.92528848424772,
+          "p95GapMs": 218.80000000001746,
+          "maxGapMs": 281.6000000000058
+        },
+        {
+          "fps": 16.47465668081478,
+          "ticksPerSecond": 20.022787998320894,
+          "p95GapMs": 125,
+          "maxGapMs": 187.70000000001164
+        },
+        {
+          "fps": 15.925025778219032,
+          "ticksPerSecond": 19.856308292507414,
+          "p95GapMs": 156.80000000004657,
+          "maxGapMs": 281.20000000001164
+        },
+        {
+          "fps": 12.630359790525734,
+          "ticksPerSecond": 19.902385124464793,
+          "p95GapMs": 125.29999999998836,
+          "maxGapMs": 187.59999999997672
+        },
+        {
+          "fps": 9.449937000419993,
+          "ticksPerSecond": 19.499870000866654,
+          "p95GapMs": 187.29999999998836,
+          "maxGapMs": 312.5
+        },
+        {
+          "fps": 13.046292706223765,
+          "ticksPerSecond": 18.970374598335578,
+          "p95GapMs": 125.20000000001164,
+          "maxGapMs": 156.59999999997672
+        },
+        {
+          "fps": 8.686405774962198,
+          "ticksPerSecond": 17.83874902444344,
+          "p95GapMs": 187.40000000002328,
+          "maxGapMs": 187.90000000002328
+        },
+        {
+          "fps": 26.472600858111864,
+          "ticksPerSecond": 15.384077479808404,
+          "p95GapMs": 62.79999999993015,
+          "maxGapMs": 156.20000000006985
+        },
+        {
+          "fps": 8.766637444541859,
+          "ticksPerSecond": 15.499948333505568,
+          "p95GapMs": 187.19999999995343,
+          "maxGapMs": 281
+        },
+        {
+          "fps": 14.425807870227686,
+          "ticksPerSecond": 13.759488800009319,
+          "p95GapMs": 124.70000000006985,
+          "maxGapMs": 437.79999999993015
+        },
+        {
+          "fps": 8.936059746795003,
+          "ticksPerSecond": 13.246002902139335,
+          "p95GapMs": 156.5,
+          "maxGapMs": 406.19999999995343
+        },
+        {
+          "fps": 14.159374588753453,
+          "ticksPerSecond": 12.560198164611887,
+          "p95GapMs": 124.59999999997672,
+          "maxGapMs": 156.5
+        },
+        {
+          "fps": 9.128601674798567,
+          "ticksPerSecond": 12.060415351376207,
+          "p95GapMs": 156.20000000006985,
+          "maxGapMs": 437.5
+        },
+        {
+          "fps": 16.283038501560874,
+          "ticksPerSecond": 11.021852237252862,
+          "p95GapMs": 94,
+          "maxGapMs": 218.80000000004657
+        },
+        {
+          "fps": 9.435202457479171,
+          "ticksPerSecond": 10.949494209914102,
+          "p95GapMs": 156.19999999995343,
+          "maxGapMs": 607.8999999999069
+        },
+        {
+          "fps": 14.825599312358708,
+          "ticksPerSecond": 10.2946296348738,
+          "p95GapMs": 94.0999999998603,
+          "maxGapMs": 156.30000000004657
+        },
+        {
+          "fps": 9.43035343035343,
+          "ticksPerSecond": 10.17879417879418,
+          "p95GapMs": 156.30000000004657,
+          "maxGapMs": 218.69999999995343
+        },
+        {
+          "fps": 16.00842232916717,
+          "ticksPerSecond": 9.628374720352367,
+          "p95GapMs": 94,
+          "maxGapMs": 156.10000000009313
+        },
+        {
+          "fps": 9.783333333333333,
+          "ticksPerSecond": 9.333333333333334,
+          "p95GapMs": 156,
+          "maxGapMs": 218.80000000004657
+        },
+        {
+          "fps": 19.523213800846605,
+          "ticksPerSecond": 9.02865348127889,
+          "p95GapMs": 93.39999999990687,
+          "maxGapMs": 125.5
+        },
+        {
+          "fps": 9.395130190851097,
+          "ticksPerSecond": 8.895389223252634,
+          "p95GapMs": 156.10000000009313,
+          "maxGapMs": 250.39999999990687
+        },
+        {
+          "fps": 18.95,
+          "ticksPerSecond": 8.366666666666667,
+          "p95GapMs": 93.69999999995343,
+          "maxGapMs": 155.9000000001397
+        },
+        {
+          "fps": 9.451953126300038,
+          "ticksPerSecond": 8.42022584842926,
+          "p95GapMs": 156.10000000009313,
+          "maxGapMs": 281.19999999995343
+        },
+        {
+          "fps": 14.975446264967093,
+          "ticksPerSecond": 7.829209949426623,
+          "p95GapMs": 94,
+          "maxGapMs": 156.29999999981374
+        },
+        {
+          "fps": 9.116636277879081,
+          "ticksPerSecond": 7.966640111199635,
+          "p95GapMs": 156,
+          "maxGapMs": 188
+        },
+        {
+          "fps": 15.125367306551858,
+          "ticksPerSecond": 7.595999440294766,
+          "p95GapMs": 93.9000000001397,
+          "maxGapMs": 156.5
+        },
+        {
+          "fps": 9.333317777803689,
+          "ticksPerSecond": 7.499987500020822,
+          "p95GapMs": 125.5,
+          "maxGapMs": 218.60000000009313
+        },
+        {
+          "fps": 15.375184485556037,
+          "ticksPerSecond": 7.229501697433716,
+          "p95GapMs": 93.79999999981374,
+          "maxGapMs": 156.60000000009313
+        }
+      ],
+      "fps": 12.636281986658316,
+      "ticksPerSecond": 13.06201280787811,
+      "raw": "before/soak-1.json",
+      "blankRefreshHz": [
+        31.8,
+        31.998720051197953
+      ],
+      "refreshChanged": false,
+      "comparablePair": false
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "soak",
+      "rawSha256": "4194c01bf4c591180278693209b0abbde88a359a4c8720a47e7ba5a46ef5d26b",
+      "captureHarnessSha256": "8f1c5334672cd2189dce8f8adeb8f65f894ef05f55948e9dc0453ba8bc0f9043",
+      "valid": true,
+      "passed": null,
+      "coldLoadMs": 9637,
+      "reloadMs": 18342,
+      "heapBytes": [
+        332276068,
+        412082324,
+        279470388,
+        357100824,
+        297855644,
+        161594444,
+        340526688,
+        260063252,
+        427770584,
+        359995228,
+        468405696,
+        295338292,
+        389934856,
+        372488292,
+        314436704,
+        230342764,
+        445658188,
+        318410128,
+        532107304,
+        280107152,
+        427308168,
+        188189172,
+        309506368,
+        426614400,
+        196290200,
+        495808408,
+        236994748,
+        582050748,
+        293535380,
+        547458016
+      ],
+      "saves": [
+        {
+          "method": "auto",
+          "tick": 1460,
+          "started": 99895.5,
+          "ok": true,
+          "elapsedMs": 3689.5
+        },
+        {
+          "method": "write",
+          "tick": 2638,
+          "started": 159929.2000002861,
+          "ok": true,
+          "elapsedMs": 93.7999997138977
+        },
+        {
+          "method": "auto",
+          "tick": 2660,
+          "started": 161541.80000019073,
+          "ok": true,
+          "elapsedMs": 3682.5
+        },
+        {
+          "method": "auto",
+          "tick": 3860,
+          "started": 221867.90000009537,
+          "ok": true,
+          "elapsedMs": 3727.699999809265
+        },
+        {
+          "method": "auto",
+          "tick": 5060,
+          "started": 282047.40000009537,
+          "ok": true,
+          "elapsedMs": 3310.800000190735
+        },
+        {
+          "method": "auto",
+          "tick": 6260,
+          "started": 342058.40000009537,
+          "ok": true,
+          "elapsedMs": 3320.9000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 7460,
+          "started": 402074.09999990463,
+          "ok": true,
+          "elapsedMs": 3399.300000190735
+        },
+        {
+          "method": "auto",
+          "tick": 8660,
+          "started": 463512.5,
+          "ok": true,
+          "elapsedMs": 3473.4000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 9860,
+          "started": 526861.4000000954,
+          "ok": true,
+          "elapsedMs": 3024.800000190735
+        },
+        {
+          "method": "auto",
+          "tick": 11060,
+          "started": 594149,
+          "ok": true,
+          "elapsedMs": 3174.4000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 12260,
+          "started": 667446.7000002861,
+          "ok": true,
+          "elapsedMs": 3242.7999997138977
+        },
+        {
+          "method": "auto",
+          "tick": 13460,
+          "started": 744613.2000002861,
+          "ok": true,
+          "elapsedMs": 3180.5
+        },
+        {
+          "method": "auto",
+          "tick": 14660,
+          "started": 825391.7000002861,
+          "ok": true,
+          "elapsedMs": 3062.7999997138977
+        },
+        {
+          "method": "auto",
+          "tick": 15860,
+          "started": 914020.7000002861,
+          "ok": true,
+          "elapsedMs": 3034
+        },
+        {
+          "method": "auto",
+          "tick": 17060,
+          "started": 1010866.5,
+          "ok": true,
+          "elapsedMs": 3010
+        },
+        {
+          "method": "auto",
+          "tick": 18260,
+          "started": 1116819.8000001907,
+          "ok": true,
+          "elapsedMs": 3393
+        },
+        {
+          "method": "auto",
+          "tick": 19460,
+          "started": 1229512.5999999046,
+          "ok": true,
+          "elapsedMs": 3264.2000002861023
+        },
+        {
+          "method": "auto",
+          "tick": 20660,
+          "started": 1347669.200000286,
+          "ok": true,
+          "elapsedMs": 3141
+        },
+        {
+          "method": "auto",
+          "tick": 21860,
+          "started": 1472317.5999999046,
+          "ok": true,
+          "elapsedMs": 3391.9000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 23060,
+          "started": 1607825.4000000954,
+          "ok": true,
+          "elapsedMs": 3434.4000000953674
+        },
+        {
+          "method": "auto",
+          "tick": 24260,
+          "started": 1790730.5,
+          "ok": true,
+          "elapsedMs": 4509.300000190735
+        }
+      ],
+      "manualUi": {
+        "elapsedMs": 714.9000000953674,
+        "rafP95Ms": 62.89999999999418,
+        "rafMaxMs": 94
+      },
+      "autosaveFrames": [
+        {
+          "tick": 1460,
+          "p95GapMs": 31.69999999999709,
+          "maxGapMs": 62.19999999999709,
+          "drawIntervals": 118
+        },
+        {
+          "tick": 2660,
+          "p95GapMs": 62.80000000001746,
+          "maxGapMs": 93.89999999999418,
+          "drawIntervals": 64
+        },
+        {
+          "tick": 3860,
+          "p95GapMs": 62.60000000000582,
+          "maxGapMs": 62.60000000000582,
+          "drawIntervals": 19
+        },
+        {
+          "tick": 5060,
+          "p95GapMs": 31.600000000034925,
+          "maxGapMs": 31.70000000001164,
+          "drawIntervals": 107
+        },
+        {
+          "tick": 6260,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.600000000034925,
+          "drawIntervals": 107
+        },
+        {
+          "tick": 7460,
+          "p95GapMs": 31.600000000034925,
+          "maxGapMs": 31.70000000001164,
+          "drawIntervals": 110
+        },
+        {
+          "tick": 8660,
+          "p95GapMs": 31.70000000001164,
+          "maxGapMs": 31.79999999998836,
+          "drawIntervals": 113
+        },
+        {
+          "tick": 9860,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 97
+        },
+        {
+          "tick": 11060,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 102
+        },
+        {
+          "tick": 12260,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 62
+        },
+        {
+          "tick": 13460,
+          "p95GapMs": 31.699999999953434,
+          "maxGapMs": 31.800000000046566,
+          "drawIntervals": 102
+        },
+        {
+          "tick": 14660,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 99
+        },
+        {
+          "tick": 15860,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 98
+        },
+        {
+          "tick": 17060,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.70000000006985,
+          "drawIntervals": 97
+        },
+        {
+          "tick": 18260,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.699999999953434,
+          "drawIntervals": 110
+        },
+        {
+          "tick": 19460,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.199999999953434,
+          "drawIntervals": 105
+        },
+        {
+          "tick": 20660,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.699999999953434,
+          "drawIntervals": 102
+        },
+        {
+          "tick": 21860,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.699999999953434,
+          "drawIntervals": 110
+        },
+        {
+          "tick": 23060,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.700000000186265,
+          "drawIntervals": 111
+        },
+        {
+          "tick": 24260,
+          "p95GapMs": 34.699999999953434,
+          "maxGapMs": 69.5,
+          "drawIntervals": 255
+        }
+      ],
+      "postLoadCommand": true,
+      "manualTick": 2638,
+      "restoredTick": 2638,
+      "priorWorkers": 13,
+      "closedWorkers": 13,
+      "minutes": [
+        {
+          "fps": 20.106177943839295,
+          "ticksPerSecond": 18.090562756428728,
+          "p95GapMs": 93.60000000000582,
+          "maxGapMs": 125.20000000000437
+        },
+        {
+          "fps": 31.94984025079875,
+          "ticksPerSecond": 19.666568333825,
+          "p95GapMs": 31.60000000000582,
+          "maxGapMs": 62.59999999999127
+        },
+        {
+          "fps": 28.085395594290976,
+          "ticksPerSecond": 19.88965737816336,
+          "p95GapMs": 62.60000000000582,
+          "maxGapMs": 94.19999999998254
+        },
+        {
+          "fps": 31.866507334129988,
+          "ticksPerSecond": 19.99990000049999,
+          "p95GapMs": 31.60000000000582,
+          "maxGapMs": 218.70000000001164
+        },
+        {
+          "fps": 30.86712809108551,
+          "ticksPerSecond": 20.05613719463948,
+          "p95GapMs": 31.70000000001164,
+          "maxGapMs": 94
+        },
+        {
+          "fps": 32,
+          "ticksPerSecond": 19.933333333333334,
+          "p95GapMs": 31.600000000034925,
+          "maxGapMs": 31.79999999998836
+        },
+        {
+          "fps": 31.916613472310893,
+          "ticksPerSecond": 19.29996783338695,
+          "p95GapMs": 31.600000000034925,
+          "maxGapMs": 62.70000000001164
+        },
+        {
+          "fps": 31.950052639294196,
+          "ticksPerSecond": 18.990125134929816,
+          "p95GapMs": 31.600000000034925,
+          "maxGapMs": 62.5
+        },
+        {
+          "fps": 31.98352848283133,
+          "ticksPerSecond": 17.357727437036587,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 62.800000000046566
+        },
+        {
+          "fps": 31.966870395079855,
+          "ticksPerSecond": 16.458190698456956,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.699999999953434
+        },
+        {
+          "fps": 31.966657393726248,
+          "ticksPerSecond": 15.591866243109832,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 62.5
+        },
+        {
+          "fps": 31.933447829541638,
+          "ticksPerSecond": 15.092177221473513,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.699999999953434
+        },
+        {
+          "fps": 31.93317366746497,
+          "ticksPerSecond": 14.399928000359987,
+          "p95GapMs": 31.699999999953434,
+          "maxGapMs": 62.70000000006985
+        },
+        {
+          "fps": 31.983226722577555,
+          "ticksPerSecond": 13.133289555701465,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 62.79999999993015
+        },
+        {
+          "fps": 31.983333333333334,
+          "ticksPerSecond": 12.5,
+          "p95GapMs": 31.599999999976717,
+          "maxGapMs": 62.800000000046566
+        },
+        {
+          "fps": 31.983581761362537,
+          "ticksPerSecond": 11.727313312499597,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.800000000046566
+        },
+        {
+          "fps": 32.00023987686325,
+          "ticksPerSecond": 11.360834771483985,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.9000000001397
+        },
+        {
+          "fps": 31.949946750088824,
+          "ticksPerSecond": 10.799982000030026,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.800000000046566
+        },
+        {
+          "fps": 31.93328011119989,
+          "ticksPerSecond": 10.39998266669558,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.5999999998603
+        },
+        {
+          "fps": 31.983368648302907,
+          "ticksPerSecond": 10.394594810698445,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.5
+        },
+        {
+          "fps": 31.933226889243727,
+          "ticksPerSecond": 9.966633444555193,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.699999999953434
+        },
+        {
+          "fps": 31.95,
+          "ticksPerSecond": 9.633333333333333,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.5
+        },
+        {
+          "fps": 32.00002665280723,
+          "ticksPerSecond": 9.395114540438978,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 31.9000000001397
+        },
+        {
+          "fps": 31.983315370481833,
+          "ticksPerSecond": 8.828727680393422,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.300000000046566
+        },
+        {
+          "fps": 31.983333333333334,
+          "ticksPerSecond": 8.766666666666667,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 62.699999999953434
+        },
+        {
+          "fps": 31.149896167012802,
+          "ticksPerSecond": 7.466641777860747,
+          "p95GapMs": 31.600000000093132,
+          "maxGapMs": 687.3999999999069
+        },
+        {
+          "fps": 31.789774289270383,
+          "ticksPerSecond": 6.79781337003266,
+          "p95GapMs": 31.699999999953434,
+          "maxGapMs": 111.5
+        },
+        {
+          "fps": 57.17341436232139,
+          "ticksPerSecond": 4.897722559010049,
+          "p95GapMs": 34.699999999953434,
+          "maxGapMs": 201.29999999981374
+        },
+        {
+          "fps": 52.67701209188214,
+          "ticksPerSecond": 4.466130730978936,
+          "p95GapMs": 41.10000000009313,
+          "maxGapMs": 111.20000000018626
+        },
+        {
+          "fps": 62.82078833342481,
+          "ticksPerSecond": 4.531226313097732,
+          "p95GapMs": 34.60000000009313,
+          "maxGapMs": 89.89999999990687
+        }
+      ],
+      "fps": 33.92677192626333,
+      "ticksPerSecond": 12.996470736168979,
+      "raw": "after/soak-1.json",
+      "blankRefreshHz": [
+        31.99968199073798,
+        137.8070701018574
+      ],
+      "refreshChanged": true,
+      "comparablePair": false
+    }
+  ],
+  "comparisons": {},
+  "complete": false,
+  "accepted": false,
+  "measurementStatus": {
+    "stopped": true,
+    "reason": "Goal cleared after the first full paired round.",
+    "baseWindowsPlanned": 152,
+    "baseWindowsCaptured": 52,
+    "highRefreshAcceptanceComplete": false,
+    "note": "The candidate soak changed refresh conditions near minute 28. The paired full-window FPS and clock comparison is excluded. Save and command outcomes were verified."
+  }
+}

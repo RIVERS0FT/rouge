@@ -3,6 +3,7 @@ import {loadMapOrderFixture,mapOrderFixture,targetPoint,worldView} from './map-o
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {savedCampaigns} from './save-records.ts';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
 const regionForSource=(code:string)=>atlas.provinces.find((p:{sourceAtoms:string[]})=>p.sourceAtoms.includes(code));
 test('ownership border hierarchy, UK detail, map orders and persisted route',async({page})=>{
@@ -33,11 +34,8 @@ test('ownership border hierarchy, UK detail, map orders and persisted route',asy
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Remote order');await page.getByTestId('create-save').click();
  await expect(page.locator('.save-card').filter({hasText:'Remote order'})).toBeVisible();
- const routes=await page.evaluate(savePrefix=>{
-  const saves=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
-  const state=JSON.parse(saves.find(s=>s.name==='Remote order').body);
-  return state.armies.filter((army:any)=>army.owner===0);
- }, plan.savePrefix);
+ const state=(await savedCampaigns(page,plan.savePrefix)).find(save=>save.name==='Remote order')!.state;
+ const routes=state.armies.filter(army=>army.owner===0);
  expect(routes.length).toBeGreaterThan(0);expect(routes.every((army:any)=>army.to===plan.target&&army.formation.route.points.length>=2)).toBe(true);
  await page.reload();await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Remote order'}).getByRole('button',{name:'载入',exact:true}).click();
  await expect(page.getByTestId('open-settings')).toBeVisible();expect(errors).toEqual([]);

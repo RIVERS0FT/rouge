@@ -72,7 +72,9 @@ export class PoliticalTint {
  readonly stripePeriod={value:10};
  readonly stripeOffset={value:0};
  segments=0;
+ private readonly bounds:Rect;
  constructor(bounds:Rect,texels:{width:number;height:number}){
+  this.bounds=bounds;
   this.target=new THREE.WebGLRenderTarget(texels.width,texels.height,{depthBuffer:false,format:THREE.RedFormat,type:THREE.UnsignedByteType,
    minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,wrapS:THREE.RepeatWrapping,wrapT:THREE.ClampToEdgeWrapping,generateMipmaps:false});
   this.uniforms={uPoliticalTint:{value:this.target.texture},uPoliticalTintStrength:{value:POLITICAL_TINT_STRENGTH}};
@@ -95,8 +97,28 @@ export class PoliticalTint {
   this.setGeometry(geometry,segments);
  }
  private setGeometry(geometry:THREE.InstancedBufferGeometry,segments:number){
-  this.ribbon.geometry.dispose();this.ribbon.geometry=geometry;
-  for(const copy of this.copies)copy.geometry=geometry;
+  const old=this.ribbon.geometry;
+  this.ribbon.geometry=geometry;
+  const start=geometry.getAttribute('aStart'),end=geometry.getAttribute('aEnd');
+  // The repeated world can only contribute within one miter of the seam.
+  // The vertex shader caps the extension at 1.5 times the wash reach.
+  const pad=POLITICAL_TINT_REACH*1.5+.01;
+  for(const copy of this.copies){
+   if(copy.geometry!==old)copy.geometry.dispose();
+   const indices:number[]=[];
+   for(let i=0;i<segments;i++){
+    const x=start.getX(i),endX=end.getX(i);
+    if(copy.position.x<0?Math.max(x,endX)>=this.bounds.right-pad:Math.min(x,endX)<=this.bounds.left+pad)indices.push(i);
+   }
+   const strip=politicalRibbonGeometry([]);
+   for(const name of ['aStart','aEnd','aPrevious','aNext']){
+    const source=geometry.getAttribute(name),values=new Float32Array(indices.length*2);
+    for(let j=0;j<indices.length;j++){values[j*2]=source.getX(indices[j]);values[j*2+1]=source.getY(indices[j]);}
+    strip.setAttribute(name,new THREE.InstancedBufferAttribute(values,2));
+   }
+   strip.instanceCount=indices.length;copy.geometry=strip;copy.visible=indices.length>0;
+  }
+  old.dispose();
   this.segments=segments;this.dirty=true;
  }
  /** Bake the wash if edges changed. Returns true when a pass was drawn. */
@@ -133,5 +155,5 @@ export class PoliticalTint {
   };
   material.customProgramCacheKey=()=>`${previousKey}:political-tint-capture-v1`;
  }
- dispose(){this.target.dispose();this.ribbon.geometry.dispose();this.ribbon.material.dispose();}
+ dispose(){this.target.dispose();for(const copy of this.copies)if(copy.geometry!==this.ribbon.geometry)copy.geometry.dispose();this.ribbon.geometry.dispose();this.ribbon.material.dispose();}
 }

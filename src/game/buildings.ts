@@ -29,14 +29,24 @@ function nearby(a:Vec2,b:Vec2,r:number):Building[]{
 function local(b:Building,p:Vec2):Vec2 {const x=p.x-b.x,z=p.z-b.z,c=Math.cos(b.rotation),s=Math.sin(b.rotation);return{x:c*x-s*z,z:s*x+c*z};}
 export function buildingFootprint(center:Vec2,heading:number,halfLength:number,halfWidth:number):boolean {
  const span=(angle:number,x:number,z:number)=>Math.abs(Math.cos(angle))*x+Math.abs(Math.sin(angle))*z;
- return !nearby(center,center,Math.hypot(halfLength,halfWidth)).some(b=>{
-  const angle=-b.rotation;
-  for(const axis of [heading,heading+Math.PI/2,angle,angle+Math.PI/2]){
-   const separation=Math.abs((center.x-b.x)*Math.cos(axis)+(center.z-b.z)*Math.sin(axis));
-   if(separation>=span(heading-axis,halfLength,halfWidth)+span(angle-axis,HOUSE_WIDTH/2,HOUSE_DEPTH/2)-1e-8)return false;
+ const reach=Math.hypot(halfLength,halfWidth)+Math.hypot(HOUSE_WIDTH,HOUSE_DEPTH)/2;
+ const left=Math.floor((center.x-reach)/cell),right=Math.floor((center.x+reach)/cell);
+ const top=Math.floor((center.z-reach)/cell),bottom=Math.floor((center.z+reach)/cell);
+ for(let x=left;x<=right;x++){
+  const column=buckets.get(x);if(!column)continue;
+  for(let z=top;z<=bottom;z++){
+   const houses=column.get(z);if(!houses)continue;
+   for(const house of houses){
+    const dx=center.x-house.x,dz=center.z-house.z;
+    if(Math.abs(dx)>reach+1e-8||Math.abs(dz)>reach+1e-8)continue;
+    const angle=-house.rotation;
+    const separated=(axis:number)=>Math.abs(dx*Math.cos(axis)+dz*Math.sin(axis))
+      >=span(heading-axis,halfLength,halfWidth)+span(angle-axis,HOUSE_WIDTH/2,HOUSE_DEPTH/2)-1e-8;
+    if(!separated(heading)&&!separated(heading+Math.PI/2)&&!separated(angle)&&!separated(angle+Math.PI/2))return false;
+   }
   }
-  return true;
- });
+ }
+ return true;
 }
 export function buildingClearance(p:Vec2,radius:number):number {
  let gap=radius;
@@ -90,7 +100,8 @@ export function buildingStep(from:Vec2,goal:Vec2,radius:number,step:number,legal
  const dist=(a:Vec2,b:Vec2)=>Math.hypot(a.x-b.x,a.z-b.z);
  const advance=(to:Vec2)=>{const d=dist(from,to),f=d?Math.min(step/d,1):0;return{x:from.x+(to.x-from.x)*f,z:from.z+(to.z-from.z)*f};};
  // Bound local work even when a route crosses a continent.
- const d=dist(from,goal),scale=d?Math.min(5/d,1):0,target={x:from.x+(goal.x-from.x)*scale,z:from.z+(goal.z-from.z)*scale},direct=advance(goal);
+ const d=dist(from,goal),dx=goal.x-from.x,dz=goal.z-from.z,scale=d?Math.min(5/d,1):0,move=d?Math.min(step/d,1):0;
+ const target={x:from.x+dx*scale,z:from.z+dz*scale},direct={x:from.x+dx*move,z:from.z+dz*move};
  const covered=!buildingSegment(target,target,radius),arriving=arrival>=0&&covered;
  // Keep following the detour until the whole local connection is clear,
  // rather than being pulled back toward the blocked centerline each tick.

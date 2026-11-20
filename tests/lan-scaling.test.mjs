@@ -2,12 +2,12 @@ import {connectTicket} from './helpers/lan-streams.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLanServer} from '../server/lan.ts';
-import {MAP_ID,RULES_ID} from '../src/game/content.ts';
+import {MAP_ID,LAN_RULES_ID} from '../src/game/content.ts';
 const setup=name=>({name,leader:'warden',loadout:['infantry']});
 test('expanded LAN retains reconnect identity, private snapshots, input and rate safeguards',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`,controllers=[];
- const headers=token=>({'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})});
+ const headers=token=>({'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})});
  const request=async(path,body,token)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:headers(token),body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);return{status:r.status,data};};
  async function connect(ticket){
   const controller=new AbortController();controllers.push(controller);
@@ -48,7 +48,7 @@ test('expanded LAN retains reconnect identity, private snapshots, input and rate
 test('broadcasts share serialized empty-choice views while isolating private choices and same-tick bases',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`;
- const req=async(path,body,token)=>{const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)});assert.ok(r.ok);const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);return data;};
+ const req=async(path,body,token)=>{const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)});assert.ok(r.ok);const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);return data;};
  try{
   const a=await req('/rooms',{setup:setup('Host')}),path=`/rooms/${a.code}`;
   for(let i=1;i<6;i++)await req(path+'/join',{setup:setup(`Human ${i}`)});
@@ -60,9 +60,12 @@ test('broadcasts share serialized empty-choice views while isolating private cho
   const originalMap=state.players.map;
   state.players.map=function(...args){encodes++;return originalMap.apply(this,args);};
   const messages=Array.from({length:6},()=>[]),batches=[];
-  const stream=actor=>({destroyed:false,writableEnded:false,writableLength:0,end(){this.writableEnded=true;},destroy(){this.destroyed=true;},write(data){
+  const stream=actor=>({destroyed:false,writableEnded:false,writableLength:0,parts:[],end(){this.writableEnded=true;},destroy(){this.destroyed=true;},write(bytes){
+   this.parts.push(bytes);
+   if(!bytes.toString().endsWith('\n\n'))return true;
+   const prefix=this.parts[0],data=this.parts.join('');this.parts.length=0;
    if(!data.startsWith('data: '))return true;
-   const frame=JSON.parse(data.slice(6));messages[actor].push({data,frame});
+   const frame=JSON.parse(data.slice(6));messages[actor].push({data,frame,prefix});
    if(actor===0)startEncodes=encodes-1;
    if(actor===5)batches.push(encodes-startEncodes);
    return true;
@@ -70,8 +73,9 @@ test('broadcasts share serialized empty-choice views while isolating private cho
   for(const response of room.streams.values())response.end();
   for(let i=0;i<6;i++)room.streams.set(i,stream(i));
   await req(path+'/command',{command:{type:'upgrade',kind:'infantry',stat:'attack'}},a.token);
-  assert.ok(batches.length);assert.ok(batches.every(n=>n===3),'one encode for empty-choice viewers plus two private-choice views');
+  assert.ok(batches.length);assert.ok(batches.every(n=>n===1),'one public world encode across all private-choice views');
   const latest=i=>messages[i].at(-1);
+  assert.ok(Buffer.isBuffer(latest(0).prefix));assert.equal(latest(0).prefix,latest(5).prefix);
   assert.equal(latest(1).data,latest(2).data);assert.equal(latest(2).data,latest(4).data);
   for(let i=0;i<6;i++)for(const p of latest(i).frame.state.players)assert.deepEqual(p.choices,p.id===i?state.players[i].choices:[]);
   // Replace a stream: it needs a full frame, while existing same-tick clients
@@ -85,7 +89,7 @@ test('broadcasts share serialized empty-choice views while isolating private cho
   assert.ok(messages[1].some(m=>m.frame.type==='delta'&&m.frame.provinces.some(p=>p.id===province.id&&p.capture===0.25)));
   const before=batches.length;province.capture=0.5;
   await req(path+'/command',{command:{type:'upgrade',kind:'infantry',stat:'speed'}},a.token);
-  assert.ok(batches.slice(before).every(n=>n===3),'replacement converges onto the shared base');
+  assert.ok(batches.slice(before).every(n=>n===1),'replacement converges onto the shared base');
   for(let i=0;i<6;i++)assert.ok(messages[i].some(m=>m.frame.type==='delta'&&m.frame.provinces.some(p=>p.id===province.id&&p.capture===0.5)));
  }finally{await host.close();}
 });
@@ -93,7 +97,7 @@ test('broadcasts share serialized empty-choice views while isolating private cho
 test('start counts live human streams, retains offline seats and restores eligibility on reconnect',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`,controllers=[];
- const req=async(path,body,token)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});return{status:r.status,data:await r.json()};};
+ const req=async(path,body,token)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});return{status:r.status,data:await r.json()};};
  try{
   const a=(await req('/rooms',{setup:setup('Host'),aiCount:4})).data,path=`/rooms/${a.code}`;
   const b=(await req(path+'/join',{setup:setup('Second')})).data;

@@ -1,5 +1,6 @@
 import {expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
+import {savedCampaigns} from './save-records.ts';
 export const mapOrderFixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-map-order-fixture.mjs'],{encoding:'utf8',maxBuffer:16*1024*1024}));
 export async function loadMapOrderFixture(page:Page,url='/'){
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),mapOrderFixture);
@@ -25,10 +26,7 @@ export async function targetPoint(page:Page){
 export async function saveOrders(page:Page){
  await page.getByTestId('open-settings').click();await page.getByTestId('settings-save').click();
  await page.getByPlaceholder('存档名称').fill('Map order result');await page.getByTestId('create-save').click();
- return page.evaluate((savePrefix:string)=>{
-  const saves=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup')).map(k=>JSON.parse(localStorage.getItem(k)!));
-  const save=saves.find(s=>s.name==='Map order result');
-  if(!save)throw Error('Map order result save missing');
-  return JSON.parse(save.body).armies.filter((army:any)=>army.owner===0);
- }, mapOrderFixture.savePrefix);
+ const save=(await savedCampaigns(page,mapOrderFixture.savePrefix)).find(row=>row.name==='Map order result');
+ if(!save)throw Error('Map order result save missing');
+ return save.state.armies.filter(army=>army.owner===0);
 }

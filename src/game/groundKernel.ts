@@ -1,4 +1,5 @@
 import {KERNEL_BYTES} from '../generated/simulationKernel.ts';
+import {BALANCE} from './balance.ts';
 import {UNIT_RADIUS,type CircleBody,type CollisionReport} from './collision.ts';
 import type {Unit} from './types.ts';
 // Type-only: map.ts imports this module, so it must not load talent rules (which read the map) at runtime.
@@ -7,6 +8,13 @@ export const kernel=new WebAssembly.Instance(new WebAssembly.Module(KERNEL_BYTES
 let nativeNorm=true,checkSeed=17;
 for(let i=0;i<2048;i++){checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const a=(checkSeed/2147483648)*10**((i%600)-300);checkSeed=Math.imul(checkSeed,1664525)+1013904223|0;const b=(checkSeed/2147483648)*10**(((i*7)%600)-300);if(!Object.is(kernel.scaledNorm(a,b),Math.hypot(a,b))){nativeNorm=false;break;}}
 kernel.configureMath(nativeNorm);
+// Combat numbers for the WASM path. talentEffects.ts gives the JS fallback the same balance.ts entries.
+{
+ const T=BALANCE.talents,C=BALANCE.combat;
+ if(![C.splashTargets,T.wideSalvo.targets].every(n=>Number.isInteger(n)&&n>=0&&n<=4))throw Error('balance.ts: splash target counts must be whole numbers from 0 to 4');
+ kernel.configureCombat(T.forwardMarksmen.damageBonus,T.barrage.damageBonus,T.pointBlank.damageBonus,T.pointBlank.range*T.pointBlank.range,
+  C.splashDamage,T.grenadeVolley.splashDamage,T.breakthrough.splashDamage,T.cuirass.splashTaken,C.splashTargets,T.wideSalvo.targets);
+}
 const memoryGiB=typeof navigator==='undefined'?0:(navigator as Navigator&{deviceMemory?:number}).deviceMemory??0;
 kernel.configureNavigationCache(memoryGiB>=8?128:memoryGiB>=4?64:32);
 let staticEnd=64*1024*1024;const geometryPointers:Record<string,number>={};

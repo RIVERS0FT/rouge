@@ -10,6 +10,8 @@ import {chromium} from 'playwright';
 const options=Object.fromEntries(process.argv.slice(2).map(arg=>{const [key,...rest]=arg.replace(/^--/,'').split('=');return[key,rest.join('=')];}));
 if(!options.snapshot)throw Error('Use --snapshot=<JSON with state> [--seconds=30] [--warmup=5] [--output=<report.json>]');
 const seconds=Number(options.seconds??30),warmup=Number(options.warmup??5),target=Number(options.target??20);
+const steps=options.steps===undefined?0:Number(options.steps);
+if(options.steps!==undefined&&(!Number.isSafeInteger(steps)||steps<2||steps%2||warmup!==0))throw Error('Fixed-step replay requires an even step count and --warmup=0');
 if(!Number.isFinite(seconds)||seconds<5||seconds>300||!Number.isFinite(warmup)||warmup<0||warmup>60)throw Error('Invalid sampling duration');
 if(!Number.isFinite(target)||target<=0)throw Error('Invalid target tick rate');
 const source=await readFile(options.snapshot,'utf8'),snapshot=JSON.parse(source),reference=options.reference&&resolve(options.reference);
@@ -33,16 +35,16 @@ const server=createServer((req,res)=>{
  res.end(state?source:req.url==='/worker.js'?worker:req.url==='/physics.worker.ts'?physics:req.url==='/client.js'?pageClient:'<!doctype html><title>Local simulation clock acceptance</title><script type="module" src="/client.js"></script>');
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-const browser=await chromium.launch({executablePath:options.chrome??'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const browser=await chromium.launch({executablePath:options.chrome??process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH??'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
  const page=await browser.newPage();page.on('console',message=>{if(['warning','error'].includes(message.type()))console.log(message.type()+': '+message.text());});page.on('pageerror',error=>console.log(error.stack));await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>typeof window.applySimulationFrame==='function');
  await page.exposeFunction('reportProgress',value=>console.log(JSON.stringify(value)));
- const result=await page.evaluate(async({seconds,warmup})=>{
+ const result=await page.evaluate(async({seconds,warmup,steps})=>{
   const {state}=await(await fetch('/state.json')).json();
   return new Promise((resolve,reject)=>{
    const worker=new Worker('/worker.js',{type:'module'}),started=performance.now(),decodeTimes=[],frames=[];
    let current=null,readyAt=0,firstTick=0,firstAt=0,lastAt=0,lastTick=0,lastProgress=0,finishing=false;
-   const timer=setTimeout(()=>{worker.terminate();reject(Error('Local clock benchmark timed out'));},(seconds+warmup+120)*1000);
+   const timer=setTimeout(()=>{worker.terminate();reject(Error('Local clock benchmark timed out'));},(steps?600:seconds+warmup+120)*1000);
    const fail=error=>{clearTimeout(timer);worker.terminate();reject(error);};
    worker.onerror=event=>fail(Error(event.message));
    worker.onmessage=({data})=>{
@@ -59,11 +61,12 @@ try{
      if(!firstAt)return;
      lastAt=received;lastTick=current.tick;frames.push({elapsedMs:received-firstAt,tick:current.tick,units:current.units.length});
      if(received-lastProgress>=5000){lastProgress=received;window.reportProgress({elapsedMs:received-firstAt,tick:current.tick,units:current.units.length});}
-     if(received-firstAt>=seconds*1000){finishing=true;worker.postMessage({type:'pause',value:true});worker.postMessage({type:'profile-finish'});}
+     if(steps?current.tick>=firstTick+steps:received-firstAt>=seconds*1000){finishing=true;worker.postMessage({type:'pause',value:true});worker.postMessage({type:'profile-finish'});}
     }catch(error){fail(error);}
    };
   });
- },{seconds,warmup});
+ },{seconds,warmup,steps});
+ if(steps&&(result.startTick!==snapshot.state.tick||result.endTick!==result.startTick+steps))throw Error('Fixed-step worker window missed a tick boundary');
  const average=values=>values.reduce((sum,value)=>sum+value,0)/values.length,percentile=(values,q)=>[...values].sort((a,b)=>a-b)[Math.min(values.length-1,Math.floor(values.length*q))];
  const files=['src/game/engine.ts','src/game/map.ts','src/game/terrain-navigation.ts','src/game/buildings.ts','src/game/collision.ts','src/game/polygonQuery.ts','src/game/groundKernel.ts','src/game/physicsPool.ts','src/game/unitFallback.ts','src/platform/worker.ts','src/platform/physics.worker.ts','src/platform/localFrames.ts','src/platform/localSession.ts','scripts/simulation-kernel.as.ts','scripts/build-simulation.mjs','src/generated/simulationKernel.ts','package.json','package-lock.json','scripts/profile-local-simulation.mjs'];
  if(reference)for(const name of ['engine.ts','map.ts','terrain-navigation.ts','buildings.ts','collision.ts','polygonQuery.ts'])files.push(relative(process.cwd(),resolve(reference,name)).replaceAll('\\','/'));

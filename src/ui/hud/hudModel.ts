@@ -1,5 +1,6 @@
 import {isRegionGarrison} from '../../game/capacity.ts';
 import {availableFunds, fundsIncomeRate, treasuryInterest} from '../../game/construction.ts';
+import {BALANCE} from '../../game/balance.ts';
 import {UNITS} from '../../game/content.ts';
 import {MAP, PLAYABLE_COUNT} from '../../game/map.ts';
 import {tradeBonus} from '../../game/talentEffects.ts';
@@ -9,10 +10,10 @@ import type {ConstructionKind, GameState} from '../../game/types.ts';
 /** Derived, read-only HUD figures. These mirror the authoritative engine rules
  * (income per owned playable region, garrison definition, victory share) and
  * never feed back into the simulation. */
-export const VICTORY_SHARE = 0.6;
-export const DOMINATION_DAYS = 30;
+export const VICTORY_SHARE = BALANCE.victory.share;
+export const DOMINATION_DAYS = BALANCE.victory.days;
 export const victoryTarget = () => Math.ceil(PLAYABLE_COUNT * VICTORY_SHARE);
-export const CAPTURE_THRESHOLD = 8;
+export const CAPTURE_THRESHOLD = BALANCE.capture.days;
 
 export function territoryCounts(state: GameState): Map<number, number> {
  const counts = new Map<number, number>();
