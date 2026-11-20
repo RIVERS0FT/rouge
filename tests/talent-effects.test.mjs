@@ -1,14 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine} from '../src/game/engine.ts';
-import {DT,UNITS,stats,upgradeCostFor} from '../src/game/content.ts';
+import {DT,UNITS,stats,upgradeCost,upgradeCostFor} from '../src/game/content.ts';
 import {CONSTRUCTION,constructionCost,salvageValue} from '../src/game/construction.ts';
 import {MAP,pointInProvince,provinceByCode} from '../src/game/map.ts';
 import {capacityFor,regionCapacity} from '../src/game/territoryEconomy.ts';
-import {talentContext} from '../src/game/talentEffects.ts';
+import {talentContext,SAPPER_INTERVAL_TICKS} from '../src/game/talentEffects.ts';
 import {incomePerDay} from '../src/ui/hud/hudModel.ts';
 import {decodeSave,encodeSave} from '../src/game/save.ts';
+import {BALANCE} from '../src/game/balance.ts';
 
+const T=BALANCE.talents;
+/** Funds Tribute takes from a country holding `funds`. */
+const tributeTaken=funds=>Math.min(T.tribute.max,Math.floor(funds*T.tribute.share));
 const close=(value,want,epsilon=1e-8)=>assert.ok(Math.abs(value-want)<epsilon,`${value} != ${want}`);
 const setups=(kind='infantry',other='infantry')=>[{name:'A',leader:'warden',loadout:[kind]},{name:'B',leader:'steward',loadout:[other]}];
 const initial=new Map();
@@ -28,7 +32,7 @@ function captureSetup(e,{owner=-1,construction}={}){
  const target=MAP.find(region=>region.playable&&s.provinces[region.id].owner===-1&&!taken.has(region.id));
  const unit=s.units.find(u=>u.owner===0);
  Object.assign(unit,{x:target.center.x,z:target.center.z,province:target.id,origin:target.id});
- const province=s.provinces[target.id];Object.assign(province,{owner,capture:7.99,captor:0});
+ const province=s.provinces[target.id];Object.assign(province,{owner,capture:BALANCE.capture.days-.01,captor:0});
  if(construction)province.construction=construction;
  s.units=[unit];return province;
 }
@@ -36,27 +40,27 @@ test('capture talents: Press Gang raises troops, Fortify builds, Salvage cashes 
  const plain=game(),plainRegion=captureSetup(plain);plain.step();
  assert.equal(plainRegion.owner,0);assert.equal(plainRegion.construction,undefined);
  const levy=game('infantry','infantry',['pressGang']),levyRegion=captureSetup(levy);levy.step();
- assert.equal(levy.state.units.filter(u=>u.owner===0&&u.province===levyRegion.id).length,3);
+ assert.equal(levy.state.units.filter(u=>u.owner===0&&u.province===levyRegion.id).length,1+T.pressGang.units);
  const fort=game('infantry','infantry',['fortify']),fortRegion=captureSetup(fort);fort.step();
- assert.deepEqual(fortRegion.construction,{kind:'fortress',level:1});
+ assert.deepEqual(fortRegion.construction,{kind:'fortress',level:T.fortify.level});
  // Salvage then Fortify: the captured market becomes funds and the empty slot a fortress.
  const both=game('infantry','infantry',['salvage','fortify']),market={kind:'market',level:2};
  const bothRegion=captureSetup(both,{construction:market}),funds=both.state.players[0].funds;both.step();
- assert.equal(salvageValue(market),Math.floor((54+78)*.75));
- close(both.state.players[0].funds-funds,30+99,.5);assert.deepEqual(bothRegion.construction,{kind:'fortress',level:1});
+ assert.equal(salvageValue(market),Math.floor((CONSTRUCTION.market.costs[0]+CONSTRUCTION.market.costs[1])*T.salvage.refund));
+ close(both.state.players[0].funds-funds,BALANCE.economy.captureReward+salvageValue(market),.5);assert.deepEqual(bothRegion.construction,{kind:'fortress',level:T.fortify.level});
  // Without Salvage, buildings survive capture as before.
  const keep=game(),keepRegion=captureSetup(keep,{construction:market});keep.step();assert.deepEqual(keepRegion.construction,market);
  const tribute=game('infantry','infantry',['tribute']),victim=tribute.state.players[1];victim.funds=300;
  captureSetup(tribute,{owner:1});const before=tribute.state.players[0].funds;tribute.step();
- close(victim.funds,270,.5);close(tribute.state.players[0].funds-before,30+30,.5);
+ close(victim.funds,300-tributeTaken(300),.5);close(tribute.state.players[0].funds-before,BALANCE.economy.captureReward+tributeTaken(300),.5);
 });
 
-test('Living off the Land doubles kill and capture funds but cuts regional income by 40%',()=>{
+test('Living off the Land multiplies kill and capture funds but cuts regional income',()=>{
  const e=game('infantry','infantry',['livingOffLand','tribute']),victim=e.state.players[1];victim.funds=300;
  captureSetup(e,{owner:1});const before=e.state.players[0].funds;e.step();
- close(e.state.players[0].funds-before,60+60,.5);
+ close(e.state.players[0].funds-before,(BALANCE.economy.captureReward+tributeTaken(300))*T.livingOffLand.plunder,.5);
  const plain=game(),cut=game('infantry','infantry',['livingOffLand']);
- close(incomePerDay(cut.state,0),incomePerDay(plain.state,0)*.6);
+ close(incomePerDay(cut.state,0),incomePerDay(plain.state,0)*T.livingOffLand.income);
 });
 
 /** Player 0 attacks a nearly dead player-1 battalion on clear ground. */
@@ -72,11 +76,11 @@ function duel(attackerTalents,victimTalents,{victimOwnsRegion=false}={}){
 test('kill talents: Bounty and Battle-hardened reward the killer; Pensions and Martyrs pay back the victim',()=>{
  const control=duel([],[],{victimOwnsRegion:true});
  const reward=duel(['bounty','battleHardened'],['pensions','martyrs'],{victimOwnsRegion:true});
- close(control.xp[0],12);close(reward.xp[0],24);
- close(reward.funds[0]-control.funds[0],3);close(reward.funds[1]-control.funds[1],5);
- close(reward.province.production-control.province.production,UNITS.infantry.train*.5);
+ close(control.xp[0],BALANCE.leader.killXp);close(reward.xp[0],T.battleHardened.killXp);
+ close(reward.funds[0]-control.funds[0],T.bounty.funds);close(reward.funds[1]-control.funds[1],T.pensions.funds);
+ close(reward.province.production-control.province.production,UNITS.infantry.train*T.martyrs.training);
  const plunder=duel(['bounty','livingOffLand'],[]),plain=duel([],[]);
- close(plunder.funds[0]-plain.funds[0]-(plunder.e.state.players[0].funds-plunder.e.state.players[0].funds),6,.2);
+ close(plunder.funds[0]-plain.funds[0]-(plunder.e.state.players[0].funds-plunder.e.state.players[0].funds),T.bounty.funds*T.livingOffLand.plunder,.2);
  // Martyrs only refunds deaths inside the victim's own territory.
  const away=duel([],['martyrs']);close(away.province.production,0);
 });
@@ -84,25 +88,25 @@ test('kill talents: Bounty and Battle-hardened reward the killer; Pensions and M
 test('capacity talents stack: Grand Garrison, Human Wave and Conscription barracks',()=>{
  const e=game(),s=e.state,id=home(e),base=regionCapacity(id);
  assert.equal(capacityFor(s,id),base);
- s.players[0].talents.push('grandGarrison');assert.equal(capacityFor(s,id),Math.floor(base*1.5));
- s.players[0].talents.push('shieldWall');assert.equal(capacityFor(s,id),Math.floor(base*1.5)+4);
+ s.players[0].talents.push('grandGarrison');assert.equal(capacityFor(s,id),Math.floor(base*T.grandGarrison.capacity));
+ s.players[0].talents.push('shieldWall');assert.equal(capacityFor(s,id),Math.floor(base*T.grandGarrison.capacity)+T.shieldWall.capacity);
  s.players[0].talents.push('conscription');s.provinces[id].construction={kind:'barracks',level:2};
- assert.equal(capacityFor(s,id),Math.floor(base*1.5)+4+6);
+ assert.equal(capacityFor(s,id),Math.floor(base*T.grandGarrison.capacity)+T.shieldWall.capacity+T.conscription.slots[1]);
  assert.equal(capacityFor(s,enemyHome(e)),base,'only the owner’s talents count');
 });
 
-test('training talents: Levy trains 50% faster for 5 funds per battalion; Militia trains while besieged',()=>{
+test('training talents: Levy trains faster for funds per battalion; Militia trains while besieged',()=>{
  const plain=game(),levy=game('infantry','infantry',['levy']);
  for(const e of [plain,levy]){e.state.provinces[home(e)].production=0;e.step();}
  const increment=plain.state.provinces[home(plain)].production;assert.ok(increment>0);
- close(levy.state.provinces[home(levy)].production,increment*1.5);
+ close(levy.state.provinces[home(levy)].production,increment*T.levy.training);
  const train=UNITS.infantry.train;
  for(const e of [plain,levy]){e.state.provinces[home(e)].production=train-1e-6;}
  const counts=[plain,levy].map(e=>e.state.units.length),funds=[plain,levy].map(e=>e.state.players[0].funds);
  plain.step();levy.step();
  assert.equal(plain.state.units.length,counts[0]+1);assert.equal(levy.state.units.length,counts[1]+1);
- close((levy.state.players[0].funds-funds[1])-(plain.state.players[0].funds-funds[0]),-5);
- // An enemy at the region centre stalls training unless the owner has Militia (then it doubles).
+ close((levy.state.players[0].funds-funds[1])-(plain.state.players[0].funds-funds[0]),-T.levy.cost);
+ // An enemy at the region centre stalls training unless the owner has Militia (then it speeds up).
  const besieged=[game(),game('infantry','infantry',['militia'])];
  for(const e of besieged){
   const s=e.state,id=home(e),center=MAP[id].center;s.provinces[id].production=0;
@@ -110,7 +114,7 @@ test('training talents: Levy trains 50% faster for 5 funds per battalion; Militi
   e.step();
  }
  close(besieged[0].state.provinces[home(besieged[0])].production,0);
- close(besieged[1].state.provinces[home(besieged[1])].production,increment*2);
+ close(besieged[1].state.provinces[home(besieged[1])].production,increment*T.militia.training);
 });
 
 /** A playable region whose playable neighbours all belong to player 0. */
@@ -122,7 +126,7 @@ function encircle(e){
  s.units=s.units.filter(u=>u.province!==region.id);
  return region.id;
 }
-test('Encirclement: surrounded regions stop training, take 30% more damage and fall 50% faster',()=>{
+test('Encirclement: surrounded regions stop training, take more damage and fall faster',()=>{
  const plain=game(),surrounded=game('infantry','infantry',['encirclement']);
  const a=encircle(plain),b=encircle(surrounded);
  assert.deepEqual(talentContext(surrounded.state).encirclers.get(b),[0]);
@@ -134,7 +138,7 @@ test('Encirclement: surrounded regions stop training, take 30% more damage and f
   e.state.units.push({id:e.state.nextId++,owner:0,kind:'infantry',x:center.x,z:center.z,hp:100,province:id,origin:id,target:null,destination:null,route:[],cooldown:0});
   e.step();
  }
- close(surrounded.state.provinces[b].capture/plain.state.provinces[a].capture,1.5);
+ close(surrounded.state.provinces[b].capture/plain.state.provinces[a].capture,T.encirclement.captureSpeed);
 });
 
 test('Raiders: enemy regions with this cavalry inside earn and train nothing; the HUD agrees',()=>{
@@ -158,22 +162,24 @@ test('Siege Lines keeps abandoned capture progress; without it progress decays',
   s.units=s.units.filter(u=>u.province!==region.id);
   Object.assign(s.provinces[region.id],{owner:1,kind:'infantry',capture:3,captor:0});e.step();return s.provinces[region.id].capture;
  });
- close(values[0],3-DT*2);close(values[1],3);
+ close(values[0],3-DT*BALANCE.capture.decayPerDay);close(values[1],3);
 });
 
 test('daily talents: Treasury interest, Academy experience, Field Medicine and Supply Columns healing',()=>{
  const plain=game(),rich=game('infantry','infantry',['treasury']);
  for(const e of [plain,rich])e.state.players[0].funds=300;
- plain.step();rich.step();close(rich.state.players[0].funds-plain.state.players[0].funds,DT*3,1e-4);// 1% of funds after this tick's income
+ plain.step();rich.step();close(rich.state.players[0].funds-plain.state.players[0].funds,DT*Math.min(T.treasury.max,300*T.treasury.interest),1e-4);// interest on the funds after this tick's income
  const school=game('infantry','infantry',['academy']);school.state.provinces[home(school)].construction={kind:'barracks',level:2};
- const xp=school.state.players[0].xp;school.step();close(school.state.players[0].xp-xp,DT*1);
+ const xp=school.state.players[0].xp;school.step();close(school.state.players[0].xp-xp,DT*T.academy.xpPerDay[1]);
  const medic=game('infantry','infantry',['fieldMedicine','supplyColumns']),s=medic.state,id=home(medic);
  const resting=s.units.find(u=>u.owner===0&&u.province===id),marching=s.units.find(u=>u.owner===0&&u.province===id&&u!==resting);
  const neutral=MAP[id].neighbors.find(n=>MAP[n].playable&&s.provinces[n].owner===-1);
  resting.hp=50;Object.assign(marching,{hp:50,target:neutral,destination:neutral});
  stepToPulse(medic);
- close(resting.hp,53);close(marching.hp,55,1e-9);// 3% out of combat in friendly territory, +2% under orders
- const maximum=stats(s.players[0],'infantry').hp;resting.hp=maximum-.5;stepToPulse(medic);close(resting.hp,maximum);
+ const maximum=stats(s.players[0],'infantry').hp;
+ // Field Medicine out of combat in friendly territory, plus Supply Columns under orders.
+ close(resting.hp,50+maximum*T.fieldMedicine.healPerDay);close(marching.hp,50+maximum*(T.supplyColumns.healPerDay+T.fieldMedicine.healPerDay),1e-9);
+ resting.hp=maximum-.5;stepToPulse(medic);close(resting.hp,maximum);
 });
 
 test('Bastion Guns bleeds enemies inside the holder’s fortress regions and credits the kill',()=>{
@@ -185,31 +191,31 @@ test('Bastion Guns bleeds enemies inside the holder’s fortress regions and cre
   const xp=s.players[0].xp;stepToPulse(e);return {hp:intruder.hp,xp:s.players[0].xp-xp,alive:s.units.includes(doomed)};
  });
  close(results[0].hp,100);assert.equal(results[0].alive,true);
- close(results[1].hp,96);assert.equal(results[1].alive,false);close(results[1].xp,12);
+ close(results[1].hp,100-T.bastionGuns.damagePerDay[0]*UNITS.infantry.hp);assert.equal(results[1].alive,false);close(results[1].xp,BALANCE.leader.killXp);
 });
 
-test('Field Engineers upgrade staffed buildings every ten days; Industrial Base allows level 3',()=>{
+test('Field Engineers upgrade staffed buildings on their interval; Industrial Base allows level 3',()=>{
  const e=game('engineer','infantry',['sappers']),s=e.state,id=home(e);
  s.provinces[id].construction={kind:'market',level:1};
- steps(e,200-s.tick);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:2});
- steps(e,200);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:2},'level 2 is the cap without Industrial Base');
- s.players[0].talents.push('industrialBase');steps(e,200);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:3});
+ steps(e,SAPPER_INTERVAL_TICKS-s.tick);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:2});
+ steps(e,SAPPER_INTERVAL_TICKS);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:2},'level 2 is the cap without Industrial Base');
+ s.players[0].talents.push('industrialBase');steps(e,SAPPER_INTERVAL_TICKS);assert.deepEqual(s.provinces[id].construction,{kind:'market',level:3});
 });
 
 test('construction and upgrade talents: Industrial Base level 3, Fortress Doctrine and Arsenal discounts',()=>{
  const order=(province,kind,expectedLevel)=>({type:'construct',province,kind,expectedLevel});
  const e=game('infantry','infantry',['industrialBase']),s=e.state,p=s.players[0],id=home(e);p.funds=1000;
- for(const [level,cost]of [[0,54],[1,78],[2,110]]){const funds=p.funds;assert.deepEqual(e.command(0,order(id,'market',level)),{ok:true});close(funds-p.funds,cost);}
+ for(const [level,cost]of CONSTRUCTION.market.costs.entries()){const funds=p.funds;assert.deepEqual(e.command(0,order(id,'market',level)),{ok:true});close(funds-p.funds,cost);}
  assert.deepEqual(s.provinces[id].construction,{kind:'market',level:3});
  assert.deepEqual(e.command(0,order(id,'market',3)),{ok:false,error:'invalidCommand'});
  const plain=game();plain.state.provinces[home(plain)].construction={kind:'market',level:2};plain.state.players[0].funds=1000;
  assert.deepEqual(plain.command(0,order(home(plain),'market',2)),{ok:false,error:'invalidCommand'});
- assert.equal(constructionCost('fortress',0,{talents:['fortressDoctrine']}),Math.floor(44*.7));
- assert.equal(constructionCost('fortress',0,{talents:['fortressDoctrine','publicWorks']}),Math.floor(44*.85*.7));
- assert.equal(constructionCost('market',2,{talents:['publicWorks']}),Math.floor(110*.85));
- assert.equal(upgradeCostFor({talents:['arsenal']},0),21);
+ assert.equal(constructionCost('fortress',0,{talents:['fortressDoctrine']}),Math.floor(CONSTRUCTION.fortress.costs[0]*T.fortressDoctrine.cost));
+ assert.equal(constructionCost('fortress',0,{talents:['fortressDoctrine','publicWorks']}),Math.floor(CONSTRUCTION.fortress.costs[0]*T.publicWorks.cost*T.fortressDoctrine.cost));
+ assert.equal(constructionCost('market',2,{talents:['publicWorks']}),Math.floor(CONSTRUCTION.market.costs[2]*T.publicWorks.cost));
+ const discounted=Math.floor(upgradeCost(0)*T.arsenal.cost);assert.equal(upgradeCostFor({talents:['arsenal']},0),discounted);
  const armory=game('infantry','infantry',['arsenal']),funds=armory.state.players[0].funds;
- assert.deepEqual(armory.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}),{ok:true});close(funds-armory.state.players[0].funds,21);
+ assert.deepEqual(armory.command(0,{type:'upgrade',kind:'infantry',stat:'attack'}),{ok:true});close(funds-armory.state.players[0].funds,discounted);
  // A level-3 building keeps working for a captor without the talent, and saves round-trip.
  assert.deepEqual(decodeSave(encodeSave(s,'Level three')).state,s);
 });

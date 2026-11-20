@@ -292,15 +292,22 @@ function corridor(unit:i32,index:i32,x:f64,z:f64,lookahead:f64=0):void {
  corridorX=ax+along*dx;corridorZ=az+along*dz;
 }
 function corridorDistance(unit:i32,index:i32,x:f64,z:f64):f64 {corridor(unit,index,x,z);return norm2(x-corridorX,z-corridorZ);}
+// Combat numbers from src/game/balance.ts. groundKernel.ts sets them once at load, before any step.
+let vsMarchingBonus:f64=0,vsGarrisonBonus:f64=0,pointBlankBonus:f64=0,pointBlankRangeSquared:f64=0;
+let splashDamage:f64=0,heavySplashDamage:f64=0,halfSplashDamage:f64=0,splashResist:f64=1,splashTargets:i32=0,wideSplashTargets:i32=0;
+export function configureCombat(marching:f64,garrison:f64,pointBlank:f64,pointBlankRange2:f64,secondary:f64,heavy:f64,half:f64,resist:f64,targets:i32,wideTargets:i32):void {
+ vsMarchingBonus=marching;vsGarrisonBonus=garrison;pointBlankBonus=pointBlank;pointBlankRangeSquared=pointBlankRange2;
+ splashDamage=secondary;heavySplashDamage=heavy;halfSplashDamage=half;splashResist=resist;splashTargets=targets;wideSplashTargets=wideTargets;
+}
 // Talent lanes (written by talentEffects.ts): 18 mode bits, 30 damage-taken reduction, 31 damage-dealt bonus.
 // Bits 0-1: 1 bonus vs marching targets, 2 vs garrisoned targets, 3 point-blank primary target.
-// Bits 2-3: secondary splash multiplier .7/.5 instead of .35; bit 4: four secondary targets; bit 5: splash resistant.
+// Bits 2-3: heavy/half secondary splash multiplier instead of the default; bit 4: wide salvo target count; bit 5: splash resistant.
 function hit(source:i32,target:i32,multiplier:f64,close:bool):void {
  const mode=i32(u(source,18))&3;let bonus=u(source,31);
- if(mode==1){if(u(target,7)>=0)bonus+=.4;}else if(mode==2){if(u(target,7)<0)bonus+=.4;}else if(mode==3){if(close)bonus+=.5;}
+ if(mode==1){if(u(target,7)>=0)bonus+=vsMarchingBonus;}else if(mode==2){if(u(target,7)<0)bonus+=vsGarrisonBonus;}else if(mode==3){if(close)bonus+=pointBlankBonus;}
  const amount=u(source,26)*multiplier*(1+bonus)*100/(100+u(target,28))*(1-u(target,30));setU(target,20,u(target,20)+amount);setU(target,21,u(source,1));
 }
-@inline function splashHitMultiplier(base:f64,target:i32):f64 {return base*((i32(u(target,18))&32)!=0?.4:1);}
+@inline function splashHitMultiplier(base:f64,target:i32):f64 {return base*((i32(u(target,18))&32)!=0?splashResist:1);}
 function halt(unit:i32):void {
  setU(unit,19,i32(u(unit,19))|7);setU(unit,7,-1);setU(unit,9,-1);setU(unit,8,u(unit,6));setU(unit,11,-1);setU(unit,14,0);
 }
@@ -316,9 +323,9 @@ function moveUnit(unit:i32):void {
  }
  if(enemy>=0){
   if(cooldown<=1e-9){
-   hit(unit,enemy,1,nearest<=9);const splash=u(unit,27);
+   hit(unit,enemy,1,nearest<=pointBlankRangeSquared);const splash=u(unit,27);
    if(splash>0){
-    const ex=u(enemy,2),ez=u(enemy,3),mode=i32(u(unit,18)),wide=(mode&16)!=0,secondaryMode=(mode>>2)&3,secondary=secondaryMode==1?.7:secondaryMode==2?.5:.35;
+    const ex=u(enemy,2),ez=u(enemy,3),mode=i32(u(unit,18)),targets=(mode&16)!=0?wideSplashTargets:splashTargets,secondaryMode=(mode>>2)&3,secondary=secondaryMode==1?heavySplashDamage:secondaryMode==2?halfSplashDamage:splashDamage;
     let first=-1,second=-1,third=-1,fourth=-1,firstDistance=Infinity,secondDistance=Infinity,thirdDistance=Infinity,fourthDistance=Infinity;
     for(let cx=firstCellX(ex),right=lastCellX(ex);cx<=right;cx++)for(let cz=firstCellZ(ez),bottom=lastCellZ(ez);cz<=bottom;cz++){
      const cell=cz*unitCols+cx;if(load<i32>(unitOwnerCells+usize(cell)*4)==i32(owner))continue;for(let at=i32(word(unitOffsets,cell)),end=i32(word(unitOffsets,cell+1));at<end;at++){
@@ -326,12 +333,12 @@ function moveUnit(unit:i32):void {
       const dx=u(other,2)-ex,dz=u(other,3)-ez;if(norm2(dx,dz)>splash)continue;const d=dx*dx+dz*dz;
       if(d<firstDistance||(d==firstDistance&&(first<0||u(other,0)<u(first,0)))){fourth=third;fourthDistance=thirdDistance;third=second;thirdDistance=secondDistance;second=first;secondDistance=firstDistance;first=other;firstDistance=d;}
       else if(d<secondDistance||(d==secondDistance&&(second<0||u(other,0)<u(second,0)))){fourth=third;fourthDistance=thirdDistance;third=second;thirdDistance=secondDistance;second=other;secondDistance=d;}
-      else if(wide&&(d<thirdDistance||(d==thirdDistance&&(third<0||u(other,0)<u(third,0))))){fourth=third;fourthDistance=thirdDistance;third=other;thirdDistance=d;}
-      else if(wide&&(d<fourthDistance||(d==fourthDistance&&(fourth<0||u(other,0)<u(fourth,0))))){fourth=other;fourthDistance=d;}
+      else if(targets>=3&&(d<thirdDistance||(d==thirdDistance&&(third<0||u(other,0)<u(third,0))))){fourth=third;fourthDistance=thirdDistance;third=other;thirdDistance=d;}
+      else if(targets>=4&&(d<fourthDistance||(d==fourthDistance&&(fourth<0||u(other,0)<u(fourth,0))))){fourth=other;fourthDistance=d;}
      }
     }
-    if(first>=0)hit(unit,first,splashHitMultiplier(secondary,first),false);if(second>=0)hit(unit,second,splashHitMultiplier(secondary,second),false);
-    if(wide){if(third>=0)hit(unit,third,splashHitMultiplier(secondary,third),false);if(fourth>=0)hit(unit,fourth,splashHitMultiplier(secondary,fourth),false);}
+    if(targets>=1&&first>=0)hit(unit,first,splashHitMultiplier(secondary,first),false);if(targets>=2&&second>=0)hit(unit,second,splashHitMultiplier(secondary,second),false);
+    if(targets>=3&&third>=0)hit(unit,third,splashHitMultiplier(secondary,third),false);if(targets>=4&&fourth>=0)hit(unit,fourth,splashHitMultiplier(secondary,fourth),false);
    }
    cooldown+=1/u(unit,25);
   }setU(unit,10,cooldown);return;

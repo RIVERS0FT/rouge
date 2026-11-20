@@ -83,7 +83,12 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
   const t=(window as any).attackTest,p=t.world.unitPoint.set(t.state.units[0].x,.16,t.state.units[0].z).project(t.world.camera);
   return {x:(p.x+1)*1440/2,y:(1-p.y)*960/2};
  });
- const tail=strategic!.slice(1,-1).split('L').map(point=>point.split(',').map(Number));
+ const tail=await path.evaluate(node=>{
+  const element=node as SVGPathElement,matrix=element.getCTM()!;
+  return element.getAttribute('d')!.slice(1,-1).split('L').map(pair=>{
+   const [x,y]=pair.split(',').map(Number),p=new DOMPoint(x,y).matrixTransform(matrix);return [p.x,p.y];
+  });
+ });
  // The first and final body edges straddle the exact source anchor.
  expect((tail[0][0]+tail.at(-1)![0])/2).toBeCloseTo(anchor.x,0);
  expect((tail[0][1]+tail.at(-1)![1])/2).toBeCloseTo(anchor.y,0);
@@ -92,8 +97,10 @@ test('attack arrows persist on both maps, follow the camera, and end on capture 
   const point=(id:number)=>{const p=t.centers[id],v=t.world.unitPoint.set(p.x,.16,p.z).project(t.world.camera);
    return {x:v.x*720,y:v.y*480};};
   const widthAt=(distance:number)=>{
-   t.draw(distance);const d=svg.querySelector('path')!.getAttribute('d')!;
-   const pairs=d.slice(1,-1).split('L').map(p=>p.split(',').map(Number));
+   t.draw(distance);const body=svg.querySelector('path')!,d=body.getAttribute('d')!,matrix=body.getCTM()!;
+   const pairs=d.slice(1,-1).split('L').map(pair=>{
+    const [x,y]=pair.split(',').map(Number),p=new DOMPoint(x,y).matrixTransform(matrix);return [p.x,p.y];
+   });
    const [first,last]=[pairs[0],pairs.at(-1)!],a=point(t.from),b=point(t.to);
    return {tail:Math.hypot(first[0]-last[0],first[1]-last[1]),map:Math.hypot(a.x-b.x,a.y-b.y)};
   };

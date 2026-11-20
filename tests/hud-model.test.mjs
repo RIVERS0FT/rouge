@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createGame} from '../src/game/engine.ts';
 import {MAP, PLAYABLE_COUNT} from '../src/game/map.ts';
 import {regionProductionRate} from '../src/game/territoryEconomy.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {isRegionGarrison} from '../src/game/capacity.ts';
 import {armyBreakdown, compactNumber, factionFocusRegion, factionSummaries, incomePerDay, ownedRegions, signed, territoryCounts, victoryTarget} from '../src/ui/hud/hudModel.ts';
 import {placeTip} from '../src/ui/tipPlacement.ts';
@@ -11,16 +12,16 @@ import {politicalRibbonGeometry} from '../src/render/politicalTint.ts';
 
 const setups = ['warden', 'vanguard', 'steward'].map((leader, i) => ({name: `Seat ${i}`, leader, loadout: ['infantry']}));
 
-test('ledger figures mirror engine rules: playable territory, income per region rate and the 60% goal', () => {
+test('ledger figures mirror engine rules: playable territory, income per region rate and the victory goal', () => {
  const state = createGame(setups, 99);
  const counts = territoryCounts(state);
  for(const player of state.players) {
   const owned = state.provinces.filter(p => p.owner === player.id && MAP[p.id].playable);
   assert.equal(counts.get(player.id), owned.length);
-  const expected = owned.reduce((sum, p) => sum + .75 * regionProductionRate(p.id), 0);
+  const expected = owned.reduce((sum, p) => sum + BALANCE.economy.incomePerRegion * regionProductionRate(p.id), 0);
   assert.ok(Math.abs(incomePerDay(state, player.id) - expected) < 1e-9);
  }
- assert.equal(victoryTarget(), Math.ceil(PLAYABLE_COUNT * .6));
+ assert.equal(victoryTarget(), Math.ceil(PLAYABLE_COUNT * BALANCE.victory.share));
 });
 
 test('army breakdown partitions every battalion exactly once', () => {

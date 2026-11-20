@@ -1,0 +1,2182 @@
+{
+  "complete": false,
+  "accepted": false,
+  "environment": {
+    "session": "Windows RDP, 32 Hz",
+    "gpu": "Intel UHD Graphics 630, D3D11",
+    "browser": "Chromium 153",
+    "viewport": [
+      1510,
+      1090
+    ],
+    "dpr": 1.25
+  },
+  "fixture": {
+    "sha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+    "tick": 20638,
+    "armies": 1686,
+    "units": 10065
+  },
+  "trialBuilds": {
+    "before": "d3c202788a67325918d8082940f19e06053f421258aa8993e3be216e11b5a258",
+    "after": "f16cc17f75fc2ec9b3facf3f3b9d885975ae3a01543813ff6c98cb3a0fc3e81f"
+  },
+  "trialResults": [
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "real2d",
+      "valid": true,
+      "fps": 24.216585944713525,
+      "ticksPerSecond": 14.933283555721486,
+      "p95GapMs": 93.89999999999418,
+      "maxGapMs": 250,
+      "elapsedMs": 60000.19999999998,
+      "passed": false,
+      "raw": "vector-pair/before/real2d-1.json",
+      "rawSha256": "a78ac5452ef7640e6a473767469219c52a092ef23540591d2dd0b5172e735a2d",
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "calibrationHz": [
+        31.598736050557978,
+        31.59747220222382
+      ],
+      "startTick": 21800,
+      "endTick": 22696
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "real2d",
+      "valid": true,
+      "fps": 31.76660292246084,
+      "ticksPerSecond": 16.058209343079312,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 250.1999999999971,
+      "elapsedMs": 60031.59999999999,
+      "passed": false,
+      "raw": "vector-pair/after/real2d-1.json",
+      "rawSha256": "a3ec1afe98292f7b92fc2c6a6ac8a2feeb6b171e899117439247516c8638bb16",
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "calibrationHz": [
+        31.799364012719742,
+        32.1331630209165
+      ],
+      "startTick": 21804,
+      "endTick": 22768
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "real3d",
+      "valid": true,
+      "fps": 10.039592289326732,
+      "ticksPerSecond": 15.583844747611643,
+      "p95GapMs": 125.39999999999418,
+      "maxGapMs": 250.3000000000029,
+      "elapsedMs": 60062.2,
+      "passed": false,
+      "raw": "vector-pair/before/real3d-1.json",
+      "rawSha256": "4468bfbd0e9d65344d4017da4b8306537ea7e035e6c2c18fc779a9cd0cc2c595",
+      "visibleUnits": [
+        192,
+        209
+      ],
+      "calibrationHz": [
+        31.4,
+        32.00159014112503
+      ],
+      "startTick": 21712,
+      "endTick": 22648
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "real3d",
+      "valid": true,
+      "fps": 31.716508084126243,
+      "ticksPerSecond": 15.399923000384998,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 219.10000000000582,
+      "elapsedMs": 60000.3,
+      "passed": false,
+      "raw": "vector-pair/after/real3d-1.json",
+      "rawSha256": "f01f2bf9a9999a8e690e816a19244333595d3894e6515577ec98bf8fdd7f0abd",
+      "visibleUnits": [
+        192,
+        217
+      ],
+      "calibrationHz": [
+        31.998720051197953,
+        32.0666029318037
+      ],
+      "startTick": 21848,
+      "endTick": 22772
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-worker",
+      "valid": true,
+      "ticksPerSecond": 18.418354531815673,
+      "elapsedMs": 65152.39990234375,
+      "passed": null,
+      "raw": "vector-pair/before/fixed-worker-1.json",
+      "rawSha256": "e93775150a51e573cefed9bbf1df1003b927eec7187050d7c6e073568e8508cc",
+      "startTick": 20638,
+      "endTick": 21838
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-worker",
+      "valid": true,
+      "ticksPerSecond": 19.755167590837296,
+      "elapsedMs": 60743.60009765625,
+      "passed": null,
+      "raw": "vector-pair/after/fixed-worker-1.json",
+      "rawSha256": "8931ea76a7ae21fbb13f2ac5a0b30e642bea95f0231886bca736d9a7737620bd",
+      "startTick": 20638,
+      "endTick": 21838
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-2d",
+      "valid": true,
+      "fps": 24.295095167358497,
+      "ticksPerSecond": 16.65949382904583,
+      "p95GapMs": 94,
+      "maxGapMs": 250.09999999999854,
+      "elapsedMs": 72031,
+      "passed": null,
+      "raw": "vector-pair/before/fixed-2d-1.json",
+      "rawSha256": "d438251ef9c49b3dddd4e6ab8d179c089a0253280300d536de7fa6ad794e84fe",
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "calibrationHz": [
+        31.8,
+        32.08641409410686
+      ],
+      "startTick": 20638,
+      "endTick": 21838
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-2d",
+      "valid": true,
+      "fps": 31.625937945202487,
+      "ticksPerSecond": 18.704349696521923,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 187.8000000000029,
+      "elapsedMs": 64156.200000000004,
+      "passed": null,
+      "raw": "vector-pair/after/fixed-2d-1.json",
+      "rawSha256": "99716f8070b00bd553d67a708d966ec53bd2b196a32c600277fa9f307834f384",
+      "visibleUnits": [
+        0,
+        0
+      ],
+      "calibrationHz": [
+        31.8,
+        31.99744020478362
+      ],
+      "startTick": 20638,
+      "endTick": 21838
+    },
+    {
+      "round": 1,
+      "variant": "before",
+      "scenario": "fixed-3d",
+      "valid": true,
+      "fps": 9.600025388496896,
+      "ticksPerSecond": 15.867810559499,
+      "p95GapMs": 155.79999999999927,
+      "maxGapMs": 219,
+      "elapsedMs": 75624.8,
+      "passed": null,
+      "raw": "vector-pair/before/fixed-3d-1.json",
+      "rawSha256": "be01cf8a3937e04a1f44f89416085881469cd098bcf221fcb2f37ed5086ab806",
+      "visibleUnits": [
+        192,
+        198
+      ],
+      "calibrationHz": [
+        31.802190375862136,
+        31.99968199073798
+      ],
+      "startTick": 20638,
+      "endTick": 21838
+    },
+    {
+      "round": 1,
+      "variant": "after",
+      "scenario": "fixed-3d",
+      "valid": true,
+      "fps": 31.470014045564167,
+      "ticksPerSecond": 13.250532229711228,
+      "p95GapMs": 31.60000000000582,
+      "maxGapMs": 281.6000000000058,
+      "elapsedMs": 90562.4,
+      "passed": null,
+      "raw": "vector-pair/after/fixed-3d-1.json",
+      "rawSha256": "59beb068288805277de00d0c47a6ab56af2bab6067534f219c8884f285853477",
+      "visibleUnits": [
+        192,
+        200
+      ],
+      "calibrationHz": [
+        31.59810411375318,
+        32
+      ],
+      "startTick": 20638,
+      "endTick": 21838
+    }
+  ],
+  "trialNotes": [
+    "First vector-rendering revision; one A/B pair per scenario.",
+    "The candidate fixed-3d window overlapped with regression tests. Do not attribute that window to the game change.",
+    "Local army deltas and subsequent march optimizations belong to the full matrix."
+  ],
+  "startingSnapshotManifestSha256": "e21c1c3c33a52ad8dfabedd97fe7a1f8a56905fb4c77c5ce1972c798e3be4c0c",
+  "gameplayReplay": {
+    "startTick": 20638,
+    "verifiedSteps": 1205,
+    "fullStateIdentical": true,
+    "collisionReportsIdentical": true,
+    "rawSha256": "42f8f3720522ecf68574d25ba76f3b548020017c2aa7bc5c7f7396bab9cfca9a"
+  },
+  "lateFixture": {
+    "units": 24507,
+    "armies": 2357,
+    "tick": 893,
+    "sha256": "3bdf5f25796b4f829934034290b6bcaf23d274ef7c6297e7b0f43ad9397d67e9"
+  },
+  "intermediateMatrix": {
+    "rounds": 3,
+    "scenarios": [
+      "real2d",
+      "real3d",
+      "active2d",
+      "active3d",
+      "map3d",
+      "ai2d",
+      "ai3d",
+      "fixed-worker",
+      "fixed-2d",
+      "fixed-3d",
+      "double2d",
+      "double3d",
+      "input",
+      "touch",
+      "soak",
+      "lan",
+      "late2d",
+      "late3d",
+      "march-330",
+      "march-1600",
+      "bottleneck-330",
+      "bottleneck-1600",
+      "landing-330",
+      "landing-1600",
+      "battle-330",
+      "battle-1600"
+    ],
+    "harnessSha256": "25e6d6d59566e25f1b05224ae7f2e872824053ac6e6f3e8df49feaea46584d1f",
+    "builds": {
+      "before": "ae5814afb7fce43e6ebf7463de458cff710e8c065b2d936f2e52e4cf92e07211",
+      "after": "fff1130a8a2faa6921b42e735902f60cefe007479e0634e1f9ce4d297180ee66"
+    },
+    "fixtures": {
+      "real": {
+        "sha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+        "tick": 20638,
+        "armies": 1686,
+        "units": 10065
+      },
+      "active": {
+        "sha256": "34824427630b3eb3e937d6df84cb3d5f0541e0bde29110a1222213c0dfb00535",
+        "tick": 260,
+        "armies": 333,
+        "units": 10000
+      },
+      "full": {
+        "sha256": "6e7cbf88fa10f61a78af35db652dd52ef14aaa13b5d861c45dace07921d24b8c",
+        "tick": 3,
+        "armies": 0,
+        "units": 5200
+      },
+      "late": {
+        "sha256": "3bdf5f25796b4f829934034290b6bcaf23d274ef7c6297e7b0f43ad9397d67e9",
+        "tick": 893,
+        "armies": 2357,
+        "units": 24507
+      },
+      "march-330": {
+        "sha256": "15f06feb79ef0db9d98df76474e27da1da9a7e96f675bb0688c5224ac00fc8ac",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "march-1600": {
+        "sha256": "0b75733ca3b0052042fbc4badcb641966856a683528206424d0af1c7cc001b12",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "bottleneck-330": {
+        "sha256": "b0d652b5be978855d4b554c1343dac585c6b4c6af509fac840eedec5f9e34300",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "bottleneck-1600": {
+        "sha256": "b9889e77fc4034005a595543f76e8dabf637d0ceb27c73d530f74016a3afe607",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "landing-330": {
+        "sha256": "ac20dbc1d8e8397287de555ad605ac2cef4816260efaccf40c9d27e489a8d463",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "landing-1600": {
+        "sha256": "d43f7f21be0719134bfeb11f81e16cef27e1346298b4ee5d89df41461c3a9d90",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "battle-330": {
+        "sha256": "75f5f92d3c12ba99da1bd13922b7187086b74be47e6b6fcafa068d297c570ad8",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "battle-1600": {
+        "sha256": "f2623037f3977f9a66221641f049226faa14f5536fa8cc9fb964091f4e6359fb",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      }
+    },
+    "results": [
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "real2d",
+        "rawSha256": "d696e919952601b9b608af24174a3b487f596bf58b02c6736f1da5000d6832d4",
+        "valid": true,
+        "fps": 24.07081650874878,
+        "ticksPerSecond": 14.125987819667104,
+        "p95GapMs": 124.39999999999418,
+        "maxGapMs": 187.20000000001164,
+        "denseFraction": 0,
+        "refreshHz": 31.79936401271975,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60031.20000000001,
+        "passed": false,
+        "focus": [
+          122.074327145583,
+          -549.508845705757
+        ],
+        "unitRange": [
+          10823,
+          11460
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "real2d",
+        "rawSha256": "4f522364796f148f2e5b0f90034ab1aa5d905f1015e62f936336bd9c7510a5a5",
+        "valid": true,
+        "fps": 31.733339996501837,
+        "ticksPerSecond": 16.424710360394126,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 250,
+        "denseFraction": 0,
+        "refreshHz": 31.39811611303322,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60031.5,
+        "passed": false,
+        "focus": [
+          122.074327145583,
+          -549.508845705757
+        ],
+        "unitRange": [
+          10900,
+          11688
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "real3d",
+        "rawSha256": "10976a3808c01c0588da96ea412d95623759743e79d3e9546ebc54bd3bf4dfa4",
+        "valid": true,
+        "fps": 10.01152741592649,
+        "ticksPerSecond": 15.258833798650025,
+        "p95GapMs": 125.39999999999418,
+        "maxGapMs": 219.1999999999971,
+        "denseFraction": 1,
+        "refreshHz": 31.797456203503717,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60030.8,
+        "passed": false,
+        "focus": [
+          -82.3046755766882,
+          -412.427772597611
+        ],
+        "unitRange": [
+          10822,
+          11517
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "real3d",
+        "rawSha256": "3278b4eeb255ca02713743830cab8433f5000b8fa07e20bd9ed8ba6e85be5844",
+        "valid": true,
+        "fps": 31.533175667454994,
+        "ticksPerSecond": 15.066591333709997,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 312.3999999999942,
+        "denseFraction": 1,
+        "refreshHz": 31.798728050877966,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60000.3,
+        "passed": false,
+        "focus": [
+          -82.3046755766882,
+          -412.427772597611
+        ],
+        "unitRange": [
+          10802,
+          11479
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "active2d",
+        "rawSha256": "87464e26874dcc610d9338a9f88990713452565cbd117048944f14d3c81afc4c",
+        "valid": true,
+        "fps": 5.647044713266723,
+        "ticksPerSecond": 19.856275215970307,
+        "p95GapMs": 250,
+        "maxGapMs": 312.5,
+        "denseFraction": 0,
+        "refreshHz": 31.79936401271975,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60031.40000000001,
+        "passed": false,
+        "focus": [
+          130.52641063079284,
+          -527.1498849440587
+        ],
+        "unitRange": [
+          5829,
+          6432
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "active2d",
+        "rawSha256": "c655bec4357e0689f171882ad49f54480de259f24c2c7662770251c048f93e2d",
+        "valid": true,
+        "fps": 8.624306559134771,
+        "ticksPerSecond": 19.712700706593765,
+        "p95GapMs": 156.39999999999418,
+        "maxGapMs": 249.60000000000582,
+        "denseFraction": 0,
+        "refreshHz": 31.803454650261386,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60062.8,
+        "passed": false,
+        "focus": [
+          130.52641063079284,
+          -527.1498849440587
+        ],
+        "unitRange": [
+          5828,
+          6407
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "active3d",
+        "rawSha256": "8677625f96916593f18874153eea53a9d64a5a4b42b9dc8d0bb1a0c98b24f7d8",
+        "valid": false,
+        "fps": 9.23333333333333,
+        "ticksPerSecond": 19.999999999999996,
+        "p95GapMs": 156.5,
+        "maxGapMs": 218.40000000000873,
+        "denseFraction": 0,
+        "refreshHz": 31.798728050877962,
+        "refreshEligible": true,
+        "clockPassed": true,
+        "elapsedMs": 60000.000000000015,
+        "passed": false,
+        "focus": [
+          -25.5454420396697,
+          -558.8559480607427
+        ],
+        "unitRange": [
+          5826,
+          6431
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "active3d",
+        "rawSha256": "a8b473b324802de7613c747beb47d7a9095db619865a725e1979f2fc6a208be4",
+        "valid": false,
+        "fps": 28.616666666666667,
+        "ticksPerSecond": 19.6,
+        "p95GapMs": 62.60000000000582,
+        "maxGapMs": 125.20000000001164,
+        "denseFraction": 0,
+        "refreshHz": 31.7968203179682,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60000,
+        "passed": false,
+        "focus": [
+          -25.5454420396697,
+          -558.8559480607427
+        ],
+        "unitRange": [
+          5826,
+          6432
+        ]
+      }
+    ],
+    "comparisons": {},
+    "note": "First eight windows from the army ledger revision. The later country layout, overlay and fortress changes require a fresh integrated matrix."
+  },
+  "parallelReplay": {
+    "campaign": "f9cfc2e3-a380-4de5-9aa1-25b858d1593c",
+    "snapshotSha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+    "initialTick": 20638,
+    "endTick": 21838,
+    "steps": 1200,
+    "workers": 8,
+    "parallelSteps": 1140,
+    "synchronousSteps": 60,
+    "fullStateIdentical": true,
+    "collisionReportsIdentical": true,
+    "verificationMs": 176094.92239999998
+  },
+  "firstIntegratedRun": {
+    "fixtures": {
+      "real": {
+        "sha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+        "tick": 20638,
+        "armies": 1686,
+        "units": 10065
+      },
+      "active": {
+        "sha256": "34824427630b3eb3e937d6df84cb3d5f0541e0bde29110a1222213c0dfb00535",
+        "tick": 260,
+        "armies": 333,
+        "units": 10000
+      },
+      "full": {
+        "sha256": "6e7cbf88fa10f61a78af35db652dd52ef14aaa13b5d861c45dace07921d24b8c",
+        "tick": 3,
+        "armies": 0,
+        "units": 5200
+      },
+      "late": {
+        "sha256": "3bdf5f25796b4f829934034290b6bcaf23d274ef7c6297e7b0f43ad9397d67e9",
+        "tick": 893,
+        "armies": 2357,
+        "units": 24507
+      },
+      "march-330": {
+        "sha256": "15f06feb79ef0db9d98df76474e27da1da9a7e96f675bb0688c5224ac00fc8ac",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "march-1600": {
+        "sha256": "0b75733ca3b0052042fbc4badcb641966856a683528206424d0af1c7cc001b12",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "bottleneck-330": {
+        "sha256": "b0d652b5be978855d4b554c1343dac585c6b4c6af509fac840eedec5f9e34300",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "bottleneck-1600": {
+        "sha256": "b9889e77fc4034005a595543f76e8dabf637d0ceb27c73d530f74016a3afe607",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "landing-330": {
+        "sha256": "ac20dbc1d8e8397287de555ad605ac2cef4816260efaccf40c9d27e489a8d463",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "landing-1600": {
+        "sha256": "d43f7f21be0719134bfeb11f81e16cef27e1346298b4ee5d89df41461c3a9d90",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      },
+      "battle-330": {
+        "sha256": "75f5f92d3c12ba99da1bd13922b7187086b74be47e6b6fcafa068d297c570ad8",
+        "tick": 20638,
+        "armies": 330,
+        "units": 10000
+      },
+      "battle-1600": {
+        "sha256": "f2623037f3977f9a66221641f049226faa14f5536fa8cc9fb964091f4e6359fb",
+        "tick": 20638,
+        "armies": 1600,
+        "units": 10000
+      }
+    },
+    "builds": {
+      "before": "ae5814afb7fce43e6ebf7463de458cff710e8c065b2d936f2e52e4cf92e07211",
+      "after": "fe7a56d8419f1905680d2294fe3c1f47499616667ef6428e02fcfb89c31fd67a"
+    },
+    "harnessSha256": "f8e0342a24fec4c6481c6359895046a9da3ed0d5a9b94d77e30848a5efc62adb",
+    "rounds": 3,
+    "selected": [
+      "real2d",
+      "real3d",
+      "active2d",
+      "active3d",
+      "map3d",
+      "ai2d",
+      "ai3d",
+      "fixed-worker",
+      "fixed-2d",
+      "fixed-3d",
+      "double2d",
+      "double3d",
+      "input",
+      "touch",
+      "soak",
+      "lan",
+      "late2d",
+      "late3d",
+      "march-330",
+      "march-1600",
+      "bottleneck-330",
+      "bottleneck-1600",
+      "landing-330",
+      "landing-1600",
+      "battle-330",
+      "battle-1600"
+    ],
+    "results": [
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "real2d",
+        "rawSha256": "a7f7a44ef9d9e036379479b44923651cfa432daf71a70323ce549ed477606f60",
+        "valid": true,
+        "fps": 22.866628555619076,
+        "ticksPerSecond": 13.766643722260465,
+        "p95GapMs": 124.80000000000291,
+        "maxGapMs": 218.8000000000029,
+        "initialTick": 21716,
+        "endTick": 22542,
+        "units": [
+          10816,
+          11423
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 67.84080050932582,
+            "p95": 101,
+            "max": 197.5
+          },
+          "scheduleDelayMs": {
+            "mean": 115.7798785562954,
+            "p95": 235,
+            "max": 250.5
+          },
+          "encodeMs": {
+            "mean": 5.951574441018463,
+            "p95": 9.699951171875,
+            "max": 14.89990234375
+          },
+          "deliveryMs": {
+            "mean": 10.976991076157688,
+            "p95": 17.800048828125,
+            "max": 158.099853515625
+          },
+          "applyMs": {
+            "mean": 4.039713344620157,
+            "p95": 6.10009765625,
+            "max": 11.7001953125
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.763789280220543,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60000.09999999999,
+        "passed": false,
+        "focus": [
+          122.074327145583,
+          -549.508845705757
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "real2d",
+        "rawSha256": "8780022042ea765b3c75279232ed295352f9ee8ae87e9c9f4a078dc986defdb9",
+        "valid": true,
+        "fps": 31.899946833421943,
+        "ticksPerSecond": 16.599972333379444,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 93.60000000000582,
+        "initialTick": 21710,
+        "endTick": 22706,
+        "units": [
+          10815,
+          11590
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 55.59477485135856,
+            "p95": 79.099853515625,
+            "max": 190.699951171875
+          },
+          "scheduleDelayMs": {
+            "mean": 123.81435385095068,
+            "p95": 237.400146484375,
+            "max": 249.800048828125
+          },
+          "encodeMs": {
+            "mean": 7.510838274974899,
+            "p95": 11.800048828125,
+            "max": 16.199951171875
+          },
+          "deliveryMs": {
+            "mean": 4.504380314225653,
+            "p95": 10.699951171875,
+            "max": 25.60009765625
+          },
+          "applyMs": {
+            "mean": 3.1945732147339356,
+            "p95": 4.699951171875,
+            "max": 6.60009765625
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.599368012639744,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60000.100000000006,
+        "passed": false,
+        "focus": [
+          122.074327145583,
+          -549.508845705757
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "real3d",
+        "rawSha256": "abbfa32f12939681a1b462296653e2c1e8c81ced879d193859fdb9ca7e27cefe",
+        "valid": true,
+        "fps": 9.889632368733446,
+        "ticksPerSecond": 15.0841867442298,
+        "p95GapMs": 125.39999999999418,
+        "maxGapMs": 219.10000000000582,
+        "initialTick": 21750,
+        "endTick": 22656,
+        "units": [
+          10830,
+          11535
+        ],
+        "visibleUnits": [
+          192,
+          209
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 61.88520836566984,
+            "p95": 89.800048828125,
+            "max": 182.5
+          },
+          "scheduleDelayMs": {
+            "mean": 119.14866547237169,
+            "p95": 237.699951171875,
+            "max": 249.199951171875
+          },
+          "encodeMs": {
+            "mean": 5.365568518901766,
+            "p95": 7.89990234375,
+            "max": 10.39990234375
+          },
+          "deliveryMs": {
+            "mean": 9.584814345336644,
+            "p95": 14.699951171875,
+            "max": 166.5
+          },
+          "applyMs": {
+            "mean": 3.5373060887486205,
+            "p95": 5.39990234375,
+            "max": 9
+          }
+        },
+        "denseFraction": 1,
+        "refreshHz": 31.597472202223823,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60062.899999999994,
+        "passed": false,
+        "focus": [
+          -82.3046755766882,
+          -412.427772597611
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "real3d",
+        "rawSha256": "70cfa7c237acd4058a259ee51ae67b4dee6b14fcbb9aba2860f7c037b21215a9",
+        "valid": true,
+        "fps": 31.966604143831397,
+        "ticksPerSecond": 15.625156168271939,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 62.79999999998836,
+        "initialTick": 21850,
+        "endTick": 22788,
+        "units": [
+          10923,
+          11669
+        ],
+        "visibleUnits": [
+          192,
+          217
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 59.26385745310834,
+            "p95": 85.2001953125,
+            "max": 210.89990234375
+          },
+          "scheduleDelayMs": {
+            "mean": 121.4139755671975,
+            "p95": 237.800048828125,
+            "max": 250
+          },
+          "encodeMs": {
+            "mean": 7.873563266257996,
+            "p95": 11.89990234375,
+            "max": 15.5
+          },
+          "deliveryMs": {
+            "mean": 5.202135944163113,
+            "p95": 12.10009765625,
+            "max": 19.39990234375
+          },
+          "applyMs": {
+            "mean": 3.4202467017590616,
+            "p95": 5.10009765625,
+            "max": 7.199951171875
+          }
+        },
+        "denseFraction": 1,
+        "refreshHz": 31.799364012719742,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60031.399999999994,
+        "passed": false,
+        "focus": [
+          -82.3046755766882,
+          -412.427772597611
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "active2d",
+        "rawSha256": "a785c65ef829348825f60a3f28d0291cabbe6c03a605f54925c2d95899301967",
+        "valid": true,
+        "fps": 5.61375686935605,
+        "ticksPerSecond": 19.823058381405637,
+        "p95GapMs": 250.10000000000582,
+        "maxGapMs": 312.5,
+        "initialTick": 1488,
+        "endTick": 2678,
+        "units": [
+          5830,
+          6407
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 39.84117441898634,
+            "p95": 58.800048828125,
+            "max": 96.699951171875
+          },
+          "scheduleDelayMs": {
+            "mean": 15.072364101890756,
+            "p95": 81.89990234375,
+            "max": 249.699951171875
+          },
+          "encodeMs": {
+            "mean": 4.308236771271009,
+            "p95": 7.199951171875,
+            "max": 12.10009765625
+          },
+          "deliveryMs": {
+            "mean": 8.249097705488445,
+            "p95": 32.7998046875,
+            "max": 69.399658203125
+          },
+          "applyMs": {
+            "mean": 2.184029920561975,
+            "p95": 3.900146484375,
+            "max": 6.900146484375
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.597472202223823,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60031.100000000006,
+        "passed": false,
+        "focus": [
+          133.49645257320037,
+          -527.7503662934423
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "active2d",
+        "rawSha256": "285cf87406b81af89c9930e04b40ac38d303b6a7f16a526b5e3fdd0597732fc6",
+        "valid": true,
+        "fps": 26.969444069637472,
+        "ticksPerSecond": 19.923072950763693,
+        "p95GapMs": 62.69999999998254,
+        "maxGapMs": 125,
+        "initialTick": 1466,
+        "endTick": 2662,
+        "units": [
+          5831,
+          6430
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 42.36973382956208,
+            "p95": 58.7998046875,
+            "max": 114.099853515625
+          },
+          "scheduleDelayMs": {
+            "mean": 19.933373900958927,
+            "p95": 101.2001953125,
+            "max": 239.900146484375
+          },
+          "encodeMs": {
+            "mean": 5.574409816576087,
+            "p95": 9,
+            "max": 13.60009765625
+          },
+          "deliveryMs": {
+            "mean": 24.252058864835913,
+            "p95": 54.400146484375,
+            "max": 87.699951171875
+          },
+          "applyMs": {
+            "mean": 2.756853084500418,
+            "p95": 5.199951171875,
+            "max": 8.599853515625
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.797456203503717,
+        "refreshEligible": false,
+        "clockPassed": false,
+        "elapsedMs": 60030.899999999994,
+        "passed": false,
+        "focus": [
+          133.49645257320037,
+          -527.7503662934423
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "active3d",
+        "rawSha256": "220f13ed2263c27c7a216b41e419c742a497ca74c5f15534c0eb32e1d534ae23",
+        "valid": true,
+        "fps": 9.190457241897166,
+        "ticksPerSecond": 20.07915114805794,
+        "p95GapMs": 156.30000000001746,
+        "maxGapMs": 187.89999999999418,
+        "initialTick": 1486,
+        "endTick": 2692,
+        "units": [
+          5829,
+          6407
+        ],
+        "visibleUnits": [
+          67,
+          110
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 37.92213655032131,
+            "p95": 51.699951171875,
+            "max": 121.89990234375
+          },
+          "scheduleDelayMs": {
+            "mean": 14.484247261414282,
+            "p95": 140.300048828125,
+            "max": 240.60009765625
+          },
+          "encodeMs": {
+            "mean": 4.004807505441542,
+            "p95": 6.699951171875,
+            "max": 12.199951171875
+          },
+          "deliveryMs": {
+            "mean": 6.094314398061774,
+            "p95": 17.300048828125,
+            "max": 73.099853515625
+          },
+          "applyMs": {
+            "mean": 2.1084583592454393,
+            "p95": 3.400146484375,
+            "max": 8.2998046875
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.399372012559745,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60062.29999999999,
+        "passed": false,
+        "focus": [
+          -24.387325286676955,
+          -558.9665034990177
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "active3d",
+        "rawSha256": "45210c8fbf7a1351138462ef06507dd535a385b0d83fa02bf8ffe13d59284e46",
+        "valid": true,
+        "fps": 31.85,
+        "ticksPerSecond": 19.7,
+        "p95GapMs": 31.699999999982538,
+        "maxGapMs": 62.89999999999418,
+        "initialTick": 1426,
+        "endTick": 2608,
+        "units": [
+          5830,
+          6441
+        ],
+        "visibleUnits": [
+          66,
+          111
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 45.1674856237463,
+            "p95": 63.60009765625,
+            "max": 117.89990234375
+          },
+          "scheduleDelayMs": {
+            "mean": 72.22070683659734,
+            "p95": 196.39990234375,
+            "max": 248.400146484375
+          },
+          "encodeMs": {
+            "mean": 5.967055449614653,
+            "p95": 9.5,
+            "max": 15.39990234375
+          },
+          "deliveryMs": {
+            "mean": 7.827265971415752,
+            "p95": 20.39990234375,
+            "max": 43.599853515625
+          },
+          "applyMs": {
+            "mean": 2.4403744259396114,
+            "p95": 4,
+            "max": 8.400146484375
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.79745620350372,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60000,
+        "passed": false,
+        "focus": [
+          -24.387325286676955,
+          -558.9665034990177
+        ]
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "map3d",
+        "rawSha256": "71a69d4d039ec868ca6825d95e901672a08020d9985e095d860b16f4fffd19ba",
+        "valid": true,
+        "fps": 32.00013326448003,
+        "ticksPerSecond": 0,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 31.89999999999418,
+        "initialTick": 3,
+        "endTick": 3,
+        "units": [
+          5200,
+          5200
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": null,
+        "denseFraction": 0,
+        "refreshHz": 31.80092620197563,
+        "refreshEligible": false,
+        "clockPassed": true,
+        "elapsedMs": 60030.999999999985,
+        "passed": false
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "map3d",
+        "rawSha256": "982b3b35be2f4645cf4003880b939e849ed867569dd92336525fd65fd5740502",
+        "valid": true,
+        "fps": 31.983173417466244,
+        "ticksPerSecond": 0,
+        "p95GapMs": 31.60000000000582,
+        "maxGapMs": 62.10000000000582,
+        "initialTick": 3,
+        "endTick": 3,
+        "units": [
+          5200,
+          5200
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": null,
+        "denseFraction": 0,
+        "refreshHz": 31.998720051197953,
+        "refreshEligible": false,
+        "clockPassed": true,
+        "elapsedMs": 60000.3,
+        "passed": false
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "ai2d",
+        "rawSha256": "2536ceb568046b516ec227d863a592b013a9c437f683033e99048eacd60c03f5",
+        "valid": false,
+        "fps": 5.997963018653499,
+        "ticksPerSecond": 20.004286632849894,
+        "p95GapMs": 219.10000000000582,
+        "maxGapMs": 281.3999999999942,
+        "initialTick": 1277,
+        "endTick": 2481,
+        "units": [
+          4276,
+          4560
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 26.88205817846761,
+            "p95": 38.10009765625,
+            "max": 77.599853515625
+          },
+          "scheduleDelayMs": {
+            "mean": 0.5809472169590947,
+            "p95": 1.699951171875,
+            "max": 28.60009765625
+          },
+          "encodeMs": {
+            "mean": 3.054316828021179,
+            "p95": 5.10009765625,
+            "max": 10
+          },
+          "deliveryMs": {
+            "mean": 7.361511838792566,
+            "p95": 25.10009765625,
+            "max": 103.7001953125
+          },
+          "applyMs": {
+            "mean": 1.6744186046511629,
+            "p95": 3.099853515625,
+            "max": 4.39990234375
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.798728050877962,
+        "refreshEligible": false,
+        "clockPassed": true,
+        "elapsedMs": 60187.100000000006,
+        "passed": false,
+        "focus": [
+          117.93210610258078,
+          -507.2234696489121
+        ]
+      }
+    ],
+    "comparisons": {},
+    "complete": false,
+    "accepted": false,
+    "note": "Old 100-AI fixture lost 15 AI seats by the end of the first running window. Replaced for the complete matrix. The other captured rows are individual measurements."
+  },
+  "livingAiFixtureReplay": {
+    "sha256": "14d0b49fbe2fa4d550ee425a5a500041546baf12efa59e67866bf14ad91138ac",
+    "start": 3,
+    "end": 2703,
+    "minAI": 100,
+    "points": [
+      {
+        "tick": 303,
+        "ai": 100,
+        "units": 4950
+      },
+      {
+        "tick": 603,
+        "ai": 100,
+        "units": 4203
+      },
+      {
+        "tick": 903,
+        "ai": 100,
+        "units": 3778
+      },
+      {
+        "tick": 1203,
+        "ai": 100,
+        "units": 3645
+      },
+      {
+        "tick": 1503,
+        "ai": 100,
+        "units": 3638
+      },
+      {
+        "tick": 1803,
+        "ai": 100,
+        "units": 3615
+      },
+      {
+        "tick": 2103,
+        "ai": 100,
+        "units": 3583
+      },
+      {
+        "tick": 2403,
+        "ai": 100,
+        "units": 3676
+      },
+      {
+        "tick": 2703,
+        "ai": 100,
+        "units": 3699
+      }
+    ]
+  },
+  "inputPreflight": {
+    "dispatch": {
+      "samples": 30,
+      "confirmed": 29
+    },
+    "drag": {
+      "samples": 30,
+      "confirmed": 30
+    },
+    "select": {
+      "samples": 30,
+      "confirmed": 30
+    },
+    "to2d": {
+      "samples": 30,
+      "confirmed": 30
+    },
+    "to3d": {
+      "samples": 30,
+      "confirmed": 30
+    },
+    "wheel": {
+      "samples": 30,
+      "confirmed": 30
+    }
+  },
+  "countryLayout": {
+    "equal": true,
+    "edges": 236709,
+    "samples": [
+      {
+        "name": "real",
+        "revision": 0,
+        "owners": 16,
+        "beforeMs": 1817.4143000000004,
+        "afterMs": 301.97729999999956
+      },
+      {
+        "name": "real",
+        "revision": 1,
+        "owners": 16,
+        "beforeMs": 105.3735999999999,
+        "afterMs": 25.34730000000036
+      },
+      {
+        "name": "real",
+        "revision": 2,
+        "owners": 16,
+        "beforeMs": 1.1752000000005864,
+        "afterMs": 0.7244000000000597
+      },
+      {
+        "name": "real",
+        "revision": 3,
+        "owners": 16,
+        "beforeMs": 90.83740000000034,
+        "afterMs": 16.27349999999933
+      },
+      {
+        "name": "real",
+        "revision": 4,
+        "owners": 16,
+        "beforeMs": 0.6574000000000524,
+        "afterMs": 0.5540000000000873
+      },
+      {
+        "name": "real",
+        "revision": 5,
+        "owners": 16,
+        "beforeMs": 0.47550000000046566,
+        "afterMs": 0.5963999999994485
+      },
+      {
+        "name": "real",
+        "revision": 6,
+        "owners": 16,
+        "beforeMs": 50.43069999999989,
+        "afterMs": 14.419499999999971
+      },
+      {
+        "name": "synthetic",
+        "revision": 0,
+        "owners": 101,
+        "beforeMs": 1825.2659999999996,
+        "afterMs": 591.1657999999989
+      },
+      {
+        "name": "synthetic",
+        "revision": 1,
+        "owners": 101,
+        "beforeMs": 65.84579999999914,
+        "afterMs": 21.1242000000002
+      },
+      {
+        "name": "synthetic",
+        "revision": 2,
+        "owners": 101,
+        "beforeMs": 55.523300000000745,
+        "afterMs": 16.143200000000434
+      },
+      {
+        "name": "synthetic",
+        "revision": 3,
+        "owners": 101,
+        "beforeMs": 44.77640000000065,
+        "afterMs": 10.555199999998877
+      },
+      {
+        "name": "synthetic",
+        "revision": 4,
+        "owners": 101,
+        "beforeMs": 56.60530000000108,
+        "afterMs": 14.732399999998961
+      },
+      {
+        "name": "synthetic",
+        "revision": 5,
+        "owners": 101,
+        "beforeMs": 41.69940000000133,
+        "afterMs": 15.42410000000018
+      },
+      {
+        "name": "synthetic",
+        "revision": 6,
+        "owners": 101,
+        "beforeMs": 0.49760000000060245,
+        "afterMs": 0.5949000000000524
+      }
+    ]
+  },
+  "pausedActiveOverlayDiagnostics": [
+    {
+      "variant": "baseline",
+      "fps": 15.449810188046252
+    },
+    {
+      "variant": "armies-off",
+      "fps": 31.55485433657031
+    },
+    {
+      "variant": "battles-off",
+      "fps": 20
+    },
+    {
+      "variant": "badge-filter-off",
+      "fps": 15.44878727019927
+    },
+    {
+      "variant": "badge-contained",
+      "fps": 14.88822718990268
+    },
+    {
+      "variant": "badge-cache",
+      "fps": 25.109995111328402
+    },
+    {
+      "variant": "baseline",
+      "fps": 15.007062146892665
+    }
+  ],
+  "oneMinuteSaveSmoke": {
+    "manualTick": 1462,
+    "autoTick": 1460,
+    "restored": {
+      "tick": 1462,
+      "campaign": "full-map-100-ai-77"
+    },
+    "priorWorkers": 13,
+    "closedWorkers": 13,
+    "postLoadCommand": true
+  },
+  "frozenSynchronousCpuProfile": {
+    "rawSha256": "70afbca694f4a1bee6b0afcbca1ea4d61dcbac64c15f4ace49587a1679fa2f6b",
+    "durationUs": 6580339,
+    "samples": 4234,
+    "inclusiveSamples": {
+      "prepareTick": 2234,
+      "updateFormations": 1804,
+      "finishTick": 1353,
+      "separate": 328,
+      "ai": 391
+    }
+  },
+  "initialIntegratedInput": {
+    "before": {
+      "valid": false,
+      "reason": "No visible garrison and second selectable region in the first camera view"
+    },
+    "after": {
+      "rawSha256": "98337c769401060190fc097b7a9fadba7cca91397f85d0a7cdfbfde9f31a1f74",
+      "captureHarnessSha256": "c153bc70eb5e5564388a9ea85b70b73dd500ff34f10ad989d684def639952da8",
+      "confirmedPerAction": 30,
+      "firstFeedbackP95Ms": {
+        "select": 80,
+        "drag": 43.2,
+        "dispatch": 68.1,
+        "wheel": 282.7,
+        "to2d": 98.7,
+        "to3d": 127.2
+      },
+      "dispatchConfirmedP95Ms": 164.6
+    }
+  },
+  "lanSmoke": {
+    "clients": 2,
+    "commands": [
+      30,
+      30
+    ],
+    "startTick": 260,
+    "reconnected": true
+  },
+  "wheelDiagnostic": {
+    "blank": {
+      "rawSha256": "65b192ca1b800bfcb6b0e23213be032b508437566cd0912c1810ed75b1123995",
+      "byListener": {
+        "False": {
+          "samples": 30,
+          "domP95Ms": 76.4,
+          "feedbackP95Ms": 76.5
+        },
+        "True": {
+          "samples": 30,
+          "domP95Ms": 76,
+          "feedbackP95Ms": 76.1
+        }
+      }
+    },
+    "campaign": {
+      "input-wheel-before": {
+        "rawSha256": "8e8165007e9158e7ebe8da33783c5152d901d7b88568037e8f95ed833e6d4876",
+        "successful": 30,
+        "firstMs": 405.8,
+        "domEventMs": 382.3,
+        "drawWaitMs": 28,
+        "settledMs": 990.8
+      },
+      "input-wheel-after": {
+        "rawSha256": "c8ad2e6637be47617fc6fd33fe23e5402064035f298e8db430adb9ef023ce96d",
+        "successful": 30,
+        "firstMs": 275.5,
+        "domEventMs": 256.5,
+        "drawWaitMs": 32.1,
+        "settledMs": 745
+      },
+      "wheel-ordinary": {
+        "rawSha256": "50e96d3f610e17059f0bd1d46a4036fca60e4a3cf3dd64f26012cb509d48a764",
+        "successful": 12,
+        "firstMs": 282.1,
+        "domEventMs": 248.1,
+        "drawWaitMs": 34,
+        "settledMs": 727.6
+      },
+      "wheel-passive": {
+        "rawSha256": "51f4a0e7b82b1ebdd12e4d609b4d572c786f22702dd27d23c955158ecc348db4",
+        "successful": 12,
+        "firstMs": 268.6,
+        "domEventMs": 247.5,
+        "drawWaitMs": 28.8,
+        "settledMs": 716.5
+      },
+      "wheel-no-preview-paint": {
+        "rawSha256": "57cbba9c1b56eb5e0a6f5ccb8f49656e734c523765102ee2072e3c16cb361bc2",
+        "successful": 12,
+        "firstMs": 279.8,
+        "domEventMs": 258,
+        "drawWaitMs": 22,
+        "settledMs": 725.1
+      }
+    }
+  },
+  "initialTouchWindow": {
+    "rawSha256": "736f251f0a1eae6c30efb652834c54e075c5b78fbc984bdaf3df3be4d100ae99",
+    "valid": false,
+    "confirmed": {
+      "pan": 27,
+      "pinch": 30
+    },
+    "perGesture": 30
+  },
+  "lanRuntime": {
+    "serverRuntime": "Node.js v24.15.0",
+    "fixture": "Both builds load the same active campaign with seat 1 switched from AI to human.",
+    "command": "Each seat submits 30 authorized production commands for its own province.",
+    "sourceSha256": {
+      "before": {
+        "server/lan.ts": "d37682ff1ae8e48953cd11c1b83f8aff3128a987aaeb988197e18905a4d5d42b",
+        "src/game/engine.ts": "b202fa446ccdb0fb2bdaa2faee08615d8963dae3c22a66cc6e2ee1e58c4469e1",
+        "src/platform/replication.ts": "319e35645571ceeabc2b155690fced9882d76eb27fc84e5f13d433bdb4d56c5f",
+        "src/platform/session.ts": "1709784f8cd5e0e7f76d7bfc68c5b53e21d5ab0cd135911c1981c211ed44bc60"
+      },
+      "after": {
+        "server/lan.ts": "d37682ff1ae8e48953cd11c1b83f8aff3128a987aaeb988197e18905a4d5d42b",
+        "src/game/engine.ts": "dc6093230b45404e87f5fe057118e361e02c8ccf96c28b0f16c4f66ff44c4b11",
+        "src/platform/replication.ts": "319e35645571ceeabc2b155690fced9882d76eb27fc84e5f13d433bdb4d56c5f",
+        "src/platform/session.ts": "1709784f8cd5e0e7f76d7bfc68c5b53e21d5ab0cd135911c1981c211ed44bc60"
+      }
+    }
+  },
+  "lateAttrition": {
+    "fixture": {
+      "sha256": "3bdf5f25796b4f829934034290b6bcaf23d274ef7c6297e7b0f43ad9397d67e9",
+      "tick": 893,
+      "armies": 2357,
+      "units": 24507
+    },
+    "builds": {
+      "before": "ae5814afb7fce43e6ebf7463de458cff710e8c065b2d936f2e52e4cf92e07211",
+      "after": "fe7a56d8419f1905680d2294fe3c1f47499616667ef6428e02fcfb89c31fd67a"
+    },
+    "unitsInOpening": [
+      24000,
+      26000
+    ],
+    "rows": [
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "late2d",
+        "rawSha256": "b4cb8a4ef35b6ab4738fe7d35c6d02607a1dc9a37b3edce685fe161357c4a4ce",
+        "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+        "valid": true,
+        "fps": 4.9256329271904935,
+        "ticksPerSecond": 6.689542015981683,
+        "p95GapMs": 281.1000000000058,
+        "maxGapMs": 375,
+        "failedChecks": [],
+        "initialTick": 1261,
+        "endTick": 1663,
+        "units": [
+          18555,
+          20143
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "activeAI": [
+          86,
+          95
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 141.52388144725592,
+            "p95": 177.800048828125,
+            "max": 397.400146484375
+          },
+          "scheduleDelayMs": {
+            "mean": 102.87189115457866,
+            "p95": 235.300048828125,
+            "max": 249.60009765625
+          },
+          "encodeMs": {
+            "mean": 12.09154058807525,
+            "p95": 16.300048828125,
+            "max": 17.2001953125
+          },
+          "deliveryMs": {
+            "mean": 13.754172253964553,
+            "p95": 33.89990234375,
+            "max": 232.89990234375
+          },
+          "applyMs": {
+            "mean": 7.39751073732898,
+            "p95": 10,
+            "max": 11.699951171875
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.801558276355543,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60093.79999999999,
+        "passed": null,
+        "focus": [
+          107.70311708154236,
+          -525.7468213386907
+        ],
+        "opening": {
+          "elapsedMs": 6343.5999999999985,
+          "units": [
+            24503,
+            24107
+          ],
+          "ticks": [
+            897,
+            927
+          ],
+          "fps": 4.4138974714673065,
+          "ticksPerSecond": 4.7291758622864
+        }
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "late2d",
+        "rawSha256": "d49a84c62518400d109ad5c276dd163447b47609b61b7cf0de7771ae1adac71a",
+        "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+        "valid": true,
+        "fps": 24.0415032266228,
+        "ticksPerSecond": 6.193517451733852,
+        "p95GapMs": 62.89999999999418,
+        "maxGapMs": 124.80000000001746,
+        "failedChecks": [],
+        "initialTick": 1251,
+        "endTick": 1623,
+        "units": [
+          18657,
+          20198
+        ],
+        "visibleUnits": [
+          0,
+          0
+        ],
+        "activeAI": [
+          86,
+          95
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 151.78924823063676,
+            "p95": 191.39990234375,
+            "max": 260.699951171875
+          },
+          "scheduleDelayMs": {
+            "mean": 102.58173329343077,
+            "p95": 238.89990234375,
+            "max": 251.39990234375
+          },
+          "encodeMs": {
+            "mean": 17.788172568044356,
+            "p95": 22.800048828125,
+            "max": 33.300048828125
+          },
+          "deliveryMs": {
+            "mean": 22.90558058215726,
+            "p95": 43.000244140625,
+            "max": 73.30029296875
+          },
+          "applyMs": {
+            "mean": 8.624717794438844,
+            "p95": 12.199951171875,
+            "max": 26.800048828125
+          }
+        },
+        "denseFraction": 0,
+        "refreshHz": 31.8,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60062.8,
+        "passed": null,
+        "focus": [
+          107.70311708154236,
+          -525.7468213386907
+        ],
+        "opening": {
+          "elapsedMs": 7250.0999999999985,
+          "units": [
+            24503,
+            24022
+          ],
+          "ticks": [
+            897,
+            931
+          ],
+          "fps": 19.585936745700064,
+          "ticksPerSecond": 4.689590488407058
+        }
+      },
+      {
+        "round": 1,
+        "variant": "before",
+        "scenario": "late3d",
+        "rawSha256": "aab849cc0ab31c261ae3cbb4a80615393fcd970d8d0504c0226e2d3c3cfd9a95",
+        "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+        "valid": true,
+        "fps": 8.76660822261185,
+        "ticksPerSecond": 6.9666202225318505,
+        "p95GapMs": 156.5,
+        "maxGapMs": 250.3000000000029,
+        "failedChecks": [],
+        "initialTick": 1279,
+        "endTick": 1697,
+        "units": [
+          18482,
+          20028
+        ],
+        "visibleUnits": [
+          165,
+          254
+        ],
+        "activeAI": [
+          86,
+          94
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 135.57655210358104,
+            "p95": 174.5,
+            "max": 242
+          },
+          "scheduleDelayMs": {
+            "mean": 101.49570826480263,
+            "p95": 232.099853515625,
+            "max": 249.5
+          },
+          "encodeMs": {
+            "mean": 11.696633662903707,
+            "p95": 16.199951171875,
+            "max": 20.900146484375
+          },
+          "deliveryMs": {
+            "mean": 11.650579863187799,
+            "p95": 22.5,
+            "max": 87.599853515625
+          },
+          "applyMs": {
+            "mean": 7.247845955442584,
+            "p95": 10,
+            "max": 11.300048828125
+          }
+        },
+        "denseFraction": 0.6724137931034483,
+        "refreshHz": 32.000318015582764,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60000.399999999994,
+        "passed": null,
+        "focus": [
+          82.26465342823866,
+          -577.9303748637155
+        ],
+        "opening": {
+          "elapsedMs": 6187.699999999997,
+          "units": [
+            24503,
+            24063
+          ],
+          "ticks": [
+            897,
+            929
+          ],
+          "fps": 12.605653150605239,
+          "ticksPerSecond": 5.171550010504713
+        }
+      },
+      {
+        "round": 1,
+        "variant": "after",
+        "scenario": "late3d",
+        "rawSha256": "1030c56d8bf01779a450e069d17cbfb27a14eeb7e10470fe793ee1a07eae6086",
+        "captureHarnessSha256": "2f4f6c1985611c15a4835ef10ff2e35a2310b3cdc3421fdfc56839a3ffadb856",
+        "valid": true,
+        "fps": 31.116666666666667,
+        "ticksPerSecond": 7.7,
+        "p95GapMs": 31.69999999999709,
+        "maxGapMs": 93.79999999998836,
+        "failedChecks": [],
+        "initialTick": 1333,
+        "endTick": 1795,
+        "units": [
+          18276,
+          19781
+        ],
+        "visibleUnits": [
+          161,
+          239
+        ],
+        "activeAI": [
+          82,
+          92
+        ],
+        "worker": {
+          "computeMs": {
+            "mean": 122.36817991578734,
+            "p95": 172.89990234375,
+            "max": 288.10009765625
+          },
+          "scheduleDelayMs": {
+            "mean": 102.31300043543696,
+            "p95": 232.599853515625,
+            "max": 249.699951171875
+          },
+          "encodeMs": {
+            "mean": 13.257582098890692,
+            "p95": 20,
+            "max": 32.10009765625
+          },
+          "deliveryMs": {
+            "mean": 8.736023741883116,
+            "p95": 20.60009765625,
+            "max": 48.900146484375
+          },
+          "applyMs": {
+            "mean": 6.257578928233225,
+            "p95": 9.39990234375,
+            "max": 14.699951171875
+          }
+        },
+        "denseFraction": 0.5573770491803278,
+        "refreshHz": 31.88521323236349,
+        "refreshEligible": true,
+        "clockPassed": false,
+        "elapsedMs": 60000,
+        "passed": null,
+        "focus": [
+          82.26465342823866,
+          -577.9303748637155
+        ],
+        "opening": {
+          "elapsedMs": 5062.600000000006,
+          "units": [
+            24503,
+            24107
+          ],
+          "ticks": [
+            897,
+            927
+          ],
+          "fps": 30.419152214277215,
+          "ticksPerSecond": 5.925808872911146
+        }
+      }
+    ]
+  },
+  "lateSustained": {
+    "initialTick": 22180,
+    "initialUnits": 25431,
+    "initialArmies": 3241,
+    "fixtureSha256": "a49bc704ffa15868e8277d9f09c52545a6ca541810dbb855dea2db0b153510b2",
+    "sourceSha256": "6a8cac345890688a7081868291a44e4c7edf5ccdfbde4857acdf858044b9c6bd",
+    "reproducedFromSource": true,
+    "verificationSha256": "712c72560041be27dc74630f60d6ecbf8d3596959e8ddf53bd972ad4190b1e65",
+    "ordinarySteps": 2400,
+    "minimumUnits": 24965,
+    "maximumUnits": 25432,
+    "finalUnits": 25346,
+    "lastTick": 24580,
+    "samplesEvery100Ticks": [
+      {
+        "steps": 0,
+        "units": 25431,
+        "armies": 3241
+      },
+      {
+        "steps": 100,
+        "units": 25378,
+        "armies": 3244
+      },
+      {
+        "steps": 200,
+        "units": 25289,
+        "armies": 3264
+      },
+      {
+        "steps": 300,
+        "units": 25240,
+        "armies": 3271
+      },
+      {
+        "steps": 400,
+        "units": 25194,
+        "armies": 3314
+      },
+      {
+        "steps": 500,
+        "units": 25165,
+        "armies": 3320
+      },
+      {
+        "steps": 600,
+        "units": 25091,
+        "armies": 3335
+      },
+      {
+        "steps": 700,
+        "units": 25067,
+        "armies": 3346
+      },
+      {
+        "steps": 800,
+        "units": 25074,
+        "armies": 3357
+      },
+      {
+        "steps": 900,
+        "units": 25048,
+        "armies": 3358
+      },
+      {
+        "steps": 1000,
+        "units": 25050,
+        "armies": 3373
+      },
+      {
+        "steps": 1100,
+        "units": 24968,
+        "armies": 3373
+      },
+      {
+        "steps": 1200,
+        "units": 24984,
+        "armies": 3400
+      },
+      {
+        "steps": 1300,
+        "units": 24992,
+        "armies": 3432
+      },
+      {
+        "steps": 1400,
+        "units": 24966,
+        "armies": 3462
+      },
+      {
+        "steps": 1500,
+        "units": 25064,
+        "armies": 3468
+      },
+      {
+        "steps": 1600,
+        "units": 25132,
+        "armies": 3473
+      },
+      {
+        "steps": 1700,
+        "units": 25192,
+        "armies": 3479
+      },
+      {
+        "steps": 1800,
+        "units": 25327,
+        "armies": 3525
+      },
+      {
+        "steps": 1900,
+        "units": 25367,
+        "armies": 3542
+      },
+      {
+        "steps": 2000,
+        "units": 25390,
+        "armies": 3558
+      },
+      {
+        "steps": 2100,
+        "units": 25233,
+        "armies": 3515
+      },
+      {
+        "steps": 2200,
+        "units": 25263,
+        "armies": 3532
+      },
+      {
+        "steps": 2300,
+        "units": 25308,
+        "armies": 3538
+      },
+      {
+        "steps": 2400,
+        "units": 25346,
+        "armies": 3597
+      }
+    ],
+    "assessmentRange": [
+      23750,
+      26250
+    ]
+  },
+  "lanBroadcastComparison": {
+    "runs": {
+      "original": {
+        "rawSha256": "0432859f883b342a7eeec32db06024799fe074fff173233d3aec2c033dd2a9a6",
+        "ticksPerSecond": 5.89703520442721,
+        "startTick": 260,
+        "endTick": 616,
+        "serverSha256": "d37682ff1ae8e48953cd11c1b83f8aff3128a987aaeb988197e18905a4d5d42b",
+        "clients": [
+          {
+            "fps": 22.481909479209254,
+            "confirmed": 30,
+            "p95RttMs": 414.30000019073486
+          },
+          {
+            "fps": 23.68179401683516,
+            "confirmed": 30,
+            "p95RttMs": 457.8999996185303
+          }
+        ],
+        "reconnected": true
+      },
+      "shared-world": {
+        "rawSha256": "d67132fe215abbc57e8706628c9c4559b30f95af94f3c00a8c5ead473e0de8c4",
+        "ticksPerSecond": 6.369123684778854,
+        "startTick": 260,
+        "endTick": 645,
+        "serverSha256": "f8b376b23039351bfdffe78fe2a1308317ccc72fcfad0694eb1aa5d6448a2ff5",
+        "clients": [
+          {
+            "fps": 22.235213583002643,
+            "confirmed": 30,
+            "p95RttMs": 306.90000009536743
+          },
+          {
+            "fps": 23.325946783518553,
+            "confirmed": 30,
+            "p95RttMs": 401
+          }
+        ],
+        "reconnected": true
+      }
+    },
+    "clientBuild": "fe7a56d8419f1905680d2294fe3c1f47499616667ef6428e02fcfb89c31fd67a",
+    "note": "One additional same-client paired run using two real Chromium processes. Shared-world implementation ran first. These are diagnostic results, outside the formal A/B.",
+    "previousServerCpu": {
+      "samples": 37209,
+      "totalMs": 61035.713,
+      "meanStepMs": 131.88065165165153,
+      "p95StepMs": 245.56879999999728,
+      "profileSha256": "63bbe67ae3cf4742cc49a9b626290e8770fb5e2d3d2f427bab6a56a7ea91400b",
+      "inclusive": [
+        {
+          "key": "step @ engine.ts",
+          "ms": 43287.37100000031,
+          "pct": 70.92138171630813
+        },
+        {
+          "key": "updateFormations @ armyMovement.ts",
+          "ms": 15054.827999999967,
+          "pct": 24.665605200679753
+        },
+        {
+          "key": "snapshot @ lan.ts",
+          "ms": 12479.968000000015,
+          "pct": 20.446993057982322
+        },
+        {
+          "key": "serialize @ lan.ts",
+          "ms": 9406.255000000001,
+          "pct": 15.411067615446715
+        }
+      ]
+    }
+  }
+}

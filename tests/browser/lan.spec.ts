@@ -61,7 +61,7 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
     await expect(guest.locator('.commander-player')).toContainText('Guest');
     await expect(host.locator('.commander-player')).toHaveText('Host');
     await expect(guest.locator('.commander-player')).toHaveText('Guest');
-    await expect(guest.locator('.province-owner')).toContainText('Guest');
+    await expect(guest.getByTestId('province-owner-name')).toContainText('Guest');
     await expect(host.getByTestId('commander-portrait')).toHaveAttribute('data-leader','warden');
     await expect(guest.getByTestId('commander-portrait')).toHaveAttribute('data-leader','vanguard');
     await expect(guest.getByTestId('faction-identity').getByRole('img',{name:'Japan',exact:true})).toBeVisible();

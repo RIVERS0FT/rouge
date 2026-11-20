@@ -2,7 +2,7 @@ import {MAP,pointInProvince,provinceAt} from './map.ts';
 import {DT,stats} from './content.ts';
 import type {Kind,Unit,GameState} from './types.ts';
 import {UNIT_RADIUS} from './collision.ts';
-import {combatLanes,secondaryMultiplier,secondaryTargets,MODE_TARGET_MASK,MODE_VS_MARCHING,MODE_VS_GARRISON,MODE_POINT_BLANK,MODE_SPLASH_RESIST,TARGET_BONUS,POINT_BLANK_BONUS,POINT_BLANK_RANGE_SQUARED,SPLASH_RESIST_FACTOR} from './talentEffects.ts';
+import {combatLanes,secondaryMultiplier,secondaryTargets,MODE_TARGET_MASK,MODE_VS_MARCHING,MODE_VS_GARRISON,MODE_POINT_BLANK,MODE_SPLASH_RESIST,VS_MARCHING_BONUS,VS_GARRISON_BONUS,POINT_BLANK_BONUS,POINT_BLANK_RANGE_SQUARED,SPLASH_RESIST_FACTOR} from './talentEffects.ts';
 import {ARRIVAL_RADIUS,buildingSegment,buildingStep} from './buildings.ts';
 import {terrainAt,terrainSegment,terrainLocalSegment,terrainClearance,travelCorridorPoint,distanceToTravelSegment,TRAVEL_LOCAL_OFFSET} from './terrain-navigation.ts';
 /** Exact JavaScript path for scratch limits or unavailable parallel workers. */
@@ -11,8 +11,8 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
  const {mode,taken,dealt,speed}=combatLanes(active,s,unitStats);
  const hit=(source:number,target:number,multiplier:number,close:boolean)=>{
   const attacker=active[source],victim=active[target],targetMode=mode[source]&MODE_TARGET_MASK;let bonus=dealt[source];
-  if(targetMode===MODE_VS_MARCHING){if(victim.target!==null)bonus+=TARGET_BONUS;}
-  else if(targetMode===MODE_VS_GARRISON){if(victim.target===null)bonus+=TARGET_BONUS;}
+  if(targetMode===MODE_VS_MARCHING){if(victim.target!==null)bonus+=VS_MARCHING_BONUS;}
+  else if(targetMode===MODE_VS_GARRISON){if(victim.target===null)bonus+=VS_GARRISON_BONUS;}
   else if(targetMode===MODE_POINT_BLANK){if(close)bonus+=POINT_BLANK_BONUS;}
   const amount=unitStats(attacker.owner,attacker.kind).attack*multiplier*(1+bonus)*100/(100+unitStats(victim.owner,victim.kind).defense)*(1-taken[target]),old=damage.get(victim.id);
   damage.set(victim.id,{amount:(old?.amount??0)+amount,attacker:attacker.owner});

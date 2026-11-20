@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import {MAP,provinceByCode} from '../src/game/map.ts';
 import {TerrainNavigator,terrainAt,terrainSegment,validateTravel,TERRAIN_REVISION} from '../src/game/terrain-navigation.ts';
 const point=code=>MAP[provinceByCode(code)].center;
+test('Iberia can cross to the Rif even though a land path exists around the Mediterranean',()=>{
+ const from=MAP.find(p=>p.name[0]==='布朗库堡区').center,to=MAP.find(p=>p.name[0]==='里夫').center;
+ const nav=new TerrainNavigator(),route=nav.plan(from,to,3,5,false,20);
+ assert.ok(route&&validateTravel(route,from,to));
+ assert.ok(route.points.some(p=>p.sea));
+ const builds=nav.builds;assert.deepEqual(nav.plan(from,to,3,5,false,20),route);assert.equal(nav.builds,builds);
+});
 test('terrain navmesh plans certified land/coast/water segments across Channel',()=>{
  const a=point('GBR-3409'),b=point('FRA-5275'),nav=new TerrainNavigator(),path=nav.plan(a,b);assert.ok(path);assert.equal(path.revision,TERRAIN_REVISION);assert.ok(path.points.some(p=>p.sea));assert.ok(validateTravel(path,a,b));
  for(let i=1;i<path.points.length;i++)assert.ok(terrainSegment(path.points[i-1],path.points[i],path.points[i].sea));

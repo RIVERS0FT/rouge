@@ -44,7 +44,7 @@ for(const mobile of [false,true])test.describe(mobile?'mobile country names':'de
   test.setTimeout(180000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(({key,value})=>{localStorage.setItem(key,value);localStorage.setItem('rouge.language','en');},fixture);
   await page.goto('/');await page.getByTestId('open-saves').click();await page.locator('.save-card').filter({hasText:'Country names fixture'}).getByRole('button',{name:'Load',exact:true}).click();
-  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+  await expect(page.locator('.app.is-game')).toHaveAttribute('data-local-ready','true',{timeout:60000});
   const canvas=page.locator('.world canvas');await canvas.focus();await page.keyboard.press('Space');await expect(page.getByTestId('toggle-pause')).toHaveText('▶');
   await expect(canvas).toHaveAttribute('data-country-layout-state','ready',{timeout:30000});
   await canvas.focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:20000});
@@ -74,7 +74,7 @@ test('country glyphs keep their map positions while zoom crosses the terrain til
  await page.addInitScript(({key,value})=>{localStorage.setItem(key,value);localStorage.setItem('rouge.language','en');},fixture);
  await page.goto('/');await page.getByTestId('open-saves').click();
  await page.locator('.save-card').filter({hasText:'Country names fixture'}).getByRole('button',{name:'Load',exact:true}).click();
- await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});
+ await expect(page.locator('.app.is-game')).toHaveAttribute('data-local-ready','true',{timeout:60000});
  await page.getByTestId('toggle-pause').click();
  await openMapSearch(page);await page.getByTestId('map-search').fill(fixture.labelFocusRegions[2]);await page.locator('.map-search-results button').first().click();
  const canvas=page.locator('.world canvas'),label=page.locator('.country-label[data-owner="2"][data-primary="true"]');

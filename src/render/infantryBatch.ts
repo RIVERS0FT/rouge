@@ -14,14 +14,41 @@ async function loadAsset(){
 function getModel(){
   return assetRequest??=loadAsset().catch((e:unknown)=>{assetRequest=undefined;throw e;});
 }
+// All instances sample the same 41 poses. Skin each source vertex once per
+// pose instead of fetching and multiplying up to six bone rows per instance.
+function vertexPoses(asset:InfantryAsset){
+  const count=asset.positions.length/3,width=Math.min(2048,count),rows=Math.ceil(count/width);
+  const data=new Float32Array(width*rows*asset.poseCount*8);
+  for(let frame=0;frame<asset.poseCount;frame++)for(let i=0;i<count;i++){
+    const j=(frame*asset.joints+asset.jointPair[i*2])*12,k=(frame*asset.joints+asset.jointPair[i*2+1])*12;
+    const weight=asset.weights[i]/255,at=(frame*2*rows*width+i)*4,normal=at+rows*width*4;
+    for(let axis=0;axis<3;axis++){
+      const a=j+axis*4,b=k+axis*4;
+      let p=asset.palette[a+3]*weight+asset.palette[b+3]*(1-weight),n=0;
+      for(let dim=0;dim<3;dim++){
+        const m=asset.palette[a+dim]*weight+asset.palette[b+dim]*(1-weight);
+        p+=m*asset.positions[i*3+dim];n+=m*Math.max(-1,asset.normals[i*3+dim]/127);
+      }
+      data[at+axis]=p;data[normal+axis]=n;
+    }
+  }
+  const texture=new THREE.DataTexture(data,width,rows*2*asset.poseCount,THREE.RGBAFormat,THREE.FloatType);
+  const idleStart=asset.idleFrame*2*rows*width*4;
+  const idleAttribute=(offset:number)=>new THREE.InterleavedBufferAttribute(
+    new THREE.InterleavedBuffer(data.subarray(offset,offset+count*4),4),3,0);
+  texture.needsUpdate=true;
+  return {texture,rows,idlePosition:idleAttribute(idleStart),idleNormal:idleAttribute(idleStart+rows*width*4)};
+}
 const vertexHeader=`
 uniform highp sampler2D rougePoses;
 attribute vec3 rougeBaseColor;
 attribute float rougeTint;
 attribute float rougeFabricId;
 attribute float rougeGlow;
-attribute vec2 rougeJoints;
-attribute float rougeWeight;
+uniform int rougePoseRows;
+uniform float rougeIdleFrame;
+attribute vec3 rougeIdlePosition;
+attribute vec3 rougeIdleNormal;
 attribute float rougeFrame;
 attribute vec3 rougeCountry;
 varying vec3 rougePigment;
@@ -29,28 +56,14 @@ varying float rougeEmission;
 varying vec3 rougeFabricPoint;
 varying vec3 rougeArmbandColor;
 varying float rougeFabricKind;
-void rougeTransform(int j, int f, vec4 p, vec4 n, out vec3 v, out vec3 w) {
-  int x = j * 3;
-  vec4 a = texelFetch(rougePoses, ivec2(x, f), 0);
-  vec4 b = texelFetch(rougePoses, ivec2(x+1, f), 0);
-  vec4 c = texelFetch(rougePoses, ivec2(x+2, f), 0);
-  v = vec3(dot(a,p),dot(b,p),dot(c,p));
-  w = vec3(dot(a,n),dot(b,n),dot(c,n));
-}
 `;
 const transform=`
-  int a = int(rougeJoints.x);
-  int b = int(rougeJoints.y);
-  int pose = int(rougeFrame);
-  vec4 p0 = vec4(position,1.0);
-  vec4 n0 = vec4(normal,0.0);
-  vec3 posedPosition,posedNormal;
-  rougeTransform(a,pose,p0,n0,posedPosition,posedNormal);
-  if(a != b) {
-    vec3 p1,n1;
-    rougeTransform(b,pose,p0,n0,p1,n1);
-    posedPosition = mix(p1,posedPosition,rougeWeight);
-    posedNormal = mix(n1,posedNormal,rougeWeight);
+  vec3 posedPosition=rougeIdlePosition, posedNormal=rougeIdleNormal;
+  if(rougeFrame!=rougeIdleFrame){
+    int w=textureSize(rougePoses,0).x;
+    ivec2 at=ivec2(gl_VertexID % w,int(rougeFrame)*2*rougePoseRows+gl_VertexID/w);
+    posedPosition=texelFetch(rougePoses,at,0).xyz;
+    posedNormal=texelFetch(rougePoses,at+ivec2(0,rougePoseRows),0).xyz;
   }
   rougePigment = mix(rougeBaseColor, rougeCountry*0.68+rougeBaseColor*0.25, rougeTint);
   rougeEmission = rougeGlow;
@@ -66,6 +79,7 @@ export class InfantryBatch {
   private asset:InfantryAsset|null=null;
   private mesh:THREE.InstancedMesh|null=null;
   private texture:THREE.DataTexture|null=null;
+  private poses?:ReturnType<typeof vertexPoses>;
   private material:THREE.MeshStandardMaterial|null=null;
   private poseFrames:THREE.InstancedBufferAttribute|null=null;
   private country:THREE.InstancedBufferAttribute|null=null;
@@ -84,14 +98,19 @@ export class InfantryBatch {
     void getModel().then(asset=>{
       if(this.disposed)return;
       this.asset=asset;
-      this.texture=new THREE.DataTexture(asset.palette,asset.joints*3,asset.poseCount,THREE.RGBAFormat,THREE.FloatType);
-      this.texture.needsUpdate=true;
+      const poses=vertexPoses(asset);
+      this.poses=poses;this.texture=poses.texture;
       this.material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95});
       this.material.onBeforeCompile=shader=>{
         shader.uniforms.rougePoses={value:this.texture};
+        shader.uniforms.rougePoseRows={value:poses.rows};
+        shader.uniforms.rougeIdleFrame={value:asset.idleFrame};
         shader.vertexShader=vertexHeader+shader.vertexShader
           .replace('#include <beginnormal_vertex>',transform+'\nvec3 objectNormal = normalize(posedNormal);')
-          .replace('#include <begin_vertex>','vec3 transformed = posedPosition;');
+          .replace('#include <begin_vertex>','vec3 transformed = posedPosition;')
+          // Infantry instances have a uniform positive scale and a yaw rotation.
+          // The fragment shader normalizes again after interpolation.
+          .replace('#include <defaultnormal_vertex>','vec3 transformedNormal=normalMatrix*(mat3(instanceMatrix)*objectNormal);');
         shader.fragmentShader=infantryFabricShader+shader.fragmentShader
           .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb *= rougeFabricPigment();')
           .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance += rougePigment * rougeEmission * 3.0;');
@@ -113,8 +132,8 @@ export class InfantryBatch {
     geometry.setAttribute('rougeFabricId',new THREE.BufferAttribute(asset.fabric,1));
     geometry.setAttribute('rougeTint',new THREE.BufferAttribute(asset.tint,1,true));
     geometry.setAttribute('rougeGlow',new THREE.BufferAttribute(asset.glow,1,true));
-    geometry.setAttribute('rougeJoints',new THREE.BufferAttribute(asset.jointPair,2));
-    geometry.setAttribute('rougeWeight',new THREE.BufferAttribute(asset.weights,1,true));
+    geometry.setAttribute('rougeIdlePosition',this.poses!.idlePosition);
+    geometry.setAttribute('rougeIdleNormal',this.poses!.idleNormal);
     this.poseFrames=new THREE.InstancedBufferAttribute(new Float32Array(this.capacity),1).setUsage(THREE.DynamicDrawUsage);
     this.country=new THREE.InstancedBufferAttribute(new Float32Array(this.capacity*3),3).setUsage(THREE.DynamicDrawUsage);
     geometry.setAttribute('rougeFrame',this.poseFrames);geometry.setAttribute('rougeCountry',this.country);

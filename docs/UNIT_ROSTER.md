@@ -11,7 +11,8 @@ unit combinations are required.
 | heavyCavalry | Durable slow-recruiting melee cavalry | 155 | 30 | 25 | 0.65 | 0 | 1.6 | 32 | 3.4 | 3 |
 | horseArtillery | Mobile, shorter-range light artillery | 70 | 28 | 0 | 0.55 | 0.8 | 5.8 | 30 | 2.8 | 3 |
 
-These are initial balance values, not a claim of equal win rates. Distance uses
+These are initial balance values, not a claim of equal win rates. The live
+numbers are in `src/game/balance.ts` (`BALANCE.units`). Distance uses
 map coordinates; time uses simulation seconds. Existing four-kind values remain
 unchanged. Splash uses the existing 35% secondary damage, at most two secondary
 enemies, no friendly fire. Only engineers receive the innate 1.5 capture rate.

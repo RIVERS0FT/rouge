@@ -2,13 +2,16 @@ import {isMarchFraction} from './countryActions.ts';
 import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
 import { validFlag } from './flags.ts';
-import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, stats } from './content.ts';
-import {distanceToTravelSegment, terrainAt, terrainSegment, travelCorridorPoint, validateTravel} from './terrain-navigation.ts';
+import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, UNITS, MAX_LEADER_LEVEL, MAX_UPGRADE_LEVEL, stats } from './content.ts';
+import {BALANCE} from './balance.ts';
+import {terrainAt, validateTravel, withinSeaCorridor} from './terrain-navigation.ts';
 import {validGroupingState} from './territoryEconomy.ts';
 import {isRegionGarrison} from './capacity.ts';
 import {isConstructionKind,MAX_FUNDS,CAPTURE_RECOVERY_SECONDS} from './construction.ts';
 import { MAP, BOUNDS, pointInProvince } from './map.ts';
-import type { GameState } from './types.ts';
+import type { GameState, Unit } from './types.ts';
+/** Loose bound on stored training progress: at least 100, and never below the slowest unit's training. */
+const MAX_PRODUCTION=Math.max(100,...Object.values(UNITS).map(unit=>unit.train));
 export interface StorageLike{readonly length:number;key(index:number):string|null;getItem(key:string):string|null;setItem(key:string,value:string):void;removeItem(key:string):void}
 export interface SaveInfo{id:string;name:string;savedAt:string;tick:number;leader:string;corrupted?:boolean}
 // Import byte guard is a resource-safety check, not a gameplay troop cap.
@@ -20,21 +23,31 @@ export const isAutosave=(id:string)=>id===AUTOSAVE_ID||id.startsWith('auto-');
 const autosaveKey=PREFIX+AUTOSAVE_ID;
 const integer=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isInteger(v)&&v>=min&&v<=max;
 const number=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
+function validLandPosition(u:Unit):boolean {
+  if(pointInProvince(u.province,u.x,u.z))return true;
+  // Formation movement can round a coordinate just past an administrative edge.
+  if((u.armyStatus!=='formed'&&u.armyStatus!=='field')||terrainAt(u,true)<0)return false;
+  const edge=1e-7;
+  for(const x of [-edge,0,edge])for(const z of [-edge,0,edge]){
+    if((x||z)&&pointInProvince(u.province,u.x+x,u.z+z))return true;
+  }
+  return false;
+}
 export function validateState(value:unknown):value is GameState{
   if(!value||typeof value!=='object')return false;const s=value as GameState;
   if(s.version!==STATE_VERSION||s.map!==MAP_ID||s.spawnModel!=='single'||s.neutralGarrisonModel!=='preplaced'||typeof s.campaign!=='string'||s.campaign.length>100||!integer(s.tick,0,1e10)||!integer(s.nextId,1,1e10)||!integer(s.topology,0,1e9)||!integer(s.rng,1,0xffffffff)||!integer(s.seed,0,0xffffffff))return false;
   if(!Array.isArray(s.players)||s.players.length<2||s.players.length>getSpawnCapacity()||!Array.isArray(s.provinces)||s.provinces.length!==MAP.length||!Array.isArray(s.units))return false;
   if(!validArmyLedgers(s))return false;
-  if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,31)))return false;
+  if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,BALANCE.victory.days+1)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,8)||!integer(p.drafts,0,7)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
+    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,MAX_LEADER_LEVEL)||!integer(p.drafts,0,MAX_LEADER_LEVEL-1)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
     if(!Array.isArray(p.loadout)||p.loadout.length!==1||!KINDS.includes(p.loadout[0]))return false;
-    if(!Array.isArray(p.talents)||p.talents.length>7||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
+    if(!Array.isArray(p.talents)||p.talents.length>MAX_LEADER_LEVEL-1||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
     if(!Array.isArray(p.choices)||p.choices.length>3||new Set(p.choices).size!==p.choices.length||!p.choices.every(t=>talentIds.includes(t)&&!p.talents.includes(t)))return false;
-    if(!p.upgrades||!KINDS.every(k=>p.upgrades[k]&&STATS.every(st=>integer(p.upgrades[k][st],0,8))))return false;
+    if(!p.upgrades||!KINDS.every(k=>p.upgrades[k]&&STATS.every(st=>integer(p.upgrades[k][st],0,MAX_UPGRADE_LEVEL))))return false;
   }
-  for(const[i,p]of s.provinces.entries())if(!p||p.id!==i||!integer(p.owner,-1,s.players.length-1)||!KINDS.includes(p.kind)||!number(p.production,0,100)||!number(p.recovery,0,CAPTURE_RECOVERY_SECONDS)||!integer(p.captor,-1,s.players.length-1)||!number(p.capture,0,8.1)||(!MAP[i].playable&&(p.owner!==-1||p.production!==0||p.captor!==-1||p.capture!==0||p.recovery!==0))||(p.owner>=0&&!s.players[p.owner].loadout.includes(p.kind)))return false;
+  for(const[i,p]of s.provinces.entries())if(!p||p.id!==i||!integer(p.owner,-1,s.players.length-1)||!KINDS.includes(p.kind)||!number(p.production,0,MAX_PRODUCTION)||!number(p.recovery,0,CAPTURE_RECOVERY_SECONDS)||!integer(p.captor,-1,s.players.length-1)||!number(p.capture,0,BALANCE.capture.days+.1)||(!MAP[i].playable&&(p.owner!==-1||p.production!==0||p.captor!==-1||p.capture!==0||p.recovery!==0))||(p.owner>=0&&!s.players[p.owner].loadout.includes(p.kind)))return false;
   for(const p of s.provinces)if(p.construction!==undefined){
     const b=p.construction;
     if(!b||!MAP[p.id].playable||p.owner<0||!isConstructionKind(b.kind)||(b.level!==1&&b.level!==2&&b.level!==3))return false;
@@ -55,7 +68,7 @@ export function validateState(value:unknown):value is GameState{
   const ids=new Set<number>(),armies=new Map(s.armies.map(army=>[army.id,army]));
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,Number.MIN_VALUE,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
-    if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!pointInProvince(u.province,u.x,u.z)))return false;
+    if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!validLandPosition(u)))return false;
     const army=u.army===undefined?undefined:armies.get(u.army),formation=army?.formation;
     const source=pending.get(u.id);if(source!==undefined){
       if(u.armyStatus==='queued'){
@@ -97,13 +110,26 @@ export function validateState(value:unknown):value is GameState{
 }
 /** Rule v34 reworked talents that used to raise maximum health (Field Medicine, Infantry Line).
  * Clamp older troops to their current maximum instead of rejecting the save; validation still runs. */
-function clampReworkedTalentHealth(state:unknown):void{
-  if(!state||typeof state!=='object')return;const s=state as {units?:unknown;players?:unknown};
-  if(!Array.isArray(s.units)||!Array.isArray(s.players))return;
+/** Saves outlive retunes of balance.ts and talent reworks: values that validation would reject
+ * for exceeding a current limit (maximum health, attack cooldown, levels, recovery, capture,
+ * domination) are pulled down to it, instead of rejecting the whole save. Valid values stay as
+ * they are, so `slack` mirrors each validation tolerance. */
+function fitSaveToBalance(state:unknown):void{
+  if(!state||typeof state!=='object')return;const s=state as {units?:unknown;players?:unknown;provinces?:unknown;domination?:unknown};
+  if(!Array.isArray(s.players))return;const players=s.players;
+  const lower=(target:object,key:string,limit:number,slack=0)=>{const record=target as Record<string,unknown>,value=record[key];if(typeof value==='number'&&value>limit+slack)record[key]=limit;};
+  for(const player of players){
+    if(!player||typeof player!=='object')continue;lower(player,'level',MAX_LEADER_LEVEL);lower(player,'drafts',MAX_LEADER_LEVEL-1);
+    const upgrades=(player as {upgrades?:unknown}).upgrades;
+    if(upgrades&&typeof upgrades==='object')for(const levels of Object.values(upgrades))if(levels&&typeof levels==='object')for(const stat of STATS)lower(levels,stat,MAX_UPGRADE_LEVEL);
+  }
+  if(Array.isArray(s.provinces))for(const province of s.provinces)if(province&&typeof province==='object'){lower(province,'recovery',CAPTURE_RECOVERY_SECONDS);lower(province,'capture',BALANCE.capture.days,.1);}
+  if(Array.isArray(s.domination))for(let i=0;i<s.domination.length;i++)if(typeof s.domination[i]==='number'&&s.domination[i]>BALANCE.victory.days+1)s.domination[i]=BALANCE.victory.days;
+  if(!Array.isArray(s.units))return;
   for(const unit of s.units){
-    if(!unit||typeof unit!=='object')continue;const u=unit as {hp?:unknown;owner?:unknown;kind?:unknown};
-    if(typeof u.hp!=='number'||!Number.isInteger(u.owner)||!KINDS.includes(u.kind as never))continue;
-    try{const maximum=stats((u.owner as number)>=0?s.players[u.owner as number]:undefined,u.kind as never).hp;if(u.hp>maximum&&u.hp<=maximum*1.5+0.01)u.hp=maximum;}catch{/* Malformed players fail validation below. */}
+    if(!unit||typeof unit!=='object')continue;const u=unit as {owner?:unknown;kind?:unknown};
+    if(!Number.isInteger(u.owner)||!KINDS.includes(u.kind as never))continue;
+    try{const values=stats((u.owner as number)>=0?players[u.owner as number]:undefined,u.kind as never);lower(unit,'hp',values.hp);lower(unit,'cooldown',Math.max(1,1/values.attackSpeed),.01);}catch{/* Malformed players fail validation below. */}
   }
 }
 /** Armies exist while troops march or attack; battles are open fights per region. */
@@ -119,9 +145,11 @@ function validArmyLedgers(s:GameState):boolean{
       if(f.readyAt!==undefined&&!integer(f.readyAt,0,s.tick+1)||f.engaged!==undefined&&typeof f.engaged!=='boolean'||f.redirect!==undefined&&(!integer(f.redirect,0,MAP.length-1)||!MAP[f.redirect].playable))return false;
       if(f.retryAt!==undefined&&!integer(f.retryAt,0,s.tick+12)||f.readyCount!==undefined&&!integer(f.readyCount,0,army.size))return false;
       if(f.detour!==undefined&&(!Array.isArray(f.detour)||f.detour.length>250||f.detour.some(p=>!p||!number(p.x,BOUNDS.left,BOUNDS.right)||!number(p.z,BOUNDS.top,BOUNDS.bottom)||terrainAt(p,true)<0)))return false;
+      if(f.blockedSince!==undefined&&!integer(f.blockedSince,0,s.tick)||f.replannedAt!==undefined&&!integer(f.replannedAt,0,s.tick))return false;
+      if(f.yieldPoint!==undefined&&(!f.yieldPoint||!number(f.yieldPoint.x,BOUNDS.left,BOUNDS.right)||!number(f.yieldPoint.z,BOUNDS.top,BOUNDS.bottom)||terrainAt(f.yieldPoint,true)<0))return false;
       const route=f.route,previous=route?.points?.[route.index-1];
       if(!previous||!validateTravel(route,previous,MAP[army.to].center))return false;
-      if(f.phase==='sea'&&route.points[route.index].sea&&(distanceToTravelSegment(route,f.position)>3||!terrainSegment(f.position,travelCorridorPoint(route,f.position),true)))return false;
+      if(f.phase==='sea'&&route.points[route.index].sea&&!withinSeaCorridor(route,f.position))return false;
     }
     armyIds.add(army.id);
   }
@@ -142,10 +170,42 @@ function addArmyLedgers(state:unknown):void{
 }
 // Integrity checksum only, not an anti-cheat signature.
 export function checksum(text:string):string{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
-export function encodeSave(state:GameState,name:string):string{if(!validateState(state))throw new Error('invalidSave');const body=JSON.stringify(state);return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});}
+/** Older dispatches could carry the source city's assault marker to a new
+ * destination. Repair those orders in the saved copy of an ongoing match. */
+function repairStaleAssaults(state:GameState):GameState {
+  if(!Array.isArray(state?.units)||!Array.isArray(state.armies))return state;
+  let repaired:GameState['units']|undefined;
+  let armies:Map<number,GameState['armies'][number]>|undefined;
+  for(const [index,unit] of state.units.entries()){
+    if(!unit?.armyStatus||unit.armyStatus==='queued'||unit.army===undefined||unit.target===null||
+      unit.assault!==unit.origin||unit.assault===unit.target||unit.destination!==unit.target)continue;
+    armies??=new Map(state.armies.filter(Boolean).map(army=>[army.id,army]));
+    const army=armies.get(unit.army);
+    if(!army?.formation||army.owner!==unit.owner||army.to!==unit.target||army.formation.from!==unit.origin)continue;
+    repaired??=state.units.slice();
+    const clean={...unit};delete clean.assault;
+    repaired[index]=clean;
+  }
+  return repaired?{...state,units:repaired}:state;
+}
+export function encodeSave(state:GameState,name:string):string{
+  const current=repairStaleAssaults(state);
+  if(!validateState(current))throw new Error('invalidSave');
+  const body=JSON.stringify(current);
+  return JSON.stringify({version:1,name:name.slice(0,64),savedAt:new Date().toISOString(),hash:checksum(body),body});
+}
 export function decodeSave(raw:string):{state:GameState;name:string;savedAt:string}{
   if(raw.length>MAX_SAVE_BYTES)throw new Error('invalidSave');
-  try{const e=JSON.parse(raw);if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();const state:unknown=JSON.parse(e.body);if(state&&typeof state==='object'&&'map' in state&&state.map!==MAP_ID)throw Error('incompatibleMap');clampReworkedTalentHealth(state);addArmyLedgers(state);if(!validateState(state))throw new Error();return{state,name:e.name,savedAt:e.savedAt};}catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
+  try{
+    const e=JSON.parse(raw);
+    if(e.version!==1||typeof e.body!=='string'||e.hash!==checksum(e.body)||typeof e.name!=='string'||typeof e.savedAt!=='string'||!Number.isFinite(Date.parse(e.savedAt)))throw new Error();
+    const decoded:unknown=JSON.parse(e.body);
+    if(decoded&&typeof decoded==='object'&&'map' in decoded&&decoded.map!==MAP_ID)throw Error('incompatibleMap');
+    fitSaveToBalance(decoded);addArmyLedgers(decoded);
+    const state=repairStaleAssaults(decoded as GameState);
+    if(!validateState(state))throw new Error();
+    return{state,name:e.name,savedAt:e.savedAt};
+  }catch(error){if(error instanceof Error&&error.message==='incompatibleMap')throw error;throw new Error('invalidSave');}
 }
 function slotKey(id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw new Error('invalidSlot');return PREFIX+id;}
 /** One atomic replacement, including when the previous automatic snapshot is unreadable. */

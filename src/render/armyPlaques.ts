@@ -4,7 +4,7 @@ import type {Player} from '../game/types.ts';
 import type {ArmyView} from './armyViews.ts';
 import {staticPlaqueFlag} from './provincePlaqueFlag.ts';
 
-type Entry={node:HTMLButtonElement;flag:HTMLImageElement;count:HTMLSpanElement;view:ArmyView};
+type Entry={node:HTMLButtonElement;flag:HTMLImageElement;flagArt?:Flag;count:HTMLSpanElement;view:ArmyView};
 type Position={x:number;y:number};
 const MAX_VISIBLE=60;
 
@@ -14,6 +14,7 @@ export class ArmyPlaques {
  private readonly layer=document.createElement('div');
  private entries=new Map<number,Entry>();
  private flags=new WeakMap<Flag,string>();
+ private ranked?:{views:readonly ArmyView[];actor:number;selected:number|null;indices:number[]};
  constructor(host:HTMLElement,private onSelect:(id:number)=>void){
   this.layer.className='army-plaque-layer';host.append(this.layer);
  }
@@ -29,24 +30,33 @@ export class ArmyPlaques {
  }
  draw(views:readonly ArmyView[],players:readonly Player[],actor:number,selected:number|null,project:(view:ArmyView)=>Position|null,color:(owner:number)=>string,label:(view:ArmyView)=>string){
   const flags=factionFlags(players),seen=new Set<number>(),shown:{x:number;y:number;half:number}[]=[];
-  const visible=views.flatMap(view=>{const at=project(view);return at?[{view,at}]:[];});
-  visible.sort((a,b)=>Number(b.view.id===selected)-Number(a.view.id===selected)||Number(b.view.owner===actor)-Number(a.view.owner===actor)||b.view.count-a.view.count||a.view.id-b.view.id);
-  for(const {view,at} of visible){
+  if(this.ranked?.views!==views||this.ranked.actor!==actor||this.ranked.selected!==selected){
+   const indices=views.map((_,i)=>i);
+   indices.sort((i,j)=>{const a=views[i],b=views[j];return Number(b.id===selected)-Number(a.id===selected)||Number(b.owner===actor)-Number(a.owner===actor)||b.count-a.count||a.id-b.id;});
+   this.ranked={views,actor,selected,indices};
+  }
+  // Project in ledger order so that stacked siege labels retain their rows.
+  const positions=views.map(project);
+  for(const index of this.ranked.indices){
    if(shown.length>=MAX_VISIBLE)break;
+   const at=positions[index],view=views[index];if(!at)continue;
    const count=view.ready===undefined?String(view.count):`${view.ready}/${view.count}`,half=(30+count.length*8)/2;
    if(shown.some(p=>Math.abs(at.x-p.x)<half+p.half+2&&Math.abs(at.y-p.y)<22))continue;
    shown.push({x:at.x,y:at.y,half});seen.add(view.id);
    let e=this.entries.get(view.id);if(!e){e=this.make(view);this.entries.set(view.id,e);}
    e.view=view;
-   const flag=flags[view.owner];e.flag.hidden=!flag;
-   if(flag){let url=this.flags.get(flag);if(!url){url=staticPlaqueFlag(flag);this.flags.set(flag,url);}if(e.flag.getAttribute('src')!==url)e.flag.setAttribute('src',url);}
+   const flag=flags[view.owner];
+   if(e.flag.hidden!==!flag)e.flag.hidden=!flag;
+   if(flag&&flag!==e.flagArt){let url=this.flags.get(flag);if(!url){url=staticPlaqueFlag(flag);this.flags.set(flag,url);}e.flag.src=url;}
+   e.flagArt=flag;
    if(e.count.textContent!==count)e.count.textContent=count;
    const own=String(view.owner===actor&&actor>=0),name=label(view);
    if(e.node.dataset.own!==own){e.node.dataset.own=own;e.node.tabIndex=own==='true'?0:-1;}
    if(e.node.getAttribute('aria-label')!==name){e.node.setAttribute('aria-label',name);e.node.title=name;}
-   e.node.dataset.army=String(view.id);e.node.dataset.owner=String(view.owner);e.node.dataset.selected=String(view.id===selected);
-   e.node.dataset.phase=view.phase??'';
-   e.node.style.setProperty('--army-color',color(view.owner));
+   if(e.node.dataset.army!==String(view.id))e.node.dataset.army=String(view.id);
+   if(e.node.dataset.owner!==String(view.owner)){e.node.dataset.owner=String(view.owner);e.node.style.setProperty('--army-color',color(view.owner));}
+   if(e.node.dataset.selected!==String(view.id===selected))e.node.dataset.selected=String(view.id===selected);
+   if(e.node.dataset.phase!==(view.phase??''))e.node.dataset.phase=view.phase??'';
    // Lifted above the lead battalion so it clears the region plaque at a town anchor.
    e.node.style.transform=`translate3d(${at.x.toFixed(1)}px,${(at.y-12).toFixed(1)}px,0) translate(-50%,-100%)`;
   }

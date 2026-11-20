@@ -1,6 +1,6 @@
 import {KINDS,MAP_ID,STATE_VERSION} from '../game/content.ts';
 import {validGroupingState} from '../game/territoryEconomy.ts';
-import type {GameState,Province,Unit} from '../game/types.ts';
+import type {Army,GameState,Province,Unit} from '../game/types.ts';
 import {applyArmyPaths,encodeArmyPaths,type ArmyPaths} from './replication.ts';
 
 const WIDTH=21;
@@ -8,12 +8,42 @@ const memberStatuses=[undefined,'queued','formed','field','sea','inside'] as con
 const kindIndex=Object.fromEntries(KINDS.map((kind,index)=>[kind,index]));
 type Path=NonNullable<Unit['travel']>;
 type PathEntry={id:number;revision:string;points:Path['points']};
-export interface LocalBase {campaign:string;tick:number;groupingRevision:number;provinces:Province[];paths:Map<number,Path>;armyPaths?:ArmyPaths}
+export interface LocalBase {campaign:string;tick:number;groupingRevision:number;provinces:Province[];paths:Map<number,Path>;armyPaths?:ArmyPaths;armies?:Map<number,Army>}
 export interface LocalFrame {
  type:'local';full:boolean;campaign:string;baseTick:number;
  state:Omit<GameState,'units'|'provinces'|'grouping'>;
  provinces:Province[];grouping?:GameState['grouping'];
- units:Float64Array;paths:PathEntry[];routes:number[][];reusedArmyPaths?:number[];
+ units:Float64Array;paths:PathEntry[];routes:number[][];reusedArmyPaths?:number[];armyOrder?:number[];
+}
+// The worker replaces position/itinerary objects as formations move. Save
+// the values of the mutable records, retaining the immutable route geometry.
+function sameFields(a:object,b:object,except?:string,also?:string):boolean {
+ const left=a as Record<string,unknown>,right=b as Record<string,unknown>;
+ for(const key in left)if(!Object.hasOwn(right,key)||(key!==except&&key!==also&&left[key]!==right[key]))return false;
+ for(const key in right)if(!Object.hasOwn(left,key))return false;
+ return true;
+}
+function sameArmy(a:Army,b:Army):boolean {
+ if(!sameFields(a,b,'formation'))return false;
+ const f=a.formation,g=b.formation;
+ return f&&g?sameFields(f,g,'position','route')&&sameFields(f.position,g.position)&&sameFields(f.route,g.route):f===g;
+}
+function captureArmy(a:Army):Army{
+ const f=a.formation;return f?{...a,formation:{...f,position:{...f.position},route:{...f.route}}}:{...a};
+}
+function encodeLocalArmies(armies:Army[],base?:LocalBase){
+ // For small ledgers a full list costs less than building a second index.
+ if(armies.length<256)return {...encodeArmyPaths(armies,base?.armyPaths),snapshots:undefined,order:undefined};
+ const snapshots=new Map<number,Army>(),changed:Army[]=[];
+ for(const army of armies){
+  const old=base?.armies?.get(army.id);
+  if(old&&sameArmy(army,old))snapshots.set(army.id,old);
+  else{snapshots.set(army.id,captureArmy(army));changed.push(army);}
+ }
+ const fleet=encodeArmyPaths(changed,base?.armyPaths);
+ if(changed.length===armies.length)return {...fleet,snapshots,order:undefined};
+ for(const army of snapshots.values())if(army.formation)fleet.paths.set(army.id,army.formation.route.points);
+ return {...fleet,snapshots,order:armies.map(a=>a.id)};
 }
 const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.production===b.production&&a.kind===b.kind&&a.recovery===b.recovery&&a.captor===b.captor&&a.capture===b.capture&&a.march===b.march&&a.lastMarchTick===b.lastMarchTick&&a.construction?.kind===b.construction?.kind&&a.construction?.level===b.construction?.level;
 function writeUnit(data:Float64Array,at:number,u:Unit,routes:number[][]):void {
@@ -29,12 +59,12 @@ function writeUnit(data:Float64Array,at:number,u:Unit,routes:number[][]):void {
 export function encodeLocalFrame(s:GameState,base?:LocalBase):{frame:LocalFrame;base:LocalBase;transfer:ArrayBuffer[]} {
  const full=!base||base.campaign!==s.campaign||base.provinces.length!==s.provinces.length;
  const {units,provinces,grouping,...state}=s,data=new Float64Array(units.length*WIDTH),paths:PathEntry[]=[],routes:number[][]=[],current=new Map<number,Path>();
- const fleet=encodeArmyPaths(s.armies,full?undefined:base!.armyPaths);
+ const fleet=encodeLocalArmies(s.armies,full?undefined:base);
  for(let i=0;i<units.length;i++){
   const unit=units[i];writeUnit(data,i*WIDTH,unit,routes);
   if(unit.travel){const old=full?undefined:base!.paths.get(unit.id);if(!old||old.points!==unit.travel.points||old.revision!==unit.travel.revision)paths.push({id:unit.id,revision:unit.travel.revision,points:unit.travel.points});current.set(unit.id,{...unit.travel});}
  }
- return {frame:{type:'local',full,campaign:s.campaign,baseTick:base?.tick??s.tick,state:{...state,armies:fleet.records},provinces:full?provinces:provinces.filter((p,i)=>!sameProvince(p,base!.provinces[i])),...(full||grouping.revision!==base!.groupingRevision?{grouping}:{}),units:data,paths,routes,...(fleet.reused.length?{reusedArmyPaths:fleet.reused}:{})},base:{campaign:s.campaign,tick:s.tick,groupingRevision:grouping.revision,provinces:provinces.map(p=>({...p})),paths:current,armyPaths:fleet.paths},transfer:[data.buffer]};
+ return {frame:{type:'local',full,campaign:s.campaign,baseTick:base?.tick??s.tick,state:{...state,armies:fleet.records},provinces:full?provinces:provinces.filter((p,i)=>!sameProvince(p,base!.provinces[i])),...(full||grouping.revision!==base!.groupingRevision?{grouping}:{}),units:data,paths,routes,...(fleet.reused.length?{reusedArmyPaths:fleet.reused}:{}),...(fleet.order?{armyOrder:fleet.order}:{})},base:{campaign:s.campaign,tick:s.tick,groupingRevision:grouping.revision,provinces:provinces.map(p=>({...p})),paths:current,armyPaths:fleet.paths,armies:fleet.snapshots},transfer:[data.buffer]};
 }
 function readUnit(data:Float64Array,at:number,paths:Map<number,PathEntry|Path>,routes:number[][]):Unit {
  const id=data[at],kind=KINDS[data[at+2]],flags=data[at+18],route=data[at+17];if(!kind||!Number.isSafeInteger(id)||id<1||!Number.isInteger(flags)||flags<0||flags>255||((flags&2)&&!(flags&1))||((flags&8)&&!(flags&4))||((flags&32)&&!(flags&16))||((flags&128)&&!(flags&64))||!Number.isInteger(route)||route< -1||route>=routes.length)throw Error('invalidSnapshot');
@@ -59,5 +89,16 @@ export function applyLocalFrame(current:GameState|null,frame:LocalFrame):GameSta
  for(const id of sent)if(!travelIds.has(id))throw Error('invalidSnapshot');
  const next:GameState={...frame.state,provinces,grouping:frame.grouping??current!.grouping,units};
  if(frame.reusedArmyPaths){if(!current||frame.full)throw Error('invalidSnapshot');next.armies=applyArmyPaths(next.armies,current.armies,frame.reusedArmyPaths);}
+ if(frame.armyOrder){
+  if(!current||frame.full)throw Error('invalidSnapshot');
+  const previous=new Map(current.armies.map(a=>[a.id,a])),changed=new Map(next.armies.map(a=>[a.id,a]));
+  if(changed.size!==next.armies.length)throw Error('invalidSnapshot');
+  next.armies=frame.armyOrder.map(id=>{
+   const army=changed.get(id)??previous.get(id);
+   if(!army)throw Error('invalidSnapshot');
+   previous.delete(id);changed.delete(id);return army;
+  });
+  if(changed.size)throw Error('invalidSnapshot');
+ }
  if((frame.full||frame.grouping||frame.provinces.some(p=>current!.provinces[p.id].owner!==p.owner))&&!validGroupingState(next))throw Error('invalidSnapshot');return next;
 }

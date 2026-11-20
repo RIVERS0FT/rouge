@@ -1,5 +1,5 @@
 import {useEffect,useState,type MutableRefObject} from 'react';
-import {TALENT_BY_ID} from '../../game/content.ts';
+import {MAX_LEADER_LEVEL, TALENT_BY_ID, experienceForLevel} from '../../game/content.ts';
 import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
 import {SAMPLE_BUILDS,formedBuilds} from '../../game/talentBuilds.ts';
 import type {Player} from '../../game/types.ts';
@@ -29,7 +29,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
     <span className="window-kicker">{text(player.leader)}</span>
     <p className="talent-lede">{text('talentTitle')}</p>
     <div className="talent-level">
-     <span><Icon name="rank" size={15}/>{text('level')} {player.level}/8</span>
+     <span><Icon name="rank" size={15}/>{text('level')} {player.level}/{MAX_LEADER_LEVEL}</span>
      <span>{progress.complete ? text('max') : `${Math.floor(progress.value)}/${progress.maximum} ${text('experience')}`}</span>
     </div>
     <div className="progress progress-gold" aria-hidden="true"><i style={{width: `${progress.percent}%`}}/></div>
@@ -42,7 +42,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
     <button type="button" className="secondary" data-testid="reroll-talents" disabled={eliminated || pending || player.funds < rerollCost || !canRerollTalent(player, keep)} onClick={() => onReroll(rerollCost, keep)}>{text('reroll')} · {text('talentRerollFunds').replace('{cost}', String(rerollCost))}</button>
     {keep && <span className="talent-keep-hint" data-testid="talent-keep-hint">{text('talentKeepHint').replace('{name}', text(keep))}</span>}
    </div>
-  </> : <div className="empty-state">{text('level')} {player.level}/8 · {Math.floor(player.xp)}/{60 + player.level * 45} {text('experience')}</div>}
+  </> : <div className="empty-state">{text('level')} {player.level}/{MAX_LEADER_LEVEL} · {Math.floor(player.xp)}/{experienceForLevel(player.level)} {text('experience')}</div>}
   {player.talents.length > 0 && <div className="chosen-talents">{player.talents.map(id => <span key={id} title={text(`${id}.desc`)}>✧ {text(id)}</span>)}</div>}
   <TalentCodex codex={codex} talents={player.talents} language={language}/>
  </>;

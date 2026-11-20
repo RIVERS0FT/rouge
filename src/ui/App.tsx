@@ -5,13 +5,14 @@ import {createGame, isEliminated} from '../game/engine.ts';
 import {factionColor} from '../game/factionColors.ts';
 import type {Flag} from '../game/flags.ts';
 import {MAP} from '../game/map.ts';
-import {deleteSave, decodeSave, encodeSave, listSaves, MAX_SAVE_BYTES, readSave, writeAutosave, writeSave, type SaveInfo} from '../game/save.ts';
+import {decodeSave, encodeSave, MAX_SAVE_BYTES, type SaveInfo} from '../game/save.ts';
+import {browserSaves} from '../platform/browserSaves.ts';
 import {getSpawnCapacity, makeAISetups} from '../game/spawns.ts';
 import {formedBuilds} from '../game/talentBuilds.ts';
 import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
 import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
 import type {WorldRenderer} from '../render/WorldRenderer.ts';
-import {armyViews, battleViews} from '../render/armyViews.ts';
+import {armyViews} from '../render/armyViews.ts';
 import {CommanderPortrait} from './CommanderHud.tsx';
 import {EliminationBody, VictoryOverlay} from './dialogs/ResultDialogs.tsx';
 import {SavesView} from './dialogs/SavesView.tsx';
@@ -40,6 +41,8 @@ import {talentSelectionStatus} from './talentSelection.ts';
 import {loadCodex, saveCodex} from './talentText.tsx';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
 import {TerritoryPanel} from './TerritoryPanel.tsx';
+import {CountryPanel} from './CountryPanel.tsx';
+import {battleStrengths, countryStrengths} from '../game/strength.ts';
 import {World} from './World.tsx';
 
 type Modal = 'setupSolo' | 'setupLan' | 'playerLeader' | 'playerFlag' | 'saves' | 'talents' | 'settings' | 'territories';
@@ -84,6 +87,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const seenTalentRound = useRef<string | null>(null);
  const [codex, setCodex] = useState<string[]>(loadCodex);
  const [selectedArmy, setSelectedArmy] = useState<number | null>(null);
+ // The country shown in the country window (yours unless another one was opened).
+ const [country, setCountry] = useState(0);
  const [game, setGame] = useState<GameState | null>(null), [actor, setActor] = useState(0), [selected, setSelected] = useState(0);
  const [preferences] = useState(() => loadSetupPreferences());
  const [soloAICount, setSoloAICount] = useState('2'), [roomAICount, setRoomAICount] = useState('0'), [lobbyAI, setLobbyAI] = useState('0');
@@ -93,7 +98,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [saves, setSaves] = useState<SaveInfo[]>([]), [saveName, setSaveName] = useState(''), [code, setCode] = useState('');
  const [room, setRoom] = useState<RoomInfo | null>(null), [ticket, setTicket] = useState<Ticket | null>(storedTicket);
  const [network, setNetwork] = useState<'connected' | 'reconnecting'>('connected'), [busy, setBusy] = useState(false);
- const session = useRef<Session | null>(null), world = useRef<WorldRenderer | null>(null), latest = useRef<GameState | null>(null), autoTick = useRef(0);
+ const session = useRef<Session | null>(null), world = useRef<WorldRenderer | null>(null), latest = useRef<GameState | null>(null), autoTick = useRef(0), leaving = useRef(false);
  const mapSearch = useRef<MapSearchHandle>(null);
  const compactRef = useRef(compact), selectedRef = useRef(selected);
  latest.current = game; compactRef.current = compact; selectedRef.current = selected;
@@ -109,9 +114,14 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const solo = session.current?.mode === 'solo';
  const factions = useMemo(() => game ? factionSummaries(game) : [], [game]);
  const regions = useMemo(() => game ? ownedRegions(game, actor) : [], [game, actor]);
- const armyList = useMemo(() => game ? armyViews(game) : [], [game]), battleList = useMemo(() => game ? battleViews(game) : [], [game]);
+ const armyList = useMemo(() => game ? armyViews(game) : [], [game]);
  const ownsArmy = (id: number | null) => id !== null && Boolean(game?.armies.some(army => army.id === id && army.owner === actor));
  const owned = factions.find(faction => faction.id === actor)?.territory ?? 0;
+ // Strength figures are only worked out while a window shows them.
+ const strengths = useMemo(() => game && dock === 'country' ? countryStrengths(game) : [], [game, dock]);
+ const countryBattles = useMemo(() => game && dock === 'country'
+  ? battleStrengths(game, battle => battle.sides.some(side => side.owner === country)).filter(battle => battle.sides.some(side => side.owner === country)) : [], [game, dock, country]);
+ const regionBattle = useMemo(() => game && dock === 'region' && MAP[selected] ? battleStrengths(game, battle => battle.region === selected)[0] : undefined, [game, dock, selected]);
 
  const notifyResult = (result: Result) => {if(!result.ok) {setPendingTalent(null); setToast(text(`error.${result.error}`));}};
  const report = (error: unknown) => setToast(text(`error.${error instanceof Error ? error.message : 'generic'}`));
@@ -151,7 +161,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   setOutlinerOpen(!compact);
  }, [compact]);
 
- function refreshSaves() {try {setSaves(listSaves(localStorage));} catch {setToast(text('saveFailed'));}}
+ async function refreshSaves() {try {setSaves(await browserSaves.list());} catch {setToast(text('saveFailed'));}}
  function showSaves() {refreshSaves(); setModal('saves');}
  function openSettings() {setSettingsPage('general'); setModal('settings');}
  function openSettingsSaves() {refreshSaves(); setSettingsPage('saves');}
@@ -193,14 +203,15 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   }
   session.current.pause?.(paused || modal === 'settings');
  }, [paused, modal, screen]);
- function saveCurrent(id: string | null, displayName: string): boolean {
-  if(!latest.current || session.current?.mode !== 'solo') return false;
+ async function saveCurrent(id: string | null, displayName: string): Promise<boolean> {
+  const snapshot = latest.current;
+  if(!snapshot || session.current?.mode !== 'solo') return false;
   try {
-   if(id===null) writeAutosave(localStorage, latest.current, displayName);
-   else {writeSave(localStorage, id, latest.current, displayName); setToast(text('saveSuccess'));}
-   refreshSaves(); return true;
+   if(id===null) await browserSaves.auto(snapshot, displayName);
+   else {await browserSaves.write(id, snapshot, displayName); setToast(text('saveSuccess')); void refreshSaves();}
+   return true;
   }
-  catch {setToast(text('saveFailed')); return false;}
+  catch(error) {setToast(text(error instanceof Error && error.message === 'invalidSave' ? 'saveInvalidState' : 'saveFailed')); return false;}
  }
  useEffect(() => {if(game && session.current?.mode === 'solo' && game.tick - autoTick.current >= 1200) {autoTick.current = game.tick; saveCurrent(null, text('autosave'));}}, [game?.tick]);
  useEffect(() => {if(screen === 'game' || screen === 'menu') world.current?.view('strategic');}, [screen, actor]);
@@ -258,9 +269,24 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   setSelected(id); world.current?.focusProvince(id);
   if(compactRef.current) setOutlinerOpen(false); else setDock('region');
  }, []);
- function focusNation(id: number) {if(game) {const region = factionFocusRegion(game, id); if(region >= 0) jumpToRegion(region);}}
+ /** A country's own window: from the rail, your flag, a region's owner, a battle side, the outliner or the rankings. */
+ const openCountry = useCallback((id: number) => {
+  if(!latest.current?.players[id]) return;
+  setCountry(id); setDock('country');
+  if(compactRef.current) setOutlinerOpen(false);
+ }, []);
+ const openOwnCountry = useCallback(() => openCountry(actor), [openCountry, actor]);
+ /** Frames a country's largest garrison and keeps its window open (compact sheets step aside for the map). */
+ function locateCountry(id: number) {
+  if(!game) return;
+  const region = factionFocusRegion(game, id); if(region < 0) return;
+  setSelected(region); world.current?.focusProvince(region);
+  if(compactRef.current) setDock(null);
+ }
  function toggleDock(next: Dock) {
   if(next === 'region' && selected < 0) return;
+  // The rail's country button shows your own country; on your own country it closes the window.
+  if(next === 'country' && !(dock === 'country' && country === actor)) {openCountry(actor); return;}
   setDock(current => current === next ? null : next);
   if(compact) setOutlinerOpen(false);
  }
@@ -272,25 +298,35 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }
  function togglePause() {if(session.current?.mode !== 'solo') return; setPaused(!paused);}
  function changeSpeed(value: number) {session.current?.speed?.(value); setSpeed(value);}
- function leave() {
-  if(screen === 'game' && !window.confirm(text('exitConfirm'))) return;
-  if(session.current?.mode === 'solo' && latest.current) {if(!saveCurrent(null, text('autosave')) && !window.confirm(text('saveFailed'))) return;}
-  session.current?.dispose(); session.current = null; setGame(null); setScreen('menu'); setRoom(null); setModal(null); setPaused(false); setDock(null);
-  try {sessionStorage.removeItem(TICKET_KEY);} catch {/* Nothing to forget. */}
-  setTicket(null);
+ async function leave() {
+  if(leaving.current || screen === 'game' && !window.confirm(text('exitConfirm'))) return;
+  leaving.current=true;
+  try {
+   if(session.current?.mode === 'solo' && latest.current && !await saveCurrent(null, text('autosave')) && !window.confirm(text('saveFailed'))) return;
+   session.current?.dispose(); session.current = null; setGame(null); setScreen('menu'); setRoom(null); setModal(null); setPaused(false); setDock(null);
+   try {sessionStorage.removeItem(TICKET_KEY);} catch {/* Nothing to forget. */}
+   setTicket(null);
+  } finally {leaving.current=false;}
  }
- function load(id: string) {try {const {state: loaded, recovered} = readSave(localStorage, id); launchLocal(loaded); if(recovered) setToast(text('recovered'));} catch(error) {report(error);}}
+ async function load(id: string) {try {const {state: loaded, recovered} = await browserSaves.read(id); launchLocal(loaded); if(recovered) setToast(text('recovered'));} catch(error) {report(error);}}
  function exportCurrent() {
-  if(!game) return;
-  const blob = new Blob([encodeSave(game, saveName || text('theatre'))], {type: 'application/json'}), url = URL.createObjectURL(blob), anchor = document.createElement('a');
-  anchor.href = url; anchor.download = `rouge-${game.campaign}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
+  if(!latest.current) return;
+  try {
+   const raw = encodeSave(latest.current, saveName || text('theatre'));
+   const url = URL.createObjectURL(new Blob([raw], {type: 'application/json'})), anchor = document.createElement('a');
+   anchor.href = url; anchor.download = `rouge-${latest.current.campaign}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
+  } catch(error) {report(error);}
+ }
+ async function removeSave(id:string) {
+  if(!confirm(text('deleteConfirm')))return;
+  try{await browserSaves.delete(id);void refreshSaves();}catch{setToast(text('saveFailed'));}
  }
  async function importSave(file: File | undefined) {
   if(!file) return;
   try {
    if(file.size > MAX_SAVE_BYTES) throw new Error('invalidSave');
    const decoded = decodeSave(await file.text());
-   writeSave(localStorage, `import-${crypto.randomUUID()}`, decoded.state, decoded.name); refreshSaves(); setToast(text('saveSuccess'));
+   await browserSaves.write(`import-${crypto.randomUUID()}`, decoded.state, decoded.name); void refreshSaves(); setToast(text('saveSuccess'));
   } catch(error) {report(error);}
  }
  useEffect(() => {
@@ -324,12 +360,12 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const savesView = <SavesView saves={saves} language={language} canSave={solo && Boolean(game)} canExport={solo && Boolean(game)} saveName={saveName} onSaveName={setSaveName}
   onCreate={() => game && saveCurrent(`manual-${crypto.randomUUID()}`, saveName || `${text('theatre')} ${timeLabel(game.tick,language)}`)} onLoad={load}
   onOverwrite={save => {if(confirm(text('overwriteConfirm'))) saveCurrent(save.id, save.name);}}
-  onDelete={id => {if(confirm(text('deleteConfirm'))) {deleteSave(localStorage, id); refreshSaves();}}} onExport={exportCurrent} onImport={importSave}/>;
+  onDelete={removeSave} onExport={exportCurrent} onImport={importSave}/>;
 
  return <div className={`app ${screen === 'menu' ? 'is-menu' : screen === 'game' ? 'is-game' : 'is-lobby'}`} data-layout={compact ? 'compact' : 'wide'} data-dock={dock ?? 'none'}
   data-input-device={inputDevice} data-resource-state="ready" data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <SessionLifetime session={session}/>
-  <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' && !eliminated ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target,fraction) => issue(countryActions.muster(sources,target,fraction))}
+  <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target,fraction) => issue(countryActions.muster(sources,target,fraction))}
    onArmy={id => setSelectedArmy(current => current === id ? null : id)} selectedArmy={screen === 'game' ? selectedArmy : null} worldRef={world}/>
   <div className="map-vignette"/>
   {screen !== 'game' && <div className="language-switch">
@@ -342,7 +378,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   {screen === 'lobby' && <Lobby room={room} ticket={ticket} network={network} busy={busy} language={language} aiDraft={lobbyAI} maxAI={lobbyMaxAI}
    onAIDraft={setLobbyAI} onApplyAI={changeRoomAI} onLeave={leave} onStart={beginMatch}/>}
   {screen === 'game' && game && player && <>
-   <TopBar state={game} actor={actor} owned={owned} language={language} onTalents={() => setModal('talents')}
+   <TopBar state={game} actor={actor} owned={owned} language={language} onTalents={() => setModal('talents')} onCountry={openOwnCountry}
     clock={<Clock tick={game.tick} solo={solo} paused={paused} speed={speed} network={network} language={language} onPause={togglePause} onSpeed={changeSpeed}
      actions={<><button type="button" className="clock-action all-regions-trigger" data-testid="open-all-regions" onClick={() => mapSearch.current?.open()} disabled={localStarting || showDefeat || game.winner !== null}
       aria-label={text('allRegions')} title={`${text('allRegions')} · F`} aria-keyshortcuts="F"><Icon name="territory" size={21}/></button>
@@ -354,14 +390,16 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     onDock={toggleDock} onTalents={() => setModal('talents')} onOutliner={toggleOutliner}/>
    <div className={`hud-dock${dock ? ' mobile-panel-open' : ''}`} data-dock={dock ?? 'none'}>
     {/* The selected region stays mounted (hidden when another window is docked), so its figures remain readable. */}
-    {province && <TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} hidden={dock !== 'region'}
-     onFocus={() => world.current?.focusProvince(selected)} onManage={() => setModal('territories')} onClose={closeDock} onCommand={issue}/>}
+    {province && <TerritoryPanel state={game} selected={selected} actor={actor} eliminated={eliminated} language={language} hidden={dock !== 'region'} battle={regionBattle}
+     onFocus={() => world.current?.focusProvince(selected)} onManage={() => setModal('territories')} onClose={closeDock} onCommand={issue} onCountry={openCountry}/>}
+    {dock === 'country' && <CountryPanel state={game} country={country} actor={actor} factions={factions} strengths={strengths} battles={countryBattles} language={language}
+     onLocate={() => locateCountry(country)} onSelectRegion={jumpToRegion} onSelectCountry={openCountry} onShowRankings={() => setDock('nations')} onClose={closeDock}/>}
     {dock === 'military' && <MilitaryPanel player={player} eliminated={eliminated} language={language} onCommand={issue} onClose={closeDock}/>}
-    {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onFocusNation={id => {if(compact) closeDock(); focusNation(id);}} onClose={closeDock}/>}
+    {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onOpenCountry={openCountry} onClose={closeDock}/>}
    </div>
-   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} battles={battleList} selectedArmy={selectedArmy} language={language} open={outlinerOpen}
+   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} selectedArmy={selectedArmy} language={language} open={outlinerOpen}
     onSelectArmy={army => {setSelectedArmy(army.id); world.current?.focusProvince(army.region);}}
-    onFocusNation={focusNation} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>
+    onFocusNation={openCountry} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>
    <CommanderPortrait player={player} language={language} color={factionColor(actor)} onTalents={() => setModal('talents')}/>
    {paused && solo && <div className="pause-banner" role="status"><span aria-hidden="true">Ⅱ</span>{text('paused')}</div>}
    {eliminated && spectating && game.winner === null && <div className="elimination-status" role="status" data-testid="spectating-status">{text('eliminatedSpectating')}</div>}

@@ -1,5 +1,6 @@
 import {expect,test,type Locator,type Page} from '@playwright/test';
 import {loadMapOrderFixture,mapOrderFixture,saveOrders} from './map-orders.ts';
+import {savedCampaigns} from './save-records.ts';
 
 const plaque=(page:Page)=>page.locator(`.province-label[data-region="${mapOrderFixture.source}"][data-dispatch-source=true]:visible`);
 const counts=(page:Page)=>plaque(page).locator('.province-plaque-count');
@@ -72,11 +73,8 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  await expect(source).toHaveText('3');
  const orders=await saveOrders(page);
  expect(orders.map((army:{to:number;size:number})=>[army.to,army.size])).toEqual([[mapOrderFixture.target,9]]);
- const queue=await page.evaluate(({savePrefix,source})=>{
-  const save=Object.keys(localStorage).filter(k=>k.startsWith(savePrefix)&&!k.endsWith('.backup'))
-   .map(k=>JSON.parse(localStorage.getItem(k)!)).find(s=>s.name==='Map order result');
-  return JSON.parse(save.body).provinces[source].march;
- },{savePrefix:mapOrderFixture.savePrefix,source:mapOrderFixture.source});
+ const save=(await savedCampaigns(page,mapOrderFixture.savePrefix)).find(row=>row.name==='Map order result')!;
+ const queue=save.state.provinces[mapOrderFixture.source].march!;
  expect(queue.fraction).toBe(.75);expect(queue.pendingIds).toHaveLength(9);
 });
 

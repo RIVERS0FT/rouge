@@ -36,7 +36,7 @@ python scripts/normalize-state-atlas.py --input artifacts/state-reference --outp
 
 ## 兵力容量
 
-保留 **PROVINCE_CAP=12**，可在 src/game/content.ts 调整。该值是每个地块每个阵营的最大实际兵团数，驻军、行军中的己方兵团及交战兵团都计入；敌我分开计数，避免敌军占满一个共享容量后使进攻无法发生。
+保留 **PROVINCE_CAP=12**，可在 src/game/balance.ts 的 `regions.slots` 调整。该值是每个地块每个阵营的最大实际兵团数，驻军、行军中的己方兵团及交战兵团都计入；敌我分开计数，避免敌军占满一个共享容量后使进攻无法发生。
 
 没有 PLAYER_CAP 或 MAX_UNITS；没有 90 人玩家上限，也没有 360 个全局兵团上限。每块独立生产，满员停产，有空位恢复。军费不影响基础造兵。
 

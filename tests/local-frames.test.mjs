@@ -5,6 +5,21 @@ import {encodeLocalFrame,applyLocalFrame} from '../src/platform/localFrames.ts';
 const setup=[{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'warden',loadout:['infantry'],ai:true}];
 const fixture=createGame(setup,13,'binary-local-frames');
 function wire(encoded){const frame=structuredClone(encoded.frame,{transfer:encoded.transfer});assert.equal(encoded.frame.units.byteLength,0);return frame;}
+test('large local army ledgers retain exact order, changed poses and routes across removals and additions',()=>{
+ const state=structuredClone(fixture),position={x:1,z:2,sea:false};
+ const formation={from:0,phase:'march',position,heading:0,columns:1,lastContact:0,route:{revision:'r',index:1,points:[position,{x:2,z:2,sea:false}]}};
+ state.armies=Array.from({length:260},(_,id)=>({id:id+1,owner:0,to:1,formed:0,size:1,formation:structuredClone(formation)}));
+ const first=encodeLocalFrame(state),initial=applyLocalFrame(null,wire(first)),frozen=structuredClone(initial);
+ state.armies[1].formation.position={x:4,z:2};state.armies[2].formation.readyAt=undefined;
+ state.armies[3].formation.route={...state.armies[3].formation.route,points:[position]};
+ state.armies.splice(4,1);state.armies.unshift({...structuredClone(state.armies[0]),id:500});state.armies.reverse();state.tick++;
+ const encoded=encodeLocalFrame(state,first.base),frame=wire(encoded);
+ assert.equal(frame.state.armies.length,4);assert.equal(frame.armyOrder.length,260);
+ assert.deepEqual(applyLocalFrame(initial,frame),state);assert.deepEqual(initial,frozen);
+ for(const order of [[...frame.armyOrder,1],[...frame.armyOrder,999],frame.armyOrder.filter(id=>id!==500)]){
+  assert.throws(()=>applyLocalFrame(initial,{...frame,armyOrder:order}),/invalidSnapshot/);
+ }
+});
 test('transferable local frames retain complete state and AI choices without mutating previous UI snapshots',()=>{
  const state=structuredClone(fixture);state.players[1].choices=['industry'];state.players[1].drafts=1;
  const initial=encodeLocalFrame(state),before=applyLocalFrame(null,wire(initial)),frozen=structuredClone(before);

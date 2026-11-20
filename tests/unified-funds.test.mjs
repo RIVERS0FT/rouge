@@ -1,8 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine} from '../src/game/engine.ts';
-import {DT,MAP_ID,STATE_VERSION} from '../src/game/content.ts';
-import {CAPTURE_REWARD,MAX_FUNDS,STARTING_FUNDS,fundsIncomeRate} from '../src/game/construction.ts';
+import {DT,MAP_ID,STATE_VERSION,upgradeCost} from '../src/game/content.ts';
+import {BASE_FUNDS_INCOME,CAPTURE_REWARD,CONSTRUCTION,MAX_FUNDS,STARTING_FUNDS,fundsIncomeRate} from '../src/game/construction.ts';
+import {BALANCE} from '../src/game/balance.ts';
+import {talentRerollCost} from '../src/game/talentReroll.ts';
 import {MAP} from '../src/game/map.ts';
 import {checksum,decodeSave,encodeSave,listSaves,readSave,SAVE_PREFIX,validateState,writeSave} from '../src/game/save.ts';
 import {regionProductionRate} from '../src/game/territoryEconomy.ts';
@@ -14,20 +16,23 @@ const upgrade={type:'upgrade',kind:'infantry',stat:'attack'};
 
 test('construction, unit upgrades and rerolls draw from one shared funds balance',()=>{
  const e=fresh(),p=e.state.players[0],home=e.state.provinces.find(v=>v.owner===0).id;
- assert.equal(p.funds,184);
+ assert.equal(p.funds,STARTING_FUNDS);
  assert.equal(Object.hasOwn(p,'gold'),false);
  assert.equal(Object.hasOwn(p,'constructionFunds'),false);
- Object.assign(p,{funds:100,level:2,drafts:1,choices:['industry','forcedMarch','entrenchment']});
+ // Enough for a market and one upgrade, one short of a reroll.
+ const market=CONSTRUCTION.market.costs[0],attack=upgradeCost(0),reroll=talentRerollCost({level:2,rerollsUsed:0});
+ Object.assign(p,{funds:market+attack+reroll-1,level:2,drafts:1,choices:['industry','forcedMarch','entrenchment']});
  assert.deepEqual(e.command(0,build(home)),{ok:true});
- assert.equal(p.funds,46);
+ assert.equal(p.funds,attack+reroll-1);
  assert.deepEqual(e.command(0,upgrade),{ok:true});
- assert.equal(p.funds,16);
- assert.deepEqual(e.command(0,{type:'reroll',expectedCost:30}),{ok:false,error:'noFunds'});
- p.funds=60;
- assert.deepEqual(e.command(0,{type:'reroll',expectedCost:30}),{ok:true});
- assert.equal(p.funds,30);
+ assert.equal(p.funds,reroll-1);
+ assert.deepEqual(e.command(0,{type:'reroll',expectedCost:reroll}),{ok:false,error:'noFunds'});
+ p.funds=reroll*2;
+ assert.deepEqual(e.command(0,{type:'reroll',expectedCost:reroll}),{ok:true});
+ assert.equal(p.funds,reroll);
+ // Relies on a level-2 market costing more than one reroll.
  assert.deepEqual(e.command(0,{...build(home),expectedLevel:1}),{ok:false,error:'noFunds'});
- assert.equal(p.funds,30);
+ assert.equal(p.funds,reroll);
 });
 
 test('owned tiles, markets and captures pay into the same capped balance',()=>{
@@ -36,9 +41,11 @@ test('owned tiles, markets and captures pay into the same capped balance',()=>{
  const {x,z}=MAP[target.id].center;
  Object.assign(attacker,{x,z,province:target.id,origin:target.id});
  s.units=[attacker];
- target.captor=0;target.capture=7.99;
+ target.captor=0;target.capture=BALANCE.capture.days-.01;
  assert.deepEqual(e.command(0,build(home.id)),{ok:true});
- const expected=STARTING_FUNDS-54+CAPTURE_REWARD+DT*(1.75*regionProductionRate(home.id)+.375*regionProductionRate(target.id));
+ // One tick of income: the home market at full rate, the captured region at the start of its recovery.
+ const homeIncome=BASE_FUNDS_INCOME+CONSTRUCTION.market.benefits[0],capturedIncome=BASE_FUNDS_INCOME*(1-BALANCE.economy.recoveryLoss);
+ const expected=STARTING_FUNDS-CONSTRUCTION.market.costs[0]+CAPTURE_REWARD+DT*(homeIncome*regionProductionRate(home.id)+capturedIncome*regionProductionRate(target.id));
  e.step(1);
  assert.equal(target.owner,0);
  assert.ok(Math.abs(p.funds-expected)<1e-8);

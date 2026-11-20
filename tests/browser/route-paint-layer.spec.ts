@@ -1,5 +1,109 @@
 import {test,expect} from '@playwright/test';
 
+test('remaining march legs paint the turn and move their tail in flat and tilted views',async({page})=>{
+ await page.route('**/march-route-pixels',r=>r.fulfill({contentType:'text/html',body:'<body></body>'}));
+ await page.goto('/march-route-pixels');
+ const result=await page.evaluate(async()=>{
+  const THREE=await import('/node_modules/three/build/three.module.js');
+  const {AttackArrows}=await import('/src/render/attackArrows.ts'),{RoutePaintLayer}=await import('/src/render/routePaintLayer.ts');
+  const {groundArrowProjection}=await import('/src/render/groundArrowProjection.ts');
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,1,.1,1000);
+  const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});
+  renderer.setClearColor(0);renderer.setSize(400,400);const gl=renderer.getContext();
+  const layer=new RoutePaintLayer(scene,camera,0,()=>{}),arrows=new AttackArrows(document.body,layer);
+  const from={x:-12,y:0},bend={x:12,y:0},end={x:12,y:-12},routes=[{owner:1,from:0,to:1,units:4,segment:'a'},{owner:1,from:0,to:1,units:4,segment:'b'}];
+  const results=[];
+  for(const tilt of [0,24]){
+   camera.position.set(0,50,tilt);camera.up.set(0,0,-1);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+   const projection=groundArrowProjection(camera,400,400,0);
+   for(const tail of [-12,3]){
+    from.x=tail;
+    arrows.draw(routes,(r:any,copy:number)=>copy?null:r.segment==='a'?[from,bend]:[bend,end],projection,400,400,()=>'red',String(tilt));
+    layer.flush();renderer.render(scene,camera);
+    const lit=(x:number,y:number)=>{const p=projection.point({x,y})!,v=new Uint8Array(4);gl.readPixels(Math.floor(p.x),399-Math.floor(p.y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,v);return v[0]>40;};
+    results.push([lit(-6,0),lit(8,0),lit(12,-6),lit(0,-6)]);
+   }
+  }
+  arrows.dispose();layer.dispose();renderer.dispose();return results;
+ });
+ expect(result).toEqual([[true,true,true,false],[false,true,true,false],[true,true,true,false],[false,true,true,false]]);
+});
+
+test('world route fills match the canvas body, overlapping outlines and ledger order after a pan',async({page})=>{
+ await page.route('**/world-route-pixels',r=>r.fulfill({contentType:'text/html',body:'<body></body>'}));
+ await page.goto('/world-route-pixels');
+ const samples=await page.evaluate(async()=>{
+  const THREE=await import('/node_modules/three/build/three.module.js');
+  const {RoutePaintLayer}=await import('/src/render/routePaintLayer.ts');
+  const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(0,128,96,0,.1,10);
+  camera.up.set(0,0,-1);camera.position.set(0,2,0);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+  const glRenderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});
+  glRenderer.setClearColor('#142c9c');glRenderer.setSize(128,96);
+  const layer=new RoutePaintLayer(scene,camera,0,()=>{});layer.resize(128,96,1);
+  const rect=(x:number,z:number,x2:number,z2:number)=>[{x,y:z},{x:x2,y:z},{x:x2,y:z2},{x,y:z2}];
+  const routes=[{body:rect(16,-60,70,-32),edge:[rect(16,-60,26,-32),rect(20,-60,30,-32)]},
+   {body:rect(45,-54,92,-38),edge:[rect(82,-54,92,-38)]}];
+  const gl=glRenderer.getContext(),read=(x:number)=>{const b=new Uint8Array(4);gl.readPixels(x,46,1,1,gl.RGBA,gl.UNSIGNED_BYTE,b);return Array.from(b);};
+  const path=(p:{x:number;y:number}[])=>'M'+p.map(v=>v.x+','+(96+v.y)).join('L')+'Z';
+  layer.setCommitted(routes.map(r=>({d:path(r.body),outline:r.edge.map(path).join('')})));layer.flush();glRenderer.render(scene,camera);
+  const points=[6,18,22,28,36,52,75,87],reference=points.map(read);
+  layer.setWorldRoutes(routes);layer.flush();glRenderer.render(scene,camera);const gpu=points.map(read);
+  camera.position.x=4;camera.lookAt(4,0,0);camera.updateMatrixWorld();glRenderer.render(scene,camera);
+  const pan=points.map(x=>read(x-4));
+  layer.dispose();glRenderer.dispose();return {reference,gpu,pan};
+ });
+ expect(new Set(samples.reference.map(c=>c.join(','))).size).toBeGreaterThanOrEqual(4);
+ for(let i=0;i<samples.reference.length;i++){
+  for(let c=0;c<4;c++)expect(Math.abs(samples.reference[i][c]-samples.gpu[i][c])).toBeLessThanOrEqual(3);
+  expect(samples.pan[i]).toEqual(samples.gpu[i]);
+ }
+});
+
+test('flat route painting reuses its texels inside the margin and refreshes after a pan or a dispatch change',async({page})=>{
+ await page.route('**/flat-route-margin',route=>route.fulfill({contentType:'text/html',body:'<body></body>'}));
+ await page.goto('/flat-route-margin');
+ const versions=await page.evaluate(async()=>{
+  const THREE=await import('/node_modules/three/build/three.module.js');
+  const {RoutePaintLayer}=await import('/src/render/routePaintLayer.ts');
+  const {groundArrowProjection}=await import('/src/render/groundArrowProjection.ts');
+  const camera=new THREE.OrthographicCamera(-1,1,1,-1,.01,10);
+  camera.up.set(0,0,-1);
+  const layer=new RoutePaintLayer(new THREE.Scene(),camera,0,()=>{});
+  const body=new Path2D();body.rect(-.5,-.1,1,.2);
+  const route={d:'',outline:'',ground:{body,edge:new Path2D()}};
+  const texture=layer.mesh.material.uniforms.routeTexture.value;
+  const draw=(x:number,routes= [route])=>{
+   camera.position.set(x,2,0);camera.lookAt(x,0,0);camera.updateMatrixWorld();
+   layer.resize(128,96,1.25);
+   layer.setCommitted(routes,layer.captureView(),groundArrowProjection(camera,128,96,0).affine);
+   layer.flush();return texture.version;
+  };
+  const initial=draw(0),inside=draw(.1),outside=draw(.4);
+  const replaced=draw(.4,[{...route,ground:{body:new Path2D(body),edge:new Path2D()}}]);
+  const overscannedWidth=texture.image.width;
+  let now=performance.now();
+  Object.defineProperty(performance,'now',{configurable:true,value:()=>now});
+  const advance=(interval:number)=>{
+   now+=interval;
+   draw(.4,[{...route,ground:{body:new Path2D(body),edge:new Path2D()}}]);
+  };
+  for(let n=0;n<16;n++)advance(200);
+  const nativeWidth=texture.image.width;
+  for(let n=0;n<24;n++)advance(16);
+  const recoveredWidth=texture.image.width;
+  Reflect.deleteProperty(performance,'now');
+  draw(.4,[]);const cleared=!layer.mesh.visible;
+  layer.dispose();return {initial,inside,outside,replaced,cleared,overscannedWidth,nativeWidth,recoveredWidth};
+ });
+ expect(versions.inside).toBe(versions.initial);
+ expect(versions.outside).toBeGreaterThan(versions.inside);
+ expect(versions.replaced).toBeGreaterThan(versions.outside);
+ expect(versions.cleared).toBe(true);
+ expect(versions.nativeWidth).toBe(160);
+ expect(versions.overscannedWidth).toBeGreaterThan(versions.nativeWidth);
+ expect(versions.recoveredWidth).toBe(versions.overscannedWidth);
+});
+
 test('painted arrows stay on the ground through camera motion without repainting, including fading previews',async({page})=>{
  await page.route('**/ground-route-harness',route=>route.fulfill({contentType:'text/html',body:'<body style="margin:0"></body>'}));
  await page.goto('/ground-route-harness');

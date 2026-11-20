@@ -27,6 +27,9 @@ export interface ArmyFormation {
   engaged?:boolean;
   detour?:Vec2[];
   retryAt?:number;
+  blockedSince?:number;
+  replannedAt?:number;
+  yieldPoint?:Vec2;
   readyCount?:number;
 }
 /** A source region's dispatch dissolves into the destination garrison on arrival. */

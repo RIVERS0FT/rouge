@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import {canRerollTalent,talentRerollCost} from '../../game/talentReroll.ts';
 import {captureReward} from '../../game/construction.ts';
-import {STATS, upgradeCostFor} from '../../game/content.ts';
+import {MAX_LEADER_LEVEL, MAX_UPGRADE_LEVEL, STATS, upgradeCostFor} from '../../game/content.ts';
 import {factionColor} from '../../game/factionColors.ts';
 import {PLAYABLE_COUNT} from '../../game/map.ts';
 import type {GameState} from '../../game/types.ts';
@@ -25,19 +25,19 @@ function Metric({icon, label, tip, className = '', children}: {icon: IconName; l
  * and command rank, each with a live breakdown tooltip, followed by alerts.
  * The player's name deliberately stays on the portrait card, not here.
  */
-export function TopBar({state, actor, owned, language, onTalents, clock}: {
- state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; clock: ReactNode;
+export function TopBar({state, actor, owned, language, onTalents, onCountry, clock}: {
+ state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; onCountry?: () => void; clock: ReactNode;
 }) {
  const player = state.players[actor], text = (key: string) => t(language, key);
  const income = incomePerDay(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
  const progress = leaderProgress(player);
- const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < 8).map(level => upgradeCostFor(player, level));
+ const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < MAX_UPGRADE_LEVEL).map(level => upgradeCostFor(player, level));
  const cheapest = costs.length ? Math.min(...costs) : null;
  const domination = state.domination[actor] ?? 0;
  const rival = state.players.filter(p => p.id !== actor).map(p => ({player: p, value: state.domination[p.id] ?? 0})).sort((a, b) => b.value - a.value)[0];
  const share = owned / PLAYABLE_COUNT * 100;
  return <header className="hud-top">
-  <FactionIdentity flag={factionFlag(state.players, actor)} actor={actor} language={language} color={factionColor(actor)}/>
+  <FactionIdentity flag={factionFlag(state.players, actor)} actor={actor} language={language} color={factionColor(actor)} onOpen={onCountry} openLabel={text('openCountry')}/>
   <div className="hud-ledger" role="group" aria-label={text('stateLedger')}>
    <Metric icon="coin" label={text('funds')} className="resource-treasury" tip={<>
     <TipTitle aside={Math.floor(player.funds).toLocaleString()}>{text('funds')}</TipTitle>
@@ -68,13 +68,13 @@ export function TopBar({state, actor, owned, language, onTalents, clock}: {
     <span className="micro-progress" aria-hidden="true"><i style={{width: `${Math.min(100, owned / goal * 100)}%`}}/></span>
    </Metric>
    <Metric icon="rank" label={text('level')} className="level-resource" tip={<>
-    <TipTitle aside={`${player.level} / 8`}>{text('level')}</TipTitle>
+    <TipTitle aside={`${player.level} / ${MAX_LEADER_LEVEL}`}>{text('level')}</TipTitle>
     <TipRow label={text('levelProgress')} value={progress.complete ? text('max') : `${Math.floor(progress.value)} / ${progress.maximum} ${text('experience')}`}/>
     <TipRow label={text('talentsChosen')} value={player.talents.length}/>
     {canRerollTalent(player) && <TipRow label={text('reroll')} value={text('talentRerollGold').replace('{cost}', String(talentRerollCost(player)))}/>}
     {player.choices.length > 0 && <TipNote>{text('talentAvailable')}</TipNote>}
    </>}>
-    <strong>{player.level}<small> / 8</small></strong>
+    <strong>{player.level}<small> / {MAX_LEADER_LEVEL}</small></strong>
     <span className="micro-progress" aria-hidden="true"><i style={{width: `${progress.percent}%`}}/></span>
    </Metric>
   </div>

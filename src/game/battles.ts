@@ -1,7 +1,9 @@
+import {BALANCE} from './balance.ts';
+import {DT} from './content.ts';
 import type {Battle,GameState} from './types.ts';
 
-/** A battle ends after two campaign days without a hit in its region. */
-export const BATTLE_QUIET_TICKS=40;
+/** A battle ends after `combat.battleQuietDays` campaign days without a hit in its region. */
+export const BATTLE_QUIET_TICKS=Math.round(BALANCE.combat.battleQuietDays/DT);
 
 /** Combat hits of one tick, grouped by the region of the unit that was hit. */
 export class CombatLog {

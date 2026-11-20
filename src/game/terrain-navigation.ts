@@ -92,6 +92,21 @@ const wallIds=new Uint32Array(wallOffsets.at(-1)!);
 function wallRange(left:number,top:number,right:number,bottom:number):[number,number,number,number] {
  return[Math.max(0,Math.floor(left/wallSize)-wallMinX),Math.max(0,Math.floor(top/wallSize)-wallMinZ),Math.min(wallCols-1,Math.floor(right/wallSize)-wallMinX),Math.min(wallRows-1,Math.floor(bottom/wallSize)-wallMinZ)];
 }
+/** Nearby physical shore edges, ordered by distance to the marching formation. */
+export function nearbyShorePoints(from:Vec2,radius:number):Vec2[] {
+ const [left,top,right,bottom]=wallRange(from.x-radius,from.z-radius,from.x+radius,from.z+radius);
+ const seen=new Set<number>(),points:{point:Vec2;distance:number}[]=[];
+ for(let z=top;z<=bottom;z++)for(let x=left;x<=right;x++){
+  const cell=z*wallCols+x;
+  for(let i=wallOffsets[cell];i<wallOffsets[cell+1];i++){
+   const k=wallIds[i];if(seen.has(k))continue;seen.add(k);
+   const t=Math.max(.05,Math.min(.95,((from.x-walls[k])*walls[k+4]+(from.z-walls[k+1])*walls[k+5])/(walls[k+6]||1)));
+   const point={x:walls[k]+t*walls[k+4],z:walls[k+1]+t*walls[k+5]},distance=length(from,point);
+   if(distance<=radius)points.push({point,distance});
+  }
+ }
+ return points.sort((a,b)=>a.distance-b.distance).map(item=>item.point);
+}
 /** Exact short land segment check using only physical boundary edges. Endpoints
  * on land plus no interior boundary crossing cannot jump an island or lake.
  * A supplied startTriangle must be terrainAt(a,true) for these exact coordinates. */
@@ -156,6 +171,18 @@ export function travelCorridorPoint(plan:TravelPlan,p:Vec2,lookahead=0):Vec2 {
 export function distanceToTravelSegment(plan:TravelPlan,p:Vec2):number {
  const q=travelCorridorPoint(plan,p);return Math.hypot(p.x-q.x,p.z-q.z);
 }
+/** Fleet avoidance can put the ship beside a coastal bend. Its closest
+ * point on the sea leg can be across land even when the leg is reachable. */
+export function withinSeaCorridor(plan:TravelPlan,position:Vec2):boolean {
+ const reach=3,nearest=travelCorridorPoint(plan,position);
+ if(length(position,nearest)>reach)return false;
+ if(terrainSegment(position,nearest,true))return true;
+ for(let offset=.25;offset<=reach;offset+=.25)for(const direction of [-1,1]){
+  const alternate=travelCorridorPoint(plan,position,offset*direction);
+  if(length(position,alternate)<=reach&&terrainSegment(position,alternate,true))return true;
+ }
+ return false;
+}
 class Heap {
  ids=new Uint32Array(128);costs=new Float64Array(128);length=0;value=0;
  push(id:number,cost:number){
@@ -181,18 +208,6 @@ class Field {
  }
 }
 const length=(a:Vec2,b:Vec2)=>Math.hypot(a.x-b.x,a.z-b.z);
-// Physical land connectivity is static. Different islands need a sea route;
-// proving that by exhausting a continent's Dijkstra search on every order is
-// unnecessary. Administrative ownership never changes these components.
-const landComponents=new Int32Array(triangleCount).fill(-1);
-{
- const queue=new Int32Array(triangleCount);let component=0;
- for(let seed=0;seed<triangleCount;seed++)if(surfaces[seed]===1&&landComponents[seed]<0){
-  let head=0,tail=1;queue[0]=seed;landComponents[seed]=component;
-  while(head<tail){const id=queue[head++];for(let k=0;k<3;k++){const n=neighborData[id*3+k];if(n>=0&&surfaces[n]===1&&landComponents[n]<0){landComponents[n]=component;queue[tail++]=n;}}}
-  component++;
- }
-}
 // Geometry is immutable. Cache the two exact center-to-portal lengths for each
 // directed neighbor slot; speeds remain part of the field's per-query cost.
 let edgeLengths:Float64Array|undefined;
@@ -223,14 +238,25 @@ export class TerrainNavigator {
   }current.settled[currentOffset]=1;if(id===start)break;}
   this.trimFields(f);return f;
  }
+ /** Spawn eligibility requires a walkable exit even if embarking would be quicker. */
+ planLand(from:Vec2,to:Vec2):TravelPlan|null {
+  return this.findRoute(from,to,1,1,false,0,false);
+ }
  plan(from:Vec2,to:Vec2,landSpeed=1,seaSpeed=1,fromSea=false,transferCost=0):TravelPlan|null {
+  return this.findRoute(from,to,landSpeed,seaSpeed,fromSea,transferCost,true);
+ }
+ private findRoute(from:Vec2,to:Vec2,landSpeed:number,seaSpeed:number,fromSea:boolean,transferCost:number,allowSea:boolean):TravelPlan|null {
   if(!Number.isFinite(landSpeed)||landSpeed<=0||!Number.isFinite(seaSpeed)||seaSpeed<=0)return null;
    let start=terrainAt(from,!fromSea);
    if(fromSea&&start>=0&&surfaces[start]!==2)start=bucket(Math.floor(from.x/size),Math.floor(from.z/size)).find(id=>surfaces[id]===2&&inTriangle(id,from))??-1;
    const goal=terrainAt(to,true);if(start<0||goal<0)return null;
-   if(!fromSea&&terrainSegment(from,to,false))return{revision:TERRAIN_REVISION,index:1,points:[{x:from.x,z:from.z,sea:false},{x:to.x,z:to.z,sea:false}]};
-   const allowSea=fromSea||landComponents[start]!==landComponents[goal],before=Number(kernel.navigationBuilds.value),native=kernel.navigationField(goal,start,allowSea,landSpeed,seaSpeed,this.nativeOwner,transferCost);this.builds+=Number(kernel.navigationBuilds.value)-before;if(native===-1)return null;
-   const f=native===-2?this.field(goal,start,allowSea,landSpeed,seaSpeed,transferCost):undefined;if(f&&!f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK])return null;
+   const direct=!fromSea&&terrainSegment(from,to,false),distance=length(from,to);
+   const straight=():TravelPlan=>({revision:TERRAIN_REVISION,index:1,points:[{...from,sea:false},{...to,sea:false}]});
+   // Even an all-water shortcut must cover the straight-line distance and pay two transfers.
+   if(direct&&(distance<=12||distance/landSpeed<=distance/seaSpeed+2*transferCost))return straight();
+   // Land connectivity alone says nothing about the travel time of a coastal shortcut.
+   const before=Number(kernel.navigationBuilds.value),native=kernel.navigationField(goal,start,allowSea,landSpeed,seaSpeed,this.nativeOwner,transferCost);this.builds+=Number(kernel.navigationBuilds.value)-before;if(native===-1)return direct?straight():null;
+   const f=native===-2?this.field(goal,start,allowSea,landSpeed,seaSpeed,transferCost):undefined;if(f&&!f.pages[start>>>FIELD_PAGE_BITS]?.settled[start&FIELD_PAGE_MASK])return direct?straight():null;
   const next=native>=0?new Int32Array(kernel.memory.buffer,native,triangleCount):undefined;
    const raw:TravelPoint[]=[{x:from.x,z:from.z,sea:fromSea},{...center(start),sea:fromSea}];let id=start,count=0;
   while(id!==goal){const n=next?next[id]:f!.pages[id>>>FIELD_PAGE_BITS]!.next[id&FIELD_PAGE_MASK];if(n<0||count++>triangleCount)return null;const edge=portal(id,n);raw.push({x:(edge[1]+edge[3])/2,z:(edge[2]+edge[4])/2,sea:surfaces[id]===2},{...center(n),sea:surfaces[n]===2});id=n;}
@@ -240,6 +266,12 @@ export class TerrainNavigator {
   while(i<raw.length-1){let end=i+1;while(end+1<raw.length&&end<i+64&&raw[end+1].sea===raw[i+1].sea)end++;
    let chosen=i+1;for(let j=end;j>i+1;j--)if(terrainSegment(raw[i],raw[j],raw[i+1].sea)){chosen=j;break;}
    points.push({...raw[chosen],sea:raw[i+1].sea});i=chosen;
+  }
+  if(direct){
+   let time=0;for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i];time+=length(a,b)/(b.sea?seaSpeed:landSpeed)+(a.sea!==b.sea?transferCost:0);
+   }
+   if(distance/landSpeed<=time)return straight();
   }
   return{revision:TERRAIN_REVISION,points,index:1};
  }

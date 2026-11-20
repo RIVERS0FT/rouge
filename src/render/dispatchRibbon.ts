@@ -3,7 +3,7 @@ import type {ArrowProjection} from './groundArrowProjection.ts';
 export type ScreenPoint={x:number;y:number};
 const clamp=(value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
 const svgPoint=(point:ScreenPoint)=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`;
-const svgPath=(points:readonly ScreenPoint[])=>points.length>=3?`M${points.map(svgPoint).join('L')}Z`:'';
+export const svgPath=(points:readonly ScreenPoint[])=>points.length>=3?`M${points.map(svgPoint).join('L')}Z`:'';
 // Size of an artwork unit on the map, independent of the camera or viewport.
 export const ARROW_ART_UNIT=.4;
 const CHEVRON=[[-4,-4],[0,-4],[4,0],[0,4],[-4,4],[0,0]];

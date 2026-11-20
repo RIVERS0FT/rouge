@@ -2,14 +2,15 @@ import {connectTicket} from './helpers/lan-streams.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLanServer} from '../server/lan.ts';
-import {MAP_ID,RULES_ID} from '../src/game/content.ts';
+import {MAP_ID,LAN_RULES_ID} from '../src/game/content.ts';
 import {MAP} from '../src/game/map.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {isEliminated} from '../src/game/elimination.ts';
 const setup=name=>({name,leader:'warden',loadout:['infantry']});
 test('real HTTP: eliminated seat loses command authority but can observe while server ticks and survivors act',async()=>{
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${host.server.address().port}/api`,controller=new AbortController();
- const headers=token=>({'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})});
+ const headers=token=>({'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})});
  const request=async(path,body,token)=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:headers(token),body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();if(response.status===201&&data.token)await connectTicket(base,data);return{status:response.status,data};};
  async function until(predicate){const deadline=Date.now()+3000;while(!predicate()){assert.ok(Date.now()<deadline,'server timer did not advance to expected state');await new Promise(resolve=>setTimeout(resolve,20));}}
  try{
@@ -24,7 +25,7 @@ test('real HTTP: eliminated seat loses command authority but can observe while s
   const last=s.provinces.find(p=>p.owner===0),enemyHome=s.provinces.find(p=>p.owner===1);
   const invader=s.units.find(u=>u.owner===1),remnant=s.units.find(u=>u.owner===0);
   const place=(u,p)=>Object.assign(u,{x:MAP[p.id].center.x,z:MAP[p.id].center.z,province:p.id,origin:p.id,target:null,destination:null,route:[],cooldown:0});
-  place(invader,last);place(remnant,enemyHome);last.captor=1;last.capture=7.99;enemyHome.captor=0;enemyHome.capture=1;s.units=[invader,remnant];
+  place(invader,last);place(remnant,enemyHome);last.captor=1;last.capture=BALANCE.capture.days-.01;enemyHome.captor=0;enemyHome.capture=1;s.units=[invader,remnant];
   await until(()=>isEliminated(s,0));
   assert.equal(s.winner,null);assert.equal(s.units.some(u=>u.owner===0),false);assert.equal(enemyHome.captor,-1);assert.equal(enemyHome.capture,0);
   for(const command of [{type:'upgrade',kind:'infantry',stat:'attack'},{type:'production',province:last.id,kind:'infantry'},{type:'march',from:last.id,to:enemyHome.id,fraction:1},{type:'reroll'}]){

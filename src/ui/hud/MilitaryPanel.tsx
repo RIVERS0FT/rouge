@@ -1,5 +1,5 @@
 import {countryActions, type CountryAction} from '../../game/countryActions.ts';
-import {STATS, stats, upgradeCostFor} from '../../game/content.ts';
+import {MAX_UPGRADE_LEVEL, STATS, stats, upgradeCostFor} from '../../game/content.ts';
 import type {Player} from '../../game/types.ts';
 import {Icon} from '../icons.tsx';
 import {t, type Language} from '../i18n.ts';
@@ -7,7 +7,7 @@ import {Tip, TipRow, TipTitle} from '../Tooltip.tsx';
 import {UnitAttributes, UnitIcon} from '../UnitSelection.tsx';
 import {DockPanel, Pips, SectionRibbon} from './DockPanel.tsx';
 
-const MAX_LEVEL = 8;
+const MAX_LEVEL = MAX_UPGRADE_LEVEL;
 
 /** Unit upgrades as a docked military window, so the map stays playable while
  * the treasury is spent. Each card shows live attributes and level pips. */

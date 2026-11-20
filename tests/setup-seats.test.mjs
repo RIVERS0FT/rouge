@@ -9,7 +9,8 @@ import {TerrainNavigator,validateTravel} from '../src/game/terrain-navigation.ts
 import {BOUNDS,MAP,pointInProvince} from '../src/game/map.ts';
 import {Navigator,cellAt} from '../src/game/navigation.ts';
 import {createLanServer} from '../server/lan.ts';
-import {MAP_ID,RULES_ID} from '../src/game/content.ts';
+import {MAP_ID,LAN_RULES_ID} from '../src/game/content.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {encodeSave,decodeSave} from '../src/game/save.ts';
 const setup={name:'Human',leader:'warden',loadout:['infantry']};
 test('seeded starts are dispersed, non-overlapping, equally resourced and land-connected with expansion exits',()=>{
@@ -19,12 +20,12 @@ test('seeded starts are dispersed, non-overlapping, equally resourced and land-c
   assert.deepEqual(s,again);assert.equal(new Set(regions).size,4);starts.push(regions[0]);
   for(const [actor,id]of regions.entries()){
    assert.deepEqual(s.provinces.filter(p=>p.owner===actor).map(p=>p.id),[id]);
-   assert.equal(regionCapacity(id),12);assert.equal(regionProductionRate(id),1);
+   assert.equal(regionCapacity(id),BALANCE.regions.slots);assert.equal(regionProductionRate(id),BALANCE.regions.production);
    const units=s.units.filter(u=>u.owner===actor);
-   assert.equal(units.length,5);assert.equal(s.players[actor].funds,184);
+   assert.equal(units.length,BALANCE.start.garrison);assert.equal(s.players[actor].funds,BALANCE.economy.startingFunds);
    assert.ok(units.every(u=>u.province===id&&pointInProvince(id,u.x,u.z)));
    assert.ok(MAP[id].neighbors.some(n=>[[id,n],[n,id]].every(([from,to])=>{
-    const start=MAP[from].center,end=MAP[to].center,flow=nav.plan(start,end);
+    const start=MAP[from].center,end=MAP[to].center,flow=nav.planLand(start,end);
     return flow&&validateTravel(flow,start,end)&&flow.points.every(p=>!p.sea);
    })));
   }
@@ -48,7 +49,7 @@ test('human/AI labels and flags do not influence allocation; solo counts use ava
 });
 async function withServer(run){
  const host=createLanServer();await new Promise(resolve=>host.server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${host.server.address().port}/api`;
- const request=async(path,body,token)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);return{status:r.status,data};};
+ const request=async(path,body,token)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(r.status===201&&data.token)await connectTicket(base,data);return{status:r.status,data};};
  try{await run(host,request,base);}finally{await host.close();}
 }
 test('real HTTP lobby: two online humans unlock start; host owns AI configuration beyond four factions',async()=>withServer(async(host,req)=>{
@@ -63,7 +64,7 @@ test('real HTTP lobby: two online humans unlock start; host owns AI configuratio
  assert.equal((await req(path+'/start',{},b.token)).status,403);
  assert.equal((await req(path+'/start',{},a.token)).status,200);
  const room=host.rooms.get(a.code);assert.equal(room.engine.state.players.length,6);assert.deepEqual(room.engine.state.players.map(p=>p.ai),[false,false,true,true,true,true]);
- for(const p of room.engine.state.players){assert.equal(room.engine.state.provinces.filter(v=>v.owner===p.id).length,1);assert.equal(room.engine.state.units.filter(u=>u.owner===p.id).length,5);}
+ for(const p of room.engine.state.players){assert.equal(room.engine.state.provinces.filter(v=>v.owner===p.id).length,1);assert.equal(room.engine.state.units.filter(u=>u.owner===p.id).length,BALANCE.start.garrison);}
  assert.equal((await req(path+'/config',{aiCount:0},a.token)).status,409);assert.equal((await req(path+'/join',{setup})).status,409);
 }));
 test('physical map capacity reserves AI seats without imposing a four-human limit',async()=>withServer(async(host,req)=>{
@@ -83,7 +84,7 @@ test('room broadcasts include revised AI count and streamed state keeps server-c
  const a=(await req('/rooms',{setup})).data,path=`/rooms/${a.code}`,controller=new AbortController();
  await req(path+'/join',{setup});await req(path+'/join',{setup});
  try{
-  const response=await fetch(base+path+'/events',{headers:{Authorization:`Bearer ${a.token}`,'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID},signal:controller.signal});
+  const response=await fetch(base+path+'/events',{headers:{Authorization:`Bearer ${a.token}`,'X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID},signal:controller.signal});
   const reader=response.body.getReader(),decode=new TextDecoder();
   assert.match(decode.decode((await reader.read()).value),/"aiCount":0/);
   assert.equal((await req(path+'/config',{aiCount:3},a.token)).status,200);
@@ -95,7 +96,7 @@ test('room broadcasts include revised AI count and streamed state keeps server-c
 }));
 test('slow request bodies cannot bypass join/config/start mutation-time checks',async()=>withServer(async(host,req,base)=>{
  function paused(path,token,prefix){let finish;
-  const result=new Promise(resolve=>{const r=httpRequest(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})}},response=>{let body='';response.on('data',c=>body+=c);response.on('end',()=>resolve({status:response.statusCode,data:JSON.parse(body)}));});r.write(prefix);finish=suffix=>r.end(suffix);});
+  const result=new Promise(resolve=>{const r=httpRequest(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Rouge-Map':MAP_ID,'X-Rouge-Rules':LAN_RULES_ID,...(token?{Authorization:`Bearer ${token}`}:{})}},response=>{let body='';response.on('data',c=>body+=c);response.on('end',()=>resolve({status:response.statusCode,data:JSON.parse(body)}));});r.write(prefix);finish=suffix=>r.end(suffix);});
   return {result,finish};
  }
  const a=(await req('/rooms',{setup})).data,path=`/rooms/${a.code}`;

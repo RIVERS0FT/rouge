@@ -1,4 +1,5 @@
-import {TALENTS,type UnitStats} from './content.ts';
+import {BALANCE} from './balance.ts';
+import {DT,TALENTS,type UnitStats} from './content.ts';
 import {MAP} from './map.ts';
 import type {GameState,Kind,Player,Province,Unit} from './types.ts';
 
@@ -8,12 +9,21 @@ import type {GameState,Kind,Player,Province,Unit} from './types.ts';
  * extra damage), lane 31 the additive damage-dealt bonus. */
 export const MODE_TARGET_MASK=3,MODE_VS_MARCHING=1,MODE_VS_GARRISON=2,MODE_POINT_BLANK=3;
 export const MODE_SECONDARY_HEAVY=4,MODE_SECONDARY_HALF=8,MODE_WIDE_SALVO=16,MODE_SPLASH_RESIST=32;
-export const TARGET_BONUS=.4,POINT_BLANK_BONUS=.5,POINT_BLANK_RANGE_SQUARED=9,SPLASH_RESIST_FACTOR=.4;
-export const MAX_DAMAGE_REDUCTION=.75,MAX_DAMAGE_INCREASE=.5,ENCIRCLED_DAMAGE=.3;
-export const FORTRESS_GUARD=[.25,.4,.5] as const,BASTION_ATTRITION=[.04,.06,.08] as const,ACADEMY_XP=[.5,1,1.5] as const;
-export const SAPPER_INTERVAL_TICKS=200,PULSE_TICKS=20;
-export function secondaryMultiplier(mode:number):number{const value=(mode>>2)&3;return value===1?.7:value===2?.5:.35;}
-export function secondaryTargets(mode:number):number{return mode&MODE_WIDE_SALVO?4:2;}
+const T=BALANCE.talents,C=BALANCE.combat;
+// groundKernel.ts hands the WASM kernel these same numbers, so both combat paths stay identical.
+export const VS_MARCHING_BONUS=T.forwardMarksmen.damageBonus,VS_GARRISON_BONUS=T.barrage.damageBonus;
+export const POINT_BLANK_BONUS=T.pointBlank.damageBonus,POINT_BLANK_RANGE_SQUARED=T.pointBlank.range*T.pointBlank.range,SPLASH_RESIST_FACTOR=T.cuirass.splashTaken;
+export const MAX_DAMAGE_REDUCTION=C.maxDamageReduction,MAX_DAMAGE_INCREASE=C.maxDamageIncrease,ENCIRCLED_DAMAGE=T.encirclement.damageTaken;
+export const FORTRESS_GUARD=T.fortressDoctrine.damageReduction,BASTION_ATTRITION=T.bastionGuns.damagePerDay,ACADEMY_XP=T.academy.xpPerDay;
+export const SAPPER_INTERVAL_TICKS=Math.round(T.sappers.intervalDays/DT),PULSE_TICKS=20;
+export function secondaryMultiplier(mode:number):number{const value=(mode>>2)&3;return value===1?T.grenadeVolley.splashDamage:value===2?T.breakthrough.splashDamage:C.splashDamage;}
+export function secondaryTargets(mode:number):number{return mode&MODE_WIDE_SALVO?T.wideSalvo.targets:C.splashTargets;}
+// Per-unit combat lane numbers, hoisted out of the hot loop below.
+const ENTRENCHMENT=T.entrenchment.damageReduction,MASSED_UNITS=T.massedRanks.minUnits,MASSED_REDUCTION=T.massedRanks.damageReduction;
+const PURSUIT_REDUCTION=T.pursuit.damageReduction,PURSUIT_BONUS=T.pursuit.damageBonus,LIGHT_INFANTRY_REDUCTION=T.lightInfantry.damageReduction;
+const STORM_REDUCTION=T.stormTroops.damageReduction,ARMORED_REDUCTION=T.armoredSappers.damageReduction,BREACH_BONUS=T.breachDrills.damageBonus;
+const FLYING_REDUCTION=T.flyingBattery.damageReduction,CHARGE_BONUS=T.charge.damageBonus;
+const ASSAULT_BONUS=T.shockAssault.assaultBonus,GARRISON_PENALTY=T.shockAssault.garrisonPenalty,LOGISTICS_SPEED=T.logistics.speed;
 
 const kindOf=(id:string):Kind|undefined=>TALENTS.find(t=>t.id===id)?.kinds?.[0];
 const SIGNATURE_KIND={
@@ -46,13 +56,13 @@ export function talentProfile(player:Pick<Player,'talents'>):TalentProfile{
   shockAssault:has('shockAssault'),charge:has('charge'),breachDrills:has('breachDrills'),armoredSappers:has('armoredSappers'),
   stormTroops:has('stormTroops'),lightInfantry:has('lightInfantry'),flyingBattery:has('flyingBattery'),warChest:has('warChest'),logistics:has('logistics'),
  };
- // Training speed: Mobilization, Grand Garrison's cost and Human Wave's 25% shorter training time.
- let trainingFactor=1;if(has('industry'))trainingFactor*=1.2;if(has('grandGarrison'))trainingFactor*=.85;if(has('shieldWall'))trainingFactor/=.75;
+ // Training speed: Mobilization, Grand Garrison's cost and Human Wave's shorter training time.
+ let trainingFactor=1;if(has('industry'))trainingFactor*=T.industry.training;if(has('grandGarrison'))trainingFactor*=T.grandGarrison.training;if(has('shieldWall'))trainingFactor/=T.shieldWall.trainingTime;
  const profile:TalentProfile={count:player.talents.length,mode,modeKind,...flags,combat:mode!==0||Object.values(flags).some(Boolean),
   encirclement:has('encirclement'),siegeLines:has('siegeLines'),raid:has('lightSaddles'),militia:has('militia'),levy:has('levy'),
   tradeRoutes:has('tradeRoutes'),academy:has('academy'),sappers:has('sappers'),bastionGuns:has('bastionGuns'),
   fieldMedicine:has('fieldMedicine'),supplyColumns:has('supplyColumns'),treasury:has('treasury'),
-  trainingFactor,capacityFactor:has('grandGarrison')?1.5:1,capacityBonus:has('shieldWall')?4:0,barracksCapacity:has('conscription')};
+  trainingFactor,capacityFactor:has('grandGarrison')?T.grandGarrison.capacity:1,capacityBonus:has('shieldWall')?T.shieldWall.capacity:0,barracksCapacity:has('conscription')};
  profiles.set(player,profile);return profile;
 }
 
@@ -68,14 +78,14 @@ export function talentContext(state:GameState):TalentContext{
  const cached=contexts.get(state);
  if(cached&&cached.tick===state.tick&&cached.topology===state.topology&&cached.players.length===state.players.length&&cached.players.every((p,i)=>p===state.players[i]&&cached.profiles[i].count===p.talents.length))return cached;
  const list=state.players.map(talentProfile),warChest=new Float64Array(state.players.length);
- for(const p of state.players)if(list[p.id].warChest)warChest[p.id]=Math.min(.3,.03*Math.floor(p.funds/100));
+ for(const p of state.players)if(list[p.id].warChest)warChest[p.id]=Math.min(T.warChest.max,T.warChest.bonus*Math.floor(p.funds/T.warChest.per));
  const context:TalentContext={tick:state.tick,topology:state.topology,players:state.players.slice(),profiles:list,
   encirclers:list.some(p=>p.encirclement)?findEncirclements(state,list):new Map(),
   warChest,anyCombat:list.some(p=>p.combat),anyMassed:list.some(p=>p.massedRanks)};
  contexts.set(state,context);return context;
 }
-/** A region is encircled by a holder that owns at least two of its playable
- * neighbours and at least half of them. Neutral regions can be encircled. */
+/** A region is encircled by a holder that owns at least `minNeighbors` of its playable
+ * neighbours and at least `neighborShare` of them (balance.ts). Neutral regions can be encircled. */
 function findEncirclements(state:GameState,list:readonly TalentProfile[]):Map<number,number[]>{
  const result=new Map<number,number[]>(),owners:number[]=[],counts:number[]=[];
  for(const region of MAP){
@@ -85,7 +95,7 @@ function findEncirclements(state:GameState,list:readonly TalentProfile[]):Map<nu
    if(neighbor<0||neighbor===owner||!list[neighbor]?.encirclement)continue;
    const at=owners.indexOf(neighbor);if(at<0){owners.push(neighbor);counts.push(1);}else counts[at]++;
   }
-  for(let i=0;i<owners.length;i++)if(counts[i]>=2&&counts[i]*2>=total){const ids=result.get(region.id);if(ids)ids.push(owners[i]);else result.set(region.id,[owners[i]]);}
+  for(let i=0;i<owners.length;i++)if(counts[i]>=T.encirclement.minNeighbors&&counts[i]>=total*T.encirclement.neighborShare){const ids=result.get(region.id);if(ids)ids.push(owners[i]);else result.set(region.id,[owners[i]]);}
  }
  return result;
 }
@@ -117,23 +127,23 @@ export function combatLanes(units:readonly Unit[],state:GameState,statsFor:(owne
     const kind=u.kind,own=regionOwner===u.owner,marching=u.target!==null,embarked=Boolean(u.transport?.embarked);
     const assault=marching&&provinces[u.target!].owner!==u.owner,capturing=marching&&u.target===province&&!own;
     if(profile.modeKind===kind)mode[i]=profile.mode;
-    if(profile.entrenchment&&own)reduction+=.15;
+    if(profile.entrenchment&&own)reduction+=ENTRENCHMENT;
     if(profile.fortressDoctrine&&own&&region.construction?.kind==='fortress')reduction+=FORTRESS_GUARD[region.construction.level-1];
-    if(profile.massedRanks&&!embarked&&massedCounts[u.owner*regions+province]>=8)reduction+=.2;
-    if(profile.pursuit&&own&&region.recovery>0){reduction+=.15;bonus+=.2;}
-    if(profile.lightInfantry&&!own&&kind===SIGNATURE_KIND.lightInfantry)reduction+=.15;
+    if(profile.massedRanks&&!embarked&&massedCounts[u.owner*regions+province]>=MASSED_UNITS)reduction+=MASSED_REDUCTION;
+    if(profile.pursuit&&own&&region.recovery>0){reduction+=PURSUIT_REDUCTION;bonus+=PURSUIT_BONUS;}
+    if(profile.lightInfantry&&!own&&kind===SIGNATURE_KIND.lightInfantry)reduction+=LIGHT_INFANTRY_REDUCTION;
     if(capturing){
-     if(profile.stormTroops&&kind===SIGNATURE_KIND.stormTroops)reduction+=.2;
-     if(profile.armoredSappers&&kind===SIGNATURE_KIND.armoredSappers)reduction+=.25;
-     if(profile.breachDrills&&kind===SIGNATURE_KIND.breachDrills)bonus+=.25;
+     if(profile.stormTroops&&kind===SIGNATURE_KIND.stormTroops)reduction+=STORM_REDUCTION;
+     if(profile.armoredSappers&&kind===SIGNATURE_KIND.armoredSappers)reduction+=ARMORED_REDUCTION;
+     if(profile.breachDrills&&kind===SIGNATURE_KIND.breachDrills)bonus+=BREACH_BONUS;
     }
     if(marching){
-     if(profile.flyingBattery&&kind===SIGNATURE_KIND.flyingBattery)reduction+=.3;
-     if(profile.charge&&kind===SIGNATURE_KIND.charge)bonus+=.35;
+     if(profile.flyingBattery&&kind===SIGNATURE_KIND.flyingBattery)reduction+=FLYING_REDUCTION;
+     if(profile.charge&&kind===SIGNATURE_KIND.charge)bonus+=CHARGE_BONUS;
     }
-    if(profile.shockAssault)bonus+=assault?.25:marching?0:-.1;
+    if(profile.shockAssault)bonus+=assault?ASSAULT_BONUS:marching?0:-GARRISON_PENALTY;
     if(profile.warChest)bonus+=context.warChest[u.owner];
-    if(profile.logistics)speed[i]=statsFor(u.owner,kind).speed*(marching&&!assault?1.4:1);
+    if(profile.logistics)speed[i]=statsFor(u.owner,kind).speed*(marching&&!assault?LOGISTICS_SPEED:1);
    }
   }
   taken[i]=Math.max(-MAX_DAMAGE_INCREASE,Math.min(MAX_DAMAGE_REDUCTION,reduction));dealt[i]=bonus;
@@ -142,11 +152,11 @@ export function combatLanes(units:readonly Unit[],state:GameState,statsFor:(owne
  return lanes;
 }
 
-/** Trade Routes: +0.25 funds/day for each neighbouring market of the same owner. */
+/** Trade Routes: funds/day for each neighbouring market of the same owner. */
 export function tradeBonus(state:Pick<GameState,'provinces'>,region:number,owner:Pick<Player,'talents'>|undefined):number{
  if(!owner||!talentProfile(owner).tradeRoutes)return 0;const ownerId=state.provinces[region].owner;let markets=0;
  for(const id of MAP[region].neighbors){const neighbor=state.provinces[id];if(neighbor&&MAP[id].playable&&neighbor.owner===ownerId&&neighbor.construction?.kind==='market')markets++;}
- return markets*.25;
+ return markets*T.tradeRoutes.fundsPerMarket;
 }
 /** Experience per day from barracks under the Academy talent. */
 export function academyExperience(province:Pick<Province,'construction'>):number{
