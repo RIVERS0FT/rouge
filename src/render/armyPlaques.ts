@@ -61,6 +61,7 @@ export class ArmyPlaques {
    e.node.style.transform=`translate3d(${at.x.toFixed(1)}px,${(at.y-12).toFixed(1)}px,0) translate(-50%,-100%)`;
   }
   for(const [id,e] of this.entries)if(!seen.has(id)){this.entries.delete(id);e.node.remove();}
+  return seen;
  }
  dispose(){this.layer.remove();this.entries.clear();}
 }

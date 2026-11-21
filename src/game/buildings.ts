@@ -27,9 +27,11 @@ function nearby(a:Vec2,b:Vec2,r:number):Building[]{
  return out;
 }
 function local(b:Building,p:Vec2):Vec2 {const x=p.x-b.x,z=p.z-b.z,c=Math.cos(b.rotation),s=Math.sin(b.rotation);return{x:c*x-s*z,z:s*x+c*z};}
-export function buildingFootprint(center:Vec2,heading:number,halfLength:number,halfWidth:number):boolean {
+/** Check the rectangle of battalion centers against the same padded houses as buildingSegment. */
+export function buildingFootprint(center:Vec2,heading:number,halfLength:number,halfWidth:number,radius:number):boolean {
  const span=(angle:number,x:number,z:number)=>Math.abs(Math.cos(angle))*x+Math.abs(Math.sin(angle))*z;
- const reach=Math.hypot(halfLength,halfWidth)+Math.hypot(HOUSE_WIDTH,HOUSE_DEPTH)/2;
+ const width=HOUSE_WIDTH/2+radius,depth=HOUSE_DEPTH/2+radius;
+ const reach=Math.hypot(halfLength,halfWidth)+Math.hypot(width,depth);
  const left=Math.floor((center.x-reach)/cell),right=Math.floor((center.x+reach)/cell);
  const top=Math.floor((center.z-reach)/cell),bottom=Math.floor((center.z+reach)/cell);
  for(let x=left;x<=right;x++){
@@ -41,7 +43,7 @@ export function buildingFootprint(center:Vec2,heading:number,halfLength:number,h
     if(Math.abs(dx)>reach+1e-8||Math.abs(dz)>reach+1e-8)continue;
     const angle=-house.rotation;
     const separated=(axis:number)=>Math.abs(dx*Math.cos(axis)+dz*Math.sin(axis))
-      >=span(heading-axis,halfLength,halfWidth)+span(angle-axis,HOUSE_WIDTH/2,HOUSE_DEPTH/2)-1e-8;
+      >=span(heading-axis,halfLength,halfWidth)+span(angle-axis,width,depth)-1e-8;
     if(!separated(heading)&&!separated(heading+Math.PI/2)&&!separated(angle)&&!separated(angle+Math.PI/2))return false;
    }
   }

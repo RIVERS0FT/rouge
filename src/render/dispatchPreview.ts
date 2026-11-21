@@ -25,7 +25,6 @@ export class DispatchPreview {
  private active:ReturnType<typeof dispatchRibbon>=null;
  private animation=0;
  private started=0;
- private releaseAt=0;
  private drawn:Omit<PaintedPreview,'markers'|'opacity'>|null=null;
  private drawnView:PaintedView|undefined;
  private paintedMarkers:PaintedPreview['markers']=[];
@@ -60,7 +59,7 @@ export class DispatchPreview {
   attrs(this.reticle,{cx:cursor.x,cy:cursor.y,r:9});
   this.drawn={d,target:targetOutline,targetMask:targetPath,cx:cursor.x,cy:cursor.y};
   this.drawnView=this.layer?.captureView();
-  this.paint(performance.now());
+  this.paint();
  }
  showTier(fraction:number,count:number,language:'zh'|'en',touch:boolean){
   const percent=`${fraction*100}%`,label=language==='zh'?`出兵 ${count} · ${percent}`:`Dispatch ${count} · ${percent}`;
@@ -70,23 +69,17 @@ export class DispatchPreview {
   this.tierHint.hidden=!touch;if(touch&&!this.tierHint.textContent)this.tierHint.textContent='⇄';
  }
  isTierControl(target:EventTarget|null){return target instanceof Node&&this.tier.contains(target);}
- release(){this.releaseAt=performance.now();this.element.dataset.phase='released';this.tier.hidden=true;}
  clear(){
-  cancelAnimationFrame(this.animation);this.animation=0;this.active=null;this.releaseAt=0;
+  cancelAnimationFrame(this.animation);this.animation=0;this.active=null;
   this.element.style.display='none';this.element.style.opacity=this.layer?'0':'';this.tier.hidden=true;
   this.drawn=null;this.drawnView=undefined;this.paintedMarkers=[];this.layer?.setPreview(null);
   delete this.element.dataset.phase;delete this.element.dataset.target;delete this.element.dataset.source;
  }
  dispose(){this.clear();this.element.remove();this.tier.remove();}
- private paint(time:number){
-  if(this.layer&&this.drawn)this.layer.setPreview({...this.drawn,markers:this.paintedMarkers,opacity:this.releaseAt?Math.max(0,1-(time-this.releaseAt)/180):1},this.drawnView);
+ private paint(){
+  if(this.layer&&this.drawn)this.layer.setPreview({...this.drawn,markers:this.paintedMarkers,opacity:1},this.drawnView);
  }
  private frame=(time:number)=>{
-  if(this.releaseAt){
-   const amount=Math.min(1,(time-this.releaseAt)/180);
-   if(amount>=1){this.clear();return;}
-   if(!this.layer)this.element.style.opacity=String(1-amount);
-  }
   const geometry=this.active,spacing=34*ARROW_ART_UNIT;
   const phase=((time-this.started)*(.065*ARROW_ART_UNIT)%spacing+spacing)%spacing;
   const painted=[];
@@ -97,7 +90,7 @@ export class DispatchPreview {
    const opacity=geometry.marker(t).opacity.toFixed(3);
    attrs(marker,{d,opacity});if(d)painted.push({d,opacity:Number(opacity)});
   }
-  this.paintedMarkers=painted;this.paint(time);
+  this.paintedMarkers=painted;this.paint();
   this.animation=requestAnimationFrame(this.frame);
  };
 }

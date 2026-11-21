@@ -340,6 +340,10 @@ function moveUnit(unit:i32):void {
     if(targets>=1&&first>=0)hit(unit,first,splashHitMultiplier(secondary,first),false);if(targets>=2&&second>=0)hit(unit,second,splashHitMultiplier(secondary,second),false);
     if(targets>=3&&third>=0)hit(unit,third,splashHitMultiplier(secondary,third),false);if(targets>=4&&fourth>=0)hit(unit,fourth,splashHitMultiplier(secondary,fourth),false);
    }
+   // All of this shooter's hits have consumed the outgoing damage bonus.
+   // Lane 31 can now return the bearing; writeCombatLanes restores it next tick.
+   const aimX=u(enemy,2)-x,aimZ=u(enemy,3)-z;
+   if(aimX!=0||aimZ!=0){setU(unit,31,hostAtan2(aimX,aimZ));setU(unit,19,i32(u(unit,19))|8);}
    cooldown+=1/u(unit,25);
   }setU(unit,10,cooldown);return;
  }

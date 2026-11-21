@@ -123,8 +123,6 @@ self.onmessage=function(event){
    if(variant==='coast-off'){r.coastShadow.renderMask=()=>{};r.coastShadow.surface.visible=false;}
    const infantryMesh=r.infantry.mesh,previousColorWrite=infantryMesh?.geometry.drawRange.count;
    if(variant==='infantry-off'&&infantryMesh)infantryMesh.geometry.setDrawRange(0,0);
-   const drawArrows=r.drawAttackArrows;
-   if(variant==='routes-off'){r.drawAttackArrows=()=>{};r.routeLayer.setCommitted([]);}
    if(variant==='land-off')hide(o=>o.geometry===r.land.geometry||o.name==='land-tile');
    if(variant==='borders-off')hide(o=>o.name==='country-boundaries'||o.name==='region-boundaries'||o.name==='coastlines');
    const oceans=[];
@@ -207,7 +205,6 @@ self.onmessage=function(event){
    for(const [o,material]of oceans){o.material.dispose();o.material=material;}
    for(const [o,order]of oceanOrders)o.renderOrder=order;
    if(variant==='infantry-off'&&infantryMesh)infantryMesh.geometry.setDrawRange(0,previousColorWrite);
-   if(variant==='routes-off'){r.drawAttackArrows=drawArrows;r.lastAttackView='';}
    if(variant==='dpr1'||variant==='scale075'){r.renderer.setPixelRatio(saved.ratio);r.resize();}
    r.mapInput.dispatch({type:'pan',x:origin.x,z:origin.z});r.mapInput.dispatch({type:'zoom',distance:origin.distance});
    return value;

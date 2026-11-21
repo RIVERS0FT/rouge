@@ -57,6 +57,7 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  await page.keyboard.down('Tab');await page.keyboard.down('Tab');await page.keyboard.up('Tab');
  await expect(tier).toHaveAttribute('data-fraction','0.25');
  await page.keyboard.press('Escape');await page.mouse.up();await expect(tier).toBeHidden();await expect(source).toHaveText('12');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','false');
  await drag();await expect(tier).toHaveAttribute('data-fraction','1');
  for(let i=0;i<3;i++)await page.keyboard.press('Tab');
  await expect(tier).toContainText('出兵 9 · 75%');
@@ -71,6 +72,7 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  await page.mouse.up();
  await expect(arrow).toBeHidden();await expect(tier).toBeHidden();
  await expect(source).toHaveText('3');
+ await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','false');
  const orders=await saveOrders(page);
  expect(orders.map((army:{to:number;size:number})=>[army.to,army.size])).toEqual([[mapOrderFixture.target,9]]);
  const save=(await savedCampaigns(page,mapOrderFixture.savePrefix)).find(row=>row.name==='Map order result')!;
@@ -105,6 +107,7 @@ test.describe('touch garrison dispatch',()=>{
    await touch(cancelled?'touchCancel':'touchEnd');
    await expect(arrow).toBeHidden();await expect(tier).toBeHidden();
    await expect(source).toHaveText(cancelled?'12':'9');
+   await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','false');
   }
   await cdp.detach();
   const orders=await saveOrders(page);

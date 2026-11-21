@@ -19,14 +19,14 @@ export const BALANCE = {
    * attackSpeed 每天攻击次数 · splash 溅射半径（0 = 单体）· range 射程
    * train 训练一支部队需要的天数（地块产能为 1 时）· speed / seaSpeed 陆地 / 海上移动速度 */
   units: {
-    infantry:       {hp:100, attack:14, defense:10, attackSpeed:1,    splash:0,   range:3.1, train:14, speed:2.4, seaSpeed:3},
-    cavalry:        {hp:120, attack:24, defense:15, attackSpeed:0.8,  splash:0,   range:1.8, train:22, speed:4,   seaSpeed:3},
-    artillery:      {hp:80,  attack:40, defense:0,  attackSpeed:0.5,  splash:1.2, range:7.2, train:28, speed:1.8, seaSpeed:3},
-    engineer:       {hp:100, attack:12, defense:10, attackSpeed:1,    splash:0,   range:2.6, train:18, speed:2.5, seaSpeed:3},
-    skirmisher:     {hp:75,  attack:12, defense:0,  attackSpeed:1,    splash:0,   range:4.6, train:18, speed:3,   seaSpeed:3},
-    grenadier:      {hp:130, attack:18, defense:20, attackSpeed:0.8,  splash:0.7, range:2.3, train:24, speed:2.2, seaSpeed:3},
-    heavyCavalry:   {hp:155, attack:30, defense:25, attackSpeed:0.65, splash:0,   range:1.6, train:32, speed:3.4, seaSpeed:3},
-    horseArtillery: {hp:70,  attack:28, defense:0,  attackSpeed:0.55, splash:0.8, range:5.8, train:30, speed:2.8, seaSpeed:3},
+    infantry:       {hp:100, attack:14, defense:10, attackSpeed:1,    splash:0,   range:3.1, train:14, speed:1.2, seaSpeed:1.5},
+    cavalry:        {hp:120, attack:24, defense:15, attackSpeed:0.8,  splash:0,   range:1.8, train:22, speed:2, seaSpeed:1.5},
+    artillery:      {hp:80,  attack:40, defense:0,  attackSpeed:0.5,  splash:1.2, range:7.2, train:28, speed:0.9, seaSpeed:1.5},
+    engineer:       {hp:100, attack:12, defense:10, attackSpeed:1,    splash:0,   range:2.6, train:18, speed:1.25, seaSpeed:1.5},
+    skirmisher:     {hp:75,  attack:12, defense:0,  attackSpeed:1,    splash:0,   range:4.6, train:18, speed:1.5, seaSpeed:1.5},
+    grenadier:      {hp:130, attack:18, defense:20, attackSpeed:0.8,  splash:0.7, range:2.3, train:24, speed:1.1, seaSpeed:1.5},
+    heavyCavalry:   {hp:155, attack:30, defense:25, attackSpeed:0.65, splash:0,   range:1.6, train:32, speed:1.7, seaSpeed:1.5},
+    horseArtillery: {hp:70,  attack:28, defense:0,  attackSpeed:0.55, splash:0.8, range:5.8, train:30, speed:1.4, seaSpeed:1.5},
   },
 
   /** 兵种升级（火力 / 生存 / 机动三项，各自计级）。 */
@@ -37,7 +37,7 @@ export const BALANCE = {
     costExponent: 1.65,
     attackPerLevel: 2,
     healthPerLevel: 12,
-    speedPerLevel: 0.16,
+    speedPerLevel: 0.08,
   },
 
   economy: {

@@ -1,6 +1,7 @@
 import {openMapSearch} from './map-search.ts';
 import {test,expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
+import {existsSync} from 'node:fs';
 const fixture=JSON.parse(execFileSync(process.execPath,['--experimental-strip-types','tests/create-unit-model-fixture.mjs','--marching'],{encoding:'utf8',maxBuffer:16*1024*1024}));
 async function freezeSimulation(page:Page){
  // These checks compare a fixed renderer fixture across camera modes. GPU
@@ -43,9 +44,10 @@ test('2D hides all armies and 3D models return without changing units or selecti
   await expect(canvas).toHaveAttribute('data-unit-render-mode','3d');
   await expect(canvas).toHaveAttribute('data-rendered-sprites','0');
   await expect(canvas).toHaveAttribute('data-rendered-models',String(fixture.count));
-  // All eight kinds in the marching fixture must share the real infantry asset,
-  // not silently pass while the old fallback models are being drawn.
-  await expect(canvas).toHaveAttribute('data-unit-model-asset','infantry-v11',{timeout:20000});
+  const localRoster=existsSync(new URL('../../src/render/assets/local-roster/infantry.bin',import.meta.url));
+  await expect(canvas).toHaveAttribute('data-unit-model-asset',localRoster?'victoria-3':'infantry-v11',{timeout:20000});
+  await expect(canvas).toHaveAttribute('data-unit-model-kinds',localRoster?
+    'artillery,cavalry,engineer,grenadier,heavyCavalry,horseArtillery,infantry,skirmisher':'infantry');
   // All eight visible ordered units are frozen at rest in this fixture.
   await expect(canvas).toHaveAttribute('data-rendered-idle-models',String(fixture.count));
   await expect(canvas).toHaveAttribute('data-rendered-walking-models','0');

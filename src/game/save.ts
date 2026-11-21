@@ -68,6 +68,7 @@ export function validateState(value:unknown):value is GameState{
   const ids=new Set<number>(),armies=new Map(s.armies.map(army=>[army.id,army]));
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,Number.MIN_VALUE,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
+    if(u.lastShotHeading!==undefined&&!number(u.lastShotHeading,-Math.PI,Math.PI))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!validLandPosition(u)))return false;
     const army=u.army===undefined?undefined:armies.get(u.army),formation=army?.formation;
     const source=pending.get(u.id);if(source!==undefined){

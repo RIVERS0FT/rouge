@@ -73,7 +73,7 @@ test('two battalions walking into each other on one detour chord keep right and 
   {target:'ARG-1272',province:'ARG-1271',x:-702.3320043950009,z:536.8471323171168,points:[[-702.1809754966447,533.9836841298351],[-730.1840818117671,563.7110178802262]]},
   {target:'ARG-1275',province:'ARG-1271',x:-702.9472738358139,z:537.9237211500524,points:[[-703.899342918623,537.1845831571229],[-684.5891592968547,362.24451628417256]]}]);
  const e=new Engine(state),[a,b]=e.state.units,startA=goalDistance(a),startB=goalDistance(b);
- e.step(200);
+ e.step(400);
  assert.ok(startA-goalDistance(a)>5&&startB-goalDistance(b)>5,`${goalDistance(a)} ${goalDistance(b)}`);
  assert.ok(Math.hypot(a.x-b.x,a.z-b.z)>3,'the pair separated');
 });

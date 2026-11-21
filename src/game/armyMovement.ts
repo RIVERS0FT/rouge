@@ -108,7 +108,7 @@ function legalFormationStep(from:Vec2,to:Vec2,radius:number):boolean {
 function legalFootprint(center:Vec2,shape:FootprintShape,radius:number):boolean {
   if(provinceAt(center.x,center.z)<0)return false;
   const clearance=formationClearance(center,Math.max(shape.radius,radius));
-  if(clearance<radius-1e-8||!buildingSegment(center,center,radius)||!buildingFootprint(center,shape.heading,shape.length,shape.width))return false;
+  if(clearance<radius-1e-8||!buildingFootprint(center,shape.heading,shape.length-radius,shape.width-radius,radius))return false;
   if(clearance>=shape.radius-1e-8)return true;
   const corners=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,z])=>offset(center,shape.heading,x*shape.length,z*shape.width));
   return terrainLandFootprint(corners);
@@ -826,7 +826,9 @@ export function updateFormations(state:GameState,navigation:TerrainNavigator,int
         const heading=angleTo(f.position,goal),step=land*DT;
         const turn=Math.atan2(Math.sin(heading-f.heading),Math.cos(heading-f.heading));
         // A packed column can translate before there is room to turn.
-        const nextHeading=f.yieldPoint||waited>=12?f.heading:f.heading+Math.max(-.13,Math.min(.13,turn));
+        // The detour was checked with a fixed footprint. Keep that orientation
+        // along the bypass, including when a short step briefly clears the obstacle.
+        const nextHeading=f.yieldPoint||f.detour?.length||waited>=12?f.heading:f.heading+Math.max(-.13,Math.min(.13,turn));
         const next=toward(f.position,f.yieldPoint??f.detour?.[0]??goal,step);
         const previous=blockedMarchChecks.get(f);
         let checks=previous&&previous.from===f.position&&previous.heading===nextHeading&&previous.count===field.length&&previous.radius===radius?previous:undefined;
@@ -923,9 +925,13 @@ export function updateFormations(state:GameState,navigation:TerrainNavigator,int
         const objective=enemy?offset(enemy,angleTo(u,enemy),-range*.75,(index%3-1)*.45):f.phase==='enter'?target:goal;
         const p=walkMember(u,objective,UNIT_RADIUS[u.kind],speed*DT,false,enemy||f.phase==='battle'?-1:army.to);
         standing(u,army,p,'field');dirty(u);
-        if(f.phase==='enter'&&pointInProvince(army.to,p.x,p.z)&&distance(p,target)<=ARRIVAL_RADIUS){
+        // A friendly garrison can fill the inner ring. A reinforcing battalion
+        // joins when its footprint reaches the town, even at a very short stride.
+        const friendly=state.provinces[army.to].owner===army.owner;
+        const entryRadius=friendly?ARRIVAL_RADIUS+UNIT_RADIUS[u.kind]:ARRIVAL_RADIUS;
+        if(f.phase==='enter'&&pointInProvince(army.to,p.x,p.z)&&distance(p,target)<=entryRadius){
           u.province=army.to;u.armyStatus='inside';
-          if(state.provinces[army.to].owner===army.owner)halt(u);
+          if(friendly)halt(u);
         }
       }
       if(f.phase==='battle'&&field.length){

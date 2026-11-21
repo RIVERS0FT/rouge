@@ -94,6 +94,7 @@ function writeCombatLanes(data:Float64Array,active:readonly Unit[],state:import(
 export function commitBattleUnits(active:readonly Unit[],data:Float64Array,damage:Map<number,{amount:number;attacker:number}>,normalizeCache=false):void {
  for(let i=0;i<active.length;i++){
   const unit=active[i],base=i*32,flags=data[base+19];unit.x=data[base+2];unit.z=data[base+3];unit.province=data[base+6];unit.cooldown=data[base+10];
+  if(flags&8)unit.lastShotHeading=data[base+31];
   if(flags&4){delete unit.army;delete unit.travel;delete unit.transport;if(unit.assault!==unit.province)delete unit.assault;unit.target=null;unit.destination=null;unit.route=[];unit.origin=unit.province;}
   else{if(flags&1)delete unit.travel;else if(unit.travel)unit.travel.index=data[base+13];if(data[base+14]){const transport=unit.transport;if(transport){transport.from=data[base+15];transport.to=data[base+16];transport.index=data[base+17];transport.embarked=!!(data[base+14]&2);}else unit.transport={from:data[base+15],to:data[base+16],index:data[base+17],embarked:!!(data[base+14]&2)};}else if(flags&2)delete unit.transport;}
   if(data[base+20])damage.set(unit.id,{amount:data[base+20],attacker:data[base+21]});

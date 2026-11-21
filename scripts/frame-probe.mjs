@@ -6,7 +6,7 @@ export function installProbe(WorldRenderer,mapUnitsWithShips,stages,drawOnly){
   new PerformanceObserver(list=>{if(probe.active)for(const e of list.getEntries())probe.longTasks.push(e.duration);}).observe({type:'longtask',buffered:false});
   function wrap(target,key,label){const original=target[key];target[key]=function(...args){const t=performance.now();try{return original.apply(this,args);}finally{if(probe.active)(probe.stages[label]??=[]).push(performance.now()-t);}};}
   if(!drawOnly)for(const name of ['drawLabels','drawMapNames'])wrap(WorldRenderer.prototype,name,name);
-  if(stages)for(const name of ['drawAttackArrows','drawArmyPlaques','drawBattleBadges','drawBuildings'])wrap(WorldRenderer.prototype,name,name);
+  if(stages)for(const name of ['drawArmyPlaques','drawBattleBadges','drawBuildings'])wrap(WorldRenderer.prototype,name,name);
   WorldRenderer.prototype.update=function(...args){
    if(!probe.instance){
     probe.instance=this;const original=this.frame,self=this;
