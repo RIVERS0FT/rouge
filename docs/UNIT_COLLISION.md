@@ -6,8 +6,9 @@ three rendered soldiers are one battalion footprint, not three physics bodies.
 
 - Footprint radii range from 0.46 (infantry) to 0.62 (artillery) world units.
   Cavalry and artillery models use matching horizontal scale.
-- Friends, enemies and neutral garrisons participate. Embarked ships do not
-  collide with land troops. Combat damage remains simultaneous.
+- Friends, enemies and awake neutral garrisons participate; pooled garrisons
+  (below) do not. Embarked ships do not collide with land troops. Combat damage
+  remains simultaneous.
 - A 1.24-unit uniform grid queries nearby bodies. Four deterministic passes
   rebuild the grid; stable numeric IDs resolve exact coincident centers.
 - Correction is limited to 0.6 world units per tick. Each body visits at most
@@ -40,6 +41,33 @@ three rendered soldiers are one battalion footprint, not three physics bodies.
   back to it. Movement follows a local lookahead with a safe connector fallback.
   Every original route segment is still checked when loading a save. Sea travel
   keeps the original strict on-segment validation.
+
+## Garrison pool
+
+A country's battalion rests in its town's pool (`Engine.pooled`) when it is idle
+(no order, route, transport, army or attack cooldown) in a region its country
+owns, no battalion of another owner (neutral included, ships too) is within 12
+units, it overlaps no battalion, and it stands clear of houses. Pooled troops keep
+their place, count for their town, its capture and training, Massed Ranks and
+saves as usual, but skip combat, collision and house checks, and no longer drift
+toward the town centre. Awake troops are not blocked by them.
+
+- 12 units exceeds any range (artillery 7.2, ×1.1 with Rangefinding) plus splash
+  (at most 2.75) and a tick's step, so pooled troops wake before anyone can shoot
+  them or they could shoot.
+- An overlap wakes both troops (a reinforcement stacked on a garrison, troops
+  walking into it); they stay awake until the solver has separated them.
+- Fresh candidates (not pooled last tick) are cleared of houses first, as a
+  loaded save is; one that cannot be cleared stays awake.
+- The rule reads only the current state. Skipping the house test for troops
+  pooled last tick gives the same answer (houses and pooled troops never move),
+  so a reloaded engine, the parallel workers and the sequential step all pool the
+  same troops. Preplaced neutral guards keep their own rule: they sleep unless a
+  country's troops are within one 16-unit cell.
+
+On the 100-AI fully occupied fixture about 60% of the countries' troops are
+pooled; the simulation step is about 30% shorter (collision and combat fall
+most). Regression coverage: `tests/garrison-pool.test.mjs`.
 
 This is bounded soft collision, not a global rigid-body packing guarantee.
 Temporary overlap can remain in an extreme crowd, an undersized island or a

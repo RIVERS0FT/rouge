@@ -3,13 +3,18 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {parseInfantryAsset} from '../src/render/infantryAsset.ts';
-import {InfantryMotion} from '../src/render/infantryMotion.ts';
+import {InfantryMotion,modelHeading} from '../src/render/infantryMotion.ts';
 
 const url=new URL('../src/render/assets/infantry.bin',import.meta.url);
 const read=()=>Uint8Array.from(readFileSync(url)).buffer;
 test('v11 packs a single indexed infantry model and finite selective colors and transforms for both clips',()=>{
  const a=parseInfantryAsset(read());
- assert.equal(a.indices.length/3,6230);assert.ok(a.positions.length/3<5800);
+ const source=readFileSync(new URL('../data/art/rouge-infantry-v11.glb',import.meta.url));
+ const model=JSON.parse(source.toString('utf8',20,20+source.readUInt32LE(12)));
+ const triangleCount=model.nodes.filter(node=>node.mesh!==undefined).reduce((sum,node)=>
+  sum+model.meshes[node.mesh].primitives.reduce((count,p)=>count+model.accessors[p.indices].count/3,0),0);
+ assert.equal(a.indices.length/3,triangleCount);
+ assert.ok(triangleCount<=6230);assert.ok(a.positions.length/3<5800);
  assert.equal(a.walkFrames,25);assert.equal(a.shootFrames,15);assert.equal(a.fps,24);
  assert.ok(a.palette.length<(a.positions.length*a.walkFrames));
  assert.ok(a.joints<25);
@@ -133,6 +138,31 @@ test('latest movement sets heading, while reused ids/embarked units clear stale 
  assert.equal(motion.track(7),undefined);
  motion.update(state(1,[unit({x:.2})],'new'),250);
  assert.equal(motion.active(260,new Set([7])),false);
+});
+
+test('attack turns take the short arc and finish before firing, even with lateral collision movement',()=>{
+ const motion=new InfantryMotion(),army=new Map([[4,Math.PI-.1]]);
+ const soldier=(x,cooldown,lastShotHeading)=>unit({x,cooldown,lastShotHeading,army:4,kind:'infantry',armyStatus:'field'});
+ motion.update(state(0,[soldier(0,0,undefined)]),0,undefined,army);
+ motion.update(state(2,[soldier(.1,1,-Math.PI+.1)]),100,undefined,army);
+ const t=motion.track(7),aim=-Math.PI+.1;
+ assert.equal(modelHeading(t,100),Math.PI-.1);
+ assert.ok(Math.abs(Math.abs(modelHeading(t,155))-Math.PI)<1e-8);
+ assert.equal(modelHeading(t,t.shotAt),aim);
+ assert.ok(t.shotAt>155);
+ motion.update(state(4,[soldier(.2,.9,aim)]),220,undefined,army);
+ assert.equal(modelHeading(t,400),aim);
+ motion.update(state(10,[soldier(.2,.6,aim)]),600,undefined,army);
+ motion.update(state(16,[soldier(.3,.3,aim)]),900,undefined,army);
+ assert.equal(modelHeading(t,1050),Math.PI/2);
+});
+
+test('an embarked unit has no attack track and an unlimbered bearing accounts for the rear-facing towed gun',()=>{
+ const motion=new InfantryMotion({horseArtillery:Math.PI});
+ motion.update(state(0,[unit({kind:'horseArtillery',cooldown:1,lastShotHeading:0})]),0);
+ assert.equal(modelHeading(motion.track(7),0),Math.PI);
+ motion.update(state(2,[unit({kind:'horseArtillery',transport:{embarked:true}})]),100);
+ assert.equal(motion.track(7),undefined);
 });
 
 test('bake preserves the GLB painted navy colors while retaining the nation tint mask',()=>{

@@ -1,4 +1,4 @@
-/* Start screen: a framed title column over the living atlas. One left-aligned
+/* Start screen: an engraved title plate over the living atlas. One left-aligned
    composition at every viewport; appearance editing belongs to setup. */
 .app.is-menu,.app.is-lobby{--menu-left:clamp(20px,7.4vw,108px);--menu-top:clamp(56px,15dvh,170px)}
 .is-menu .map-vignette{background:linear-gradient(90deg,#08110ff7 0%,#08110fe6 27%,#08110f73 50%,transparent 78%),linear-gradient(0deg,#08110fe0,transparent 32%)}
@@ -6,53 +6,106 @@
 .menu-placeholder{position:absolute;inset:0;background:radial-gradient(ellipse at 74% 40%,#4b5d5466,transparent 55%),linear-gradient(145deg,#152a30,#203a3e 60%,#0e242b)}
 .main-menu{position:absolute;inset:0;pointer-events:none}
 .main-menu button{pointer-events:auto}
-.is-menu .menu-content{position:absolute;left:var(--menu-left);top:var(--menu-top);width:min(380px,calc(100% - var(--menu-left) - 20px));max-height:calc(100dvh - var(--menu-top) - 54px);overflow:auto;padding:26px 26px 22px;pointer-events:auto;scrollbar-width:thin;
- background:linear-gradient(180deg,#151c19eb,#0e1311eb);border:1px solid var(--ink-0);box-shadow:var(--frame);border-radius:var(--radius)}
-.menu-crest{display:flex;align-items:center;gap:10px;margin:0 auto 4px;width:70%}
+/* The inner keyline is an outline so it frames the plate, not its scrolling contents. */
+.is-menu .menu-content{position:absolute;left:var(--menu-left);top:var(--menu-top);width:min(392px,calc(100% - var(--menu-left) - 20px));max-height:calc(100dvh - var(--menu-top) - 54px);overflow:auto;padding:28px 28px 16px;pointer-events:auto;scrollbar-width:thin;scrollbar-color:var(--brass-lo) transparent;
+ background:radial-gradient(130% 55% at 50% 0%,#c6a4671c,transparent 62%),linear-gradient(180deg,#161e1bf2,#0d1210f2);border:1px solid var(--ink-0);border-radius:var(--radius);
+ box-shadow:var(--frame),0 28px 70px #000a;outline:1px solid #c6a46724;outline-offset:-8px}
+.menu-crest{display:flex;align-items:center;gap:10px;margin:0 auto 2px;width:72%}
 .menu-crest span{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--brass))}
 .menu-crest span:last-child{background:linear-gradient(270deg,transparent,var(--brass))}
-.menu-crest i{width:11px;height:11px;transform:rotate(45deg);background:linear-gradient(135deg,var(--brass-hi),var(--brass-lo));box-shadow:0 0 0 1px var(--ink-0),0 0 0 3px #c6a46733}
-.is-menu .menu-content h1{margin:8px 0 4px;text-align:center;font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.4vw,58px);line-height:1.15;letter-spacing:.14em;color:var(--parchment);text-shadow:0 2px 0 #000,0 0 26px #c6a46738}
+.menu-crest i{width:11px;height:11px;transform:rotate(45deg);background:linear-gradient(135deg,var(--brass-hi),var(--brass-lo));box-shadow:0 0 0 1px var(--ink-0),0 0 0 3px #c6a46733,0 0 14px #efd79f4d}
+/* Letter spacing trails the last glyph; an equal indent keeps the title optically centred. */
+.is-menu .menu-content h1{margin:10px 0 6px;text-align:center;text-indent:.16em;font-family:var(--serif);font-weight:600;font-size:clamp(32px,4.2vw,56px);line-height:1.14;letter-spacing:.16em;color:var(--parchment);text-shadow:0 2px 0 #000,0 0 30px #c6a46740}
 .menu-rule{height:9px;margin:4px auto 0;width:58%;background:linear-gradient(90deg,transparent,#c6a46799 30%,#c6a46799 70%,transparent) center/100% 1px no-repeat,radial-gradient(circle,var(--brass) 0 2px,transparent 2.5px) center/9px 9px no-repeat}
-.is-menu .menu-actions{display:grid;gap:8px;margin:22px 0 4px}
-.menu-actions button{display:flex;align-items:center;gap:clamp(10px,1.4vw,18px);min-height:50px;text-align:left}
-.menu-actions button>span{font-size:10.5px;letter-spacing:.1em;opacity:.7;font-variant-numeric:tabular-nums}
-.menu-actions b{margin-left:auto;font-weight:400;font-size:20px}
-.menu-actions .primary.large{justify-content:flex-start;padding:12px 18px;font-size:clamp(14px,1.15vw,16px)}
-.menu-button{padding:12px 18px;font-size:clamp(13px,1.1vw,15px);color:var(--text);border-radius:2px;background:linear-gradient(180deg,#26302c,#1a201d);border:1px solid var(--ink-0);box-shadow:inset 0 0 0 1px var(--brass-lo),inset 0 1px 0 1px #ffffff12,0 2px 4px #0008}
-.menu-button:hover{color:var(--parchment);box-shadow:inset 0 0 0 1px var(--brass),inset 0 1px 0 1px #ffffff1c,0 0 12px #c6a46733}
-.menu-button b{color:var(--brass-hi)}
-.menu-actions .quiet{justify-content:center;margin-top:4px;color:var(--brass-hi)}
-.menu-version{display:block;margin-top:12px;text-align:right;font-size:11px;line-height:1.3;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
-.language-switch{position:absolute;z-index:20;top:14px;right:clamp(8px,2vw,28px);display:flex;align-items:center;gap:2px;padding:2px 6px;font-size:12px;color:var(--muted);border-radius:16px;background:#0e1311d9;box-shadow:inset 0 0 0 1px var(--brass-lo)}
-.language-switch button{min-width:40px;min-height:36px;padding:4px 6px;border-radius:12px;color:var(--text-2)}
-.language-switch .active{color:var(--brass-hi);font-weight:600}
+
+/* Plaques: a medallion glyph, the label and a chevron that leans forward on hover. */
+.is-menu .menu-actions{display:grid;gap:9px;margin:24px 0 2px}
+.menu-actions>.primary,.menu-actions>.menu-button{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:14px;min-height:54px;padding:8px 16px 8px 9px;text-align:left;font-size:15px;font-weight:600;letter-spacing:.08em;border-radius:2px}
+.menu-actions>.primary.large{min-height:62px;padding:10px 18px 10px 10px;font-size:17px;letter-spacing:.12em}
+.menu-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-actions>button:lang(en){letter-spacing:.03em}
+.menu-medallion{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;color:var(--brass-hi);background:var(--medallion);box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass-lo),inset 0 1px 0 #ffffff1c,inset 0 -4px 8px #0007;transition:box-shadow .16s,color .16s}
+.menu-actions>.primary .menu-medallion{width:42px;height:42px;color:#fff4d8;background:radial-gradient(circle at 50% 30%,#93743f 0%,#56431f 58%,#2a200d 100%);box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass),inset 0 1px 0 #ffffff2e,0 0 12px #efd79f33}
+.menu-actions .icon-forward{color:var(--brass);opacity:.7;transition:transform .16s,opacity .16s}
+.menu-actions>.primary .icon-forward{color:#f8efd4;opacity:.85}
+.menu-actions>button:hover:not(:disabled) .icon-forward,.menu-actions>button:focus-visible .icon-forward{opacity:1;transform:translateX(3px)}
+.menu-button{color:var(--text);background:linear-gradient(180deg,#26302c,#1a201d);border:1px solid var(--ink-0);box-shadow:inset 0 0 0 1px var(--brass-lo),inset 0 1px 0 1px #ffffff12,0 2px 4px #0008}
+.menu-button:hover:not(:disabled){color:var(--parchment);background:linear-gradient(180deg,#2c3833,#1c2320);box-shadow:inset 0 0 0 1px var(--brass),inset 0 1px 0 1px #ffffff1c,0 0 14px #c6a46733}
+.menu-button:hover:not(:disabled) .menu-medallion{color:#fff4d8;box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px var(--brass),inset 0 1px 0 #ffffff26,0 0 10px #efd79f40}
+.menu-actions .menu-resume{justify-content:center;gap:8px;min-height:40px;margin-top:2px;color:var(--brass-hi)}
+/* Exit closes the window, so it carries no onward chevron and shares the claret tint of leaving. */
+.menu-actions>.menu-exit{margin-top:6px;color:#e6c3ad}
+.menu-exit .menu-medallion{color:#e6c3ad}
+.menu-exit:hover:not(:disabled){color:#f8e2d3;background:linear-gradient(180deg,#4a2b2d,#2b1a1b);box-shadow:inset 0 0 0 1px #b06a6b99,inset 0 1px 0 1px #ffffff14,0 0 14px #b06a6b40}
+.menu-exit:hover:not(:disabled) .menu-medallion{color:#f8e2d3;box-shadow:0 0 0 1px var(--ink-0),0 0 0 2px #b06a6b,inset 0 1px 0 #ffffff26}
+.menu-note{display:block;padding:0 4px;font-size:12px;line-height:1.5;text-align:center;color:var(--muted)}
+.menu-version{display:block;margin-top:14px;padding-top:9px;border-top:1px solid #c6a46726;text-align:right;font-size:11px;line-height:1.3;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* First paint only: the plate rises, then the plaques follow one by one. A remount
+   mid-entrance passes a negative --entrance-offset so the motion continues where it was. */
+.main-menu[data-entrance] .menu-content{animation:menu-plate-in .5s cubic-bezier(.2,.7,.25,1) backwards;animation-delay:var(--entrance-offset,0ms)}
+.main-menu[data-entrance] .menu-actions>*{animation:menu-entry-in .42s cubic-bezier(.2,.7,.25,1) backwards}
+.main-menu[data-entrance] .menu-actions>:nth-child(1){animation-delay:calc(var(--entrance-offset,0ms) + .12s)}
+.main-menu[data-entrance] .menu-actions>:nth-child(2){animation-delay:calc(var(--entrance-offset,0ms) + .17s)}
+.main-menu[data-entrance] .menu-actions>:nth-child(3){animation-delay:calc(var(--entrance-offset,0ms) + .22s)}
+.main-menu[data-entrance] .menu-actions>:nth-child(4){animation-delay:calc(var(--entrance-offset,0ms) + .27s)}
+.main-menu[data-entrance] .menu-actions>:nth-child(5){animation-delay:calc(var(--entrance-offset,0ms) + .32s)}
+.main-menu[data-entrance] .menu-actions>:nth-child(n+6){animation-delay:calc(var(--entrance-offset,0ms) + .37s)}
+@keyframes menu-plate-in{from{opacity:0;transform:translateY(10px)}}
+@keyframes menu-entry-in{from{opacity:0;transform:translateX(-10px)}}
+@media (prefers-reduced-motion:reduce){.main-menu[data-entrance] .menu-content,.main-menu[data-entrance] .menu-actions>*{animation:none}}
+
+/* Language plaque: the same segmented brass control as settings. */
+.language-switch{position:absolute;z-index:20;top:14px;right:clamp(8px,2vw,28px);display:flex;align-items:center;gap:2px;padding:3px;border-radius:3px;background:linear-gradient(180deg,#151c19f0,#0d1210f0);border:1px solid var(--ink-0);box-shadow:inset 0 0 0 1px var(--brass-lo),0 4px 14px #0008}
+.language-switch button{min-width:42px;min-height:32px;padding:4px 10px;border-radius:2px;font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--text-2)}
+.language-switch button:hover:not([aria-pressed="true"]){color:var(--parchment);background:#ffffff0f}
+.language-switch button[aria-pressed="true"]{color:var(--ink-0);background:linear-gradient(180deg,var(--brass-hi),var(--brass-mid));box-shadow:inset 0 1px 0 #ffffff4d,0 0 8px #efd79f33}
 .resource-status{position:absolute;left:var(--menu-left);right:20px;bottom:max(16px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .resource-status button{min-height:40px}
 .resource-spinner{display:grid;place-items:center;color:var(--brass);animation:hourglass 2.4s ease-in-out infinite}
 
-/* LAN war room. */
-.lobby.window{position:absolute;z-index:10;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 40px);overflow:hidden;border-radius:var(--radius);background:linear-gradient(180deg,#1c2421,#131916);border:1px solid var(--ink-0);box-shadow:var(--frame)}
-.lobby-body{flex:1 1 auto;min-height:0;overflow:auto;padding:18px 24px 10px}
-.room-code-plate{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;background:#0b0f0e;box-shadow:var(--well)}
-.room-code-plate>span{font-size:11px;letter-spacing:.2em;color:var(--muted)}
-.room-code{font-family:var(--serif);font-size:38px;font-weight:600;letter-spacing:.3em;color:var(--brass-hi);text-shadow:0 0 18px #efd79f40}
-.seats{margin:14px 0;max-height:36dvh;overflow:auto;box-shadow:inset 0 0 0 1px #c6a46733}
-.seat{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:13px;border-bottom:1px solid #ffffff0d}
-.seat[data-ai="true"]{color:var(--text-2)}
-.seat-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.seat>small{margin-left:auto;font-size:11px;color:var(--muted)}
-.seat b{font-size:10.5px;font-weight:600;color:var(--brass-hi);letter-spacing:.1em}
-.seat-status{font-size:11px;color:var(--good)}
+/* LAN war room: the page after deployment, in the same window language — the room code
+   to share, the seats, room settings with the deployment stepper, then leave and start. */
+.lobby.window{position:absolute;z-index:10;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;width:min(1080px,calc(100% - 24px));max-height:calc(100dvh - 40px);overflow:hidden;border-radius:var(--radius);background:linear-gradient(180deg,#1c2421,#131916);border:1px solid var(--ink-0);box-shadow:inset 0 0 0 1px var(--brass-lo),inset 0 0 0 2px #000a,0 30px 80px #000d}
+.lobby-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px 24px 18px;scrollbar-width:thin;scrollbar-color:var(--brass-lo) transparent}
+.lobby-body .section-ribbon{margin:18px -24px 12px}
+.room-code-plate{position:relative;display:grid;justify-items:center;gap:2px;padding:14px 16px 10px;background:#0b0f0e;box-shadow:var(--well)}
+.room-code-plate>span:nth-child(2){font-size:11px;letter-spacing:.2em;color:var(--muted)}
+.room-code{font-family:var(--serif);font-size:38px;font-weight:600;line-height:1.25;letter-spacing:.3em;text-indent:.3em;color:var(--brass-hi);text-shadow:0 0 18px #efd79f40;font-variant-numeric:tabular-nums}
+.room-code-copy{gap:6px;min-height:30px;font-size:12px;color:var(--brass)}
+.room-code-copy[data-copied="true"]{color:var(--good)}
+.lobby-connection{position:absolute;top:9px;right:12px;display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--good)}
+.lobby-connection i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+.lobby-connection[data-state="reconnecting"]{color:var(--warn)}
+.lobby-connection[data-state="reconnecting"] i{animation:lobby-pulse 1.2s ease-in-out infinite}
+@keyframes lobby-pulse{50%{opacity:.25}}
+.seats{display:grid;gap:4px;max-height:34dvh;overflow:auto;overscroll-behavior:contain;padding:2px;scrollbar-width:thin;scrollbar-color:var(--brass-lo) transparent}
+.seat{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;font-size:13px;background:linear-gradient(180deg,#1d2522,#151b18);box-shadow:inset 0 0 0 1px #c6a46726}
+.seat[data-you]{box-shadow:inset 0 0 0 1px var(--brass-mid),0 0 10px #efd79f1a}
+.seat[data-ai="true"]{background:#0f1412}
+/* Computer seats have no flag: a hatched plate holds their place. */
+.seat-emblem{display:grid;place-items:center;flex:none;width:36px;height:24px}
+.seat[data-ai="true"] .seat-emblem{background:repeating-linear-gradient(45deg,#ffffff0d 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1px #c6a46733}
+.seat-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--parchment)}
+.seat[data-ai="true"] .seat-name{font-weight:500;color:var(--text-2)}
+.seat-tag{flex:none;padding:1px 7px;font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--brass-hi);border-radius:8px;box-shadow:inset 0 0 0 1px #c6a46766}
+.seat-tag.you{color:#141a17;background:var(--brass-hi);box-shadow:none}
+.seat>small{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.seat-status{display:flex;flex:none;align-items:center;gap:5px;font-size:11px;color:var(--good)}
+.seat-status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
 .seat-status[data-connected="false"]{color:var(--muted)}
-.lobby .ai-count-field{margin:6px 0 10px}
-.lobby-body>p{margin:8px 0 4px;font-size:12.5px}
-.lobby .connection{font-size:12px;margin:4px 0}
-.lobby-footer{flex:none;justify-content:space-between;padding:12px 24px 16px;border-top:1px solid #c6a46733;background:#0b0f0e80}
-.lobby-footer .secondary{gap:6px}
+.lobby-ready{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.lobby-ready[data-ready="true"]{color:var(--good)}
+.lobby-ai>.secondary{min-height:44px}
+.lobby-footer{flex:none;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 24px 16px;border-top:1px solid #c6a46738;background:linear-gradient(180deg,#1a211e,#121815)}
+.lobby-footer>button{min-height:46px}
+.lobby-waiting{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.lobby-waiting .icon{color:var(--brass);animation:hourglass 2.4s ease-in-out infinite}
 
 @media(max-height:760px){
- .is-menu .menu-content{padding:18px 20px 16px}
- .is-menu .menu-actions{margin-top:16px;gap:6px}
- .menu-actions button{min-height:46px}
+ .is-menu .menu-content{padding:20px 22px 12px}
+ .is-menu .menu-content h1{margin:8px 0 4px}
+ .is-menu .menu-actions{margin-top:16px;gap:7px}
+ .menu-actions>.primary,.menu-actions>.menu-button{min-height:48px}
+ .menu-actions>.primary.large{min-height:54px}
 }

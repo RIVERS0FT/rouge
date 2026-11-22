@@ -105,8 +105,9 @@ export interface CombatLanes{mode:Float64Array;taken:Float64Array;dealt:Float64A
 let lanes:CombatLanes={mode:new Float64Array(0),taken:new Float64Array(0),dealt:new Float64Array(0),speed:new Float64Array(0)};
 let massedCounts=new Uint32Array(0);const massedTouched:number[]=[];
 /** Per-unit combat modifiers for this tick. `speed` is NaN where the land speed stays unchanged.
+ * Massed Ranks counts the troops in `massed`, which includes troops not simulated this tick.
  * The returned arrays are reused by the next call. */
-export function combatLanes(units:readonly Unit[],state:GameState,statsFor:(owner:number,kind:Kind)=>UnitStats,context=talentContext(state)):CombatLanes{
+export function combatLanes(units:readonly Unit[],state:GameState,statsFor:(owner:number,kind:Kind)=>UnitStats,context=talentContext(state),massed:readonly Unit[]=units):CombatLanes{
  const n=units.length;
  if(lanes.mode.length<n){const size=Math.max(n,lanes.mode.length*2,64);lanes={mode:new Float64Array(size),taken:new Float64Array(size),dealt:new Float64Array(size),speed:new Float64Array(size)};}
  const {mode,taken,dealt,speed}=lanes;mode.fill(0,0,n);taken.fill(0,0,n);dealt.fill(0,0,n);speed.fill(NaN,0,n);
@@ -115,7 +116,7 @@ export function combatLanes(units:readonly Unit[],state:GameState,statsFor:(owne
  const regions=MAP.length,provinces=state.provinces;
  if(context.anyMassed){
   if(massedCounts.length<(state.players.length)*regions)massedCounts=new Uint32Array(state.players.length*regions);
-  for(const u of units)if(u.owner>=0&&!u.transport?.embarked&&context.profiles[u.owner].massedRanks){const key=u.owner*regions+u.province;if(!massedCounts[key])massedTouched.push(key);massedCounts[key]++;}
+  for(const u of massed)if(u.owner>=0&&!u.transport?.embarked&&context.profiles[u.owner].massedRanks){const key=u.owner*regions+u.province;if(!massedCounts[key])massedTouched.push(key);massedCounts[key]++;}
  }
  for(let i=0;i<n;i++){
   const u=units[i],province=u.province,region=provinces[province],regionOwner=region?region.owner:-1;

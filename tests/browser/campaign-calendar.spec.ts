@@ -18,11 +18,11 @@ async function load(page:Page){
 test('campaign dates start in year 1 and income tooltips use daily values in both languages',async({page})=>{
  test.setTimeout(90000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await load(page);
  const clock=page.getByTestId('game-clock');await expect(clock).toBeInViewport();await expect(clock).toHaveText('1年1月1日');await expect(clock).toHaveAttribute('datetime','0001-01-01');
- await expect(page.locator('.resource-delta')).toContainText('/日');await page.locator('.resource-treasury').focus();await expect(page.getByRole('tooltip')).toContainText('每日收益');
+ await expect(page.locator('.resource-delta')).toContainText('/日');await page.locator('.resource-treasury').focus();await expect(page.getByRole('tooltip')).toContainText('每日净收益');await expect(page.getByRole('tooltip')).toContainText('军费');
  await page.evaluate(()=>(window as any).calendarRender(20,'zh'));await expect(clock).toHaveText('1年1月2日');
  await page.evaluate(()=>(window as any).calendarRender(120060,'en'));await expect(clock).toHaveText('9 Jun 17');
  await expect(page.locator('.dispatch-time')).toHaveText(['8 Jun 17','7 Jun 17','7 Jun 17','6 Jun 17']);
- await expect(page.locator('.resource-delta')).toContainText('/day');await page.locator('.resource-treasury').focus();await expect(page.getByRole('tooltip')).toContainText('Daily income');
+ await expect(page.locator('.resource-delta')).toContainText('/day');await page.locator('.resource-treasury').focus();await expect(page.getByRole('tooltip')).toContainText('Net daily income');await expect(page.getByRole('tooltip')).toContainText('Upkeep');
  await page.screenshot({path:'artifacts/calendar-en-desktop.png'});expect(errors).toEqual([]);
 });
 test('calendar dates and actions fit phone and desktop widths',async({page})=>{

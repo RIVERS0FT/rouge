@@ -132,7 +132,9 @@ test('current saves require shared funds, retain progression, and reject corrupt
  assert.deepEqual(roundtrip,e.state);
  const again=new Engine(roundtrip);
  again.step(1);
- expectClose(again.state.players[0].funds,e.state.players[0].funds+DT*e.state.provinces.filter(p=>p.owner===0).reduce((sum,p)=>sum+fundsIncomeRate(p,regionProductionRate(p.id)),0));
+ const income=e.state.provinces.filter(p=>p.owner===0).reduce((sum,p)=>sum+fundsIncomeRate(p,regionProductionRate(p.id)),0);
+ const upkeep=e.state.units.filter(u=>u.owner===0).length*0.1;
+ expectClose(again.state.players[0].funds,e.state.players[0].funds+DT*(income-upkeep));
  // Industrial Base buildings reach level 3 and keep it under any later owner; level 4 is corrupt.
  roundtrip.provinces[home].construction.level=3;
  assert.equal(validateState(roundtrip),true);

@@ -1,5 +1,8 @@
+import {leaderAppearances,type CommanderAppearance} from '../game/portrait.ts';
 import {countryActions, type CountryAction} from '../game/countryActions.ts';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {dispatchFraction} from '../platform/dispatchPreference.ts';
+import {EMPTY_FORCE_SELECTION,type MapForceSelection} from '../render/mapInput.ts';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {LEADERS} from '../game/content.ts';
 import {createGame, isEliminated} from '../game/engine.ts';
 import {factionColor} from '../game/factionColors.ts';
@@ -10,14 +13,14 @@ import {browserSaves} from '../platform/browserSaves.ts';
 import {getSpawnCapacity, makeAISetups} from '../game/spawns.ts';
 import {formedBuilds} from '../game/talentBuilds.ts';
 import type {GameState, Kind, Leader, PlayerSetup, Result} from '../game/types.ts';
-import {api, configureRoom, createRoom, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
+import {api, configureRoom, createRoom, hasRoomServer, joinRoom, localSession, preloadLocalSession, remoteSession, type RoomInfo, type Session, type Ticket} from '../platform/session.ts';
 import type {WorldRenderer} from '../render/WorldRenderer.ts';
 import {armyViews} from '../render/armyViews.ts';
 import {CommanderPortrait} from './CommanderHud.tsx';
 import {EliminationBody, VictoryOverlay} from './dialogs/ResultDialogs.tsx';
 import {SavesView} from './dialogs/SavesView.tsx';
 import {SettingsGeneral} from './dialogs/SettingsDialog.tsx';
-import {SetupDialog, validCount} from './dialogs/SetupDialog.tsx';
+import {SetupDialog, validCount, type SetupMode} from './dialogs/SetupDialog.tsx';
 import {TalentsDialog} from './dialogs/TalentsDialog.tsx';
 import {FlagEditor} from './Flag.tsx';
 import {Clock} from './hud/Clock.tsx';
@@ -32,11 +35,12 @@ import {Icon} from './icons.tsx';
 import {t, timeLabel, type Language} from './i18n.ts';
 import {InputDeviceTracker, type PointerIntent} from './inputDevice.ts';
 import {LeaderBust, preloadPortraits} from './LeaderBust.tsx';
+import {LobbyStage} from './LobbyStage.tsx';
 import {Lobby} from './Lobby.tsx';
 import {ModalDialog} from './ModalDialog.tsx';
 import {SessionLifetime} from './SessionLifetime.tsx';
 import {loadSetupPreferences, saveSetupPreferences} from './setupPreferences.ts';
-import {StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
+import {LanguageSwitch, StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
 import {talentSelectionStatus} from './talentSelection.ts';
 import {loadCodex, saveCodex} from './talentText.tsx';
 import {TerritoryManagement} from './TerritoryManagement.tsx';
@@ -45,7 +49,8 @@ import {CountryPanel} from './CountryPanel.tsx';
 import {battleStrengths, countryStrengths} from '../game/strength.ts';
 import {World} from './World.tsx';
 
-type Modal = 'setupSolo' | 'setupLan' | 'playerLeader' | 'playerFlag' | 'saves' | 'talents' | 'settings' | 'territories';
+type Modal = SetupMode | 'playerLeader' | 'playerFlag' | 'saves' | 'talents' | 'settings' | 'territories';
+const isSetup = (modal: Modal | null): modal is SetupMode => modal === 'setupSolo' || modal === 'setupLan' || modal === 'setupJoin';
 const TICKET_KEY = 'rouge.ticket.ne-admin1-groups.v1';
 // Fast Refresh replaces this set; resume a new worker from the current snapshot
 // so changes to simulation dependencies also reach an already running match.
@@ -77,7 +82,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [inputDevice, setInputDevice] = useState<'touch' | 'mouse'>('mouse');
  const [language, setLanguage] = useState<Language>(initialLanguage ?? storedLanguage);
  const [screen, setScreen] = useState<'menu' | 'game' | 'lobby'>('menu');
- const [modal, setModal] = useState<Modal | null>(initialAction === 'settingsSaves' ? 'settings' : initialAction === 'resumeLan' ? null : initialAction);
+ const [modal, setModal] = useState<Modal | null>(initialAction === 'settingsSaves' ? 'settings' : initialAction === 'resumeLan' || initialAction === 'createGame' ? null : initialAction);
  const [settingsPage, setSettingsPage] = useState<'general' | 'saves'>(initialAction === 'settingsSaves' ? 'saves' : 'general');
  const [dock, setDock] = useState<Dock | null>(null);
  const [outlinerOpen, setOutlinerOpen] = useState(() => !(typeof matchMedia === 'function' && matchMedia(COMPACT_QUERY).matches));
@@ -86,7 +91,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [pendingTalent, setPendingTalent] = useState<string | null>(null);
  const seenTalentRound = useRef<string | null>(null);
  const [codex, setCodex] = useState<string[]>(loadCodex);
- const [selectedArmy, setSelectedArmy] = useState<number | null>(null);
+ const [forces, setForces] = useState<MapForceSelection>(EMPTY_FORCE_SELECTION);
  // The country shown in the country window (yours unless another one was opened).
  const [country, setCountry] = useState(0);
  const [game, setGame] = useState<GameState | null>(null), [actor, setActor] = useState(0), [selected, setSelected] = useState(0);
@@ -94,10 +99,15 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const [soloAICount, setSoloAICount] = useState('2'), [roomAICount, setRoomAICount] = useState('0'), [lobbyAI, setLobbyAI] = useState('0');
  const [leader, setLeader] = useState<Leader>(preferences.leader), [loadout, setLoadout] = useState<Kind[]>(['infantry']), [name, setName] = useState<string | null>(null);
  const [flag, setFlag] = useState<Flag>(preferences.flag);
+ const [appearance,setAppearance]=useState<CommanderAppearance|undefined>(preferences.appearance);
+ const [customTab,setCustomTab]=useState(Boolean(preferences.appearance));
+ const [draft,setDraft]=useState<CommanderAppearance>(appearance??leaderAppearances[leader]);
+ const directAppearance=useRef(false);
  const [paused, setPaused] = useState(false), [speed, setSpeed] = useState(1), [toast, setToast] = useState('');
  const [saves, setSaves] = useState<SaveInfo[]>([]), [saveName, setSaveName] = useState(''), [code, setCode] = useState('');
  const [room, setRoom] = useState<RoomInfo | null>(null), [ticket, setTicket] = useState<Ticket | null>(storedTicket);
  const [network, setNetwork] = useState<'connected' | 'reconnecting'>('connected'), [busy, setBusy] = useState(false);
+ const creating = useRef(false);
  const session = useRef<Session | null>(null), world = useRef<WorldRenderer | null>(null), latest = useRef<GameState | null>(null), autoTick = useRef(0), leaving = useRef(false);
  const mapSearch = useRef<MapSearchHandle>(null);
  const compactRef = useRef(compact), selectedRef = useRef(selected);
@@ -115,7 +125,6 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  const factions = useMemo(() => game ? factionSummaries(game) : [], [game]);
  const regions = useMemo(() => game ? ownedRegions(game, actor) : [], [game, actor]);
  const armyList = useMemo(() => game ? armyViews(game) : [], [game]);
- const ownsArmy = (id: number | null) => id !== null && Boolean(game?.armies.some(army => army.id === id && army.owner === actor));
  const owned = factions.find(faction => faction.id === actor)?.territory ?? 0;
  // Strength figures are only worked out while a window shows them.
  const strengths = useMemo(() => game && dock === 'country' ? countryStrengths(game) : [], [game, dock]);
@@ -125,10 +134,16 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
 
  const notifyResult = (result: Result) => {if(!result.ok) {setPendingTalent(null); setToast(text(`error.${result.error}`));}};
  const report = (error: unknown) => setToast(text(`error.${error instanceof Error ? error.message : 'generic'}`));
- useEffect(() => setLobbyAI(String(room?.aiCount ?? 0)), [room?.aiCount]);
+ // Before paint: the lobby enables the AI stepper in the same commit, so a count typed
+ // as soon as it unlocks is never overwritten by this sync.
+ useLayoutEffect(() => setLobbyAI(String(room?.aiCount ?? 0)), [room?.aiCount]);
  useEffect(() => {if(eliminated) {setModal(null); setPendingTalent(null);}}, [eliminated]);
- // An army dissolves on arrival; drop a selection that no longer exists.
- useEffect(() => {if(selectedArmy !== null && !ownsArmy(selectedArmy)) setSelectedArmy(null);}, [game?.armies, selectedArmy, actor]);
+ useEffect(() => {
+  if(!game||(!forces.armies.length&&!forces.regions.length))return;
+  const ownArmies=new Set(game.armies.filter(a=>a.owner===actor).map(a=>a.id));
+  const armies=forces.armies.filter(id=>ownArmies.has(id)),regions=forces.regions.filter(id=>game.provinces[id]?.owner===actor);
+  if(armies.length!==forces.armies.length||regions.length!==forces.regions.length)setForces({armies,regions});
+ }, [game,forces,actor]);
  // A sample build counts as discovered once this country's talents form it in any campaign.
  useEffect(() => {
   if(!player) return;
@@ -169,7 +184,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   const status = talentSelectionStatus(player, pendingTalent);
   if(status !== 'waiting') {setPendingTalent(null); if(status === 'done') setModal(current => current === 'talents' ? null : current);}
  }, [pendingTalent, player?.talents, player?.drafts, player?.choices]);
- const appearanceOrigin = useRef<'setupSolo' | 'setupLan'>('setupSolo');
+ const appearanceOrigin = useRef<SetupMode>('setupSolo');
  const initialFocusRef = useRef(initialFocus);
  function restoreFocus(testId: string | null) {
   if(!testId) return;
@@ -179,8 +194,9 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
    document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.focus({preventScroll: true});
   });
  }
- function openAppearance(next: 'playerLeader' | 'playerFlag') {if(modal === 'setupSolo' || modal === 'setupLan') appearanceOrigin.current = modal; setModal(next);}
+ function openAppearance(next: 'playerLeader' | 'playerFlag') {directAppearance.current=false; if(isSetup(modal)) appearanceOrigin.current = modal; if(next==='playerLeader'){setDraft(appearance??leaderAppearances[leader]);setCustomTab(Boolean(appearance));} setModal(next);}
  function closeModal() {
+  if(modal==='playerLeader' && directAppearance.current){directAppearance.current=false;setModal(null);restoreFocus('lobby-customize');return;}
   if(modal === 'playerLeader' || modal === 'playerFlag') {setModal(appearanceOrigin.current); restoreFocus(modal === 'playerLeader' ? 'edit-player-leader' : 'edit-player-flag');}
   else {setModal(null); restoreFocus(initialFocusRef.current); initialFocusRef.current = null;}
  }
@@ -191,6 +207,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   preloadLocalSession(); preloadPortraits();
   if(initialAction === 'saves' || initialAction === 'settingsSaves') refreshSaves();
   if(initialAction === 'resumeLan' && ticket) connect(ticket);
+  if(initialAction === 'createGame') void createFromMenu();
   if(!initialAction) {restoreFocus(initialFocusRef.current); initialFocusRef.current = null;}
  }, []);
  // The settings menu pauses only the local simulation, without changing the user's pause intent.
@@ -215,7 +232,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }
  useEffect(() => {if(game && session.current?.mode === 'solo' && game.tick - autoTick.current >= 1200) {autoTick.current = game.tick; saveCurrent(null, text('autosave'));}}, [game?.tick]);
  useEffect(() => {if(screen === 'game' || screen === 'menu') world.current?.view('strategic');}, [screen, actor]);
- function resetHud(region: number) {setDock(!compactRef.current && region >= 0 ? 'region' : null); setOutlinerOpen(!compactRef.current);}
+ function resetHud(region: number) {setForces(EMPTY_FORCE_SELECTION);setDock(!compactRef.current && region >= 0 ? 'region' : null); setOutlinerOpen(!compactRef.current);}
  function cancelLocalStart() {session.current?.dispose(); session.current = null; setLocalStarting(false); setGame(null); setScreen('menu'); setModal(null);}
  function launchLocal(value: GameState) {
   const region = initialRegion(value, 0);
@@ -227,11 +244,13 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
    developmentSessions.add(session.current);
   } catch(error) {cancelLocalStart(); report(error);}
  }
- useEffect(() => {saveSetupPreferences({leader, flag});}, [leader, flag]);
- function setup(): PlayerSetup {return {name: commanderName.trim(), leader, flag, loadout};}
+ useEffect(() => {saveSetupPreferences({leader, flag, appearance});}, [leader, flag, appearance]);
+ function setup(): PlayerSetup {return {name: commanderName.trim(), leader, flag, loadout, ...(appearance?{appearance}:{})};}
  function startSolo() {
   if(!validCount(soloAICount, 1, setupMaxAI)) return;
-  try {const seed = crypto.getRandomValues(new Uint32Array(1))[0]; launchLocal(createGame([setup(), ...makeAISetups(Number(soloAICount), seed)], seed, crypto.randomUUID()));}
+  try {const seed = crypto.getRandomValues(new Uint32Array(1))[0]; const campaign = createGame([setup(), ...makeAISetups(Number(soloAICount), seed)], seed, crypto.randomUUID());
+   if(screen === 'lobby') {forgetTicket(); setRoom(null);}
+   launchLocal(campaign);}
   catch(error) {report(error);}
  }
  function connect(next: Ticket) {
@@ -241,13 +260,37 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   let initialized = false;
   session.current = remoteSession(next, value => {
    setGame(value); setScreen('game');
-   if(!initialized) {const region = initialRegion(value, next.actor); setSelected(region); resetHud(region); initialized = true;}
+   if(!initialized) {const region = initialRegion(value, next.actor); setModal(null); setSelected(region); resetHud(region); initialized = true;}
   }, setRoom, setNetwork, notifyResult);
  }
+ async function createFromMenu() {
+  if(creating.current) return;
+  if(import.meta.env.MODE === 'desktop') {setModal('setupSolo'); return;}
+  creating.current = true; setBusy(true); setToast('');
+  try {
+   if(!await hasRoomServer()) {setModal('setupSolo'); return;}
+   const player = setup();
+   connect(await createRoom({...player, name: player.name || text('yourName')}));
+  } catch(error) {report(error instanceof TypeError ? new Error('serverOffline') : error);}
+  finally {creating.current = false; setBusy(false);}
+ }
  async function roomAction(join: boolean) {
-  if(!join && !validCount(roomAICount, 0, setupMaxAI)) return;
+  if(!join && !validCount(roomAICount, 0, screen === 'lobby' ? lobbyMaxAI : setupMaxAI)) return;
   setBusy(true);
-  try {connect(await (join ? joinRoom(code, setup()) : createRoom(setup(), Number(roomAICount))));} catch(error) {report(error);} finally {setBusy(false);}
+  try {
+   if(!join && screen === 'lobby' && ticket) {
+    setRoom(await configureRoom(ticket, Number(roomAICount), setup())); setModal(null);
+   } else connect(await (join ? joinRoom(code, setup()) : createRoom(setup(), Number(roomAICount))));
+  } catch(error) {report(error);} finally {setBusy(false);}
+ }
+ async function applyCommander(draft:CommanderAppearance) {
+  if(directAppearance.current){
+   if(!ticket||busy)return;
+   setBusy(true);
+   try{setRoom(await api('/rooms/'+ticket.code+'/appearance',{appearance:draft},ticket.token));}
+   catch(error){report(error);return;}finally{setBusy(false);}
+  }
+  setAppearance(draft);closeModal();
  }
  async function changeRoomAI(aiCount: number) {if(!ticket) return; setBusy(true); try {setRoom(await configureRoom(ticket, aiCount));} catch(error) {report(error);} finally {setBusy(false);}}
  async function beginMatch() {if(!ticket) return; setBusy(true); try {await api(`/rooms/${ticket.code}/start`, {}, ticket.token);} catch(error) {report(error);} finally {setBusy(false);}}
@@ -256,17 +299,23 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   if(screen !== 'game' || localStarting) return;
   if(attack) {
    if(eliminated || !MAP[id]) return;
-   // With an army selected, a right-click / long-press redirects that army instead of dispatching.
-   if(ownsArmy(selectedArmy)) {issue(countryActions.armyMarch(selectedArmy!, id)); return;}
-   if(!MAP[selected]) return; issue(countryActions.march(selected,id));
+   if(forces.armies.length||forces.regions.length){
+    const sources=forces.regions.filter(region=>region!==id&&game?.provinces[region].owner===actor);
+    if(forces.armies.length||sources.length)issue(countryActions.moveForces(forces.armies,sources,id,dispatchFraction()));
+    return;
+   }
+   if(!MAP[selected]) return; issue(countryActions.march(selected,id,dispatchFraction()));
   }
-  else if(id === -1) {setSelectedArmy(null); setSelected(-1); setDock(current => current === 'region' ? null : current);}
-  else if(MAP[id]) {setSelectedArmy(null); setSelected(id); if(!compactRef.current) setDock('region');}
+  else if(id === -1) {setForces(EMPTY_FORCE_SELECTION); setSelected(-1); setDock(current => current === 'region' ? null : current);}
+  else if(MAP[id]) {setForces(EMPTY_FORCE_SELECTION); setSelected(id); if(!compactRef.current) setDock('region');}
+ }
+ function selectForces(selection:MapForceSelection){
+  setForces(selection);setSelected(-1);setDock(current=>current==='region'?null:current);
  }
  /** Outliner, search, nations and dispatch shortcuts: select, frame and (on wide screens) dock the region. */
  const jumpToRegion = useCallback((id: number) => {
   if(!MAP[id]) return;
-  setSelected(id); world.current?.focusProvince(id);
+  setForces(EMPTY_FORCE_SELECTION);setSelected(id); world.current?.focusProvince(id);
   if(compactRef.current) setOutlinerOpen(false); else setDock('region');
  }, []);
  /** A country's own window: from the rail, your flag, a region's owner, a battle side, the outliner or the rankings. */
@@ -280,7 +329,7 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  function locateCountry(id: number) {
   if(!game) return;
   const region = factionFocusRegion(game, id); if(region < 0) return;
-  setSelected(region); world.current?.focusProvince(region);
+  setForces(EMPTY_FORCE_SELECTION);setSelected(region); world.current?.focusProvince(region);
   if(compactRef.current) setDock(null);
  }
  function toggleDock(next: Dock) {
@@ -298,14 +347,19 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
  }
  function togglePause() {if(session.current?.mode !== 'solo') return; setPaused(!paused);}
  function changeSpeed(value: number) {session.current?.speed?.(value); setSpeed(value);}
+ function forgetTicket() {
+  try {sessionStorage.removeItem(TICKET_KEY);} catch {/* Nothing to forget. */}
+  setTicket(null);
+ }
  async function leave() {
   if(leaving.current || screen === 'game' && !window.confirm(text('exitConfirm'))) return;
+  const fromRoom = screen === 'lobby' && ticket && ticket.actor !== 0 ? 'setupJoin' : null;
   leaving.current=true;
   try {
    if(session.current?.mode === 'solo' && latest.current && !await saveCurrent(null, text('autosave')) && !window.confirm(text('saveFailed'))) return;
-   session.current?.dispose(); session.current = null; setGame(null); setScreen('menu'); setRoom(null); setModal(null); setPaused(false); setDock(null);
-   try {sessionStorage.removeItem(TICKET_KEY);} catch {/* Nothing to forget. */}
-   setTicket(null);
+   session.current?.dispose(); session.current = null; setGame(null); setScreen('menu'); setRoom(null); setModal(fromRoom); setPaused(false); setDock(null);
+   forgetTicket();
+   if(screen === 'lobby' && !fromRoom) restoreFocus('single-player');
   } finally {leaving.current=false;}
  }
  async function load(id: string) {try {const {state: loaded, recovered} = await browserSaves.read(id); launchLocal(loaded); if(recovered) setToast(text('recovered'));} catch(error) {report(error);}}
@@ -350,12 +404,13 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   return () => window.removeEventListener('keydown', key);
  }, [paused, modal, screen, settingsPage, localStarting, showDefeat, game?.winner, dock, outlinerOpen, compact]);
 
+ const workshop=modal==='playerLeader'&&customTab?{draft,onChange:setDraft,onApply:applyCommander,onClose:closeModal,busy,message:toast,onPresets:directAppearance.current?undefined:()=>setCustomTab(false)}:undefined;
  const modalClass = modal ? [modal.startsWith('setup') ? 'setup-modal' : '', modal === 'playerLeader' || modal === 'playerFlag' ? 'identity-modal' : '',
   modal === 'talents' ? 'talent-modal' : '', modal === 'settings' ? 'settings-modal' : '', modal === 'saves' ? 'saves-modal' : '', modal === 'territories' ? 'territory-modal' : ''].join(' ') : '';
- const modalTitle = modal === 'setupSolo' || modal === 'setupLan' ? text('setup') : modal === 'settings' ? text(settingsPage === 'saves' ? 'saves' : 'settings')
-  : modal === 'playerLeader' ? text('playerLeader') : modal === 'playerFlag' ? text('playerFlag') : modal === 'saves' ? text('saves')
+ const modalTitle = isSetup(modal) ? text('setup') : modal === 'settings' ? text(settingsPage === 'saves' ? 'saves' : 'settings')
+  : modal === 'playerLeader' ? text(directAppearance.current?'customCommander':'playerLeader') : modal === 'playerFlag' ? text('playerFlag') : modal === 'saves' ? text('saves')
   : modal === 'talents' ? text('talents') : modal === 'territories' ? text('territories') : '';
- const modalKicker = modal === 'setupSolo' ? text('single') : modal === 'setupLan' ? text('multiplayer') : modal === 'playerLeader' || modal === 'playerFlag' ? text('playerAppearance')
+ const modalKicker = modal === 'setupJoin' ? text('joinGame') : isSetup(modal) ? text('createGame') : modal === 'playerLeader' || modal === 'playerFlag' ? text('playerAppearance')
   : modal === 'talents' && player ? text(player.leader) : modal === 'territories' && game && MAP[selected] ? MAP[selected].name[language === 'zh' ? 0 : 1] : undefined;
  const savesView = <SavesView saves={saves} language={language} canSave={solo && Boolean(game)} canExport={solo && Boolean(game)} saveName={saveName} onSaveName={setSaveName}
   onCreate={() => game && saveCurrent(`manual-${crypto.randomUUID()}`, saveName || `${text('theatre')} ${timeLabel(game.tick,language)}`)} onLoad={load}
@@ -366,17 +421,29 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   data-input-device={inputDevice} data-resource-state="ready" data-local-ready={String(!localStarting)} aria-busy={localStarting} data-eliminated={eliminated}>
   <SessionLifetime session={session}/>
   <World state={state} selected={screen === 'game' ? selected : -1} actor={screen === 'game' ? actor : -1} language={language} onPick={selectProvince} onMode={() => {}} onDispatch={(sources,target,fraction) => issue(countryActions.muster(sources,target,fraction))}
-   onArmy={id => setSelectedArmy(current => current === id ? null : id)} selectedArmy={screen === 'game' ? selectedArmy : null} worldRef={world}/>
+   onArmy={id=>setForces(current=>current.armies.length===1&&current.armies[0]===id&&!current.regions.length?EMPTY_FORCE_SELECTION:{regions:[],armies:[id]})}
+   onBoxSelect={selectForces} selectedForces={screen==='game'?forces:EMPTY_FORCE_SELECTION} worldRef={world}/>
   <div className="map-vignette"/>
-  {screen !== 'game' && <div className="language-switch">
-   <button type="button" className={language === 'zh' ? 'active' : ''} onClick={() => setLanguage('zh')} aria-label="简体中文">中</button><span>/</span>
-   <button type="button" className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')} aria-label="English">EN</button>
-  </div>}
-  {screen === 'menu' && <StartMenu language={language} resumeCode={ticket?.code} onAction={action => {
-   if(action === 'saves') showSaves(); else if(action === 'settings') openSettings(); else if(action === 'resumeLan' && ticket) connect(ticket); else if(action === 'setupSolo' || action === 'setupLan') setModal(action);
+  {screen === 'menu' && <LanguageSwitch language={language} onLanguage={setLanguage}/>}
+  {screen === 'menu' && <StartMenu language={language} resumeCode={ticket?.code} creating={busy} onAction={action => {
+   if(action === 'createGame') {initialFocusRef.current = 'single-player'; void createFromMenu();}
+   else if(action === 'saves') showSaves(); else if(action === 'settings') openSettings(); else if(action === 'resumeLan' && ticket) connect(ticket); else if(action === 'setupJoin') setModal(action);
   }}/>}
-  {screen === 'lobby' && <Lobby room={room} ticket={ticket} network={network} busy={busy} language={language} aiDraft={lobbyAI} maxAI={lobbyMaxAI}
-   onAIDraft={setLobbyAI} onApplyAI={changeRoomAI} onLeave={leave} onStart={beginMatch}/>}
+  {screen === 'lobby' && <Lobby room={room} ticket={ticket} network={network} busy={busy} language={language} aiDraft={lobbyAI} maxAI={lobbyMaxAI} editor={workshop}
+   onLanguage={setLanguage} onAIDraft={setLobbyAI} onApplyAI={changeRoomAI} onLeave={leave} onStart={beginMatch}
+   onCustomize={() => {
+    const me=room?.seats.find(seat=>seat.id===ticket?.actor);if(!me)return;
+    setDraft(me.appearance??leaderAppearances[me.leader]);directAppearance.current=true;setCustomTab(true);setModal('playerLeader');
+   }}
+   onDeployment={() => {
+    const me = room?.seats.find(seat => seat.id === ticket?.actor);
+    if(me) {
+     setName(me.name); setLeader(me.leader);setAppearance(me.appearance);setCustomTab(Boolean(me.appearance));
+     if(me.flag) setFlag(me.flag);
+     setLoadout(me.loadout);
+    }
+    initialFocusRef.current = 'room-settings'; setRoomAICount(String(room?.aiCount ?? 0)); setModal('setupLan');
+   }}/>}
   {screen === 'game' && game && player && <>
    <TopBar state={game} actor={actor} owned={owned} language={language} onTalents={() => setModal('talents')} onCountry={openOwnCountry}
     clock={<Clock tick={game.tick} solo={solo} paused={paused} speed={speed} network={network} language={language} onPause={togglePause} onSpeed={changeSpeed}
@@ -397,8 +464,8 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
     {dock === 'military' && <MilitaryPanel player={player} eliminated={eliminated} language={language} onCommand={issue} onClose={closeDock}/>}
     {dock === 'nations' && <NationsPanel state={game} actor={actor} factions={factions} language={language} onOpenCountry={openCountry} onClose={closeDock}/>}
    </div>
-   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} selectedArmy={selectedArmy} language={language} open={outlinerOpen}
-    onSelectArmy={army => {setSelectedArmy(army.id); world.current?.focusProvince(army.region);}}
+   <Outliner state={game} actor={actor} owned={owned} factions={factions} regions={regions} armies={armyList} selectedArmies={forces.armies} language={language} open={outlinerOpen}
+    onSelectArmy={army => {setForces({regions:[],armies:[army.id]}); world.current?.focusProvince(army.region);}}
     onFocusNation={openCountry} onSelectRegion={jumpToRegion} onShowNations={() => {setDock('nations'); if(compact) setOutlinerOpen(false);}}/>
    <CommanderPortrait player={player} language={language} color={factionColor(actor)} onTalents={() => setModal('talents')}/>
    {paused && solo && <div className="pause-banner" role="status"><span aria-hidden="true">Ⅱ</span>{text('paused')}</div>}
@@ -408,22 +475,28 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   {showDefeat && <ModalDialog className="result-modal elimination-modal" label={text('eliminatedTitle')} onClose={() => setSpectating(true)} closeLabel={text('spectate')} pageKey="eliminated">
    <EliminationBody language={language} onSpectate={() => setSpectating(true)} onLeave={leave}/>
   </ModalDialog>}
-  {modal && <ModalDialog className={modalClass} label={modal === 'setupSolo' || modal === 'setupLan' ? text('setup') : text(modal)} onClose={closeModal} closeLabel={text('close')}
-   pageKey={modal === 'settings' ? settingsPage : modal} title={modalTitle} kicker={modalKicker}>
+  {workshop&&screen!=='lobby'&&<section className="lobby party-room" data-editing="true">
+   <LobbyStage language={language} editor={workshop} seats={[{id:0,name:commanderName,connected:true,flag,leader,loadout,appearance:draft}]}/><div className="party-stage"/>
+  </section>}
+  {modal && !workshop && <ModalDialog className={modalClass} label={isSetup(modal) ? text('setup') : text(modal)} onClose={closeModal} closeLabel={text('close')}
+   pageKey={modal === 'settings' ? settingsPage : modal === 'setupSolo' || modal === 'setupLan' ? 'setup' : modal} title={modalTitle} kicker={modalKicker}>
    {modal === 'settings' && settingsPage === 'general' && <SettingsGeneral language={language} inGame={screen === 'game'} solo={solo} onLanguage={setLanguage}
     onSaves={openSettingsSaves} onResume={closeModal} onLeave={leave}/>}
    {modal === 'settings' && settingsPage === 'saves' && <><button type="button" className="settings-back" data-testid="settings-back" onClick={() => setSettingsPage('general')}>
     <Icon name="back" size={16}/>{text('backSettings')}</button>{savesView}</>}
    {modal === 'saves' && savesView}
-   {modal === 'playerLeader' && <div className="leader-grid">{LEADERS.map((option, index) => <button type="button" data-testid={`choose-leader-${option}`} aria-pressed={leader === option} key={option}
-    className={`leader-card ${leader === option ? 'chosen' : ''}`} onClick={() => setLeader(option)}>
+   {modal === 'playerLeader' && <>{!directAppearance.current&&<div className="portrait-tabs" role="group" aria-label={text('playerLeader')}>
+    <button type="button" aria-pressed={!customTab} onClick={()=>setCustomTab(false)}>{text('appearancePresets')}</button>
+    <button type="button" data-testid="customize-commander" aria-pressed={customTab} onClick={()=>{setDraft(appearance??leaderAppearances[leader]);setCustomTab(true);}}>{text('customCommander')}</button></div>}
+    <div className="leader-grid">{LEADERS.map((option, index) => <button type="button" data-testid={`choose-leader-${option}`} aria-pressed={!appearance && leader === option} key={option}
+    className={`leader-card ${!appearance && leader === option ? 'chosen' : ''}`} onClick={() => {setAppearance(undefined);setLeader(option);}}>
     <div className={`leader-art art-${index}`}><LeaderBust leader={option} label={text(option)}/><span>0{index + 1}</span></div>
-    <div className="leader-copy"><b>{text(option)}</b><span className="selected-dot">{leader === option ? '●' : '○'}</span></div>
-   </button>)}</div>}
+    <div className="leader-copy"><b>{text(option)}</b><span className="selected-dot">{!appearance && leader === option ? '●' : '○'}</span></div>
+   </button>)}</div></>}
    {modal === 'playerFlag' && <FlagEditor value={flag} onChange={setFlag} language={language}/>}
-   {(modal === 'setupSolo' || modal === 'setupLan') && <SetupDialog mode={modal} language={language} flag={flag} leader={leader} loadout={loadout}
-    aiCount={modal === 'setupSolo' ? soloAICount : roomAICount} maxAI={setupMaxAI} name={commanderName} code={code} busy={busy}
-    onAppearance={openAppearance} onLoadout={kind => setLoadout([kind])} onAICount={value => modal === 'setupSolo' ? setSoloAICount(value) : setRoomAICount(value)}
+   {isSetup(modal) && <SetupDialog appearance={appearance} mode={modal} language={language} flag={flag} leader={leader} loadout={loadout}
+    aiCount={modal === 'setupSolo' ? soloAICount : roomAICount} maxAI={screen === 'lobby' && modal === 'setupLan' ? lobbyMaxAI : setupMaxAI} name={commanderName} code={code} busy={busy} inRoom={screen === 'lobby'} roomSeats={room?.seats}
+    onMode={setModal} onAppearance={openAppearance} onLoadout={kind => setLoadout([kind])} onAICount={value => modal === 'setupSolo' ? setSoloAICount(value) : setRoomAICount(value)}
     onName={setName} onCode={setCode} onStart={startSolo} onCreateRoom={() => roomAction(false)} onJoinRoom={() => roomAction(true)}/>}
    {modal === 'territories' && game && <TerritoryManagement state={game} grouping={game.grouping} selected={selected} actor={actor} eliminated={eliminated} language={language} onCommand={issue}/>}
    {modal === 'talents' && player && game && <TalentsDialog player={player} campaign={game.campaign} seenRound={seenTalentRound} eliminated={eliminated} pending={pendingTalent !== null} language={language}
@@ -433,6 +506,6 @@ export function App({initialAction = null, initialFocus = null, initialLanguage}
   {localStarting && <ModalDialog label={text('starting')} closeLabel={text('close')} onClose={cancelLocalStart} pageKey="local-starting" className="starting-modal">
    <p role="status" data-testid="local-starting"><Icon name="hourglass" size={18}/>{text('starting')}</p>
   </ModalDialog>}
-  {toast && <div className="toast" role="status"><span>{toast}</span><button type="button" onClick={() => setToast('')} aria-label={text('close')}><Icon name="close" size={14}/></button></div>}
+  {toast && !workshop && <div className="toast" role="status"><span>{toast}</span><button type="button" onClick={() => setToast('')} aria-label={text('close')}><Icon name="close" size={14}/></button></div>}
  </div>;
 }

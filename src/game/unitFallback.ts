@@ -48,6 +48,8 @@ export function updateUnitsFallback(active:readonly Unit[],unitStats:(owner:numb
               .sort((a,b)=>(active[a].x-enemy!.x)**2+(active[a].z-enemy!.z)**2-((active[b].x-enemy!.x)**2+(active[b].z-enemy!.z)**2)||active[a].id-active[b].id);
             for(const other of extra.slice(0,secondaryTargets(mode[index])))hit(index,other,secondary*(mode[other]&MODE_SPLASH_RESIST?SPLASH_RESIST_FACTOR:1),false);
           }
+          const aimX=liveX[enemyIndex]-ux,aimZ=liveZ[enemyIndex]-uz;
+          if(aimX||aimZ)u.lastShotHeading=Math.atan2(aimX,aimZ);
           u.cooldown+=1/st.attackSpeed;
         }return;
       }

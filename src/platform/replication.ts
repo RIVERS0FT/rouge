@@ -44,7 +44,7 @@ const sameProvince=(a:Province,b:Province)=>a.id===b.id&&a.owner===b.owner&&a.pr
 // Neutral guards are not assigned travel or transport orders. Fall back to a
 // regular frame if one ever has a nonstandard order; no state is silently lost.
 const regularNeutral=(u:Unit)=>u.target===null&&u.destination===null&&!u.travel&&!u.transport&&u.assault===undefined&&u.route.length===0;
-const sameNeutral=(a:Unit,b:Unit)=>a.kind===b.kind&&a.x===b.x&&a.z===b.z&&a.hp===b.hp&&a.cooldown===b.cooldown&&a.province===b.province&&a.origin===b.origin;
+const sameNeutral=(a:Unit,b:Unit)=>a.kind===b.kind&&a.x===b.x&&a.z===b.z&&a.hp===b.hp&&a.cooldown===b.cooldown&&a.lastShotHeading===b.lastShotHeading&&a.province===b.province&&a.origin===b.origin;
 export function encodeFrame(state:GameState,base:SnapshotBase|undefined,actor:number,authoritativeLocal=false):{frame:StateFrame;base:SnapshotBase} {
   // Local authoritative saves need every AI's choices; LAN retains seat privacy.
   const players=state.players.map(p=>({...p,choices:authoritativeLocal||p.id===actor?[...p.choices]:[]}));

@@ -3,23 +3,34 @@ export interface InfantryAsset {
   positions:Float32Array;normals:Int8Array;colors:Uint8Array;tint:Uint8Array;fabric:Uint8Array;
   jointPair:Uint8Array;weights:Uint8Array;glow:Uint8Array;indices:Uint16Array;
   palette:Float32Array;joints:number;walkFrames:number;shootFrames:number;fps:number;poseCount:number;idleFrame:number;
+  uv?:Float32Array;diffuse?:Blob;
 }
 export function parseInfantryAsset(buffer:ArrayBuffer):InfantryAsset {
   const view=new DataView(buffer),header=32;
-  if(buffer.byteLength<header||view.getUint32(0,false)!==0x52494e46||view.getUint32(4,true)!==3)throw new Error('Invalid infantry asset header');
+  if(buffer.byteLength<header||view.getUint32(0,false)!==0x52494e46)throw new Error('Invalid infantry asset header');
+  const version=view.getUint32(4,true);
+  if(version!==3&&version!==4)throw new Error('Invalid infantry asset header');
   const count=view.getUint32(8,true),indexCount=view.getUint32(12,true),joints=view.getUint32(16,true);
   const walkFrames=view.getUint32(20,true),shootFrames=view.getUint32(24,true),fps=view.getUint32(28,true);
-  const indexOffset=header+count*18,paletteOffset=Math.ceil((indexOffset+indexCount*2)/4)*4;
+  const stride=version===4?22:18;
+  const indexOffset=header+count*stride,paletteOffset=Math.ceil((indexOffset+indexCount*2)/4)*4;
   // V3 retains a single static attention row, leaving both animated clips and
   // their GPU texture row indices unchanged.
   const idleFrame=walkFrames+shootFrames;
   const poseCount=idleFrame+1,floats=poseCount*joints*12;
   if(!count||count>65535||!indexCount||indexCount%3||!joints||joints>255||walkFrames<2||shootFrames<2||
-     poseCount>1024||!fps||fps>120||paletteOffset+floats*4!==buffer.byteLength)throw new Error('Invalid infantry asset length');
+     poseCount>1024||!fps||fps>120||paletteOffset+floats*4>buffer.byteLength)throw new Error('Invalid infantry asset length');
+  const imageOffset=paletteOffset+floats*4;
+  if(version===3&&imageOffset!==buffer.byteLength)throw new Error('Invalid infantry asset length');
+  if(version===4&&(imageOffset+8>buffer.byteLength||view.getUint32(imageOffset)!==0x89504e47||
+      view.getUint32(imageOffset+4)!==0x0d0a1a0a))throw new Error('Missing unit texture');
+  const uv=version===4?new Float32Array(count*2):undefined;
+  const diffuse=uv?new Blob([buffer.slice(imageOffset)],{type:'image/png'}):undefined;
   const positions=new Float32Array(count*3),normals=new Int8Array(count*3),colors=new Uint8Array(count*3);
   const fabric=new Uint8Array(count),tint=new Uint8Array(count),jointPair=new Uint8Array(count*2),weights=new Uint8Array(count),glow=new Uint8Array(count);
   for(let i=0;i<count;i++){
-    const o=header+i*18;
+    const o=header+i*stride;
+    if(uv){uv[i*2]=view.getUint16(o+18,true)/65535;uv[i*2+1]=view.getUint16(o+20,true)/65535;}
     for(let c=0;c<3;c++){positions[3*i+c]=view.getInt16(o+2*c,true)/4096;normals[3*i+c]=view.getInt8(o+6+c);colors[3*i+c]=view.getUint8(o+10+c);}
     fabric[i]=view.getUint8(o+9);if(fabric[i]>3)throw new Error('Invalid infantry fabric pattern');
     tint[i]=view.getUint8(o+13);const a=view.getUint8(o+14),b=view.getUint8(o+15);
@@ -30,5 +41,5 @@ export function parseInfantryAsset(buffer:ArrayBuffer):InfantryAsset {
   for(let i=0;i<indexCount;i++){const index=view.getUint16(indexOffset+i*2,true);if(index>=count)throw new Error('Invalid infantry index');indices[i]=index;}
   const palette=new Float32Array(floats);
   for(let i=0;i<floats;i++){const n=view.getFloat32(paletteOffset+i*4,true);if(!Number.isFinite(n))throw new Error('Invalid infantry transform');palette[i]=n;}
-  return{positions,normals,colors,tint,fabric,jointPair,weights,glow,indices,palette,joints,walkFrames,shootFrames,fps,poseCount,idleFrame};
+  return{positions,normals,colors,tint,fabric,jointPair,weights,glow,indices,palette,joints,walkFrames,shootFrames,fps,poseCount,idleFrame,uv,diffuse};
 }

@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
+    "build:windows": "npm run build -- --mode desktop --outDir .cache/windows-game && npm --prefix desktop run package",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck:core": "tsc -p tsconfig.core.json",

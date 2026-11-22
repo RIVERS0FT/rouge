@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 test('cosmetic leader choice and custom flag survive close/reopen and appear in game',async({page})=>{
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();
  await expect(page.locator('.leader-copy>b')).toContainText(['铁壁统帅','机动先锋','军需总监']);

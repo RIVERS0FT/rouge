@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {waitForRuntime} from './readiness.ts';
 
 for(const [width,height] of [[1190,1017],[1440,960],[1280,720],[390,844],[360,640],[844,390]]){

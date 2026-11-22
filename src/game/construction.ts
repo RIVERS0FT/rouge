@@ -11,6 +11,9 @@ export const CONSTRUCTION_KINDS: readonly ConstructionKind[] = ['market','barrac
 export const STARTING_FUNDS = BALANCE.economy.startingFunds;
 export const MAX_FUNDS = 1e12;
 export const BASE_FUNDS_INCOME = BALANCE.economy.incomePerRegion;
+export function armyUpkeep(unitCount: number): number {
+ return unitCount * BALANCE.economy.upkeepPerUnit;
+}
 export const CAPTURE_REWARD = BALANCE.economy.captureReward;
 /** Recovery length in campaign days (the name predates the day unit). */
 export const CAPTURE_RECOVERY_SECONDS = BALANCE.economy.recoveryDays;
@@ -57,7 +60,8 @@ export function constructionProductionMultiplier(p: Pick<Province,'construction'
 /** `tradeBonus` is the Trade Routes income from neighbouring markets (funds/day before multipliers). */
 export function fundsIncomeRate(p: Pick<Province,'construction'|'recovery'>, baseRate: number, country?: CountryTalents, tradeBonus=0): number {
  const b=p.construction;
- let rate=baseRate*recoveryMultiplier(p.recovery,country)*(BASE_FUNDS_INCOME+(b?.kind==='market'?CONSTRUCTION.market.benefits[b.level-1]:0)+tradeBonus)*(hasTalent(country,'taxReform')?T.taxReform.income:1);
+ const bonus=(b?.kind==='market'?CONSTRUCTION.market.benefits[b.level-1]:0)+tradeBonus;
+ let rate=(BASE_FUNDS_INCOME+baseRate*bonus)*recoveryMultiplier(p.recovery,country)*(hasTalent(country,'taxReform')?T.taxReform.income:1);
  if(hasTalent(country,'mercantilism'))rate*=T.mercantilism.income;
  if(hasTalent(country,'livingOffLand'))rate*=T.livingOffLand.income;
  return rate;

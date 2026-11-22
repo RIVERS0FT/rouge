@@ -20,6 +20,7 @@ export type CountryAction =
   | {type:'muster';sources:number[];to:number;fraction:MarchFraction}
   /** Redirect an army that is marching or attacking. */
   | {type:'armyMarch';army:number;to:number}
+  | {type:'moveForces';armies:readonly number[];sources:readonly number[];to:number;fraction:MarchFraction}
   | {type:'construct';province:number;kind:ConstructionKind;expectedLevel:0|1|2}
   | {type:'production';province:number;kind:Kind}
   | {type:'upgrade';kind:Kind;stat:Upgrade}
@@ -30,6 +31,7 @@ export const countryActions={
   march:(from:number,to:number,fraction:MarchFraction=1)=>({type:'march',from,to,fraction} satisfies CountryAction),
   muster:(sources:number[],to:number,fraction:MarchFraction=1)=>({type:'muster',sources,to,fraction} satisfies CountryAction),
   armyMarch:(army:number,to:number)=>({type:'armyMarch',army,to} satisfies CountryAction),
+  moveForces:(armies:readonly number[],sources:readonly number[],to:number,fraction:MarchFraction)=>({type:'moveForces',armies,sources,to,fraction} satisfies CountryAction),
   upgrade:(kind:Kind,stat:Upgrade)=>({type:'upgrade',kind,stat} satisfies CountryAction),
   talent:(id:string)=>({type:'talent',id} satisfies CountryAction),
 };

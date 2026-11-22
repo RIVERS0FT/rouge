@@ -1,13 +1,18 @@
 import {dirname,isAbsolute,resolve} from 'node:path';
-import {readFileSync} from 'node:fs';
+import {readFileSync,realpathSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {normalizePath,type Plugin} from 'vite';
+
+function realPath(path:string){try{return realpathSync.native(path);}catch{return path;}}
 
 /** Keep the existing synchronous Node imports, but make the two browser module
  * graphs fetch the same JSON assets. Virtual IDs avoid running Vite's JSON
  * transform on loader code. ?url&no-inline is deliberately NOT intercepted. */
 export function sharedMapAssets(root:string):Plugin{
-  const generated=resolve(root,'src/generated');
+  // Vite names modules by real path (`E:\…` on Windows), while `root` keeps the
+  // shell's spelling (a VS Code terminal starts in `e:\…`). Compare real paths,
+  // or the atlas is silently inlined into the app and every worker.
+  const generated=realPath(resolve(root,'src/generated'));
   const world=resolve(generated,'world.json'),terrain=resolve(generated,'terrain-navigation.json');
   const worldId='\0rouge:shared-map-world',terrainId='\0rouge:shared-map-terrain';
   const dataId='\0rouge:shared-map-data';

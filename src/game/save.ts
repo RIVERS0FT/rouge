@@ -1,6 +1,7 @@
 import {isMarchFraction} from './countryActions.ts';
 import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
+import {validAppearance} from './portrait.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, UNITS, MAX_LEADER_LEVEL, MAX_UPGRADE_LEVEL, stats } from './content.ts';
 import {BALANCE} from './balance.ts';
@@ -41,7 +42,7 @@ export function validateState(value:unknown):value is GameState{
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,BALANCE.victory.days+1)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,MAX_LEADER_LEVEL)||!integer(p.drafts,0,MAX_LEADER_LEVEL-1)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
+    if(!p||(p.appearance!==undefined&&!validAppearance(p.appearance))||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,MAX_LEADER_LEVEL)||!integer(p.drafts,0,MAX_LEADER_LEVEL-1)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
     if(!Array.isArray(p.loadout)||p.loadout.length!==1||!KINDS.includes(p.loadout[0]))return false;
     if(!Array.isArray(p.talents)||p.talents.length>MAX_LEADER_LEVEL-1||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
     if(!Array.isArray(p.choices)||p.choices.length>3||new Set(p.choices).size!==p.choices.length||!p.choices.every(t=>talentIds.includes(t)&&!p.talents.includes(t)))return false;
@@ -68,6 +69,7 @@ export function validateState(value:unknown):value is GameState{
   const ids=new Set<number>(),armies=new Map(s.armies.map(army=>[army.id,army]));
   for(const u of s.units){
     if(!u||!integer(u.id,1,s.nextId-1)||ids.has(u.id)||!integer(u.owner,-1,s.players.length-1)||!KINDS.includes(u.kind)||!number(u.x,BOUNDS.left,BOUNDS.right)||!number(u.z,BOUNDS.top,BOUNDS.bottom)||!number(u.hp,Number.MIN_VALUE,stats(s.players[u.owner],u.kind).hp+0.01)||!integer(u.province,0,MAP.length-1)||(u.target!==null&&!integer(u.target,0,MAP.length-1))||!integer(u.origin,0,MAP.length-1)||!number(u.cooldown,0,Math.max(1,1/stats(s.players[u.owner],u.kind).attackSpeed)+0.01))return false;
+    if(u.lastShotHeading!==undefined&&!number(u.lastShotHeading,-Math.PI,Math.PI))return false;
     if(!MAP[u.province].playable||!MAP[u.origin].playable||(u.target!==null&&!MAP[u.target].playable)||(!u.transport?.embarked&&!validLandPosition(u)))return false;
     const army=u.army===undefined?undefined:armies.get(u.army),formation=army?.formation;
     const source=pending.get(u.id);if(source!==undefined){

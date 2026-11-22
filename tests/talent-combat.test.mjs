@@ -30,8 +30,20 @@ function resolve(state,path){
  const s=structuredClone(state),damage=new Map(),statsFor=(owner,kind)=>stats(s.players[owner],kind);
  if(path==='kernel')updateBattleUnits(s.units,statsFor,s,damage,combatLanes(s.units,s,statsFor));
  else updateUnitsFallback(s.units,statsFor,s,damage,halt);
- return {damage:[...damage].sort((a,b)=>a[0]-b[0]),units:s.units.map(u=>[u.id,u.x,u.z,u.cooldown,u.target])};
+ return {damage:[...damage].sort((a,b)=>a[0]-b[0]),units:s.units.map(u=>[u.id,u.x,u.z,u.cooldown,u.target,u.lastShotHeading])};
 }
+test('shots face the primary target before splash, including a target killed on the same tick',()=>{
+ const {s}=scenario('artillery',[],'infantry',[],-1);
+ const [gun,,,primary,other]=s.units;s.units=[gun,other,primary];
+ primary.x=gun.x;primary.z=gun.z-1;primary.hp=1;
+ other.x=gun.x+.15;other.z=gun.z-1.1;
+ for(const path of ['kernel','fallback']){
+   const result=resolve(s,path);
+   assert.equal(result.units[0].at(-1),Math.PI);
+   assert.ok(result.damage.find(([id])=>id===primary.id)[1].amount>=primary.hp);
+   assert.ok(result.damage.some(([id])=>id===other.id));
+ }
+});
 const CASES=[
  ['infantry',[],'infantry',[],-1],
  ['infantry',['entrenchment','massedRanks','shockAssault','pursuit'],'infantry',['entrenchment','fortressDoctrine'],1],

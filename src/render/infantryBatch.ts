@@ -4,15 +4,20 @@ import {layerMapEntity} from './mapLayers.ts';
 import {infantryPose} from './infantryIdle.ts';
 import {infantryFabricShader} from './infantryFabric.ts';
 
-let assetRequest:Promise<InfantryAsset>|undefined;
-async function loadAsset(){
+const assetRequests=new Map<string,Promise<InfantryAsset>>();
+async function loadAsset(url:string){
   // Vite fingerprints the binary and resolves this URL relative to the Pages deployment.
-  const response=await fetch(new URL('./assets/infantry.bin',import.meta.url));
+  const response=await fetch(url);
   if(!response.ok)throw new Error(`Infantry asset HTTP ${response.status}`);
   return parseInfantryAsset(await response.arrayBuffer());
 }
-function getModel(){
-  return assetRequest??=loadAsset().catch((e:unknown)=>{assetRequest=undefined;throw e;});
+function getModel(url:string){
+  let request=assetRequests.get(url);
+  if(!request){
+    request=loadAsset(url).catch((error:unknown)=>{assetRequests.delete(url);throw error;});
+    assetRequests.set(url,request);
+  }
+  return request;
 }
 // All instances sample the same 41 poses. Skin each source vertex once per
 // pose instead of fetching and multiplying up to six bone rows per instance.
@@ -79,6 +84,7 @@ export class InfantryBatch {
   private asset:InfantryAsset|null=null;
   private mesh:THREE.InstancedMesh|null=null;
   private texture:THREE.DataTexture|null=null;
+  private diffuse:THREE.Texture|null=null;
   private poses?:ReturnType<typeof vertexPoses>;
   private material:THREE.MeshStandardMaterial|null=null;
   private poseFrames:THREE.InstancedBufferAttribute|null=null;
@@ -92,15 +98,24 @@ export class InfantryBatch {
   walking=0;
   shooting=0;
   idling=0;
-  constructor(private readonly scene:THREE.Scene,private readonly invalidate:()=>void){}
+  constructor(private readonly scene:THREE.Scene,private readonly invalidate:()=>void,
+    private readonly url=new URL('./assets/infantry.bin',import.meta.url).href){}
   request(){
     if(this.started||this.disposed)return;this.started=true;
-    void getModel().then(asset=>{
+    void getModel(this.url).then(async asset=>{
       if(this.disposed)return;
+      if(asset.diffuse){
+        const bitmap=await createImageBitmap(asset.diffuse,{premultiplyAlpha:'none',colorSpaceConversion:'none'});
+        if(this.disposed){bitmap.close();return;}
+        this.diffuse=new THREE.Texture(bitmap);
+        this.diffuse.colorSpace=THREE.SRGBColorSpace;
+        this.diffuse.minFilter=THREE.LinearMipmapLinearFilter;
+        this.diffuse.needsUpdate=true;
+      }
       this.asset=asset;
       const poses=vertexPoses(asset);
       this.poses=poses;this.texture=poses.texture;
-      this.material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95});
+      this.material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95,map:this.diffuse});
       this.material.onBeforeCompile=shader=>{
         shader.uniforms.rougePoses={value:this.texture};
         shader.uniforms.rougePoseRows={value:poses.rows};
@@ -114,12 +129,18 @@ export class InfantryBatch {
         shader.fragmentShader=infantryFabricShader+shader.fragmentShader
           .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb *= rougeFabricPigment();')
           .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance += rougePigment * rougeEmission * 3.0;');
+        if(this.diffuse){
+          shader.vertexShader='varying vec3 unitCountry;\n'+shader.vertexShader.replace('rougeEmission = rougeGlow;', 'rougeEmission = rougeGlow; unitCountry = rougeCountry;');
+          shader.fragmentShader='varying vec3 unitCountry;\n'+shader.fragmentShader.replace('#include <map_fragment>',`
+            vec4 cloth=texture2D(map,vMapUv);
+            diffuseColor.rgb *= mix(cloth.rgb, cloth.rgb * (vec3(.45) + 1.55 * unitCountry), cloth.a);`);
+        }
       };
-      this.material.customProgramCacheKey=()=> 'rouge-baked-infantry-fabric';
+      this.material.customProgramCacheKey=()=>this.diffuse?'rouge-textured-unit':'rouge-baked-infantry-fabric';
       this.rebuild();
       this.ready=true;
       this.invalidate();
-    }).catch(()=>{if(!this.disposed){this.failed=true;this.invalidate();}});
+    }).catch(error=>{if(!this.disposed){console.error('Unit model load failed',this.url,error);this.failed=true;this.invalidate();}});
   }
   private rebuild(){
     const asset=this.asset!,mesh=this.mesh;
@@ -127,6 +148,7 @@ export class InfantryBatch {
     const geometry=new THREE.BufferGeometry();
     geometry.setIndex(new THREE.BufferAttribute(asset.indices,1));
     geometry.setAttribute('position',new THREE.BufferAttribute(asset.positions,3));
+    if(asset.uv)geometry.setAttribute('uv',new THREE.BufferAttribute(asset.uv,2));
     geometry.setAttribute('normal',new THREE.BufferAttribute(asset.normals,3,true));
     geometry.setAttribute('rougeBaseColor',new THREE.BufferAttribute(asset.colors,3,true));
     geometry.setAttribute('rougeFabricId',new THREE.BufferAttribute(asset.fabric,1));
@@ -167,5 +189,6 @@ export class InfantryBatch {
     this.disposed=true;this.ready=false;
     if(this.mesh){this.scene.remove(this.mesh);this.mesh.geometry.dispose();this.mesh.dispose();}
     this.texture?.dispose();this.material?.dispose();
+    this.diffuse?.image.close();this.diffuse?.dispose();
   }
 }

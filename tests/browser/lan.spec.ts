@@ -1,6 +1,24 @@
 import {waitForRuntime} from './readiness.ts';
 import {test,expect} from '@playwright/test';
 
+test('creating a room can be retried from the same menu after a rejected request',async({page})=>{
+  let attempts=0;
+  await page.route('**/api/rooms',async route=>{
+    attempts++;
+    if(attempts===1)await route.fulfill({status:503,json:{error:'serverFull'}});
+    else await route.continue();
+  });
+  await page.goto('/');
+  const create=page.getByRole('button',{name:'创建游戏',exact:true});
+  await create.click();
+  await expect(page.locator('.toast')).toContainText('服务器房间已满',{timeout:30000});
+  await expect(create).toBeEnabled();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await create.click();
+  await expect(page.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
+  await expect(page.locator('.toast')).toHaveCount(0);
+  expect(attempts).toBe(2);
+});
+
 test('two humans in isolated browser sessions join LAN, issue independent upgrades and reconnect',async({browser})=>{
   // Two independent software-rendered maps, three cold starts and a full reload.
   // Keep both real renderers active, at a representative desktop viewport.
@@ -11,48 +29,54 @@ test('two humans in isolated browser sessions join LAN, issue independent upgrad
   const errors:string[]=[];
   for(const page of [host,guest])page.on('pageerror',error=>errors.push(error.message));
   try{
-    for(const [page,name] of [[host,'Host'],[guest,'Guest']] as const){
+    for(const page of [host,guest]){
       await page.goto('/');
       await page.getByRole('button',{name:'English',exact:true}).click();
-      await page.getByRole('button',{name:/LAN multiplayer/}).click();await waitForRuntime(page);
-      if(name==='Guest'){
-        await page.getByTestId('edit-player-leader').click();
-        await page.getByTestId('choose-leader-vanguard').click();
-        await page.keyboard.press('Escape');
-        await page.getByTestId('edit-player-flag').click();
-        await page.getByLabel('Flag type',{exact:true}).selectOption('jp');
-        await page.keyboard.press('Escape');
-      }
-      await page.getByTestId('commander-name').fill(name);
-      await expect(page.locator('.leader-card')).toHaveCount(0);
-      await expect(page.getByTestId('flag-editor')).toHaveCount(0);
     }
+    await expect(host.locator('.menu-actions>button')).toHaveText([/Create game/,/Join game/,/Campaign archives/,/Settings/,/Exit game/]);
     const [created]=await Promise.all([
       host.waitForResponse(r=>r.url().endsWith('/api/rooms')&&r.request().method()==='POST'),
-      host.getByRole('button',{name:'Create room',exact:true}).click(),
+      host.getByRole('button',{name:'Create game',exact:true}).click(),
     ]);
     expect(created.status(),await created.text()).toBe(201);
     await expect(host.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
+    await expect(host.getByRole('dialog')).toHaveCount(0);
     const code=(await host.locator('.room-code').innerText()).trim();
+    await host.getByTestId('room-settings').click();
+    await host.getByTestId('room-deployment').click();
+    await host.getByTestId('commander-name').fill('Host');
+    await host.getByRole('button',{name:'Apply',exact:true}).click();
+    await expect(host.locator('.party-name strong')).toHaveText('Host');
+    await expect(host.locator('.room-code')).toHaveText(code);
+    await guest.getByTestId('join-game').click();await waitForRuntime(guest);
+    await guest.getByTestId('edit-player-leader').click();
+    await guest.getByTestId('choose-leader-vanguard').click();await guest.keyboard.press('Escape');
+    await guest.getByTestId('edit-player-flag').click();
+    await guest.getByLabel('Flag type',{exact:true}).selectOption('jp');await guest.keyboard.press('Escape');
+    await guest.getByTestId('commander-name').fill('Guest');
+    await host.getByTestId('room-settings').click();
     await host.getByTestId('lobby-ai-count').fill('4');
     await host.getByTestId('apply-lobby-ai').click();
     await expect(host.locator('.seat')).toHaveCount(5);
+    await host.keyboard.press('Escape');
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 1');
     await expect(host.getByRole('button',{name:/Start match/})).toBeDisabled();
     await guest.getByPlaceholder('Room code').fill(code);
     await guest.getByRole('button',{name:'Join room',exact:true}).click();
-    await expect(host.locator('.seats')).toContainText('Guest');
+    await expect(host.locator('.party-stage')).toContainText('Guest');
     for(const page of [host,guest]){
-      const guestSeat=page.locator('.seat').filter({hasText:'Guest'});
+      const guestSeat=page.locator('.party-member').filter({hasText:'Guest'});
       await expect(guestSeat.getByRole('img',{name:'Japan',exact:true})).toBeVisible();
+      await expect(guestSeat).toHaveAttribute('data-leader','vanguard');
+      await expect(guestSeat).toHaveAttribute('data-model-state','ready',{timeout:30000});
     }
-    await expect(host.locator('.seat')).toHaveCount(6);
+    await expect(host.locator('.party-member')).toHaveCount(2);
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 2');
     await expect(host.getByRole('button',{name:/Start match/})).toBeEnabled();
     // Reserved seats and AI never satisfy the online-human requirement.
     await guest.goto('about:blank');
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 1');
-    await expect(host.locator('.seat').filter({hasText:'Guest'})).toContainText('Offline');
+    await expect(host.locator('.party-member').filter({hasText:'Guest'})).toContainText('Offline');
     await expect(host.getByRole('button',{name:/Start match/})).toBeDisabled();
     await guest.goto('/');await guest.getByRole('button',{name:/Rejoin LAN room/}).click();await waitForRuntime(guest);
     await expect(host.getByTestId('lobby-human-count')).toContainText('Humans online: 2');

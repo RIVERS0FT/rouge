@@ -1,4 +1,5 @@
 import {MARCH_FRACTIONS,marchDispatchCount,type MarchFraction} from '../game/countryActions.ts';
+import {dispatchFraction,rememberDispatchFraction} from '../platform/dispatchPreference.ts';
 import {acceptCountryLayouts} from './countryLayoutState.ts';
 import {BattleBadges} from './battleBadges.ts';
 import {ArmyPlaques} from './armyPlaques.ts';
@@ -6,10 +7,8 @@ import {armyViews,battleViews,type ArmyView,type BattleView} from './armyViews.t
 import {battleStrengths} from '../game/strength.ts';
 import {OCEAN_LABEL_WORLD_WIDTH} from './oceanLabels.ts';
 import {DispatchPreview} from './dispatchPreview.ts';
-import {AttackArrows} from './attackArrows.ts';
 import {RoutePaintLayer} from './routePaintLayer.ts';
 import {groundArrowProjection} from './groundArrowProjection.ts';
-import {AttackRouteTracker,type AttackRoute} from './attackRoutes.ts';
 import {dispatchSources,dispatchThreshold,type ScreenPoint} from './dispatchRibbon.ts';
 import {plaqueGarrisons,plaqueTerritories,type PlaqueTerritory} from './provincePlaques.ts';
 import {staticPlaqueFlag} from './provincePlaqueFlag.ts';
@@ -30,10 +29,10 @@ import {countryName} from '../game/countryNames.ts';
 import {buildCountryLabels,regionMoments,countryLetterSpacing,COUNTRY_LABEL_FONT,overlaps,labelIntersectsViewport,provinceNamesVisible,type CountryLabel,type LabelRect} from './countryLabels.ts';
 import {SELECTION_GLOW_WIDTH,SELECTION_GLOW_OPACITY,selectionOverlayLift} from './selectionGlow.ts';
 import {unitRenderMode,unitPresentationChanged,mapUnitsWithShips} from './unitPresentation.ts';
-import {UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
+import {FormationMotion,UnitMotion,unitMotionFrameInterval} from './unitMotion.ts';
 import {unitMotionSegment} from './unitMotionSegment.ts';
-import {InfantryBatch} from './infantryBatch.ts';
-import {InfantryMotion} from './infantryMotion.ts';
+import {UnitModelRoster} from './unitModelRoster.ts';
+import {InfantryMotion,modelHeading} from './infantryMotion.ts';
 import {UNIT_RADIUS} from '../game/collision.ts';
 import {BALANCE} from '../game/balance.ts';
 import {TOWNS} from '../game/buildings.ts';
@@ -44,7 +43,7 @@ import {LineSegments2} from 'three/addons/lines/LineSegments2.js';
 import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
 import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {buildBorderEdges,classifyBorder,borderPositions,territoryOutline,internalBorderOpacity,COUNTRY_BORDER_WIDTH,SELECTION_BORDER_WIDTH,COUNTRY_BORDER_COLOR,type BorderEdge} from './territoryBorders.ts';
-import {MapInputController,type MapInputContext} from './mapInput.ts';
+import {MapInputController,type MapInputContext,type MapForceSelection} from './mapInput.ts';
 import {advanceCameraDistance} from './cameraMotion.ts';
 import { MAP, BOUNDS, LAND_Y, pointInProvince, provinceAt, VISIBLE_COUNT } from '../game/map.ts';
 import { project, PROJECTION_ID, worldCoverDistance, cameraGroundSpan, clampViewZ, CROP_ID, WORLD_WIDTH, WORLD_CENTER, NORTH_LATITUDE, SOUTH_LATITUDE, wrapX, nearestWorldX, viewPickX } from '../game/geo.ts';
@@ -114,14 +113,12 @@ export class WorldRenderer {
   private countryMembers=new Map<number,string>();
   private provinceLayer:HTMLDivElement;
   private dispatchPreview:DispatchPreview;
-  private attackArrows:AttackArrows;
   private routeLayer:RoutePaintLayer;
-  private lastAttackView='';private lastAttackRoutes:readonly AttackRoute[]|null=null;
   private battleBadges:BattleBadges;
-  private battles:BattleView[]=[];private battlePower:Map<number,Map<number,number>>|undefined;private armies:ArmyView[]=[];private armyPlaques:ArmyPlaques;private selectedArmy:number|null=null;
+  private battles:BattleView[]=[];private battlePower:Map<number,Map<number,number>>|undefined;private armies:ArmyView[]=[];private armyPlaques:ArmyPlaques;
+  private selectedArmies=new Set<number>();private selectedGarrisons=new Set<number>();
+  private readonly selectionBox=document.createElement('div');
   private battleTimer:number|null=null;private battleLast=0;
-  private attacks:AttackRoute[]=[];
-  private attackTracker=new AttackRouteTracker();
   private actor=-1;
   private dispatchDrag:{id:number;type:string;source:number;members:number[];start:ScreenPoint;cursor:ScreenPoint;dragging:boolean;fraction:MarchFraction}|null=null;
   private dispatchTarget:{id:number;camera:string;path:string;outline:string}|null=null;
@@ -131,7 +128,7 @@ export class WorldRenderer {
   private visiblePlaques=new Set<number>();
   private plaqueTerritories:PlaqueTerritory[]=[];
   private plaqueByRegion=new Map<number,PlaqueTerritory>();
-  private shipHeadings=new Map<number,number>();
+  private formationHeadings=new Map<number,number>();
   private provinceAreas=this.countryGeometry.map(parts=>parts.reduce((area,part)=>area+part.area,0));
   private provinceGarrisons=new Uint32Array(0);
   private provinceFlags=new WeakMap<Flag,string>();
@@ -167,12 +164,14 @@ export class WorldRenderer {
   private cameraPanning=false;private selectionFrame=false;
   private backgroundFrame=true;private renderRevision=0;
   private blend=0;private lastMode='';private lastLabels=0;
-  private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean}|null=null;
+  private down:{x:number;y:number;fx:number;fz:number;button:number;moved:boolean;army?:number}|null=null;
   private unitMotion=new UnitMotion(unitMotionSegment);private unitsWereMoving=false;
   private visibleUnitIds=new Set<number>();
-  private infantry=new InfantryBatch(this.scene,()=>{this.invalidated=true;});
-  private infantryMotion=new InfantryMotion();
-  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number,fraction:MarchFraction)=>void,private onArmy:(id:number)=>void=()=>{}) {
+  private formationMotion=new FormationMotion();
+  private visibleArmyIds=new Set<number>();private plaquesWereMoving=false;
+  private unitModels=new UnitModelRoster(this.scene,()=>{this.invalidated=true;});
+  private infantryMotion=new InfantryMotion(this.unitModels.attackYawOffsets);
+  constructor(private host:HTMLElement,private onPick:(id:number,attack:boolean)=>void,private onMode:(near:boolean)=>void,private onDispatch:(sources:number[],target:number,fraction:MarchFraction)=>void,private onArmy:(id:number)=>void=()=>{},private onBoxSelect:(forces:MapForceSelection)=>void=()=>{}) {
     this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));this.renderer.setClearColor(0x2c4147);
     this.camera.up.set(0,0,-1);
@@ -181,10 +180,10 @@ export class WorldRenderer {
     this.provinceLayer=document.createElement('div');this.provinceLayer.className='province-label-layer';this.provinceLayer.setAttribute('aria-hidden','true');
     this.countryLayer=document.createElement('div');this.countryLayer.className='country-label-layer';this.countryLayer.setAttribute('aria-hidden','true');host.append(this.countryLayer);
     this.routeLayer=new RoutePaintLayer(this.scene,this.camera,LAND_Y,()=>{this.invalidated=true;});
-    this.attackArrows=new AttackArrows(host,this.routeLayer);
     this.battleBadges=new BattleBadges(host);
     this.dispatchPreview=new DispatchPreview(host,this.routeLayer);host.append(this.provinceLayer);
     this.armyPlaques=new ArmyPlaques(host,id=>this.onArmy(id));
+    this.selectionBox.className='map-selection-box';this.selectionBox.hidden=true;host.append(this.selectionBox);
     this.scene.add(new THREE.HemisphereLight(0xf5eedb,0x34484b,2.3));
     const sun=new THREE.DirectionalLight(0xfff2dc,1.7);sun.position.set(-100,250,-120);this.scene.add(sun);
     this.selectionOverlay.name='selection-overlay';
@@ -263,6 +262,7 @@ export class WorldRenderer {
     // canonical entity positions and province IDs never duplicate.
     for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.atlas.clone(true);copy.position.x=offset;copy.visible=false;this.repeats.push(copy);this.scene.add(copy);}
     for(const offset of [-WORLD_WIDTH,WORLD_WIDTH]){const copy=this.selectionOverlay.clone(true);copy.position.x=offset;copy.visible=false;this.selectionRepeats.push(copy);this.scene.add(copy);}
+    this.drawHover();
     for(let i=0;i<48;i++) {
       const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
       const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
@@ -335,19 +335,18 @@ export class WorldRenderer {
     // movements accumulate from the last rendered state, never the previous tick.
     const battleChange=this.state?.units!==state.units||this.state?.armies!==state.armies||this.state?.players!==state.players||this.actor!==actor;
     if(this.state!==state){
-      const attacks=this.attackTracker.read(state);
-      if(attacks!==this.attacks){this.attacks=attacks;this.invalidated=true;}
       this.mapUnits=mapUnitsWithShips(state.units);
-      this.shipHeadings.clear();
-      for(const army of state.armies)if(army.formation?.phase==='sea')this.shipHeadings.set(army.id,army.formation.heading);
+      this.formationHeadings.clear();
+      for(const army of state.armies)if(army.formation)this.formationHeadings.set(army.id,Math.PI/2-army.formation.heading);
       const garrisons=plaqueGarrisons(state);
-      if(provinceNamesVisible(this.distance)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
+      if((provinceNamesVisible(this.distance)||this.selectedGarrisons.size)&&garrisons.some((count,id)=>count!==this.provinceGarrisons[id]))this.invalidated=true;
       this.provinceGarrisons=garrisons;
+      const now=performance.now();
+      this.formationMotion.update(state,now);
       if(unitRenderMode(this.blend)==='3d'){
         if(unitPresentationChanged(this.renderedUnits,this.mapUnits,this.distance,this.viewportHeight))this.invalidated=true;
-        const now=performance.now();
         this.unitMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},now);
-        if(this.blend>0.5&&this.infantryMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},now,this.visibleUnitIds))this.invalidated=true;
+        if(this.infantryMotion.update({campaign:state.campaign,tick:state.tick,units:this.mapUnits},now,this.visibleUnitIds,this.formationHeadings))this.invalidated=true;
       }
       // The count is authoritative, even when changes to hidden garrisons need no draw.
       if(this.state?.units.length!==state.units.length)this.renderer.domElement.dataset.totalUnits=String(state.units.length);
@@ -571,12 +570,14 @@ export class WorldRenderer {
   }
   private mapElementAt(x:number,y:number){
     const element=document.elementFromPoint(x,y);
+    if(element?.closest('.army-plaque'))return this.renderer.domElement;
     return element===this.renderer.domElement?this.renderer.domElement:this.plaqueAt(element);
   }
   private pickedRegion(element:HTMLElement,e:Pick<PointerEvent,'clientX'|'clientY'>){
     return element===this.renderer.domElement?this.pick(e):Number(element.dataset.region??-1);
   }
   private cancelDispatch=()=>{
+    this.down=null;this.selectionBox.hidden=true;
     const gesture=this.dispatchDrag;this.dispatchDrag=null;
     if(gesture)this.provinceLabels.get(gesture.source)?.element.removeAttribute('data-dispatching');
     this.dispatchPreview.clear();this.dispatchTarget=null;
@@ -588,9 +589,13 @@ export class WorldRenderer {
   private cycleDispatchFraction(){
     const gesture=this.dispatchDrag;if(!gesture?.dragging)return;
     gesture.fraction=MARCH_FRACTIONS[(MARCH_FRACTIONS.indexOf(gesture.fraction)+1)%MARCH_FRACTIONS.length];
+    rememberDispatchFraction(gesture.fraction);
     this.drawDispatch();
   }
   private dispatchKey=(event:KeyboardEvent)=>{
+    if(event.key==='Escape'&&this.down?.button===0&&this.down.moved){
+      this.cancelDispatch();event.preventDefault();event.stopImmediatePropagation();return;
+    }
     if(!this.dispatchDrag||!this.mapInput.active)return;
     if(event.key==='Escape')this.cancelDispatch();
     else if(event.key==='Tab'&&this.dispatchDrag.dragging&&!event.shiftKey&&!event.altKey&&!event.ctrlKey&&!event.metaKey){
@@ -601,6 +606,14 @@ export class WorldRenderer {
   private plaqueWheel=(event:WheelEvent)=>{if(this.plaqueAt(event.target as Element))this.wheel(event);};
   private plaquePointerDown=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
+    if(e.pointerType==='mouse'&&e.button===1&&e.target!==this.renderer.domElement){
+      this.pointerDown(e);e.stopPropagation();return;
+    }
+    const army=(e.target as Element).closest<HTMLElement>('.army-plaque[data-own="true"]');
+    if(army&&e.pointerType==='mouse'){
+      this.pointerDown(e);if(this.down&&e.button===0&&!e.shiftKey)this.down.army=Number(army.dataset.army);
+      e.stopPropagation();return;
+    }
     const touch=e.pointerType==='touch'||e.pointerType==='pen',gesture=this.dispatchDrag,plaque=this.plaqueAt(e.target as Element);
     if(gesture){
       if(e.pointerId===gesture.id||!touch)return;
@@ -620,7 +633,7 @@ export class WorldRenderer {
     const source=Number(plaque.dataset.region),territory=this.plaqueTerritories.find(group=>group.id===source);
     if(!territory||this.ownerIds[source]!==this.actor)return;
     const point={x:e.clientX,y:e.clientY};
-    this.dispatchDrag={id:e.pointerId,type:e.pointerType,source,members:territory.members,start:point,cursor:point,dragging:false,fraction:1};
+    this.dispatchDrag={id:e.pointerId,type:e.pointerType,source,members:territory.members,start:point,cursor:point,dragging:false,fraction:dispatchFraction()};
     // Hover can pick across overlays via elementFromPoint, but releases must
     // reach this renderer even outside the canvas.
     try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{/* Synthetic pointer events. */}
@@ -694,7 +707,8 @@ export class WorldRenderer {
       if(this.touches.size>1)this.touchMoved=true;
       this.resetTouchBase();
     }else{
-      if(e.button!==0&&e.button!==2)return;
+      if(e.button!==0&&e.button!==1&&e.button!==2)return;
+      if(e.button===1){e.preventDefault();this.renderer.domElement.focus({preventScroll:true});}
       this.down={x:e.clientX,y:e.clientY,fx:this.focus.x,fz:this.focus.z,button:e.button,moved:false};
     }
     try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{/* Synthetic/accessibility events may not hold capture. */}
@@ -725,7 +739,13 @@ export class WorldRenderer {
     }
     if(this.down){
       if(Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)>=5)this.down.moved=true;
-      if(this.down.moved&&this.down.button!==2){this.clearHover();this.globalView=false;this.cameraPanning=true;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.viewportHeight;
+      if(this.down.moved&&this.down.button===0){
+        const rect=this.host.getBoundingClientRect(),style=this.selectionBox.style;
+        style.left=Math.min(this.down.x,e.clientX)-rect.left+'px';style.top=Math.min(this.down.y,e.clientY)-rect.top+'px';
+        style.width=Math.abs(e.clientX-this.down.x)+'px';style.height=Math.abs(e.clientY-this.down.y)+'px';
+        this.selectionBox.hidden=false;this.clearHover();
+      }
+      if(this.down.moved&&this.down.button===1){this.clearHover();this.globalView=false;this.cameraPanning=true;this.invalidated=true;const scale=2*this.distance*Math.tan(20*Math.PI/180)/this.viewportHeight;
         this.mapInput.dispatch({type:'pan',x:this.down.fx-(e.clientX-this.down.x)*scale,z:this.down.fz-(e.clientY-this.down.y)*scale});}
     }else this.queueHover(e);
   };
@@ -735,6 +755,30 @@ export class WorldRenderer {
     const id=this.pickedRegion(element,e);
     if(id>=0)this.mapInput.dispatch({type:'select',region:id,attack});
     else if(!attack)this.mapInput.dispatch({type:'deselect'});
+  }
+  private selectBox(start:ScreenPoint,end:ScreenPoint){
+    if(!this.state||this.actor<0)return;
+    const left=Math.min(start.x,end.x),right=Math.max(start.x,end.x),top=Math.min(start.y,end.y),bottom=Math.max(start.y,end.y);
+    if(right-left<3||bottom-top<3)return;
+    const host=this.host.getBoundingClientRect(),point=new THREE.Vector3();
+    const contains=(x:number,y:number)=>x>=left&&x<=right&&y>=top&&y<=bottom;
+    const encloses=(position:{x:number;z:number})=>{
+      point.set(nearestWorldX(position.x,this.focus.x),LAND_Y+.8,position.z).project(this.camera);
+      return point.z>=-1&&point.z<=1&&contains(host.left+(point.x+1)*host.width/2,host.top+(1-point.y)*host.height/2);
+    };
+    const regions=new Set<number>(),armies=new Set<number>();
+    const ownGarrison=(id:number)=>this.ownerIds[id]===this.actor&&this.provinceGarrisons[id]>0;
+    for(const p of this.state.provinces)if(ownGarrison(p.id)&&encloses(MAP[p.id].center))regions.add(p.id);
+    for(const view of armyViews(this.state))if(view.owner===this.actor&&encloses(view.position))armies.add(view.id);
+    for(const u of this.state.units)if(u.owner===this.actor&&u.army!==undefined&&u.armyStatus!=='queued'&&encloses(u))armies.add(u.army);
+    // Nameplates can sit above a formation or represent several grouped garrisons.
+    for(const node of this.host.querySelectorAll<HTMLElement>('.army-plaque[data-own="true"],.province-label[data-dispatch-source="true"]:not([hidden])')){
+      const rect=node.getBoundingClientRect();
+      if(!contains(rect.left+rect.width/2,rect.top+rect.height/2))continue;
+      if(node.dataset.army!==undefined)armies.add(Number(node.dataset.army));
+      else for(const id of this.plaqueByRegion.get(Number(node.dataset.region))?.members??[])if(ownGarrison(id))regions.add(id);
+    }
+    this.onBoxSelect({regions:[...regions],armies:[...armies]});
   }
   private pointerUp=(e:PointerEvent)=>{
     if(!this.mapInput.active)return;
@@ -752,8 +796,7 @@ export class WorldRenderer {
       if(!this.dispatchDrag)return;
       const target=this.dispatchRegion(e.clientX,e.clientY),sources=dispatchSources(gesture.members,target,this.actor,this.ownerIds,this.provinceGarrisons);
       if(!sources.length){this.cancelDispatch();return;}
-      this.dispatchDrag=null;this.provinceLabels.get(gesture.source)?.element.removeAttribute('data-dispatching');
-      this.dispatchPreview.release();this.onDispatch(sources,target,gesture.fraction);return;
+      this.cancelDispatch();this.onDispatch(sources,target,gesture.fraction);return;
     }
     if(e.pointerType==='touch'||e.pointerType==='pen'){
       if(!this.touches.has(e.pointerId))return;
@@ -763,13 +806,18 @@ export class WorldRenderer {
       if(this.touches.size===1&&!this.touchMoved)this.selectAt(e,performance.now()-this.touchStartedAt>=550);
       this.touches.delete(e.pointerId);this.resetTouchBase();return;
     }
-    if(this.down&&!this.down.moved&&this.down.button===e.button&&Math.hypot(e.clientX-this.down.x,e.clientY-this.down.y)<5)this.selectAt(e,e.button===2||e.shiftKey);this.down=null;
+    const down=this.down;this.down=null;this.selectionBox.hidden=true;
+    if(!down||down.button!==e.button||e.button===1)return;
+    if(e.button===0&&(down.moved||Math.hypot(e.clientX-down.x,e.clientY-down.y)>=5))this.selectBox(down,{x:e.clientX,y:e.clientY});
+    else if(!down.moved&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<5){
+      if(down.army!==undefined)this.onArmy(down.army);else this.selectAt(e,e.button===2||e.shiftKey);
+    }
   };
   private pointerCancel=(e:PointerEvent)=>{
     if(this.dispatchDrag?.id===e.pointerId)this.cancelDispatch();
     if(e.pointerType==='touch'||e.pointerType==='pen'){
       if(this.touches.delete(e.pointerId)){this.touchMoved=true;this.resetTouchBase();}
-    }else this.down=null;
+    }else {this.down=null;this.selectionBox.hidden=true;}
   };
   private wheel=(e:WheelEvent)=>{if(!this.mapInput.active)return;e.preventDefault();this.mapInput.dispatch({type:'zoom',distance:this.desiredDistance*Math.exp(e.deltaY*0.12*0.008)});};
   private keyDown=(e:KeyboardEvent)=>{
@@ -835,11 +883,14 @@ export class WorldRenderer {
   private drawProvincePlaques(width:number,height:number):number {
     const next=new Set<number>();
     this.provincePlaquePositions.clear();
-    if(this.state&&provinceNamesVisible(this.distance)){
+    const showAll=provinceNamesVisible(this.distance);
+    if(this.state&&(showAll||this.selectedGarrisons.size)){
       const state=this.state,flags=factionFlags(state.players),point=new THREE.Vector3();
       const candidates:{territory:PlaqueTerritory;x:number;y:number;rect:LabelRect;pixelWidth:number;count:string;name:string;copy:number;selected:boolean}[]=[];
       const nameFont='600 12px Georgia,"Noto Serif CJK SC","Songti SC",serif';
       for(const territory of this.plaqueTerritories){
+        const boxSelected=territory.members.some(id=>this.selectedGarrisons.has(id));
+        if(!showAll&&!boxSelected)continue;
         const {anchor,id,members}=territory,baseX=nearestWorldX(anchor.x,this.focus.x);
         // Province range is narrow; avoid measuring/layout for offscreen anchors.
         const p=point.set(baseX,LAND_Y+.8,anchor.z).project(this.camera);
@@ -851,7 +902,7 @@ export class WorldRenderer {
         const pixelWidth=nameWidth+62+Math.max(12,count.length*9);
         const x=(p.x+1)*width/2,y=(1-p.y)*height/2,rect={left:x-pixelWidth/2,right:x+pixelWidth/2,top:y-13,bottom:y+13};
         if(!labelIntersectsViewport(rect,width,height))continue;
-        candidates.push({territory,x,y,rect,pixelWidth,count,name,copy:Math.round((baseX-anchor.x)/WORLD_WIDTH),selected:members.includes(this.selected)});
+        candidates.push({territory,x,y,rect,pixelWidth,count,name,copy:Math.round((baseX-anchor.x)/WORLD_WIDTH),selected:boxSelected||members.includes(this.selected)});
       }
       candidates.sort((a,b)=>Number(b.selected)-Number(a.selected)||a.territory.id-b.territory.id);
       const accepted:LabelRect[]=[];
@@ -966,14 +1017,18 @@ export class WorldRenderer {
     // newest state. Finish camera easing and allow resize/artwork refresh frames.
     if(!this.mapInput.active&&!moving&&!this.backgroundFrame&&!this.selectionFrame){this.renderer.domElement.dataset.renderPaused='true';return;}
     const motion=unitRenderMode(this.blend)==='3d'?this.unitMotion.activity(time,moving?undefined:this.visibleUnitIds):{active:false,speed:0};
-    const infantryActive=this.blend>0.5&&this.infantry.ready&&this.infantryMotion.active(time,this.visibleUnitIds);
+    const infantryActive=this.blend>0.5&&this.unitModels.count>0&&this.infantryMotion.active(time,this.visibleUnitIds);
     // Continue between snapshots and draw the exact endpoint before sleeping.
     // Camera gestures follow the display refresh rate, including 120/144 Hz.
     // Army interpolation and stationary views retain their independent budgets.
-    if(!moving&&!motion.active&&!infantryActive&&!this.unitsWereMoving&&!this.invalidated&&!this.dirty.size)return;
+    const redrawWorld=moving||motion.active||infantryActive||this.unitsWereMoving||this.invalidated||this.dirty.size>0;
     // Selection feedback renders on the next display frame, including at rest.
     const interval=moving||this.cameraPanning||this.selectionFrame||this.flatMapCache.pending?0:motion.active?unitMotionFrameInterval(motion.speed,this.distance,this.viewportHeight):1000/30;
-    if(time-this.lastRender<interval-0.5)return;
+    if(!redrawWorld||time-this.lastRender<interval-0.5){
+      // A marching DOM plaque can move between WebGL frames in either zoom mode.
+      if(this.plaquesWereMoving||this.formationMotion.activity(time,this.visibleArmyIds).active)this.drawArmyPlaques(time);
+      return;
+    }
     this.unitsWereMoving=motion.active||infantryActive;
     this.lastRender=interval?time-(time-this.lastRender)%interval:time;this.cameraPanning=false;this.selectionFrame=false;this.invalidated=false;for(const copy of this.repeats)copy.visible=!this.globalView;for(const copy of this.selectionRepeats)copy.visible=!this.globalView;
     const elapsed=Math.max(0,(time-this.last)/1000||0.016);this.last=time;
@@ -988,7 +1043,12 @@ export class WorldRenderer {
       // Hidden 2D armies need no motion history. Re-enter 3D at the latest
       // authoritative positions, including when the simulation is paused.
       this.unitMotion=new UnitMotion(unitMotionSegment);
-      if(mode==='near'&&this.state)this.unitMotion.update({campaign:this.state.campaign,tick:this.state.tick,units:this.mapUnits},time);
+      this.infantryMotion=new InfantryMotion(this.unitModels.attackYawOffsets);
+      if(mode==='near'&&this.state){
+        const snapshot={campaign:this.state.campaign,tick:this.state.tick,units:this.mapUnits};
+        this.unitMotion.update(snapshot,time);
+        this.infantryMotion.update(snapshot,time,this.visibleUnitIds,this.formationHeadings);
+      }
       this.onMode(mode==='near');this.lastMode=mode;
     }
     const opacity=internalBorderOpacity(this.distance);if(opacity!==this.borderOpacity){this.borderOpacity=opacity;this.mapRevision++;}
@@ -1002,9 +1062,8 @@ export class WorldRenderer {
     const selectedRange=this.ranges[this.selected];
     if(selectedRange?.count){const i=selectedRange.start,actual=new THREE.Color().setRGB(this.colors.getX(i),this.colors.getY(i),this.colors.getZ(i));this.renderer.domElement.dataset.selectedFillColor=actual.getHexString();this.renderer.domElement.dataset.selectedOwnerColor=(this.ownerIds[this.selected]<0?regionColor():new THREE.Color(factionColor(this.ownerIds[this.selected]))).getHexString();}
     const models=presentation==='3d';
-    if(models){this.ensureUnitCapacity(this.mapUnits.length);this.infantry.request();}
-    const batch=models&&this.infantry.ready;
-    this.infantry.begin(batch,models?this.mapUnits.length:0);
+    if(models)this.ensureUnitCapacity(this.mapUnits.length);
+    this.unitModels.begin(models,this.mapUnits);
     this.bodies.visible=this.heads.visible=models;
     let n=0,fallback=0;this.visibleUnitIds.clear();
     if(models)for(const u of this.mapUnits) {
@@ -1018,23 +1077,26 @@ export class WorldRenderer {
       if(screen.z<-1||screen.z>1||Math.abs(screen.x)>1+marginX||Math.abs(screen.y)>1+marginY)continue;
       this.visibleUnitIds.add(u.id);
       let unitColor=this.unitColors.get(u.owner);if(!unitColor){unitColor=new THREE.Color(u.owner<0?0x595f50:factionColor(u.owner));this.unitColors.set(u.owner,unitColor);}
-      if(batch&&!u.transport?.embarked){
+      const batch=this.unitModels.forUnit(u);
+      if(batch){
         const t=this.infantryMotion.track(u.id);
-        // The original art faces +Z after conversion. Keep the footprint and height
-        // close to the former markers; the art never changes movement or collision.
-        this.dummy.position.set(x,y+.015,z);this.dummy.rotation.set(0,t?.heading??(u.id%64)*.618,0);
+        const shipHeading=u.transport?.embarked&&u.army!==undefined?this.formationHeadings.get(u.army):undefined;
+        this.dummy.position.set(x,y+.015,z);
+        this.dummy.rotation.set(0,shipHeading??(t?modelHeading(t,time):(u.id%64)*.618),0);
         this.dummy.scale.setScalar(.39);this.dummy.updateMatrix();
-        this.infantry.add(this.dummy.matrix,unitColor,t&&time<=t.walkUntil?Math.max(1,time-t.walkStart):0,t?time-t.shotAt:Infinity,u.id);
+        const walk=u.transport?.embarked?(this.unitMotion.moving(u.id,time)?time:0):
+          t&&time<=t.walkUntil?Math.max(1,time-t.walkStart):0;
+        batch.add(this.dummy.matrix,unitColor,walk,t?time-t.shotAt:Infinity,u.id);
       }else{
         // Embarked troops keep the vessel marker, which also serves as land fallback during loading.
         const scale=u.transport?.embarked?1:UNIT_RADIUS[u.kind]/UNIT_RADIUS.infantry;
-        const shipHeading=u.army===undefined?undefined:this.shipHeadings.get(u.army);
-        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,shipHeading===undefined?u.id:-shipHeading,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(fallback,this.dummy.matrix);this.bodies.setColorAt(fallback,unitColor);
+        const shipHeading=u.transport?.embarked&&u.army!==undefined?this.formationHeadings.get(u.army):undefined;
+        this.dummy.position.set(x,y+0.36,z);this.dummy.rotation.set(0,shipHeading===undefined?u.id:shipHeading-Math.PI/2,0);if(u.transport?.embarked)this.dummy.scale.set(2.3,0.5,1.2);else this.dummy.scale.set(scale,1,scale);this.dummy.updateMatrix();this.bodies.setMatrixAt(fallback,this.dummy.matrix);this.bodies.setColorAt(fallback,unitColor);
         this.dummy.position.y=y+0.68;if(u.transport?.embarked)this.dummy.scale.set(1.2,0.6,1);this.dummy.updateMatrix();this.heads.setMatrixAt(fallback++,this.dummy.matrix);
       }
       n++;
     }
-    this.bodies.count=this.heads.count=fallback;this.infantry.end();
+    this.bodies.count=this.heads.count=fallback;this.unitModels.end();
     if(fallback){
       for(const attribute of [this.bodies.instanceMatrix,this.heads.instanceMatrix,this.bodies.instanceColor]){
         if(!attribute)continue;
@@ -1044,18 +1106,19 @@ export class WorldRenderer {
     this.drawBuildings(models);this.drawLabels(time);
     // DOM titles need the same camera projection on every rendered frame, not
     // the slower text-texture cadence, otherwise they lag and jump during pans.
-    this.mapSurface.update(this.camera);this.politicalTint.render(this.renderer);this.drawMapNames();this.drawDispatch();this.drawAttackArrows();this.drawWorld();this.renderedUnits=this.mapUnits;
+    this.mapSurface.update(this.camera);this.politicalTint.render(this.renderer);this.drawMapNames();this.drawDispatch();this.drawWorld();this.renderedUnits=this.mapUnits;
     this.backgroundFrame=this.blend===0&&this.flatMapCache.pending;if(this.backgroundFrame)this.invalidated=true;
     this.renderer.domElement.dataset.renderRevision=String(++this.renderRevision);this.renderer.domElement.dataset.renderPaused=String(!this.mapInput.active&&!moving);
     this.renderer.domElement.dataset.viewportWidth=String(this.viewportWidth);this.renderer.domElement.dataset.viewportHeight=String(this.viewportHeight);
     const span=cameraGroundSpan(this.distance,angle);this.renderer.domElement.dataset.framing='cover';this.renderer.domElement.dataset.distance=String(this.distance);this.renderer.domElement.dataset.groundTop=String(this.focus.z-span.north);this.renderer.domElement.dataset.groundBottom=String(this.focus.z+span.south);
     this.renderer.domElement.dataset.crop=CROP_ID;this.renderer.domElement.dataset.visibleProvinces=String(VISIBLE_COUNT);this.renderer.domElement.dataset.focusX=String(this.focus.x);this.renderer.domElement.dataset.focusZ=String(this.focus.z);this.renderer.domElement.dataset.wrapX='true';
-    this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites='0';this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.infantry.count);this.renderer.domElement.dataset.unitSpritePixels='0';
-    this.renderer.domElement.dataset.unitModelAsset=!models?'none':batch?'infantry-v11':this.infantry.failed?'fallback':'loading';
-    this.drawBattleBadges();this.drawArmyPlaques();
-    this.renderer.domElement.dataset.renderedIdleModels=String(this.infantry.idling);
-    this.renderer.domElement.dataset.renderedWalkingModels=String(this.infantry.walking);
-    this.renderer.domElement.dataset.renderedShootingModels=String(this.infantry.shooting);
+    this.renderer.domElement.dataset.unitRenderMode=presentation;this.renderer.domElement.dataset.renderedSprites='0';this.renderer.domElement.dataset.renderedModels=String(this.bodies.count+this.unitModels.count);this.renderer.domElement.dataset.unitSpritePixels='0';
+    this.renderer.domElement.dataset.unitModelAsset=!models?'none':this.unitModels.count?this.unitModels.source:fallback?'fallback':'none';
+    this.renderer.domElement.dataset.unitModelKinds=this.unitModels.renderedKinds();
+    this.drawBattleBadges();this.drawArmyPlaques(time);
+    this.renderer.domElement.dataset.renderedIdleModels=String(this.unitModels.idling);
+    this.renderer.domElement.dataset.renderedWalkingModels=String(this.unitModels.walking);
+    this.renderer.domElement.dataset.renderedShootingModels=String(this.unitModels.shooting);
     this.renderer.domElement.dataset.unitCapacity=String(this.unitInstanceCapacity);this.renderer.domElement.dataset.totalUnits=String(this.state?.units.length??0);this.renderer.domElement.dataset.renderedInstances=String(n);
     this.renderer.domElement.dataset.countryBorders='true';this.renderer.domElement.dataset.ready='true';this.renderer.domElement.dataset.projection=PROJECTION_ID;this.renderer.domElement.dataset.provinces=String(MAP.length);this.renderer.domElement.dataset.view=mode;this.renderer.domElement.dataset.settled=String(Math.abs(this.distance-this.desiredDistance)<0.1);
   };
@@ -1074,7 +1137,7 @@ export class WorldRenderer {
       this.battlePower=shown.size?new Map(battleStrengths(this.state,battle=>shown.has(battle.id)).map(battle=>[battle.id,new Map(battle.sides.map(side=>[side.owner,side.power]))])):undefined;
       if(battles.length||this.battles.length||armies.length||this.armies.length)this.invalidated=true;
       const fighting=new Set(battles.map(battle=>battle.region));
-      this.battles=battles;this.armies=armies.filter(view=>view.phase==='enter'||!fighting.has(view.region));
+      this.battles=battles;this.armies=armies.filter(view=>view.phase==='enter'||this.selectedArmies.has(view.id)||!fighting.has(view.region));
       this.renderer.domElement.dataset.armyPlaques=String(armies.length);
     };
     // Coalesce accelerated/remote simulation frames (and still consume a last,
@@ -1091,13 +1154,13 @@ export class WorldRenderer {
     },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner),this.battlePower);
   }
   /** Project the formation, or attach a besieging army to its destination plaque. */
-  private drawArmyPlaques(){
+  private drawArmyPlaques(time=performance.now()){
     if(!this.state)return;
-    const state=this.state,time=performance.now(),near=unitRenderMode(this.blend)==='3d';
+    const state=this.state,near=unitRenderMode(this.blend)==='3d';
     // An army fighting in a region with a battle badge is shown by that badge (its flag and troops).
     const armies=this.actor<0?[]:this.armies;
     const stacked=new Map<number,number>();
-    this.armyPlaques.draw(armies,state.players,this.actor,this.selectedArmy,view=>{
+    this.visibleArmyIds=this.armyPlaques.draw(armies,state.players,this.actor,this.selectedArmies,view=>{
       const province=view.phase==='enter'?this.plaqueByRegion.get(view.to):undefined;
       const plaque=province&&this.provincePlaquePositions.get(province.id);
       if(plaque){
@@ -1105,25 +1168,19 @@ export class WorldRenderer {
         return {x:plaque.x,y:plaque.y-4-row*24};
       }
       const anchor=view.phase==='enter'?(province?.anchor??MAP[view.to].center):undefined;
-      const at=anchor??(near&&view.lead&&(!view.phase||view.phase==='sea')?this.unitMotion.position(view.lead,time):view.position);
+      let at=anchor??view.position;
+      if(view.phase==='march')at=this.formationMotion.sample(view.id,view.position,time);
+      else if(near&&view.lead&&(!view.phase||view.phase==='sea'))at=this.unitMotion.position(view.lead,time);
       const p=this.unitPoint.set(nearestWorldX(at.x,this.focus.x),LAND_Y+(near?1.5:1.1),at.z).project(this.camera);
       if(p.z<-1||p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;
       return {x:(p.x+1)*this.viewportWidth/2,y:(1-p.y)*this.viewportHeight/2};
     },owner=>owner<0?NEUTRAL_LAND_COLOR:factionColor(owner),view=>`${countryName(this.lang,state.players[view.owner])} · ${view.count}`);
+    this.plaquesWereMoving=this.formationMotion.activity(time,this.visibleArmyIds).active;
     if(this.actor<0)this.renderer.domElement.dataset.armyPlaques='0';
   }
-  /** Highlight the army chosen for a redirect (null clears it). */
-  setSelectedArmy(id:number|null):void{if(this.selectedArmy!==id){this.selectedArmy=id;this.invalidated=true;}}
-  private drawAttackArrows(){
-    const view=[this.viewportWidth,this.viewportHeight,this.focus.x,...this.camera.projectionMatrix.elements,...this.camera.matrixWorldInverse.elements].join(',');
-    if(view===this.lastAttackView&&this.attacks===this.lastAttackRoutes)return;
-    this.lastAttackView=view;this.lastAttackRoutes=this.attacks;
-    const projection=groundArrowProjection(this.camera,this.viewportWidth,this.viewportHeight,LAND_Y);
-    this.attackArrows.draw(this.attacks,(route,copy)=>{
-      const from=route.start??MAP[route.from]?.center,to=route.end??MAP[route.to]?.center;if(!from||!to)return null;
-      const sourceX=nearestWorldX(from.x,this.focus.x)+copy*WORLD_WIDTH,targetX=nearestWorldX(to.x,sourceX);
-      return [{x:sourceX,y:from.z},{x:targetX,y:to.z}];
-    },projection,this.viewportWidth,this.viewportHeight,factionColor,view);
+  setSelectedForces(selection:MapForceSelection):void{
+    this.selectedArmies=new Set(selection.armies);this.selectedGarrisons=new Set(selection.regions);this.invalidated=true;
+    if(this.battles.length)this.scheduleBattleContacts();
   }
   private drawWorld(){
     this.routeLayer.flush();this.renderer.domElement.dataset.routeOverlayVisible=String(this.routeLayer.mesh.visible);
@@ -1154,8 +1211,9 @@ export class WorldRenderer {
     finally{this.flatMapCache.surface.visible=false;for(let i=0;i<backgrounds.length;i++)backgrounds[i].visible=visible[i];}
   }
   dispose(){
+    this.selectionBox.remove();
     if(this.battleTimer!==null)window.clearTimeout(this.battleTimer);this.battleBadges.dispose();this.armyPlaques.dispose();
-    this.infantry.dispose();this.towns.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.attackArrows.dispose();this.routeLayer.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
+    this.unitModels.dispose();this.towns.dispose();this.cancelDispatch();this.dispatchPreview.dispose();this.routeLayer.dispose();this.host.removeEventListener('pointerdown',this.plaquePointerDown,true);this.host.removeEventListener('wheel',this.plaqueWheel);this.host.removeEventListener('contextmenu',this.contextMenu);window.removeEventListener('keydown',this.dispatchKey,true);window.removeEventListener('pointerdown',this.dispatchOutsidePointer,true);window.removeEventListener('blur',this.cancelDispatch);document.removeEventListener('visibilitychange',this.dispatchVisibility);this.borderWorker?.terminate();this.borderWorker=null;this.countryText.dispose();this.flatMapCache.dispose();this.countryLayoutWorker?.terminate();this.countryLayoutWorker=null;this.mapSurface.dispose();this.coastShadow.dispose();this.politicalTint.dispose();this.selectionGlowWorker?.terminate();this.selectionGlowWorker=null;cancelAnimationFrame(this.animation);this.observer.disconnect();const c=this.renderer.domElement;c.removeEventListener('keydown',this.keyDown);c.removeEventListener('pointerdown',this.pointerDown);c.removeEventListener('pointermove',this.pointerMove);c.removeEventListener('pointerup',this.pointerUp);c.removeEventListener('pointercancel',this.pointerCancel);c.removeEventListener('lostpointercapture',this.pointerCancel);c.removeEventListener('wheel',this.wheel);
     cancelAnimationFrame(this.hoverPickFrame);c.removeEventListener('pointerleave',this.clearHover);
     for(const geometry of this.hoverGlows.values())if(geometry!==this.selectionGlow.geometry)geometry.dispose();if(this.emptyGlow!==this.selectionGlow.geometry)this.emptyGlow.dispose();this.hoverGlows.clear();
     const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();this.scene.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose();const m=o as THREE.Mesh;if(m.geometry)geometries.add(m.geometry);if(m.material)for(const material of Array.isArray(m.material)?m.material:[m.material])materials.add(material);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const l of this.labels)l.texture.dispose();if(this.labelTimer!==null)clearTimeout(this.labelTimer);this.countryLayer.remove();this.provinceLayer.remove();this.renderer.dispose();c.remove();}

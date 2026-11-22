@@ -1,5 +1,5 @@
 import {waitForRuntime} from './readiness.ts';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 const added=['skirmisher','grenadier','heavyCavalry','horseArtillery'];
 const roster=['infantry','cavalry','artillery','engineer',...added];
 test('eight unit cards retain exclusive selection, nine tooltip attributes and scrollable launch',async({page})=>{

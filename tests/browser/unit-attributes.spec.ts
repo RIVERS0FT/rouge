@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 test('nine attributes are visible in setup tooltips and live upgrades in both languages',async({page})=>{
  await page.goto('/');
  await page.getByTestId('single-player').click();
@@ -10,6 +10,7 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  await expect(infantryTooltip.locator('.unit-attribute')).toHaveCount(9);
  await expect(infantryTooltip).toContainText('单次攻击');
  await expect(infantryTooltip.locator('[data-stat="hp"] strong')).toHaveText('100');
+ await expect(infantryTooltip.locator('[data-stat="train"] strong')).toContainText('30');
  await expect(infantryTooltip.locator('[data-stat="splash"] strong')).toContainText('单体');
  // Escape dismisses the active tooltip before closing setup.
  await page.keyboard.press('Escape');
@@ -24,7 +25,8 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  await expect(artilleryTooltip).toBeVisible();
  await expect(artilleryTooltip.locator('.unit-attribute')).toHaveCount(9);
  await expect(artilleryTooltip.locator('[data-stat="attackSpeed"] strong')).toHaveText('0.5 hits/day');
- await expect(artilleryTooltip.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/day');
+ await expect(artilleryTooltip.locator('[data-stat="speed"] strong')).toHaveText('0.9 units/day');
+ await expect(artilleryTooltip.locator('[data-stat="seaSpeed"] strong')).toHaveText('1.5 units/day');
  await artillery.click();
  await page.getByTestId('begin-campaign').click();
  await page.getByTestId('open-upgrades').click();
@@ -33,5 +35,5 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  await expect(attributes.locator('[data-stat="attack"] strong')).toHaveText('40');
  await page.getByTestId('upgrade-artillery-attack').click();
  await expect(attributes.locator('[data-stat="attack"] strong')).toHaveText('42');
- await expect(attributes.locator('[data-stat="seaSpeed"] strong')).toHaveText('3 units/day');
+ await expect(attributes.locator('[data-stat="seaSpeed"] strong')).toHaveText('1.5 units/day');
 });

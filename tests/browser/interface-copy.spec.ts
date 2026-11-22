@@ -1,4 +1,5 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './static-host.ts';
+import {test as lanTest} from '@playwright/test';
 import pkg from '../../package.json' with {type: 'json'};
 
 async function noTechnicalCopy(page:Page){
@@ -74,15 +75,20 @@ test('language changes localize untouched setup names without overwriting chosen
  await expect(page.getByTestId('commander-name')).toHaveValue('Alice 王');
 });
 
-for(const language of ['zh','en'] as const)test(`${language}: LAN lobby has concise localized computer seats`,async({page})=>{
+for(const language of ['zh','en'] as const)lanTest(`${language}: LAN lobby has concise localized computer seats`,async({page})=>{
  await page.addInitScript(language=>localStorage.setItem('rouge.language',language),language);
  await page.goto('/');const zh=language==='zh';
- await page.getByRole('button',{name:zh?/局域网联机/:/LAN multiplayer/}).click();
- await page.getByTestId('setup-ai-count').fill('1');
- await page.getByRole('button',{name:zh?'创建房间':'Create room',exact:true}).click();
- await expect(page.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/);
+ await page.getByRole('button',{name:zh?'创建游戏':'Create game',exact:true}).click();
+ await expect(page.locator('.room-code')).toHaveText(/^[A-F0-9]{6}$/,{timeout:30000});
+ await page.getByRole('button',{name:zh?'邀请玩家':'Invite player'}).click();
+ await expect(page.getByRole('dialog').getByRole('textbox')).toHaveValue(await page.locator('.room-code').innerText());
+ await page.keyboard.press('Escape');
+ await page.getByTestId('room-settings').click();
+ await page.getByTestId('lobby-ai-count').fill('1');
+ await page.getByTestId('apply-lobby-ai').click();
  await expect(page.locator('#lobby-ai-range')).toContainText(zh?'大量国家':'More countries');
  await expect(page.locator('.seats')).toContainText(zh?'电脑玩家 1':'Computer player 1');
+ await page.keyboard.press('Escape');
  await noTechnicalCopy(page);
  await page.getByRole('button',{name:zh?'离开房间':'Leave room',exact:true}).click();
  await expect(page.getByTestId('single-player')).toBeVisible();

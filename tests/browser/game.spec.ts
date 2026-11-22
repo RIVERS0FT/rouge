@@ -1,10 +1,10 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {waitForRuntime} from './readiness';
 test('menu → setup → real WebGL game → upgrade → multi-slot save → reload',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  await page.addInitScript(()=>Object.defineProperty(globalThis.crypto,'randomUUID',{value:undefined,configurable:true}));
  await page.goto('/');await expect(page.getByRole('heading',{name:'诸省之争',exact:true})).toBeVisible();
- await page.getByRole('button',{name:'English',exact:true}).click();await expect(page.getByTestId('single-player')).toContainText('Single player');
+ await page.getByRole('button',{name:'English',exact:true}).click();await expect(page.getByTestId('single-player')).toContainText('Create game');
  await expect(page.getByRole('heading',{name:'ROUGE',exact:true})).toBeVisible();
  await page.screenshot({path:'artifacts/menu.png'});
  await page.getByTestId('single-player').click();await page.getByTestId('commander-name').fill('E2E Commander');await page.getByTestId('begin-campaign').click();

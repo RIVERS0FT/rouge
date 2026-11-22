@@ -3,7 +3,7 @@ import {validGroupingState} from '../game/territoryEconomy.ts';
 import type {Army,GameState,Province,Unit} from '../game/types.ts';
 import {applyArmyPaths,encodeArmyPaths,type ArmyPaths} from './replication.ts';
 
-const WIDTH=21;
+const WIDTH=22;
 const memberStatuses=[undefined,'queued','formed','field','sea','inside'] as const;
 const kindIndex=Object.fromEntries(KINDS.map((kind,index)=>[kind,index]));
 type Path=NonNullable<Unit['travel']>;
@@ -55,6 +55,7 @@ function writeUnit(data:Float64Array,at:number,u:Unit,routes:number[][]):void {
  data[at+18]=(travel?1:Object.hasOwn(u,'travel')?3:0)|(transport?4:Object.hasOwn(u,'transport')?12:0)|(u.assault!==undefined?16:Object.hasOwn(u,'assault')?48:0)|(u.army!==undefined?64:Object.hasOwn(u,'army')?192:0);
  data[at+19]=u.army??0;
  data[at+20]=memberStatuses.indexOf(u.armyStatus);
+ data[at+21]=u.lastShotHeading??NaN;
 }
 export function encodeLocalFrame(s:GameState,base?:LocalBase):{frame:LocalFrame;base:LocalBase;transfer:ArrayBuffer[]} {
  const full=!base||base.campaign!==s.campaign||base.provinces.length!==s.provinces.length;
@@ -74,7 +75,13 @@ function readUnit(data:Float64Array,at:number,paths:Map<number,PathEntry|Path>,r
  if(flags&16)u.assault=flags&32?undefined:data[at+11];
  if(flags&64)u.army=flags&128?undefined:data[at+19];
  const status=data[at+20];if(!Number.isInteger(status)||status<0||status>=memberStatuses.length||status&&!u.army)throw Error('invalidSnapshot');
- if(status)u.armyStatus=memberStatuses[status];return u;
+ if(status)u.armyStatus=memberStatuses[status];
+ const heading=data[at+21];
+ if(!Number.isNaN(heading)){
+   if(Math.abs(heading)>Math.PI)throw Error('invalidSnapshot');
+   u.lastShotHeading=heading;
+ }
+ return u;
 }
 export function applyLocalFrame(current:GameState|null,frame:LocalFrame):GameState {
  if(frame.state.map!==MAP_ID||frame.state.version!==STATE_VERSION||frame.state.spawnModel!=='single'||frame.state.neutralGarrisonModel!=='preplaced')throw Error('incompatibleMap');

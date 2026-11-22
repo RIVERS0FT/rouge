@@ -1,6 +1,6 @@
 import type {CountryAction} from '../game/countryActions.ts';
 import {useLayoutEffect, useRef} from 'react';
-import {regionGarrison} from '../game/capacity.ts';
+import {regionTroops} from '../game/capacity.ts';
 import {DT, UNITS} from '../game/content.ts';
 import {constructionProductionMultiplier, fundsIncomeRate, recoveryMultiplier} from '../game/construction.ts';
 import {factionColor} from '../game/factionColors.ts';
@@ -47,7 +47,7 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
  const province = state.provinces[selected], player = state.players[actor];
  const status = province.capture > 0 ? 'contested' : battle ? 'fighting' : province.recovery > 0 ? 'recovering' : 'stable';
  const productionTime = UNITS[province.kind].train, capacity = capacityFor(state, selected);
- const garrison = regionGarrison(state, province.owner, selected), rate = regionProductionRate(selected);
+ const garrison = regionTroops(state, province.owner, selected), rate = regionProductionRate(selected);
  const country = state.players[province.owner];
  // Mirrors the engine's steady training rate and income, including the owner's talents (Levy only while funds last).
  const profile = country ? talentProfile(country) : undefined, levy = profile?.levy && country!.funds >= 5 ? 1.5 : 1;
@@ -89,7 +89,7 @@ export function TerritoryPanel({state, selected, actor, eliminated, language, hi
   </section>}
   {battle && <BattleSection state={state} battle={battle} actor={actor} language={language} onCountry={onCountry}/>}
   {province.owner === actor && <section className="province-production">
-   <SectionRibbon>{text('production')}</SectionRibbon>
+   <SectionRibbon aside={player.funds <= 0 ? text('trainingPausedFunds') : undefined}>{text('production')}</SectionRibbon>
    <div className="production-row">
     <span className="production-icon"><UnitIcon kind={province.kind}/></span>
     <div className="production-control">

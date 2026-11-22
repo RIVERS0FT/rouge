@@ -32,7 +32,7 @@ export async function profilePlayerInput(page,count=30){
      const applied=dispatch&&w.state.armies.some(a=>a.id>=args.nextArmy&&a.owner===w.actor&&a.to===args.target);
      const shown=camera||kind==='wheel'?Math.abs(Number(el.dataset.distance)-initial)>.01:
       drag?preview?.dataset.phase==='dragging'&&Number(preview.dataset.target)===args.target:
-      dispatch?preview?.dataset.phase==='released'||applied:Number(el.dataset.selectedRegion)===args.target;
+      dispatch?el.dataset.routeOverlayVisible==='false'||applied:Number(el.dataset.selectedRegion)===args.target;
      if(firstMs===null&&draw&&shown)firstMs=now-start;
      const done=camera?mode===(kind==='to2d'?'2d':'3d')&&el.dataset.settled==='true':
       kind==='wheel'?shown&&el.dataset.settled==='true':dispatch?applied:shown;

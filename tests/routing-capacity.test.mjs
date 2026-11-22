@@ -5,7 +5,7 @@ import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import {MAP,SOURCE_MAP,provinceByCode,pointInProvince} from '../src/game/map.ts';
 import {findRegionRoute} from '../src/game/navigation.ts';
 import {validateTravel} from '../src/game/terrain-navigation.ts';
-import {UNITS,stats} from '../src/game/content.ts';
+import {DT,UNITS,stats} from '../src/game/content.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {regionGarrison,regionTroops,regionReservations} from '../src/game/capacity.ts';
 import {validateState,encodeSave,decodeSave,writeSave,listSaves,deleteSave,SAVE_PREFIX} from '../src/game/save.ts';
@@ -13,6 +13,7 @@ import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 const setups=[{name:'A',leader:'warden',loadout:['infantry']},{name:'B',leader:'steward',loadout:['infantry']}];
 const fresh=()=>new Engine(createGame(setups,21,'route-test')),id=provinceByCode;
 const from=id('DEU-3487'),target=id('DEU-1574');
+const almostTrained=UNITS.infantry.train-0.01;
 function add(s,region,owner,n){for(let k=0;k<n;k++){const c=MAP[region].center;s.units.push({id:s.nextId++,owner,kind:'infantry',x:c.x,z:c.z,hp:stats(s.players[owner],'infantry').hp,province:region,origin:region,target:null,destination:null,route:[],cooldown:0});}}
 function empty(){const e=fresh();e.state.units=[];for(const p of e.state.provinces){p.owner=-1;p.production=0;}e.state.provinces[id('USA-3521')].owner=1;return e;}
 function ready(e){e.state.grouping=reconcileGrouping(e.state);return e;}
@@ -48,37 +49,41 @@ test('administrative adjacency helper can avoid a blocked edge without inventing
 });
 test('480 stationed battalions exceed removed global limits and survive production, saves and LAN',()=>{
  const e=empty(),regions=MAP.filter(p=>p.playable&&regionCapacity(p.id)===12&&p.code!=='USA-3521').slice(0,40).map(p=>p.id);assert.equal(regions.length,40);
+ e.state.players[0].funds=1000; // Cover upkeep while testing the training capacity of a large army.
  for(const r of regions){e.state.provinces[r].owner=0;e.state.provinces[r].production=UNITS.infantry.train-.025*regionProductionRate(r);add(e.state,r,0,11);}ready(e);
  assert.equal(e.state.units.length,440);e.step();assert.equal(e.state.units.filter(u=>u.owner===0).length,480);invariant(e.state);assert.ok(validateState(e.state));
  assert.deepEqual(decodeSave(encodeSave(e.state,'Large army')).state,e.state);assert.deepEqual(applyFrame(null,encodeFrame(e.state,undefined,0).frame),e.state);
- e.step(300);assert.equal(e.state.units.filter(u=>u.owner===0).length,480);const victim=e.state.units.find(u=>u.province===regions[0]);e.state.units=e.state.units.filter(u=>u!==victim);e.step(300);assert.equal(e.state.units.filter(u=>u.owner===0).length,480);assert.equal(regionTroops(e.state,0,regions[0]),12);
+ e.step(300);assert.equal(e.state.units.filter(u=>u.owner===0).length,480);const victim=e.state.units.find(u=>u.province===regions[0]);e.state.units=e.state.units.filter(u=>u!==victim);e.step(Math.ceil(UNITS.infantry.train/DT));assert.equal(e.state.units.filter(u=>u.owner===0).length,480);assert.equal(regionTroops(e.state,0,regions[0]),12);
 });
 test('incoming queued and marching units constrain only destination training',()=>{
  const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;add(e.state,from,0,3);add(e.state,target,0,regionCapacity(target)-2);ready(e);
- const targetState=e.state.provinces[target];targetState.production=13.99;
+ const targetState=e.state.provinces[target];targetState.production=almostTrained;
  assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);
  assert.equal(regionReservations(e.state,0,target),0);
  assert.equal(e.state.provinces[from].march.pendingIds.length,3);
  // The single release on its own is not enough to block training. The other
  // two troops are still queued at the source and count toward training only.
- e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);assert.equal(targetState.production,13.99);
+ e.step();assert.equal(regionTroops(e.state,0,target),regionCapacity(target)-2);assert.equal(targetState.production,almostTrained);
  e.step(2*MARCH_INTERVAL_TICKS);assert.equal(regionReservations(e.state,0,target),3);
- assert.equal(e.state.provinces[from].march,undefined);assert.equal(targetState.production,13.99);
+ assert.equal(e.state.provinces[from].march,undefined);assert.equal(targetState.production,almostTrained);
 });
 test('a normal friendly march arrives above training capacity and round-trips through save and LAN',()=>{
  const e=empty();e.state.provinces[from].owner=e.state.provinces[target].owner=0;
  const cap=regionCapacity(target);add(e.state,from,0,1);add(e.state,target,0,cap);ready(e);
- const moving=e.state.units[0],targetState=e.state.provinces[target];targetState.production=13.99;
+ const moving=e.state.units[0],targetState=e.state.provinces[target];targetState.production=almostTrained;
  assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);assert.equal(moving.assault,undefined);
  for(let i=0;i<3000&&moving.army!==undefined;i++)e.step();
  assert.equal(moving.target,null);assert.equal(moving.province,target);assert.equal(regionGarrison(e.state,0,target),cap+1);
- assert.equal(targetState.production,13.99);assert.ok(validateState(e.state));invariant(e.state);
+ assert.equal(targetState.production,almostTrained);assert.ok(validateState(e.state));invariant(e.state);
  assert.deepEqual(decodeSave(encodeSave(e.state,'Overflow')).state,e.state);
  assert.deepEqual(applyFrame(null,encodeFrame(e.state,undefined,0).frame),e.state);
 });
-test('dispatch never creates a free home production slot before troops physically leave',()=>{
- const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);e.state.provinces[from].production=13.99;
- assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);e.step();assert.equal(regionTroops(e.state,0,from),regionCapacity(from));assert.equal(e.state.provinces[from].production,13.99);
+test('a queued dispatch frees home training slots only as its members leave town',()=>{
+ const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,regionCapacity(from));ready(e);e.state.provinces[from].production=almostTrained;
+ e.state.provinces[from].lastMarchTick=e.state.tick;
+ assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);e.step(MARCH_INTERVAL_TICKS-1);
+ assert.equal(regionTroops(e.state,0,from),regionCapacity(from));assert.equal(e.state.provinces[from].production,almostTrained);
+ e.step();assert.equal(regionGarrison(e.state,0,from),1);assert.ok(e.state.provinces[from].production<1);
 });
 test('continuous terrain travel does not route through or require capture of intermediate administrative centers',()=>{
  const e=empty();e.state.provinces[from].owner=0;add(e.state,from,0,1);ready(e);assert.ok(e.command(0,{type:'march',from,to:target,fraction:1}).ok);

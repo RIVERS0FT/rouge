@@ -23,7 +23,7 @@ test('large local army ledgers retain exact order, changed poses and routes acro
 test('transferable local frames retain complete state and AI choices without mutating previous UI snapshots',()=>{
  const state=structuredClone(fixture);state.players[1].choices=['industry'];state.players[1].drafts=1;
  const initial=encodeLocalFrame(state),before=applyLocalFrame(null,wire(initial)),frozen=structuredClone(before);
- state.tick+=2;state.units[0].x+=.000001;state.players[0].funds+=.1;
+ state.tick+=2;state.units[0].x+=.000001;state.units[0].lastShotHeading=0;state.units[1].lastShotHeading=-2.4;state.players[0].funds+=.1;
  const delta=encodeLocalFrame(state,initial.base),after=applyLocalFrame(before,wire(delta));
  assert.deepEqual(after,state);assert.deepEqual(before,frozen);assert.deepEqual(after.players[1].choices,['industry']);assert.equal(delta.frame.full,false);
 });

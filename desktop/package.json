@@ -1,0 +1,16 @@
+{
+  "name": "rouge-desktop",
+  "productName": "ROUGE",
+  "description": "诸省之争 Windows 游戏客户端",
+  "author": "ROUGE",
+  "private": true,
+  "version": "0.0.0",
+  "main": "main.cjs",
+  "scripts": {
+    "package": "electron-builder --config electron-builder.cjs --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "43.4.0",
+    "electron-builder": "26.18.0"
+  }
+}

@@ -6,7 +6,7 @@ import {CONSTRUCTION,constructionCost,salvageValue} from '../src/game/constructi
 import {MAP,pointInProvince,provinceByCode} from '../src/game/map.ts';
 import {capacityFor,regionCapacity} from '../src/game/territoryEconomy.ts';
 import {talentContext,SAPPER_INTERVAL_TICKS} from '../src/game/talentEffects.ts';
-import {incomePerDay} from '../src/ui/hud/hudModel.ts';
+import {dailyFundsBreakdown,incomePerDay} from '../src/ui/hud/hudModel.ts';
 import {decodeSave,encodeSave} from '../src/game/save.ts';
 import {BALANCE} from '../src/game/balance.ts';
 
@@ -60,7 +60,7 @@ test('Living off the Land multiplies kill and capture funds but cuts regional in
  captureSetup(e,{owner:1});const before=e.state.players[0].funds;e.step();
  close(e.state.players[0].funds-before,(BALANCE.economy.captureReward+tributeTaken(300))*T.livingOffLand.plunder,.5);
  const plain=game(),cut=game('infantry','infantry',['livingOffLand']);
- close(incomePerDay(cut.state,0),incomePerDay(plain.state,0)*T.livingOffLand.income);
+ close(dailyFundsBreakdown(cut.state,0).regions,dailyFundsBreakdown(plain.state,0).regions*T.livingOffLand.income);
 });
 
 /** Player 0 attacks a nearly dead player-1 battalion on clear ground. */
@@ -148,10 +148,10 @@ test('Raiders: enemy regions with this cavalry inside earn and train nothing; th
   assert.ok(spot,'a point inside the enemy region away from its garrison');
   s.units=s.units.filter(u=>u.owner!==0);s.units.push({id:s.nextId++,owner:0,kind:'cavalry',x:spot.x,z:spot.z,hp:120,province:id,origin:id,target:null,destination:null,route:[],cooldown:0});
   s.provinces[id].production=0;const funds=s.players[1].funds,quote=incomePerDay(s,1);e.step();
-  return {gain:s.players[1].funds-funds,quote,production:s.provinces[id].production};
+  return {gain:s.players[1].funds-funds,quote,upkeep:s.units.filter(u=>u.owner===1).length*0.1,production:s.provinces[id].production};
  });
  assert.ok(results[0].gain>0&&results[0].production>0);
- close(results[1].gain,0);close(results[1].quote,0);close(results[1].production,0);
+ close(results[1].quote,-results[1].upkeep);close(results[1].gain,DT*results[1].quote);close(results[1].production,0);
 });
 
 test('Siege Lines keeps abandoned capture progress; without it progress decays',()=>{

@@ -1,5 +1,5 @@
 import {openMapSearch} from './map-search.ts';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {readFileSync} from 'node:fs';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
 test('real global Miller atlas, geographic search and near terrain',async({page})=>{

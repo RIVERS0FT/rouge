@@ -1,5 +1,5 @@
 import {openMapSearch} from './map-search.ts';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './static-host.ts';
 
 async function assertLayout(page: Page) {
   const flag=await page.getByTestId('faction-identity').boundingBox();

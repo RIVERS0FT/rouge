@@ -1,5 +1,5 @@
 import {openMapSearch} from './map-search.ts';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 
 test('ocean labels are italic in both languages while land labels stay upright',async({page})=>{
  test.setTimeout(180000);

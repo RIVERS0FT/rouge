@@ -24,7 +24,7 @@ export function TalentsDialog({player, campaign, seenRound, eliminated, pending,
  const keep = kept?.round === round && player.choices.includes(kept.id) ? kept.id : undefined;
  return <>
   <div className="talent-hero">
-   <div className="talent-portrait"><LeaderBust leader={player.leader} label={text(player.leader)}/></div>
+   <div className="talent-portrait"><LeaderBust appearance={player.appearance} leader={player.leader} label={text(player.leader)}/></div>
    <div className="talent-hero-copy">
     <span className="window-kicker">{text(player.leader)}</span>
     <p className="talent-lede">{text('talentTitle')}</p>

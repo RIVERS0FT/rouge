@@ -29,6 +29,21 @@ const members=(e,id)=>e.state.units.filter(u=>u.army===id);
 const marching=e=>e.state.units.some(u=>u.target!==null);
 function until(e,done,limit=6000){for(let i=0;i<limit&&!done();i+=10)e.step(10);assert.ok(done(),'condition reached');}
 
+test('one group order redirects selected armies and dispatches the chosen fraction of the garrison',()=>{
+ const {e,from,second,to,other}=fixture();
+ assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
+ const army=e.state.armies[0].id,before=structuredClone(e.state);
+ const command={type:'moveForces',armies:[army],sources:[second],to:other,fraction:.5};
+ assert.equal(e.command(1,command).ok,false);
+ assert.equal(e.command(0,{...command,sources:[provinceByCode('USA-3521')]}).ok,false);
+ assert.equal(e.command(0,{...command,armies:[army,army]}).ok,false);
+ assert.deepEqual(e.state,before);
+ assert.ok(e.command(0,command).ok);
+ assert.deepEqual(e.state.armies.map(a=>[a.size,a.to]),[[4,other],[1,other]]);
+ assert.ok(e.command(0,{...command,armies:e.state.armies.map(a=>a.id),sources:[],to}).ok);
+ assert.ok(e.state.armies.every(a=>a.to===to));
+});
+
 test('one dispatch from several regions creates one army per source, counting troops still waiting',()=>{
  const {e,from,second,to}=fixture();
  assert.deepEqual(e.command(0,{type:'muster',sources:[from,second],to,fraction:1}),{ok:true});

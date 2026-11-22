@@ -3,7 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {MAP,SOURCE_MAP,SOURCE_TO_REGION,PREPROCESSED_TOPOLOGY,PREPROCESSED_GROUPING,PLAYABLE_COUNT,provinceAt,provinceByCode,pointInProvince,searchProvinces} from '../src/game/map.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
-import {stats,DT,MAP_ID} from '../src/game/content.ts';
+import {stats,DT,MAP_ID,UNITS} from '../src/game/content.ts';
 import {validateState,encodeSave,decodeSave,checksum,SAVE_PREFIX,writeSave,listSaves,deleteSave} from '../src/game/save.ts';
 import {applyFrame,encodeFrame} from '../src/platform/replication.ts';
 import {validateTerritoryGrouping} from '../src/game/territoryGrouping.ts';
@@ -22,7 +22,7 @@ test('source administrative searches resolve to the same selectable production a
  const s=createGame(setups,42);s.units=[];for(const p of s.provinces){p.owner=-1;p.production=0;}s.provinces[region.id].owner=0;s.provinces[MAP.find(p=>p.playable&&p.id!==region.id).id].owner=1;s.grouping=reconcileGrouping(s);
  const e=new Engine(s);assert.equal(e.state.provinces.length,finalRegionCount);assert.equal(regionCapacity(region.id),12);assert.equal(regionProductionRate(region.id),1);
  for(const code of codes)assert.equal(e.command(0,{type:'production',province:provinceByCode(code),kind:'infantry'}).ok,true);
- const queue=e.state.provinces[region.id];queue.production=14-DT/2;e.step();
+ const queue=e.state.provinces[region.id];queue.production=UNITS.infantry.train-DT/2;e.step();
  assert.equal(e.state.units.filter(u=>u.owner===0&&u.province===region.id).length,1,'all original members share one training queue');
  assert.ok(validateState(e.state));
  const group=e.state.grouping.groups.find(g=>g.atoms.includes(region.code));
