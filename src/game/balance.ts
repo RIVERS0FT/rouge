@@ -13,20 +13,22 @@
  * - 局域网对局比对这份表的指纹（BALANCE_ID）：数值不同的版本进不了同一个房间。
  * - 旧存档照常读取：超出新上限的数值（例如调低最大生命后的满血部队）会在读档时压到新上限。
  */
+const BASE_TRAINING_DAYS = 30;
+
 export const BALANCE = {
   /** 兵种基础属性。
    * hp 生命 · attack 每次攻击的伤害 · defense 防御（受到的伤害 × 100/(100+防御)）
    * attackSpeed 每天攻击次数 · splash 溅射半径（0 = 单体）· range 射程
    * train 训练一支部队需要的天数（地块产能为 1 时）· speed / seaSpeed 陆地 / 海上移动速度 */
   units: {
-    infantry:       {hp:100, attack:14, defense:10, attackSpeed:1,    splash:0,   range:3.1, train:14, speed:1.2, seaSpeed:1.5},
-    cavalry:        {hp:120, attack:24, defense:15, attackSpeed:0.8,  splash:0,   range:1.8, train:22, speed:2, seaSpeed:1.5},
-    artillery:      {hp:80,  attack:40, defense:0,  attackSpeed:0.5,  splash:1.2, range:7.2, train:28, speed:0.9, seaSpeed:1.5},
-    engineer:       {hp:100, attack:12, defense:10, attackSpeed:1,    splash:0,   range:2.6, train:18, speed:1.25, seaSpeed:1.5},
-    skirmisher:     {hp:75,  attack:12, defense:0,  attackSpeed:1,    splash:0,   range:4.6, train:18, speed:1.5, seaSpeed:1.5},
-    grenadier:      {hp:130, attack:18, defense:20, attackSpeed:0.8,  splash:0.7, range:2.3, train:24, speed:1.1, seaSpeed:1.5},
-    heavyCavalry:   {hp:155, attack:30, defense:25, attackSpeed:0.65, splash:0,   range:1.6, train:32, speed:1.7, seaSpeed:1.5},
-    horseArtillery: {hp:70,  attack:28, defense:0,  attackSpeed:0.55, splash:0.8, range:5.8, train:30, speed:1.4, seaSpeed:1.5},
+    infantry:       {hp:100, attack:14, defense:10, attackSpeed:1,    splash:0,   range:3.1, train:BASE_TRAINING_DAYS, speed:1.2, seaSpeed:1.5},
+    cavalry:        {hp:120, attack:24, defense:15, attackSpeed:0.8,  splash:0,   range:1.8, train:BASE_TRAINING_DAYS, speed:2, seaSpeed:1.5},
+    artillery:      {hp:80,  attack:40, defense:0,  attackSpeed:0.5,  splash:1.2, range:7.2, train:BASE_TRAINING_DAYS, speed:0.9, seaSpeed:1.5},
+    engineer:       {hp:100, attack:12, defense:10, attackSpeed:1,    splash:0,   range:2.6, train:BASE_TRAINING_DAYS, speed:1.25, seaSpeed:1.5},
+    skirmisher:     {hp:75,  attack:12, defense:0,  attackSpeed:1,    splash:0,   range:4.6, train:BASE_TRAINING_DAYS, speed:1.5, seaSpeed:1.5},
+    grenadier:      {hp:130, attack:18, defense:20, attackSpeed:0.8,  splash:0.7, range:2.3, train:BASE_TRAINING_DAYS, speed:1.1, seaSpeed:1.5},
+    heavyCavalry:   {hp:155, attack:30, defense:25, attackSpeed:0.65, splash:0,   range:1.6, train:BASE_TRAINING_DAYS, speed:1.7, seaSpeed:1.5},
+    horseArtillery: {hp:70,  attack:28, defense:0,  attackSpeed:0.55, splash:0.8, range:5.8, train:BASE_TRAINING_DAYS, speed:1.4, seaSpeed:1.5},
   },
 
   /** 兵种升级（火力 / 生存 / 机动三项，各自计级）。 */
@@ -43,7 +45,9 @@ export const BALANCE = {
   economy: {
     startingFunds: 184,
     /** 每个地块每天的基础收入。 */
-    incomePerRegion: 0.75,
+    incomePerRegion: 1,
+    /** 每支部队每天的维持费。 */
+    upkeepPerUnit: 0.1,
     /** 每次占领获得的资金。 */
     captureReward: 30,
     /** 新占领地块的恢复期（天）。 */
@@ -119,13 +123,27 @@ export const BALANCE = {
     battleQuietDays: 2,
   },
 
+  /** 电脑国家的决策，详见 docs/AI.md。
+   * 战力按「一支未升级的新步兵 = 1」折算，已计入当前血量、升级、天赋，以及守方的要塞和防御天赋。 */
   ai: {
     /** AI 国家每隔几天行动一次。 */
     intervalDays: 4,
-    /** 资金超过多少才升级兵种。 */
+    /** 资金超过多少才升级兵种（每次选买得起的、性价比最高的一项）。 */
     upgradeAbove: 160,
-    /** 地块驻军至少多少支才出兵。 */
-    attackWith: 4,
+    /** 进攻他国地块：己方战力至少是守方的几倍才出兵。 */
+    attackRatio: 1.3,
+    /** 进攻中立地块的倍数。中立守军不会增援，也不会反击。 */
+    neutralAttackRatio: 0.9,
+    /** 进攻中的战力跌到守方的这个比例以下、附近又没有援兵时，撤回。 */
+    retreatBelow: 0.7,
+    /** 与他国接壤的地块，按相邻敌军战力的这个比例留守。 */
+    reserveRatio: 0.5,
+    /** 占领无人地块只派出的部队数。 */
+    detachment: 2,
+    /** 内陆地块的空闲驻军至少多少支才整批调往前线。 */
+    moveWith: 4,
+    /** 升级兵种之后资金仍超过多少才建造（每回合最多一座）。 */
+    buildAbove: 100,
   },
 
   /** 天赋数值。minLevel：从第几级起才会出现在候选中。 */

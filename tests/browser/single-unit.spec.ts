@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 test('setup chooses exactly one of four units and starts a non-infantry army',async({page})=>{
  await page.goto('/');
  await page.getByRole('button',{name:'English',exact:true}).click();

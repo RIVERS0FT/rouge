@@ -27,8 +27,8 @@ function OutlinerSection({id, title, aside, open, onToggle, children}: {id: stri
  * the player's own regions and the dispatch feed. Every row is a shortcut
  * that moves the camera, like a grand-strategy outliner.
  */
-export function Outliner({state, actor, owned, factions, regions, armies = [], selectedArmy = null, language, open, onFocusNation, onSelectRegion, onSelectArmy, onShowNations}: {
- state: GameState; actor: number; owned: number; factions: FactionSummary[]; regions: RegionSummary[]; armies?: ArmyView[]; selectedArmy?: number | null;
+export function Outliner({state, actor, owned, factions, regions, armies = [], selectedArmies = [], language, open, onFocusNation, onSelectRegion, onSelectArmy, onShowNations}: {
+ state: GameState; actor: number; owned: number; factions: FactionSummary[]; regions: RegionSummary[]; armies?: ArmyView[]; selectedArmies?: readonly number[];
  language: Language; open: boolean; onFocusNation: (id: number) => void; onSelectRegion: (id: number) => void; onSelectArmy?: (army: ArmyView) => void; onShowNations: () => void;
 }) {
  const text = (key: string) => t(language, key), goal = victoryTarget();
@@ -70,14 +70,14 @@ export function Outliner({state, actor, owned, factions, regions, armies = [], s
    </OutlinerSection>
    <OutlinerSection id="armies" title={text('armies')} aside={mine.length} open={expanded.armies} onToggle={() => toggle('armies')}>
     {mine.length ? <ol className="outliner-armies">{mine.slice(0, ARMY_ROWS).map(army => <li key={army.id}>
-     <button type="button" className="army-row" data-testid="outliner-army" data-selected={army.id === selectedArmy} onClick={() => onSelectArmy?.(army)}>
+     <button type="button" className="army-row" data-testid="outliner-army" data-selected={selectedArmies.includes(army.id)} onClick={() => onSelectArmy?.(army)}>
       <FactionSwatch state={state} id={army.owner} language={language} className="army-row-flag"/>
       <b className="army-row-count">{army.count}</b>
       <span className="army-row-target"><bdi>{text('armyTarget').replace('{region}', regionName(army.to))}</bdi></span>
      </button>
     </li>)}</ol> : <p className="outliner-note">{text('noArmies')}</p>}
     {mine.length > ARMY_ROWS && <p className="outliner-note">{text('moreItems').replace('{count}', String(mine.length - ARMY_ROWS))}</p>}
-    {selectedArmy !== null && mine.some(army => army.id === selectedArmy) && <p className="outliner-note army-hint">{text('armySelectedHint')}</p>}
+    {selectedArmies.length > 0 && <p className="outliner-note army-hint">{text('armySelectedHint')}</p>}
    </OutlinerSection>
    <OutlinerSection id="regions" title={text('myRegions')} aside={regions.length} open={expanded.regions} onToggle={() => toggle('regions')}>
     <ol className="outliner-regions">{regions.slice(0, REGION_ROWS).map(region => {

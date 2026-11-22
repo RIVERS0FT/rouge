@@ -1,5 +1,5 @@
 import {openMapSearch} from './map-search.ts';
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './static-host.ts';
 
 async function tick(page:Page){return Number(await page.getByTestId('game-clock').getAttribute('data-tick'));}
 async function assertFullscreen(page:Page){
@@ -118,7 +118,7 @@ test('full-screen HUD: settings, archives, focus, pause preservation and respons
  await page.setViewportSize({width:1440,height:960});await assertFullscreen(page);
  // Pan to both latitude limits and zoom out: no blank polar bands appear.
  for(const y of [930,190]){
-  await page.mouse.move(760,550);await page.mouse.down();await page.mouse.move(760,y,{steps:10});await page.mouse.up();
+  await page.mouse.move(760,550);await page.mouse.down({button:'middle'});await page.mouse.move(760,y,{steps:10});await page.mouse.up({button:'middle'});
   await page.locator('.world canvas').focus();await page.keyboard.press('-');await assertFullscreen(page);
  }
  await page.reload();await page.getByTestId('open-saves').click();

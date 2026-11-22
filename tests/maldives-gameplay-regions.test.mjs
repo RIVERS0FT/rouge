@@ -111,7 +111,7 @@ test('map v28 and save v30 reject the previous map and LAN data without changing
  const current=createGame(players,42,'maldives-gameplay-regions');
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
  assert.equal(STATE_VERSION,30);
- assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v47');
  assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
  const currentSave=encodeSave(current,'Current campaign');
  assert.deepEqual(decodeSave(currentSave).state,current);

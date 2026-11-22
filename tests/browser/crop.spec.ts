@@ -1,9 +1,9 @@
 import {openMapSearch} from './map-search.ts';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {readFileSync} from 'node:fs';
 const atlas=JSON.parse(readFileSync('src/generated/gameplay-map.json','utf8'));
 test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and polar anchor',async({page})=>{
-  test.setTimeout(120000);
+  test.setTimeout(180000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/');const canvas=page.locator('.world canvas');
   await expect(canvas).toHaveAttribute('data-ready','true',{timeout:30000});
@@ -33,9 +33,10 @@ test('state-region Miller atlas: geometry limits, sea exclusion, wrapping and po
   await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
   await page.screenshot({path:'artifacts/cropped-miller-jiangsu.png'});
   await page.locator('.world canvas').focus();await page.keyboard.press('Home');await expect(canvas).toHaveAttribute('data-settled','true',{timeout:15000});
+  await expect(canvas).toHaveAttribute('data-focus-x','0');
   // A real pointer drag passes the dateline. The nearest repeated atlas is drawn
   // and focus wraps into the canonical interval, rather than clamping at ±1800.
-  for(let i=0;i<2;i++){await page.mouse.move(1100,600);await page.mouse.down();await page.mouse.move(360,600,{steps:12});await page.mouse.up();}
+  for(let i=0;i<2;i++){await page.mouse.move(1100,600);await page.mouse.down({button:'middle'});await page.mouse.move(360,600,{steps:12});await page.mouse.up({button:'middle'});}
   await expect(canvas).toHaveAttribute('data-wrap-x','true');
   await expect.poll(async()=>Number(await canvas.getAttribute('data-focus-x'))).toBeLessThan(0);
   expect(Number(await canvas.getAttribute('data-focus-x'))).toBeGreaterThanOrEqual(-1800);

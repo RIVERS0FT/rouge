@@ -1,12 +1,14 @@
+import {UNITS} from '../src/game/content.ts';
 import {test} from 'node:test';
 import {MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
 import assert from 'node:assert/strict';
 import {MAP} from '../src/game/map.ts';
-import {isRegionGarrison,regionGarrison,regionTroops,regionReservations} from '../src/game/capacity.ts';
+import {isRegionGarrison,regionGarrison,regionTroops,regionReservations,trainingSlots} from '../src/game/capacity.ts';
 import {validateState,encodeSave,decodeSave} from '../src/game/save.ts';
 import {encodeFrame,applyFrame} from '../src/platform/replication.ts';
 import {garrisonFixture} from './helpers/garrison-fixture.mjs';
 import {mapUnitVisible} from '../src/render/unitPresentation.ts';
+const almostTrained=UNITS.infantry.train-0.01;
 
 // Keep these single-unit arrival fixtures free of unrelated reinforcements.
 function stepWithoutProduction(e){for(const p of e.state.provinces)p.production=0;e.step();}
@@ -23,14 +25,19 @@ test('reserved troops leave available garrison counts while waiting troops still
  assert.ok(validateState(e.state));
  for(const restored of [decodeSave(encodeSave(e.state,'Dispatched')).state,applyFrame(null,encodeFrame(e.state,undefined,0).frame)]){
   assert.equal(regionGarrison(restored,0,from),0);assert.equal(regionReservations(restored,0,to),6);assert.equal(restored.units.length,12);
+  const slots=trainingSlots(restored);assert.equal(slots.stationed[from],6);assert.equal(slots.reserved[to],12);
  }
 });
 
-test('physical production capacity remains full while the first troop has received orders',()=>{
- const {e,from,to}=garrisonFixture();e.state.provinces[from].production=13.99;
- assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);e.step();
- assert.equal(regionGarrison(e.state,0,from),0);assert.equal(regionTroops(e.state,0,from),12);
- assert.equal(e.state.provinces[from].production,13.99);assert.equal(e.state.units.length,12);
+test('the first battalion leaving town opens a training slot while still inside the source region',()=>{
+ const {e,from,to}=garrisonFixture();e.state.provinces[from].production=almostTrained;
+ assert.ok(e.command(0,{type:'march',from,to,fraction:1}).ok);
+ assert.equal(trainingSlots(e.state).stationed[from],12);
+ e.step();
+ assert.equal(e.state.units.find(u=>u.armyStatus==='formed').province,from);
+ assert.equal(e.state.provinces[from].march.pendingIds.length,11);
+ assert.equal(regionGarrison(e.state,0,from),1);assert.equal(regionTroops(e.state,0,from),12);
+ assert.ok(e.state.provinces[from].production<1);assert.equal(e.state.units.length,13);
 });
 
 test('a friendly arrival becomes garrison only after its order ends, once, with no duplicate reservation',()=>{

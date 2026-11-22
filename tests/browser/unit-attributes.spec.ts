@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 test('nine attributes are visible in setup tooltips and live upgrades in both languages',async({page})=>{
  await page.goto('/');
  await page.getByTestId('single-player').click();
@@ -10,6 +10,7 @@ test('nine attributes are visible in setup tooltips and live upgrades in both la
  await expect(infantryTooltip.locator('.unit-attribute')).toHaveCount(9);
  await expect(infantryTooltip).toContainText('单次攻击');
  await expect(infantryTooltip.locator('[data-stat="hp"] strong')).toHaveText('100');
+ await expect(infantryTooltip.locator('[data-stat="train"] strong')).toContainText('30');
  await expect(infantryTooltip.locator('[data-stat="splash"] strong')).toContainText('单体');
  // Escape dismisses the active tooltip before closing setup.
  await page.keyboard.press('Escape');

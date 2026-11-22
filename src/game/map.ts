@@ -59,7 +59,15 @@ for(const province of MAP)if(province.visible)for(const part of province.parts)f
  const a=ring[i],b=ring[j],left=Math.max(0,Math.floor((Math.min(a.x,b.x)-1e-7)/querySize)-queryMinX),right=Math.min(queryCols-1,Math.floor((Math.max(a.x,b.x)+1e-7)/querySize)-queryMinX),top=Math.max(0,Math.floor((Math.min(a.z,b.z)-1e-7)/querySize)-queryMinZ),bottom=Math.min(queryRows-1,Math.floor((Math.max(a.z,b.z)+1e-7)/querySize)-queryMinZ);
  for(let z=top;z<=bottom;z++)for(let x=left;x<=right;x++)queryBoundary[z*queryCols+x]=1;
 }
-export function provinceAt(x:number,z:number):number{if(Number.isFinite(x)&&Number.isFinite(z)&&geometryReady)return kernel.kernelProvinceAt(x,z);
+export function provinceAt(x:number,z:number):number{
+ if(Number.isFinite(x)&&Number.isFinite(z)&&geometryReady){
+  // An interior cell has one answer: ask the kernel once per cell, as the JS path below does.
+  if(!inRect({x,z},BOUNDS))return kernel.kernelProvinceAt(x,z);
+  const cell=(Math.floor(z/querySize)-queryMinZ)*queryCols+Math.floor(x/querySize)-queryMinX;
+  if(queryBoundary[cell])return kernel.kernelProvinceAt(x,z);
+  const known=queryAnswers[cell];
+  return known!==-2?known:queryAnswers[cell]=kernel.kernelProvinceAt(x,z);
+ }
  if(!inRect({x,z},BOUNDS))return -1;
  const cell=(Math.floor(z/querySize)-queryMinZ)*queryCols+Math.floor(x/querySize)-queryMinX;
  if(!queryBoundary[cell]&&queryAnswers[cell]!==-2)return queryAnswers[cell];

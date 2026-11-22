@@ -50,6 +50,7 @@ small,.small{font-size:12px;line-height:1.6}
 .app{height:100dvh;min-height:0;position:relative;overflow:hidden}
 .world{position:absolute;inset:0}
 .world canvas{display:block;touch-action:none}
+.map-selection-box{position:absolute;pointer-events:none;z-index:3;border:1px solid #f5cb79;background:rgba(245,203,121,.14);box-shadow:0 0 0 1px #211c1370}
 .map-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,#06121680)}
 .render-error{position:absolute;inset:25%;display:grid;place-items:center;padding:35px;z-index:1;text-align:center;background:var(--panel-bg);box-shadow:var(--frame)}
 

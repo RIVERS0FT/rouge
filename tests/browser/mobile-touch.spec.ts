@@ -1,5 +1,5 @@
 import {waitForRuntime} from './readiness.ts';
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './static-host.ts';
 test.use({hasTouch:true,isMobile:true});
 async function ready(page:Page){
  await expect(page.locator('.app')).toHaveAttribute('data-local-ready','true',{timeout:60000});

@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {waitForRuntime} from './readiness.ts';
 
 for(const [width,height] of [[844,390],[915,412],[667,375],[740,430]])test(`mobile landscape ${width}x${height}: battle HUD and dialogs fit`,async({page})=>{

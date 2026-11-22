@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {SettingsGeneral} from './dialogs/SettingsDialog.tsx';
 import {Icon} from './icons.tsx';
 import {ModalDialog} from './ModalDialog.tsx';
-import {StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
+import {LanguageSwitch, StartMenu, storedLanguage, type StartAction} from './StartMenu.tsx';
 import {t, type Language} from './i18n.ts';
 import type {App} from './App.tsx';
 
@@ -36,10 +36,7 @@ export function Bootstrap() {
  const settings = action === 'settings';
  return <div className="app is-menu is-loading" data-resource-state={failed ? 'failed' : 'loading'}>
   <div className="menu-placeholder" aria-hidden="true"/><div className="map-vignette"/>
-  <div className="language-switch">
-   <button type="button" className={language === 'zh' ? 'active' : ''} onClick={() => setLanguage('zh')} aria-label="简体中文">中</button><span>/</span>
-   <button type="button" className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')} aria-label="English">EN</button>
-  </div>
+  <LanguageSwitch language={language} onLanguage={setLanguage}/>
   <StartMenu language={language} onAction={open} resumeCode={resumeCode}/>
   <div className="resource-status" role="status" data-testid="resource-status">
    {!failed && <span className="resource-spinner" aria-hidden="true"><Icon name="hourglass" size={14}/></span>}

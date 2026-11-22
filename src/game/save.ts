@@ -1,6 +1,7 @@
 import {isMarchFraction} from './countryActions.ts';
 import {getSpawnCapacity} from './spawns.ts';
 import {validCountryIdentity} from './countryNames.ts';
+import {validAppearance} from './portrait.ts';
 import { validFlag } from './flags.ts';
 import { KINDS, LEADERS, MAP_ID, STATE_VERSION, TALENTS, STATS, UNITS, MAX_LEADER_LEVEL, MAX_UPGRADE_LEVEL, stats } from './content.ts';
 import {BALANCE} from './balance.ts';
@@ -41,7 +42,7 @@ export function validateState(value:unknown):value is GameState{
   if(!Array.isArray(s.events)||s.events.length>32||!Array.isArray(s.domination)||s.domination.length!==s.players.length||!s.domination.every(v=>number(v,0,BALANCE.victory.days+1)))return false;
   if(s.winner!==null&&!integer(s.winner,0,s.players.length-1))return false;const talentIds=TALENTS.map(t=>t.id);
   for(const[i,p]of s.players.entries()){
-    if(!p||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,MAX_LEADER_LEVEL)||!integer(p.drafts,0,MAX_LEADER_LEVEL-1)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
+    if(!p||(p.appearance!==undefined&&!validAppearance(p.appearance))||((p.ai||p.country!==undefined)&&!validCountryIdentity(p.country))||(p.flag!==undefined&&!validFlag(p.flag))||p.id!==i||typeof p.name!=='string'||p.name.length>24||!LEADERS.includes(p.leader)||typeof p.ai!=='boolean'||!number(p.funds,0,MAX_FUNDS)||!number(p.xp,0,1e12)||!integer(p.level,1,MAX_LEADER_LEVEL)||!integer(p.drafts,0,MAX_LEADER_LEVEL-1)||!integer(p.rerollsUsed,0,Number.MAX_SAFE_INTEGER)||Object.hasOwn(p,'rerolls'))return false;
     if(!Array.isArray(p.loadout)||p.loadout.length!==1||!KINDS.includes(p.loadout[0]))return false;
     if(!Array.isArray(p.talents)||p.talents.length>MAX_LEADER_LEVEL-1||new Set(p.talents).size!==p.talents.length||!p.talents.every(t=>talentIds.includes(t)))return false;
     if(!Array.isArray(p.choices)||p.choices.length>3||new Set(p.choices).size!==p.choices.length||!p.choices.every(t=>talentIds.includes(t)&&!p.talents.includes(t)))return false;

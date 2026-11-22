@@ -1,6 +1,8 @@
 /** Device mappings emit semantic actions; UI context owns whether they may run. */
 export type MapAction = {type:'pan';x:number;z:number}|{type:'zoom';distance:number}|{type:'select';region:number;attack:boolean}|{type:'deselect'};
 export type MapInputContext='game'|'blocked';
+export interface MapForceSelection {regions:readonly number[];armies:readonly number[]}
+export const EMPTY_FORCE_SELECTION:MapForceSelection={regions:[],armies:[]};
 export class MapInputController {
  private context:MapInputContext='blocked';
  private apply:(action:MapAction)=>void;

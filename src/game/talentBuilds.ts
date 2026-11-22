@@ -18,8 +18,6 @@ export function formedBuilds(talents:readonly string[]):string[]{
  return SAMPLE_BUILDS.filter(build=>build.cards.filter(id=>talents.includes(id)).length>=build.need).map(build=>build.id);
 }
 
-/** Talents that only pay off for a country that constructs; AI countries never build. */
-const AI_SKIP=new Set(['publicWorks','tradeRoutes','academy','conscription','industrialBase']);
 /** A stable plan per seat, derived from the campaign seed without consuming its RNG. */
 export function aiBuildPlan(state:Pick<GameState,'seed'>,player:Pick<Player,'id'>):SampleBuild{
  let h=Math.imul((state.seed>>>0)^0x9e3779b9,0x85ebca6b)^Math.imul(player.id+1,0xc2b2ae35);
@@ -34,7 +32,6 @@ export function aiTalentChoice(state:Pick<GameState,'seed'>,player:Pick<Player,'
   if(plan.cards.includes(id))value+=10;
   if(SAMPLE_BUILDS.some(build=>build.cards.includes(id)))value+=2;
   if(TALENT_BY_ID.get(id)?.kinds)value+=3;
-  if(AI_SKIP.has(id))value-=20;
   if(value>score){score=value;best=id;}
  }
  return best;

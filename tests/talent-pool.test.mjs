@@ -98,7 +98,7 @@ test('AI countries follow a stable sample-build plan without consuming the campa
  assert.ok(new Set(plans).size>=3,'plans vary between seats');
  const player=state.players[0],plan=aiBuildPlan(state,player),card=plan.cards[0],rng=state.rng;
  assert.equal(aiTalentChoice(state,{...player,choices:['veterans','industrialBase',card]}),card);
- assert.equal(aiTalentChoice(state,{...player,choices:['tradeRoutes','veterans']}),'veterans','AI skips cards that need construction');
+ assert.equal(aiTalentChoice(state,{...player,choices:['tradeRoutes','veterans']}),'tradeRoutes','AI builds, so cards that need construction are not avoided');
  assert.equal(aiTalentChoice(state,{...player,choices:['veterans','industry']}),'veterans','ties keep the offer order');
  assert.equal(state.rng,rng);
 });

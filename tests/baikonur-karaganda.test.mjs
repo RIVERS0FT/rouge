@@ -8,7 +8,7 @@ import {createTerritoryGrouping,applyTerritoryGrouping,validateTerritoryGrouping
 import {buildBorderEdges} from '../src/render/territoryBorders.ts';
 import {createGame,Engine} from '../src/game/engine.ts';
 import {regionCapacity,regionProductionRate,reconcileGrouping} from '../src/game/territoryEconomy.ts';
-import {stats,DT,MAP_ID} from '../src/game/content.ts';
+import {stats,DT,MAP_ID,UNITS} from '../src/game/content.ts';
 import {encodeSave,decodeSave,checksum,SAVE_PREFIX,writeSave,listSaves,deleteSave,validateState} from '../src/game/save.ts';
 import {applyFrame,encodeFrame} from '../src/platform/replication.ts';
 const members=['KAB+00?','KAZ-3197','KAZ-3203','KAZ-3251','KAZ-3252'];
@@ -48,7 +48,7 @@ test('Baikonur border disappears as an internal source seam without editing the 
 test('Baikonur and Karaganda have one queue, garrison, capture, ownership count and saved/networked record',()=>{
  const s=game();const e=new Engine(s);assert.equal(s.provinces.filter(p=>p.owner===0).length,1);assert.equal(regionCapacity(region.id),12);assert.equal(regionProductionRate(region.id),1);
  for(const code of members)assert.equal(e.command(0,{type:'production',province:provinceByCode(code),kind:'infantry'}).ok,true);
- e.state.provinces[region.id].production=14-DT/2;e.step();assert.equal(e.state.units.filter(u=>u.owner===0&&u.province===region.id).length,1);
+ e.state.provinces[region.id].production=UNITS.infantry.train-DT/2;e.step();assert.equal(e.state.units.filter(u=>u.owner===0&&u.province===region.id).length,1);
  const group=e.state.grouping.groups.find(g=>g.atoms.includes(region.code));
  assert.equal(e.command(0,{type:'splitGroup',group:group.id,atoms:['KAZ-3203'],expectedRevision:e.state.grouping.revision}).ok,false);
  assert.ok(validateState(e.state));assert.deepEqual(decodeSave(encodeSave(e.state,'Karaganda')).state,e.state);assert.deepEqual(applyFrame(null,encodeFrame(e.state,undefined,0).frame),e.state);

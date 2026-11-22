@@ -49,7 +49,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('83 original source areas select five playable groups with exact names, anchors and multilingual aliases',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,30);assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,30);assert.equal(RULES_ID,'admin1-locked-game-regions-v47');
  const selected=new Set();
  for(const {id,groups,displayName,anchorAtomId,searchAliases} of plan.regions){
   const r=byCode(id.slice(6));selected.add(r.id);

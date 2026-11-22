@@ -106,6 +106,8 @@
  /* Modal windows fill the safe area. */
  .modal-backdrop{padding:var(--m-top) var(--m-right) var(--m-bottom) var(--m-left)}
  .modal,.settings-modal,.setup-modal,.talent-modal,.identity-modal,.saves-modal,.territory-modal{width:100%;max-height:calc(100dvh - var(--m-top) - var(--m-bottom))}
+ /* Landscape phones are wide: the pause menu keeps its dialog width instead of a full-width sheet. */
+ .modal.settings-modal{width:min(480px,100%)}
  .window-band{padding:12px 58px 12px}
  .window-band h2{font-size:21px}
  .modal-close{top:6px;right:6px;width:44px;height:44px}
@@ -115,15 +117,13 @@
  .setup-modal .unit-grid{gap:6px}
  .unit-choice .unit-card{height:clamp(96px,26vw,124px);padding:24px 4px 4px}
  .unit-choice .unit-icon{height:clamp(68px,calc(26vw - 28px),96px)}
+ /* Narrow cards keep the tag on one line; the brass tag alone marks the choice. */
+ .unit-choice .unit-card.chosen .unit-name::before{display:none}
  .unit-tooltip .unit-attributes{grid-template-columns:repeat(3,minmax(0,1fr))}
  .unit-attribute>span{font-size:11.5px}
  .unit-attribute>strong{font-size:13px}
- .setup-identity{gap:8px}
- .setup-footer{flex-direction:column;align-items:stretch;gap:14px;padding-top:14px}
- .setup-footer label{max-width:none;width:100%;font-size:14px}
- .setup-footer .primary{width:100%}
- .lan-actions,.join-row{flex-wrap:wrap;gap:8px}
- .join-row input{flex:1;width:120px}
+ .setup-ai>small{flex-basis:100%}
+ .setup-footer{gap:8px 10px;margin:14px -16px 0;padding:10px 16px 12px}
  .primary,.secondary,.quiet{font-size:14px;padding:9px 14px}
  .talent-hero{gap:12px;padding:10px}
  .talent-portrait{width:64px;height:64px}
@@ -144,16 +144,66 @@
  .save-description{flex-basis:calc(100% - 56px)}
  .save-actions{flex-wrap:wrap;width:100%;justify-content:flex-end}
  .result-stats dd{font-size:16px}
- .lobby.window{max-height:calc(100dvh - var(--m-top) - var(--m-bottom))}
- .lobby-body{padding:14px 16px 8px}
+ /* The room window keeps clear of the language plaque in the top corner. */
+ .lobby.window{top:calc(50% + 28px);max-height:calc(100dvh - var(--m-top) - var(--m-bottom) - 56px)}
+ .lobby-body{padding:14px 16px 12px}
+ .lobby-body .section-ribbon{margin:16px -16px 10px}
  .lobby-footer{padding:10px 16px 12px}
  .room-code{font-size:30px}
+ .setup-mode{margin-bottom:14px}
+ .setup-join{margin-bottom:14px}
+ .setup-join input{font-size:26px}
+ .setup-mode button{min-height:46px;font-size:15px}
 
- /* Start screen keeps its left-aligned column. */
+ /* Start screen keeps its left-aligned column. The loading line sits below it
+    until the runtime is ready; after that the plate may use the full height. */
  .is-menu .main-menu{overflow:auto;pointer-events:auto}
- .is-menu .menu-content{max-height:calc(100dvh - var(--menu-top) - 64px);padding:18px 18px 14px}
+ .is-menu .menu-content{max-height:calc(100dvh - var(--menu-top) - 64px);padding:18px 18px 12px;outline-offset:-6px}
+ .app.is-menu[data-resource-state="ready"] .menu-content{max-height:calc(100dvh - var(--menu-top) - var(--m-bottom))}
  .language-switch{top:var(--m-top);right:var(--m-right)}
  .language-switch button{min-height:44px}
+}
+
+/* Narrow phones give the launch the full width. The room's connection state joins the plate's flow, and its
+   footer buttons share the row. */
+@media (max-width:560px){
+ .setup-mode button{gap:8px;padding:6px 8px;letter-spacing:.04em}
+ /* Narrow cards give their name tag the full width so whole words fit. */
+ .unit-choice .unit-name{left:4px;right:4px;top:4px;max-width:none;padding:2px 3px;text-align:center;font-size:10.5px;overflow-wrap:break-word}
+ .setup-footer{flex-direction:column;align-items:stretch}
+ .setup-footer .primary{width:100%}
+ .lobby-connection{position:static;margin-bottom:4px}
+ /* Seat rows keep name and tags: the portrait name gives way and the connection shows as its dot, still read aloud. */
+ .seat:not([data-ai="true"])>small{display:none}
+ .seat-status{position:relative;margin-left:auto}
+ .seat-status-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ /* A narrower count keeps label, stepper and the room's apply button on one line. */
+ .setup-ai{column-gap:10px}
+ .number-stepper input,.number-stepper input:hover{width:64px}
+ .lobby-footer>button{flex:1 1 auto}
+ .lobby-footer .launch{min-width:0}
+}
+/* Very short screens scroll the footer with the body instead of covering it. */
+@media (max-height:340px){
+ .setup-footer{position:static}
+}
+
+/* Short landscape screens: the title plate tightens so every plaque and the version fit without scrolling. */
+@media (max-height:520px){
+ .app.is-menu{--menu-top:max(10px,env(safe-area-inset-top))}
+ .is-menu .menu-content{padding:12px 18px 10px;outline-offset:-5px}
+ .menu-crest{width:56%}
+ .menu-crest i{width:9px;height:9px}
+ .is-menu .menu-content h1{margin:4px 0 2px;font-size:28px}
+ .is-menu .menu-actions{margin-top:10px;gap:6px}
+ .menu-actions>.primary,.menu-actions>.menu-button{min-height:44px;padding-block:4px}
+ .menu-actions>.primary.large{min-height:46px;font-size:15px}
+ .menu-medallion,.menu-actions>.primary .menu-medallion{width:30px;height:30px}
+ .menu-version{margin-top:8px;padding-top:6px}
+ .menu-actions>.menu-exit{margin-top:0}
+}
+@media (max-height:360px){
+ .menu-crest,.menu-rule{display:none}
 }
 
 /* Phones in portrait: the speed pips and level metric yield to the essentials. */
@@ -175,4 +225,17 @@
  .is-game .dock-kicker{display:none}
  .is-game .dock-band h2{font-size:18px}
  .is-game #province-panel .province-meta{margin-top:3px}
+}
+
+/* Narrow screens stack the room: the portrait first, still the largest element, then the panel. */
+@media (max-width:640px){
+ .room-layout{grid-template-columns:1fr;gap:14px}
+ .room-hero{position:relative;height:clamp(220px,40dvh,340px)}
+ .room-hero-plate{padding:56px 14px 14px}
+ .room-hero-flag{width:64px;height:44px}
+}
+/* Short screens keep the portrait beside the panel, sized to the visible body. */
+@media (max-height:640px){
+ .room-layout{--hero-h:max(180px,calc(100dvh - 176px))}
+ .room-hero-plate{padding-top:40px}
 }

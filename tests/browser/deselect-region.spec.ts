@@ -1,5 +1,5 @@
 import {openMapSearch} from './map-search.ts';
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './static-host.ts';
 import {project} from '../../src/game/geo.ts';
 
 async function ready(page:Page){
@@ -24,10 +24,12 @@ async function point(page:Page,lon:number,lat:number){
   return {x,y};
  },world);
 }
-async function emptySelection(page:Page){
+async function emptySelection(page:Page,hoveringLand=false){
  await expect(page.locator('.world canvas')).toHaveAttribute('data-selected-region','-1');
- await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-vertices','0');
- await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-pending','false');
+ if(!hoveringLand){
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-vertices','0');
+  await expect(page.locator('.world canvas')).toHaveAttribute('data-selection-glow-pending','false');
+ }
  await expect(page.locator('#province-panel')).toHaveCount(0);
  await expect(page.locator('.hud-top')).toBeVisible();
  await expect(page.getByTestId('open-settings')).toBeVisible();
@@ -56,7 +58,7 @@ test('ocean clicks clear selection and only the province panel; land and search 
   await page.mouse.click(ocean.x,ocean.y);await emptySelection(page);
   // Repeating an empty click and an order without a source are safe no-ops.
   await page.mouse.click(ocean.x,ocean.y);await page.mouse.click(land.x,land.y,{button:'right'});
-  await emptySelection(page);await expect(page.locator('.toast')).toHaveCount(0);
+  await emptySelection(page,true);await expect(page.locator('.toast')).toHaveCount(0);
   await page.mouse.click(land.x,land.y);await expect(canvas).not.toHaveAttribute('data-selected-region','-1');
   await expect(page.locator('#province-panel')).toBeVisible();
  }

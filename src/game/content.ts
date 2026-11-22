@@ -1,17 +1,18 @@
 import pkg from '../../package.json' with {type: 'json'};
+import {validAppearance} from './portrait.ts';
 import { validFlag } from './flags.ts';
 import { BALANCE, BALANCE_ID } from './balance.ts';
 import type { Kind, Leader, Upgrade, Player } from './types.ts';
 export const DT=0.05;
 export const VERSION=pkg.version;
 // Bump the LAN protocol identity when shared simulation rules, commands, or state shape change.
-export const RULES_ID='admin1-locked-game-regions-v45';
+export const RULES_ID='admin1-locked-game-regions-v47';
 /** What LAN peers compare: the rules identity plus a fingerprint of every number in
  * balance.ts, so a retune alone already keeps mismatched builds out of the same room. */
 export const LAN_RULES_ID=`${RULES_ID}+balance-${BALANCE_ID}`;
 export const STATE_VERSION=30;
 export const MAP_ID='earth-natural-earth-admin1-511-regions-v28' as const;
-// Per-faction physical capacity in one management region; no player/world army cap.
+// Base training slots in one town.
 export const PROVINCE_CAP=BALANCE.regions.slots;
 export const KINDS:Kind[]=['infantry','cavalry','artillery','engineer','skirmisher','grenadier','heavyCavalry','horseArtillery'];
 export type UnitFamily='infantry'|'cavalry'|'artillery'|'engineer';
@@ -134,6 +135,7 @@ export function validateSetup(value:unknown):value is {name:string;leader:Leader
   return typeof v.name==='string'&&v.name.trim().length>0&&v.name.length<=24
     &&LEADERS.includes(v.leader as Leader)&&Array.isArray(v.loadout)
     &&v.loadout.length===1&&v.loadout.every(k=>KINDS.includes(k))
+    &&(v.appearance===undefined||validAppearance(v.appearance))
     &&(v.flag===undefined||validFlag(v.flag))
     &&(v.ai===undefined||typeof v.ai==='boolean');
 }

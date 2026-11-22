@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {waitForRuntime} from './readiness.ts';
 
 test('refresh and a new tab reuse versioned maps even with map downloads blocked',async({page,context})=>{

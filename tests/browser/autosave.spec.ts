@@ -1,4 +1,4 @@
-import {test,expect,type Dialog,type Page} from '@playwright/test';
+import {test,expect,type Dialog,type Page} from './static-host.ts';
 import {waitForRuntime} from './readiness.ts';
 import {savedCampaigns} from './save-records.ts';
 

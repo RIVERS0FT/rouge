@@ -8,7 +8,8 @@ import type {SVGProps} from 'react';
 export type IconName =
  | 'coin' | 'sabres' | 'territory' | 'rank' | 'crown' | 'laurel' | 'military' | 'globe'
  | 'scroll' | 'search' | 'gear' | 'hourglass' | 'focus' | 'hammer' | 'shield' | 'banner'
- | 'chevron' | 'region' | 'alert' | 'income' | 'march' | 'anchor' | 'close' | 'back' | 'archive' | 'lock';
+ | 'chevron' | 'region' | 'alert' | 'income' | 'march' | 'anchor' | 'close' | 'back' | 'forward' | 'archive' | 'lock'
+ | 'plus' | 'minus' | 'copy' | 'exit';
 
 const PATHS: Record<IconName, JSX.Element> = {
  lock: <>
@@ -115,6 +116,17 @@ const PATHS: Record<IconName, JSX.Element> = {
  </>,
  close: <path d="m6 6 12 12M18 6 6 18"/>,
  back: <path d="m14.5 6-6 6 6 6"/>,
+ forward: <path d="m9.5 6 6 6-6 6"/>,
+ plus: <path d="M12 5.5v13M5.5 12h13"/>,
+ minus: <path d="M5.5 12h13"/>,
+ exit: <>
+  <path d="M13.5 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5h7"/>
+  <path d="M10.5 12h9.5m-3.5-3.5L20 12l-3.5 3.5"/>
+ </>,
+ copy: <>
+  <rect x="8.5" y="8.5" width="11" height="11" rx="1.5"/>
+  <path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>
+ </>,
  archive: <>
   <path d="M4 5h16v4H4Z"/>
   <path d="M5.5 9v10h13V9M10 13h4"/>

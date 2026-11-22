@@ -1,0 +1,157 @@
+.party-room {
+ position:absolute; inset:0; z-index:10; isolation:isolate; display:grid;
+ grid-template-rows:auto minmax(0,1fr) auto; color:#f7ebd8; font-family:var(--serif);
+ background:#362c21;
+}
+.party-canvas {position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.party-scene-error {position:absolute;left:50%;top:40%;transform:translateX(-50%);z-index:3;padding:12px;background:#211a15e8}
+.party-header,.party-footer {display:flex; align-items:center; gap:clamp(12px,1.8vw,34px); padding-inline:clamp(14px,2.2vw,46px)}
+.party-header {min-height:clamp(48px,6dvh,76px); border-bottom:1px solid #e5c08c55; background:#211a15c9; text-shadow:0 1px 2px #150e08}
+.party-brand,.party-header h2 {white-space:nowrap; font-weight:600}
+.party-brand {font-size:clamp(17px,1.55vw,30px); letter-spacing:.13em}
+.party-brand span {letter-spacing:.05em}
+.party-header h2 {align-self:stretch; display:flex; align-items:center; margin:0; position:relative; color:inherit; font-size:clamp(15px,1.38vw,26px); letter-spacing:.1em}
+.party-header h2::after {content:""; position:absolute; bottom:0; inset-inline:0; height:2px; background:#cba663}
+.party-network,.party-code,.party-name,.party-role,.party-footer button,.party-invite,.party-wait,.party-pages {display:flex; align-items:center}
+.party-network {margin-left:auto; gap:8px; font-size:clamp(12px,1.08vw,18px)}
+.party-network i {width:8px; height:8px; flex:none; border-radius:50%; background:#75c965}
+.party-network[data-state="reconnecting"] i {background:var(--warn)}
+.party-code {min-height:44px; gap:.6em; font-size:clamp(13px,1.1vw,20px); padding-left:clamp(10px,1.4vw,28px); position:relative}
+.party-code::before {content:""; position:absolute; left:0; height:1.2em; border-left:1px solid #ead4b77a}
+.party-code:hover,.party-invite:hover,.party-invite-link:hover,.party-footer button:hover:not(:disabled) {color:#ffe2a5}
+.party-invite-link {display:flex; align-items:center; gap:.4em; min-height:36px; padding:.2em .85em; white-space:nowrap; font-size:clamp(12px,.95vw,16px);
+ color:#f2e2c6; border:1px solid #e5c08c66; background:#2a2019a6}
+.party-invite-link:hover {border-color:#e5c08cb0}
+.party-code .room-code {color:inherit; font-size:1.08em; text-indent:0; letter-spacing:.13em; text-shadow:none}
+.party-stage {position:relative; min-height:0;pointer-events:none}
+.party-invite,.party-pages {pointer-events:auto}
+.party-member {position:absolute;top:86%;width:20%;left:50%;transform:translateX(-50%);display:grid}
+.party-member[data-position="left"] {left:29%}
+.party-member[data-position="right"] {left:71%}
+.party-member[data-online="false"] img {filter:saturate(.38) brightness(.73)}
+.party-nameplate {margin-inline:auto; min-width:56%; max-width:96%; padding:3px 6px 5px; text-align:center; text-shadow:0 1px 3px #140b05,0 0 10px #130a05; background:radial-gradient(ellipse,#1b1005a8,transparent 75%)}
+.party-name {gap:.5em; justify-content:center; padding:0 .4em .16em; border-bottom:1px solid #e0c29773; font-size:clamp(16px,1.5vw,28px)}
+.party-name strong {font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.party-name .player-flag {width:1.45em; height:.97em; flex:none; outline:1px solid #f0d5a96b}
+.party-role {justify-content:center; gap:5px; margin-top:.2em; color:#edd9b6; font-size:clamp(11px,1vw,17px)}
+.party-role small {font:inherit}
+.party-offline {color:#ffc59d}
+/* The open place in the tableau, drawn as an empty nameplate where the next officer would stand. */
+.party-invite {position:absolute; top:86%; left:71%; width:20%; transform:translateX(-50%); display:grid; justify-items:center; padding:3px 6px 5px;
+ color:#e9d8bc; opacity:.82; text-shadow:0 1px 3px #140b05,0 0 10px #130a05; transition:opacity .15s,color .15s}
+.party-invite[data-position="left"] {left:29%}
+.party-invite .party-name {border-bottom-style:dashed; font-size:clamp(14px,1.25vw,23px); gap:.35em; white-space:nowrap}
+.party-invite:hover,.party-invite:focus-visible {opacity:1}
+.party-invite:active {transform:translateX(-50%) translateY(1px)}
+.party-pages {position:absolute; right:2%; top:12px; gap:.4em; background:#211a15d4; color:#ffedcc; font-variant-numeric:tabular-nums}
+.party-pages button {display:grid; place-items:center; width:44px; height:44px}
+.party-footer {min-height:clamp(56px,8dvh,92px); padding-block:6px; border-top:1px solid #dfba7a4a; background:linear-gradient(0deg,#1e140fb8,#1e140f40); text-shadow:0 1px 3px #150b05}
+.party-footer button,.party-wait {gap:.55em; min-height:44px; white-space:nowrap}
+/* Leaving, the commander and the settings are equal secondary actions; only starting stands out. */
+.party-actions {display:flex; align-items:center; gap:clamp(16px,2.2vw,40px)}
+.party-leave,.party-settings {font-size:clamp(13px,1.05vw,18px); color:#e7d6bc; letter-spacing:.04em}
+.party-launch {font-size:clamp(16px,1.42vw,25px); letter-spacing:.06em}
+.party-settings small {color:inherit; font-size:.85em}
+.party-ready {margin-left:auto; font-family:var(--sans); font-size:clamp(11px,.85vw,14px); color:#efddc4}
+.party-launch {justify-content:center; min-width:clamp(138px,14vw,280px); padding:.4em 1.25em; border:1px solid #b99a64; background:linear-gradient(125deg,#612e2beb,#3c1c1bed); box-shadow:inset 0 0 0 2px #21140e}
+.party-launch:disabled {opacity:.72; color:#c2b7a6; filter:saturate(.55)}
+.party-feedback {position:absolute; top:70px; right:2vw; z-index:40; background:#211a15ef; border:1px solid #ad8d60; padding:9px 14px}
+.party-dialog {max-width:min(540px,96vw); font-family:var(--sans); text-shadow:none}
+.party-dialog .party-share,.party-dialog .party-language {display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:15px}
+.party-share input {width:9em; font:600 22px var(--serif); letter-spacing:.16em; text-align:center}
+.party-dialog .party-ai {margin-block:18px}
+.party-room[data-editing=true] :is(.party-header,.party-footer,.party-stage){visibility:hidden}
+.party-canvas[data-view=moving]~.party-stage .party-member{visibility:hidden}
+.commander-workshop{box-sizing:border-box;position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;
+ padding:clamp(12px,3dvh,36px) max(4vw,calc((100vw - 1250px)/2));overflow:hidden;color:#eee5d5;font-family:var(--sans);
+ background:linear-gradient(90deg,#15100d12,transparent 48%,#18130f30),linear-gradient(0deg,#09080668,transparent 18%,transparent 92%,#0e0c0a27)}
+.commander-workshop::backdrop{background:transparent}
+.commander-workshop[open]{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,28vw,395px);align-items:center;gap:clamp(20px,3.2vw,65px)}
+@media(prefers-reduced-motion:no-preference){
+ .commander-workshop[open] :is(.workshop-panel,.workshop-camera){animation:workshop-reveal .32s ease-out both}
+ @keyframes workshop-reveal{from{opacity:0}to{opacity:1}}
+}
+.workshop-subject{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;align-items:stretch}
+.workshop-preview-space{min-height:0;position:relative;cursor:grab;touch-action:none;user-select:none}
+.workshop-preview-space:active{cursor:grabbing}
+.workshop-status{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);padding:7px 12px;background:#181714ea;color:#eee6d7;font-size:13px;white-space:nowrap}
+.workshop-status button{margin-left:8px;text-decoration:underline}
+.workshop-camera{justify-self:center;display:flex;align-items:center;padding:5px;
+ background:#191b19f2;border:1px solid #93816a92;box-shadow:0 4px 18px #100d0960;font-size:13px}
+.workshop-camera button{min-height:32px;padding-inline:14px;color:#c6bbaa}
+.workshop-camera button[aria-pressed=true]{background:#484238;color:#fff0ce}
+.workshop-panel{align-self:center;text-align:left;min-height:0;max-height:100%;display:flex;flex-direction:column;
+ background:linear-gradient(145deg,#292b27fa,#1b1d1bfa 67%);border:1px solid #978064;
+ box-shadow:0 14px 44px #110d0b68,inset 0 0 0 3px #1a1c19,inset 0 0 0 4px #7f746233}
+.workshop-panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:clamp(16px,2.1vh,25px) 24px 14px}
+.workshop-panel h2{margin:0;color:#f4e2c6;font:600 clamp(23px,1.6vw,32px)/1.3 var(--serif);letter-spacing:.09em}
+.workshop-panel header button{width:32px;height:32px;font:25px/1 var(--sans);color:#cabfae}
+.workshop-panel nav{display:flex;padding:0 22px;gap:25px;border-bottom:1px solid #8a775746}
+.workshop-panel nav button{padding:8px 2px 10px;border-bottom:2px solid transparent;color:#b6b1a4;font-size:14px}
+.workshop-panel nav button[aria-pressed=true]{border-color:#d5ad70;color:#f4d9a7}
+.workshop-fields{padding:8px 24px;min-height:0;overflow:auto;scrollbar-color:#726958 transparent}
+.workshop-fields>label,.workshop-fields>.skin-swatches{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:10px;align-items:center;
+ min-height:44px;margin:0;border:0;border-bottom:1px solid #b3a28520;padding:3px 0;color:#ddd4c4;font-size:14px}
+.workshop-fields>label:last-child{border-bottom:0}
+.workshop-fields select{min-width:0;width:100%;height:31px;color:#eee6d6;background:#161916;border:1px solid #796f5d85;padding:0 7px;font:inherit}
+.workshop-fields>.skin-swatches{display:block;position:relative;padding-left:calc(5.5em + 10px);align-content:center}
+.workshop-fields .skin-swatches legend{position:absolute;left:0;top:50%;transform:translateY(-50%);margin:0;padding:0}
+.workshop-fields .skin-swatches button{width:19px;height:19px;margin:3px clamp(2px,.28vw,5px);vertical-align:middle}
+.workshop-value{display:flex;align-items:center;gap:12px}
+.commander-workshop input[type=range]{appearance:none;accent-color:#cfb185;min-width:0;height:22px;cursor:pointer;background:none;box-shadow:none;border:0;padding:0}
+.commander-workshop input[type=range]::-webkit-slider-runnable-track{height:3px;background:#7c7565}
+.commander-workshop input[type=range]::-webkit-slider-thumb{appearance:none;width:13px;height:13px;margin-top:-5px;border:1px solid #edd2a3;border-radius:50%;background:#c6a677}
+.commander-workshop input[type=range]::-moz-range-track{height:3px;background:#7c7565}
+.commander-workshop input[type=range]::-moz-range-thumb{width:13px;height:13px;border:1px solid #edd2a3;border-radius:50%;background:#c6a677}
+.workshop-value input{flex:1;width:100%}.workshop-value output{min-width:2.4ch;text-align:right;font:12px var(--sans);font-variant-numeric:tabular-nums;color:#e7c994}
+.workshop-fields input[type=color]{width:48px;height:25px;cursor:pointer;background:#181b18;border:1px solid #8b7e68;padding:2px}
+.workshop-panel footer{padding:14px 24px 19px;display:flex;align-items:center;gap:14px;border-top:1px solid #8a775746}
+.workshop-apply{flex:1;display:flex;align-items:center;justify-content:center;gap:12px;min-height:39px;
+ background:linear-gradient(115deg,#dac196,#b99a6d);color:#282119;font-weight:650;border:1px solid #e9cea0}
+.workshop-apply:hover:not(:disabled){filter:brightness(1.1)}
+.workshop-presets{font-size:13px;color:#e4d2b4}
+.workshop-message{padding:5px 24px;color:#f3d4ab;font-size:13px}
+@media(max-width:680px) and (orientation:portrait){
+ .commander-workshop[open]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,48%);padding:6px 12px max(10px,env(safe-area-inset-bottom));gap:8px}
+ .workshop-panel{width:min(100%,460px);justify-self:center;align-self:stretch}
+ .workshop-panel header{padding:7px 14px 2px}.workshop-panel h2{font-size:21px}
+ .workshop-panel nav{padding:0 16px}.workshop-panel nav button{padding:4px 1px 6px}
+ .workshop-fields{padding:3px 16px;flex:1}.workshop-fields>label,.workshop-fields>.skin-swatches{min-height:38px}
+ .workshop-panel footer{padding:7px 15px}.workshop-camera{font-size:12px;padding-block:2px}
+}
+.party-language .language-switch {position:static}
+@media (max-width:760px) {
+ .party-header,.party-footer {gap:10px}
+ .party-brand span {display:none}
+ .party-ready {max-width:14em; line-height:1.25}
+ .party-settings small {display:none}
+}
+@media (max-aspect-ratio:4/5) {
+ /* Brand, title and connection on one line; inviting and the room code on the next. */
+ .party-header {display:grid; grid-template-columns:auto auto 1fr; grid-template-areas:"brand title network" "invite invite code"; gap:0 16px; padding-block:6px}
+ .party-brand {grid-area:brand; font-size:18px}
+ .party-header h2 {grid-area:title; font-size:15px}
+ .party-network {grid-area:network; justify-self:end; font-size:12px}
+ .party-code {grid-area:code; justify-self:end; padding:0; min-height:36px}
+ .party-code::before {display:none}
+ .party-invite-link {grid-area:invite; justify-self:start; align-self:center; min-height:32px}
+ .party-member[data-position="solo"] {width:76%}
+ .party-nameplate {min-width:45%}
+ .party-pages {top:5px}
+ /* The three secondary actions share a row; the room count and starting share the next. */
+ .party-footer {display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.7fr); gap:4px 10px; padding:4px 12px max(8px,env(safe-area-inset-bottom)); min-height:0}
+ .party-actions {grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; border-bottom:1px solid #dfba7a2e}
+ .party-actions button {flex-direction:column; justify-content:center; gap:3px; min-height:54px; font-size:12px; line-height:1.2; white-space:normal; text-align:center}
+ .party-ready {margin:0; align-self:center; line-height:1.3}
+ .party-launch,.party-wait {justify-content:center; min-width:0}
+}
+@media (max-height:500px) and (min-aspect-ratio:4/5) {
+ .party-header {min-height:38px}
+ .party-code,.party-footer button,.party-invite-link {min-height:34px}
+ .party-footer {min-height:43px; padding-block:2px}
+ .party-actions {gap:18px}
+ .party-leave,.party-settings {font-size:13px}
+ .party-name {font-size:15px}
+ .party-role {font-size:11px}
+ .party-nameplate,.party-invite {padding-block:0}
+}

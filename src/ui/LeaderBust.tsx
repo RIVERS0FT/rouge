@@ -1,3 +1,5 @@
+import type {CommanderAppearance} from '../game/portrait.ts';
+import {CommanderImage} from './CommanderAppearance.tsx';
 import { memo } from 'react';
 import type { Leader } from '../game/types.ts';
 
@@ -10,8 +12,8 @@ const PORTRAITS: Record<Leader, string> = {
 };
 export function preloadPortraits():void{for(const src of Object.values(PORTRAITS)){const image=new Image();image.src=src;}}
 
-export const LeaderBust = memo(function LeaderBust({ leader, label }: { leader: Leader; label: string }) {
-  return <img className="leader-bust" src={PORTRAITS[leader]} alt={label} role="img"
+export const LeaderBust = memo(function LeaderBust({ leader, label, appearance }: { leader: Leader; label: string; appearance?:CommanderAppearance }) {
+  return <CommanderImage className="leader-bust" appearance={appearance} fallback={PORTRAITS[leader]} alt={label} role="img"
     width="720" height="900" draggable={false} decoding="async"
     data-testid="leader-bust" data-leader={leader}/>;
 });

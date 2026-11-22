@@ -1,11 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,Engine,MARCH_INTERVAL_TICKS} from '../src/game/engine.ts';
-import {countryActions} from '../src/game/countryActions.ts';
 import {MAP,provinceByCode} from '../src/game/map.ts';
 import {regionCapacity,reconcileGrouping} from '../src/game/territoryEconomy.ts';
 import {stats} from '../src/game/content.ts';
-import {regionTroops} from '../src/game/capacity.ts';
+import {BALANCE} from '../src/game/balance.ts';
 import {validateState} from '../src/game/save.ts';
 
 const initial=createGame([
@@ -25,76 +24,42 @@ function fixture(capacity,count){
 test('preprocessed game regions have full budgets, never one-slot raw-atom garrisons',()=>{
  for(const p of MAP)assert.equal(regionCapacity(p.id),p.playable?12:0);
 });
-test('AI waits for four troops then sends every available troop at the shared march interval',()=>{
- const {engine:waiting,home:waitingHome}=fixture(12,3);waiting.step(80);
- assert.ok(waiting.state.units.every(u=>u.target===null));
- assert.equal(waiting.state.provinces[waitingHome.id].march,undefined);
- const {engine:ready,home}=fixture(12,4);
- const sent=()=>ready.state.units.filter(u=>u.target!==null);
- const pending=()=>ready.state.provinces[home.id].march?.pendingIds;
- ready.step(80);
- assert.equal(sent().length,0);
- const destination=ready.state.armies[0].to,queued=pending();
- assert.equal(queued.length,4);
- assert.equal(ready.state.units.filter(u=>u.target===null&&u.province===home.id).length,4);
- ready.step(MARCH_INTERVAL_TICKS);
- assert.equal(sent().length,1);assert.deepEqual(pending(),queued.slice(1));
- ready.step();assert.equal(sent().length,2);assert.deepEqual(pending(),queued.slice(2));
- ready.step(MARCH_INTERVAL_TICKS);assert.equal(sent().length,3);assert.deepEqual(pending(),queued.slice(3));
- ready.step(MARCH_INTERVAL_TICKS-1);assert.equal(sent().length,3);
- ready.step();assert.equal(sent().length,4);
- assert.ok(sent().every(u=>u.target===destination));
- assert.equal(pending(),undefined);
- assert.equal(ready.state.units.filter(u=>u.target===null&&u.province===home.id).length,0);
- assert.ok(validateState(ready.state));
+test('AI takes an empty neighbour with a small detachment and keeps the rest of the garrison home',()=>{
+ const {engine,home}=fixture(12,4),s=engine.state,detachment=BALANCE.ai.detachment;
+ const atHome=()=>s.units.filter(u=>u.owner===1&&u.province===home.id&&u.target===null&&!u.armyStatus).length;
+ engine.step(79);assert.equal(s.armies.length,0);
+ engine.step();
+ const army=s.armies.find(a=>a.owner===1);
+ assert.ok(army&&home.neighbors.includes(army.to));
+ assert.equal(s.provinces[army.to].owner,-1);
+ assert.equal(s.provinces[home.id].march?.pendingIds.length,detachment);
+ assert.equal(atHome(),4-detachment);
+ for(let i=0;i<20*MARCH_INTERVAL_TICKS&&s.provinces[home.id].march;i++)engine.step();
+ assert.equal(s.provinces[home.id].march,undefined);
+ assert.equal(s.units.filter(u=>u.owner===1&&u.target===army.to).length,detachment);
+ assert.equal(atHome(),4-detachment);
+ assert.ok(validateState(s));
 });
-
-test('AI sends the same full march command as the player and sends all troops to a full friendly region',()=>{
- const {engine,home}=fixture(12,4);
- const s=engine.state,homeNeighbors=new Set(home.neighbors);
- for(const id of homeNeighbors)s.provinces[id].owner=1;
- const to=home.neighbors.find(id=>MAP[id].neighbors.some(n=>s.provinces[n].owner!==1));
- assert.notEqual(to,undefined);
- s.grouping=reconcileGrouping(s);
- const template=s.units[0];
- for(let i=0;i<regionCapacity(to);i++)s.units.push({...template,id:s.nextId++,...MAP[to].center,province:to,origin:to});
- assert.equal(regionTroops(s,1,to),regionCapacity(to));
- const playerEngine=new Engine(s);
- playerEngine.state.players[1].ai=false;
- const submit=engine.command.bind(engine);
- let observed;
- engine.command=(actor,command)=>{
-  if(command.type!=='march'||command.from!==home.id)return submit(actor,command);
-  const result=submit(actor,command);
-  if(result.ok)observed={actor,command,result,order:structuredClone(s.provinces[home.id].march)};
-  return result;
- };
- engine.step(80);
- const action=countryActions.march(home.id,to);
- assert.deepEqual(observed?.command,action);
- playerEngine.step(80);
- assert.deepEqual(playerEngine.command(1,action),{ok:true});
- const released=state=>state.units.filter(u=>u.origin===home.id&&u.target!==null).map(u=>[u.id,u.target]);
- assert.deepEqual(released(playerEngine.state),released(s));
- assert.deepEqual(playerEngine.state.provinces[home.id].march,observed.order);
- const saved=structuredClone(playerEngine.state),aiState=structuredClone(s);
- for(const [subject,before] of [[playerEngine,saved],[engine,aiState]]){
+test('AI orders are ordinary commands: a player sending the same ones gets the same campaign',()=>{
+ const {engine}=fixture(12,4),twin=new Engine(structuredClone(engine.state));
+ twin.state.players[1].ai=false;
+ const issued=[],submit=engine.command.bind(engine);
+ engine.command=(actor,command)=>{const result=submit(actor,command);issued.push({actor,command,result});return result;};
+ engine.step(80);twin.step(80);
+ assert.ok(issued.some(({command})=>command.type==='march'));
+ for(const {actor,command,result} of issued)assert.deepEqual(twin.command(actor,command),result);
+ twin.state.players[1].ai=true;
+ assert.deepEqual(twin.state,engine.state);
+ // The same departures, tick by tick, until the next AI turn.
+ for(let i=0;i<60;i++){engine.step();twin.step();assert.deepEqual(twin.state,engine.state);}
+ const action=issued.find(({command})=>command.type==='march').command;
+ for(const subject of [engine,twin]){
+  const before=structuredClone(subject.state);
   assert.deepEqual(subject.command(-1,action),{ok:false,error:'notPlaying'});
   assert.deepEqual(subject.command(0,action),{ok:false,error:'notOwner'});
   assert.deepEqual(subject.command(1,{...action,fraction:.6}),{ok:false,error:'invalidCommand'});
   assert.deepEqual(subject.state,before);
  }
- assert.equal(observed.actor,1);
- assert.deepEqual(observed.result,{ok:true});
- assert.equal(observed.order.reserved,true);
- assert.equal(observed.order.pendingIds.length,4);
- const sent=()=>s.units.filter(u=>u.origin===home.id&&u.target===to);
- assert.equal(sent().length,0);
- engine.step(MARCH_INTERVAL_TICKS);playerEngine.step(MARCH_INTERVAL_TICKS);assert.equal(sent().length,1);
- engine.step();playerEngine.step();assert.equal(sent().length,2);
- engine.step(2*MARCH_INTERVAL_TICKS);playerEngine.step(2*MARCH_INTERVAL_TICKS);assert.equal(sent().length,4);
- assert.deepEqual(released(playerEngine.state),released(s));
- assert.equal(s.provinces[home.id].march,undefined);
 });
 
 test('AI factions act on deterministic staggered phases, once each per 80 ticks',()=>{

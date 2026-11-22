@@ -1,5 +1,5 @@
 import {waitForRuntime} from './readiness.ts';
-import {test,expect,type Locator,type Page} from '@playwright/test';
+import {test,expect,type Locator,type Page} from './static-host.ts';
 
 async function bounds(locator:Locator,width:number,height:number){
  const box=await locator.boundingBox();expect(box).not.toBeNull();
@@ -65,17 +65,22 @@ test('menu and settings work before shared assets arrive and the latest early ac
   await page.getByTestId('settings-save').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
   await page.keyboard.press('Escape');await expect(page.getByTestId('settings-resume')).toBeVisible();
   await page.keyboard.press('Escape');await expect(page.getByTestId('home-settings')).toBeFocused();
-  await page.getByTestId('single-player').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
-  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
-  await page.getByRole('button',{name:/LAN multiplayer/}).click();
+  await page.getByTestId('open-saves').click();await expect(page.getByTestId('resource-loading')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('open-saves')).toBeFocused();
+  await page.getByTestId('single-player').click();
   await expect(page.getByTestId('resource-loading')).toBeVisible();
   loading.release();await waitForRuntime(page);
+  // One deployment window serves both modes: it opens in single player and LAN is a switch away.
+  await expect(page.getByTestId('begin-campaign')).toBeVisible();await expect(page.locator('.save-list')).toHaveCount(0);
+  await page.getByTestId('setup-mode-lan').click();
   await expect(page.getByRole('button',{name:'Create room',exact:true})).toBeVisible();
   await expect(page.getByTestId('begin-campaign')).toHaveCount(0);
+  // Switching modes keeps focus on the switch instead of restarting the page.
+  await expect(page.getByTestId('setup-mode-lan')).toBeFocused();await expect(page.getByTestId('setup-mode-lan')).toHaveAttribute('aria-pressed','true');
   await expect(page.getByTestId('commander-name')).toHaveValue('Commander');
   await expect(page.getByTestId('resource-loading')).toHaveCount(0);
   await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
-  await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:/LAN multiplayer/})).toBeFocused();
+  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
   expect(errors).toEqual([]);
  }finally{loading.release();}
 });
@@ -141,7 +146,8 @@ test('left-side menu keeps identity in setup and remembers appearance across mat
  await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
  await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
  await page.reload();await expect(flag).toHaveCount(0);await expect(leader).toHaveCount(0);
- await page.getByRole('button',{name:/局域网联机/}).click();await waitForRuntime(page);
+ await page.getByTestId('single-player').click();await waitForRuntime(page);
+ await page.getByRole('button',{name:/局域网联机/}).click();await expect(page.getByTestId('setup-mode-lan')).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('.leader-grid,.flag-editor')).toHaveCount(0);
  await expect(leader).toHaveAttribute('data-leader','vanguard');
  await expect(flag.getByRole('img',{name:'法国',exact:true})).toBeVisible();
@@ -224,4 +230,21 @@ test('numeric opponents show physical range and reject empty, fractional and out
  await input.fill('4');await expect(start).toBeEnabled();
  await input.fill(String(maximum));await expect(start).toBeEnabled();
  await input.fill('4');await start.click();await expect(page.getByTestId('open-settings')).toBeVisible();
+});
+
+test('start menu creates or joins games, keeps archives and settings, and offers exit',async({page})=>{
+ await page.goto('/');await waitForRuntime(page);
+ await expect(page.locator('.menu-actions>button')).toHaveText([/创建游戏/,/加入游戏/,/战役档案/,/设置/,/退出游戏/]);
+ // Creating opens deployment in single player; joining opens it at the host's room code instead of opponents.
+ await page.getByTestId('single-player').click();
+ await expect(page.getByTestId('setup-mode-solo')).toHaveAttribute('aria-pressed','true');await expect(page.getByTestId('join-room-code')).toHaveCount(0);
+ await page.keyboard.press('Escape');await expect(page.getByTestId('single-player')).toBeFocused();
+ await page.getByTestId('join-game').click();
+ const code=page.getByTestId('join-room-code'),join=page.getByRole('button',{name:'加入房间',exact:true});
+ await expect(code).toBeVisible();await expect(page.getByTestId('setup-ai-count')).toHaveCount(0);await expect(page.locator('.setup-mode')).toHaveCount(0);
+ await expect(join).toBeDisabled();
+ await code.fill('ab12z9');await expect(code).toHaveValue('AB129');await expect(join).toBeDisabled();
+ await code.fill('ab12c9');await expect(code).toHaveValue('AB12C9');await expect(join).toBeEnabled();
+ await page.getByTestId('commander-name').fill('');await expect(join).toBeDisabled();
+ await page.keyboard.press('Escape');await expect(page.getByTestId('join-game')).toBeFocused();
 });

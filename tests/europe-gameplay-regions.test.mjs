@@ -46,7 +46,7 @@ const sourceByCode=new Map(SOURCE_MAP.map(p=>[p.code,p]));
 
 test('seven approved European areas use only their existing source geometry and exact gameplay memberships',()=>{
  assert.equal(MAP_METADATA.count,finalRegionCount);assert.equal(MAP_METADATA.playableCount,finalPlayableCount);assert.equal(MAP_METADATA.sourceAtomCount,4596);
- assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,30);assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+ assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');assert.equal(STATE_VERSION,30);assert.equal(RULES_ID,'admin1-locked-game-regions-v47');
  for(const [country,count] of [['MLT',1],['ALD',1],['LVA',2],['EST',2],['AND',1],['LIE',1],['SVN',2]]){
   assert.equal(MAP.filter(r=>r.code.startsWith(country+'-')).length,count,country);
  }

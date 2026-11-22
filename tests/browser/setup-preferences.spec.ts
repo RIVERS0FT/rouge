@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 import {execFileSync} from 'node:child_process';
 test('leader artwork and preferences persist while solo AI selection controls faction count',async({page})=>{
  await page.goto('/');await page.getByTestId('single-player').click();await page.getByTestId('edit-player-leader').click();

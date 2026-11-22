@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
+import {realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {build} from 'vite';
@@ -80,6 +81,16 @@ test('failed downloads and invalid JSON reject startup instead of returning empt
   await assert.rejects(loadSharedMapAsset('/map.json','world map'),/world map: HTTP 404/);
   fetch.mock.mockImplementation(async()=>new Response('<html>fallback</html>'));
   await assert.rejects(loadSharedMapAsset('/terrain.json','terrain navigation'),/Invalid terrain navigation data/);
+});
+
+test('the atlas is still shared when the root spells the Windows drive letter differently from module ids',{skip:process.platform!=='win32'&&'drive letters exist only on Windows'},async t=>{
+  const root=await mkdtemp(join(tmpdir(),'rouge-map-case-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  await mkdir(join(root,'src/generated'),{recursive:true});
+  // Vite names modules by real path (`C:`); a VS Code terminal starts in `c:\…`.
+  const real=realpathSync.native(root),typed=real[0].toLowerCase()+real.slice(1);
+  const plugin=sharedMapAssets(typed),importer=join(real,'src/game/sourceMap.ts').replaceAll('\\','/');
+  assert.equal(plugin.resolveId('../generated/world.js',importer),'\0rouge:shared-map-world');
+  assert.equal(plugin.resolveId('../generated/terrain-navigation.json',importer),'\0rouge:shared-map-terrain');
 });
 
 test('production app and ES worker share hashed JSON URLs without embedding either payload',async t=>{

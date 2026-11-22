@@ -50,7 +50,7 @@ test('the reviewed North America selections have exact bilingual names, real anc
  assert.equal(MAP_METADATA.sourceAtomCount,4596);
  assert.equal(MAP_ID,'earth-natural-earth-admin1-511-regions-v28');
  assert.equal(STATE_VERSION,30);assert.equal(SAVE_PREFIX,'rouge.save.natural-earth-admin1.regions.v30.');
- assert.equal(RULES_ID,'admin1-locked-game-regions-v45');
+ assert.equal(RULES_ID,'admin1-locked-game-regions-v47');
 });
 
 test('North America grouping reuses every original map atom without changing raw jurisdiction, shape or physical topology',()=>{

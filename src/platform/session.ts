@@ -1,11 +1,10 @@
 import type {CountryAction} from '../game/countryActions.ts';
 import {createLocalSession} from './localSession.ts';
 import workerUrl from './worker.ts?worker&url';
-import type { Flag } from '../game/flags.ts';
 import { applyFrame } from './replication.ts';
 import { MAP_ID, LAN_RULES_ID } from '../game/content.ts';
 import type { GameState, Result, PlayerSetup } from '../game/types.ts';
-export interface Seat {id:number;connected:boolean;name:string;flag?:Flag;leader:string;loadout:string[]}
+export interface Seat extends Pick<PlayerSetup,'name'|'flag'|'leader'|'loadout'|'appearance'> {id:number;connected:boolean}
 export interface RoomInfo {code:string;host:number;started:boolean;aiCount:number;capacity:number;minPlayers:number;onlineHumans:number;seats:Seat[]}
 export interface Ticket {code:string;token:string;actor:number}
 export interface Session {
@@ -30,7 +29,18 @@ export async function api(path:string,body?:unknown,token?:string):Promise<any>{
   if(!response.ok)throw new Error(data.error??'networkError');return data;
 }
 export async function createRoom(setup:PlayerSetup,aiCount=0):Promise<Ticket>{return api('/rooms',{setup,aiCount});}
-export async function configureRoom(ticket:Ticket,aiCount:number):Promise<RoomInfo>{return api(`/rooms/${ticket.code}/config`,{aiCount},ticket.token);}
+/** Static deployments serve a 404 or the index document at the health URL. */
+export async function hasRoomServer():Promise<boolean>{
+  try{
+    const res=await fetch('/api/health',{cache:'no-store',signal:AbortSignal.timeout(6000)});
+    if(res.status===404 || res.status===405 || res.ok && res.headers.get('content-type')?.includes('text/html'))return false;
+    // The development web server can also run on its own, without the LAN proxy target.
+    if(import.meta.env.DEV && res.status>=500)return false;
+    if(res.ok && (await res.json()).ok===true)return true;
+  }catch{/* Surface connection failures in the current language. */}
+  throw new Error('serverOffline');
+}
+export async function configureRoom(ticket:Ticket,aiCount:number,setup?:PlayerSetup):Promise<RoomInfo>{return api(`/rooms/${ticket.code}/config`,{aiCount,setup},ticket.token);}
 export async function joinRoom(code:string,setup:PlayerSetup):Promise<Ticket>{return api(`/rooms/${code.toUpperCase()}/join`,{setup});}
 export function remoteSession(ticket:Ticket,onState:(s:GameState)=>void,onRoom:(r:RoomInfo)=>void,onStatus:(s:'connected'|'reconnecting')=>void,onResult:(r:Result)=>void):Session{
   let closed=false,current:GameState|null=null;const controller=new AbortController();let retry:ReturnType<typeof setTimeout>|undefined;

@@ -1,3 +1,4 @@
+import {validAppearance} from '../src/game/portrait.ts';
 import { createServer, type ServerResponse, type IncomingMessage } from 'node:http';
 import { randomBytes } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
@@ -10,13 +11,13 @@ import { validateSetup, MAP_ID, LAN_RULES_ID, VERSION } from '../src/game/conten
 import type { Player, PlayerSetup } from '../src/game/types.ts';
 interface Seat {id:number;setup:PlayerSetup;token:string;requests:number;window:number}
 interface Room {code:string;aiCount:number;seats:Seat[];engine:Engine|null;streams:Map<number,ServerResponse>;touched:number}
-const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json'};
+const MIME:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.svg':'image/svg+xml','.png':'image/png','.json':'application/json'};
 export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
   const bases=new WeakMap<ServerResponse,SnapshotBase>();
   const rooms=new Map<string,Room>(),dist=resolve(options.dist??fileURLToPath(new URL('../dist',import.meta.url)));
   const connected=(r:Room,id:number)=>{const stream=r.streams.get(id);return !!stream&&!stream.destroyed&&!stream.writableEnded;};
   const onlineHumans=(r:Room)=>r.seats.filter(s=>!s.setup.ai&&connected(r,s.id)).length;
-  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),aiCount:r.aiCount,capacity:getSpawnCapacity(),minPlayers:2,onlineHumans:onlineHumans(r),seats:r.seats.map(s=>({id:s.id,connected:connected(r,s.id),name:s.setup.name,leader:s.setup.leader,...(s.setup.flag?{flag:s.setup.flag}:{}),loadout:s.setup.loadout}))});
+  const info=(r:Room)=>({code:r.code,host:0,started:Boolean(r.engine),aiCount:r.aiCount,capacity:getSpawnCapacity(),minPlayers:2,onlineHumans:onlineHumans(r),seats:r.seats.map(s=>({id:s.id,connected:connected(r,s.id),name:s.setup.name,leader:s.setup.leader,...(s.setup.appearance?{appearance:s.setup.appearance}:{}),...(s.setup.flag?{flag:s.setup.flag}:{}),loadout:s.setup.loadout}))});
   function json(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
   // Bound each slow client's queued bytes. Disconnect rather than drop a delta;
   // reconnect always starts with a fresh full snapshot and preserves its seat.
@@ -75,7 +76,7 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
         const token=randomBytes(24).toString('hex'),room:Room={code,aiCount,seats:[{id:0,setup:{...input.setup,ai:false},token,requests:0,window:Date.now()}],engine:null,streams:new Map(),touched:Date.now()};rooms.set(code,room);
         json(res,201,{code,token,actor:0});return;
       }
-      const match=url.pathname.match(/^\/api\/rooms\/([A-F0-9]{6})\/(join|events|start|command|info|config)$/);
+      const match=url.pathname.match(/^\/api\/rooms\/([A-F0-9]{6})\/(join|events|start|command|info|config|appearance)$/);
       if(match){
         const room=rooms.get(match[1]);if(!room){json(res,404,{error:'roomMissing'});return;}
         const action=match[2];room.touched=Date.now();
@@ -97,6 +98,13 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
           room.streams.get(seat.id)?.end();res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','Connection':'keep-alive','X-Accel-Buffering':'no'});res.flushHeaders();room.streams.set(seat.id,res);broadcast(room);snapshot(room,[[seat.id,res]]);
           req.on('close',()=>{if(room.streams.get(seat.id)===res){room.streams.delete(seat.id);broadcast(room);}});return;
         }
+        if(action==='appearance'&&req.method==='POST'){
+          const input=await body(req);
+          if(!validAppearance(input?.appearance)){json(res,400,{error:'invalidSetup'});return;}
+          if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
+          seat.setup.appearance=input.appearance;
+          broadcast(room);json(res,200,info(room));return;
+        }
         if(action==='config'&&req.method==='POST'){
           if(seat.id!==0){json(res,403,{error:'hostOnly'});return;}
           if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
@@ -104,6 +112,10 @@ export function createLanServer(options:{dist?:string;maxRooms?:number}={}){
           if(!Number.isSafeInteger(aiCount)||aiCount<0){json(res,400,{error:'invalidAI'});return;}
           if(room.engine){json(res,409,{error:'alreadyStarted'});return;}
           if(room.seats.length+aiCount>getSpawnCapacity()){json(res,409,{error:'mapCapacity'});return;}
+          if(input.setup!==undefined){
+            if(!validateSetup(input.setup)||input.setup.ai===true){json(res,400,{error:'invalidSetup'});return;}
+            seat.setup={...input.setup,ai:false};
+          }
           room.aiCount=aiCount;broadcast(room);json(res,200,info(room));return;
         }
         if(action==='start'&&req.method==='POST'){

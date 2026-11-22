@@ -11,7 +11,7 @@ import {leaderProgress} from '../commanderIdentity.ts';
 import {Icon, type IconName} from '../icons.tsx';
 import {t, playerName, type Language} from '../i18n.ts';
 import {Tip, TipNote, TipRow, TipTitle} from '../Tooltip.tsx';
-import {armyBreakdown, DOMINATION_DAYS, incomePerDay, signed, victoryTarget} from './hudModel.ts';
+import {armyBreakdown, dailyFundsBreakdown, DOMINATION_DAYS, signed, victoryTarget} from './hudModel.ts';
 
 function Metric({icon, label, tip, className = '', children}: {icon: IconName; label: string; tip: ReactNode; className?: string; children: ReactNode}) {
  return <Tip as="div" className={`resource ${className}`} content={tip} focusable tapToggle>
@@ -29,7 +29,8 @@ export function TopBar({state, actor, owned, language, onTalents, onCountry, clo
  state: GameState; actor: number; owned: number; language: Language; onTalents: () => void; onCountry?: () => void; clock: ReactNode;
 }) {
  const player = state.players[actor], text = (key: string) => t(language, key);
- const income = incomePerDay(state, actor), army = armyBreakdown(state, actor), goal = victoryTarget();
+ const army = armyBreakdown(state, actor), funds = dailyFundsBreakdown(state, actor, army.total), goal = victoryTarget();
+ const incomeTone = funds.net > 0 ? 'good' : funds.net < 0 ? 'bad' : 'muted';
  const progress = leaderProgress(player);
  const costs = player.loadout.flatMap(kind => STATS.map(stat => player.upgrades[kind][stat])).filter(level => level < MAX_UPGRADE_LEVEL).map(level => upgradeCostFor(player, level));
  const cheapest = costs.length ? Math.min(...costs) : null;
@@ -41,13 +42,15 @@ export function TopBar({state, actor, owned, language, onTalents, onCountry, clo
   <div className="hud-ledger" role="group" aria-label={text('stateLedger')}>
    <Metric icon="coin" label={text('funds')} className="resource-treasury" tip={<>
     <TipTitle aside={Math.floor(player.funds).toLocaleString()}>{text('funds')}</TipTitle>
-    <TipRow label={text('incomePerDay')} value={`${signed(income)}${text('perDay')}`} tone={income > 0 ? 'good' : 'muted'}/>
-    <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${income.toFixed(1)}${text('perDay')}`}/>
+    <TipRow label={text('netIncome')} value={`${signed(funds.net)}${text('perDay')}`} tone={incomeTone}/>
+    <TipRow label={text('incomeSource').replace('{count}', String(owned))} value={`${signed(funds.regions)}${text('perDay')}`}/>
+    {funds.interest > 0 && <TipRow label={text('treasuryInterest')} value={`${signed(funds.interest)}${text('perDay')}`}/>}
+    <TipRow label={text('armyUpkeep').replace('{count}', String(army.total))} value={`${signed(-funds.upkeep)}${text('perDay')}`}/>
     <TipRow label={text('captureReward')} value={`+${captureReward(player)}`} tone="good"/>
     <TipRow label={text('cheapestUpgrade')} value={cheapest === null ? text('allUpgradesMax') : cheapest} tone={cheapest !== null && player.funds >= cheapest ? 'good' : 'muted'}/>
    </>}>
     <strong>{Math.floor(player.funds).toLocaleString()}</strong>
-    <small className="resource-delta" data-tone={income > 0 ? 'good' : 'muted'}>{signed(income)}{text('perDay')}</small>
+    <small className="resource-delta" data-tone={incomeTone}>{signed(funds.net)}{text('perDay')}</small>
    </Metric>
    <Metric icon="sabres" label={text('army')} tip={<>
     <TipTitle aside={army.total.toLocaleString()}>{text('army')}</TipTitle>

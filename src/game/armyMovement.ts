@@ -635,7 +635,8 @@ function findDetour(formation:ArmyFormation,goal:Vec2,heading:number,columns:num
 }
 
 function cell(x:number,z:number):number{return (Math.floor(x/CELL)+32768)*65536+Math.floor(z/CELL)+32768;}
-function neighborIndex(state:GameState){
+/** The map-based index, for troops spread beyond the dense grid's bounds. */
+function sparseNeighborIndex(state:GameState){
   const cells=new Map<number,{owner:number|null;units:Unit[]}>();
   for(const u of state.units){
     if(u.transport?.embarked)continue;
@@ -653,10 +654,57 @@ function neighborIndex(state:GameState){
     return nearby;
   };
 }
+const EMPTY_CELL=-2,MIXED_CELL=-3;
+/** One pass over the troops: each army's members (as armyMembers) and a CELL-square index of the
+ * troops not embarked now. `nearby` returns those of other owners around a point, cell by cell
+ * (x, then z) and in unit order, the same troops in the same order as a per-cell map would. */
+function formationIndex(state:GameState){
+  const members=new Map<number,Unit[]>();
+  for(const army of state.armies)members.set(army.id,[]);
+  const units=state.units,n=units.length,cellX=new Int32Array(n),cellZ=new Int32Array(n),placed=new Uint8Array(n);
+  let minX=Infinity,minZ=Infinity,maxX=-Infinity,maxZ=-Infinity;
+  for(let i=0;i<n;i++){
+    const u=units[i];
+    if(u.army!==undefined)members.get(u.army)?.push(u);
+    if(u.transport?.embarked)continue;
+    // A non-finite position has no cell any query can name.
+    const x=Math.floor(u.x/CELL),z=Math.floor(u.z/CELL);if(!Number.isFinite(x)||!Number.isFinite(z))continue;
+    cellX[i]=x;cellZ[i]=z;placed[i]=1;
+    if(x<minX)minX=x;if(x>maxX)maxX=x;if(z<minZ)minZ=z;if(z>maxZ)maxZ=z;
+  }
+  const result:Unit[]=[];
+  if(minX>maxX)return {members,nearby:(_p:Vec2,_r:number,_owner:number)=>{result.length=0;return result;}};
+  const rows=maxZ-minZ+1,cells=(maxX-minX+1)*rows;
+  if(!(cells<=4_000_000))return {members,nearby:sparseNeighborIndex(state)};
+  // Counting sort keeps unit order inside each cell.
+  const start=new Int32Array(cells+1),owner=new Int32Array(cells).fill(EMPTY_CELL),order=new Int32Array(n);
+  for(let i=0;i<n;i++)if(placed[i]){
+    const c=(cellX[i]-minX)*rows+cellZ[i]-minZ,o=units[i].owner;start[c+1]++;
+    owner[c]=owner[c]===EMPTY_CELL||owner[c]===o?o:MIXED_CELL;
+  }
+  for(let c=0;c<cells;c++)start[c+1]+=start[c];
+  const fill=start.slice(0,cells);
+  for(let i=0;i<n;i++)if(placed[i])order[fill[(cellX[i]-minX)*rows+cellZ[i]-minZ]++]=i;
+  const nearby=(p:Vec2,r:number,who:number)=>{
+    result.length=0;
+    const x0=Math.max(minX,Math.floor((p.x-r)/CELL)),x1=Math.min(maxX,Math.floor((p.x+r)/CELL));
+    const z0=Math.max(minZ,Math.floor((p.z-r)/CELL)),z1=Math.min(maxZ,Math.floor((p.z+r)/CELL));
+    for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
+      const c=(x-minX)*rows+z-minZ,o=owner[c];
+      if(o===EMPTY_CELL||o===who)continue;
+      for(let k=start[c],end=start[c+1];k<end;k++){const unit=units[order[k]];if(unit.owner!==who&&!unit.transport?.embarked)result.push(unit);}
+    }
+    return result;
+  };
+  return {members,nearby};
+}
+// Positions and ranges of the troops an army may meet, read once per army: they do not move
+// while that army does (only its own members and same-owner yield requests change in its turn).
+let foeX=new Float64Array(256),foeZ=new Float64Array(256),foeRange=new Float64Array(256);
 
 export function updateFormations(state:GameState,navigation:TerrainNavigator,interval:number,statsFor:StatsFor,halt:(u:Unit)=>void,dirty:(u:Unit)=>void):void {
   if(!state.armies.some(a=>a.formation))return;
-  const members=armyMembers(state),nearby=neighborIndex(state);
+  const {members,nearby}=formationIndex(state);
   // Service the oldest eligible waits within this tick's group. Iteration order
   // alone starves newer IDs once a group contains more than 40 blocked armies.
   const eligible:Army[]=[];
@@ -693,22 +741,28 @@ export function updateFormations(state:GameState,navigation:TerrainNavigator,int
       if(!canReplan(army))return false;
       f.replannedAt=state.tick;return true;
     };
-    const foes=f.phase==='sea'?[]:nearby(f.position,12+available.length*radius,army.owner);
+    const foes=f.phase==='sea'?[]:nearby(f.position,12+available.length*radius,army.owner),foeCount=foes.length;
+    if(foeCount>foeX.length){const size=Math.max(foeCount,foeX.length*2);foeX=new Float64Array(size);foeZ=new Float64Array(size);foeRange=new Float64Array(size);}
+    for(let i=0;i<foeCount;i++){const enemy=foes[i];foeX[i]=enemy.x;foeZ[i]=enemy.z;foeRange[i]=statsFor(enemy.owner,enemy.kind).range;}
     const enemyFor=(u:Unit,contact:boolean)=>{
-      let result:Unit|undefined,best=Infinity;
-      const range=contact?statsFor(u.owner,u.kind).range:0;
-      for(const enemy of foes){
-        const dx=u.x-enemy.x,dz=u.z-enemy.z;
+      const x=u.x,z=u.z;
+      if(contact){
+        const range=statsFor(u.owner,u.kind).range;
         // Outside the contact square the original radial test cannot succeed.
-        if(contact){const reach=Math.max(range,statsFor(enemy.owner,enemy.kind).range)+.25;
-          if(Math.abs(dx)<reach&&Math.abs(dz)<reach&&Math.hypot(dx,dz)<reach)return enemy;
-          continue;
+        for(let i=0;i<foeCount;i++){
+          const dx=x-foeX[i],dz=z-foeZ[i],reach=Math.max(range,foeRange[i])+.25;
+          if(Math.abs(dx)<reach&&Math.abs(dz)<reach&&Math.hypot(dx,dz)<reach)return foes[i];
         }
+        return undefined;
+      }
+      let result=-1,best=Infinity;
+      for(let i=0;i<foeCount;i++){
+        const dx=x-foeX[i],dz=z-foeZ[i];
         if(Math.abs(dx)>best||Math.abs(dz)>best)continue;
         const d=Math.hypot(dx,dz);
-        if(d<best||(d===best&&enemy.id<(result?.id??Infinity))){best=d;result=enemy;}
+        if(d<best||(d===best&&foes[i].id<(result<0?Infinity:foes[result].id))){best=d;result=i;}
       }
-      return result;
+      return result<0?undefined:foes[result];
     };
     if(queue&&source.march===queue&&(source.lastMarchTick===undefined||state.tick-source.lastMarchTick>=interval)){
       const pending=available.filter(u=>u.armyStatus==='queued');

@@ -2,8 +2,8 @@ import {UNITS,stats,type UnitStats} from './content.ts';
 import {combatLanes,secondaryMultiplier,secondaryTargets,talentProfile} from './talentEffects.ts';
 import type {Battle,GameState,Kind,Player,Unit} from './types.ts';
 
-/** Display-only military strength; the simulation never reads it.
- * Health is what a side can soak (current hp, defense, damage reduction); damage is what it
+/** Military strength estimates: the HUD shows them and AI countries plan with them (ai.ts);
+ * combat rules never read them. Health is what a side can soak (current hp, defense, damage reduction); damage is what it
  * deals per day (attack, attack rate, damage bonuses, splash). Under Lanchester's square law
  * the side with the larger health × damage wins, so √(health × damage) is the size-like
  * figure: N identical battalions are worth N times one. A fresh, un-upgraded infantry
@@ -14,8 +14,8 @@ export const STRENGTH_PER_INFANTRY=10;
 export const AHEAD_RATIO=1.25,BEHIND_RATIO=.8;
 
 const splashFactor=(st:UnitStats,mode:number)=>st.splash>0?1+secondaryTargets(mode)*secondaryMultiplier(mode):1;
-const unitHealth=(hp:number,st:UnitStats,taken=0)=>hp*(100+st.defense)/100/(1-taken);
-const unitDamage=(st:UnitStats,mode:number,dealt=0)=>st.attack*st.attackSpeed*(1+dealt)*splashFactor(st,mode);
+export const unitHealth=(hp:number,st:UnitStats,taken=0)=>hp*(100+st.defense)/100/(1-taken);
+export const unitDamage=(st:UnitStats,mode:number,dealt=0)=>st.attack*st.attackSpeed*(1+dealt)*splashFactor(st,mode);
 const BASE=Math.sqrt(unitHealth(UNITS.infantry.hp,UNITS.infantry)*unitDamage(UNITS.infantry,0));
 export function strengthPower(health:number,damage:number):number{return health>0&&damage>0?Math.sqrt(health*damage)/BASE*STRENGTH_PER_INFANTRY:0;}
 

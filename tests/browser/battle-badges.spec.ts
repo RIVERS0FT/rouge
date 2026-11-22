@@ -81,7 +81,7 @@ test('army nameplate shows only flag and strength, follows its lead battalion, a
  const moved=(await own.boundingBox())!;expect(moved.x).toBeGreaterThan(before.x+5);
  // Nameplates never overlap: the nearer enemy one gives way to the own army.
  await expect(enemy).toHaveCount(0);
- await page.evaluate(()=>{const t=(window as any).armyTest;t.world.setSelectedArmy(4);t.frame(t.center.x+20,1000);});
+ await page.evaluate(()=>{const t=(window as any).armyTest;t.world.setSelectedForces({armies:[4],regions:[]});t.frame(t.center.x+20,1000);});
  await expect(own).toHaveAttribute('data-selected','true');
  await page.evaluate(()=>{
   const {world,frame,center,region}=(window as any).armyTest;

@@ -11,6 +11,7 @@ test-results/
 playwright-report/
 
 .cache/
+__pycache__/
 src/generated/world.json
 
 src/generated/world.js

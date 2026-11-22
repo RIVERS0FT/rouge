@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './static-host.ts';
 
 for(const mode of ['desktop','phone'] as const)test(`country details window: entry points, strength comparison and map location on ${mode}`,async({page})=>{
  test.setTimeout(180000);

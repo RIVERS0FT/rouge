@@ -115,7 +115,7 @@ export function CountryPanel({state, country, actor, factions, strengths, battle
    <section className="country-economy">
     <SectionRibbon>{text('countryEconomy')}</SectionRibbon>
     <dl className="country-rows">
-     <div><dt>{text('incomePerDay')}</dt><dd data-testid="country-income">{signed(incomePerDay(state, country))}{text('perDay')}</dd></div>
+     <div><dt>{text('netIncome')}</dt><dd data-testid="country-income">{signed(incomePerDay(state, country))}{text('perDay')}</dd></div>
      {details.funds !== null && <div><dt>{text('funds')}</dt><dd data-testid="country-funds">{number(details.funds)}</dd></div>}
      {CONSTRUCTION_KINDS.map(building => <div key={building}><dt>{text(`construction.${building}`)}</dt><dd data-testid={`country-building-${building}`}>{number(details.buildings[building])}</dd></div>)}
     </dl>
@@ -146,7 +146,7 @@ function PowerCompare({state, you, other, rivalLabel, factions, strengths, langu
  const upgrades = (id: number) => Object.values(state.players[id].upgrades).reduce((sum, levels) => sum + levels.attack + levels.health + levels.speed, 0);
  const rows: [string, number, number, number][] = [
   [text('strength'), left.power, right.power, 0], [text('army'), left.units, right.units, 0], [text('territory'), territory(you), territory(other), 0],
-  [text('incomePerDay'), incomePerDay(state, you), incomePerDay(state, other), 1], [text('unitUpgrades'), upgrades(you), upgrades(other), 0],
+  [text('netIncome'), incomePerDay(state, you), incomePerDay(state, other), 1], [text('unitUpgrades'), upgrades(you), upgrades(other), 0],
   [text('talentsChosen'), state.players[you].talents.length, state.players[other].talents.length, 0],
  ];
  const name = (id: number) => playerName(language, state.players[id]);

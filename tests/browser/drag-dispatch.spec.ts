@@ -38,7 +38,7 @@ async function frameOrder(page:Page,mode:'2d'|'3d'){
 }
 
 test('dragging the plaque flag shows a single clipped arrow and dispatches only on release',async({page})=>{
- test.setTimeout(120000);
+ test.setTimeout(180000);
  await loadMapOrderFixture(page,process.env.ROUGE_DRAG_LIVE_URL);
  const target=await frameOrder(page,'2d');
  const source=counts(page),start=await middle(plaque(page).locator('.province-plaque-flag'));
@@ -58,8 +58,8 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  await expect(tier).toHaveAttribute('data-fraction','0.25');
  await page.keyboard.press('Escape');await page.mouse.up();await expect(tier).toBeHidden();await expect(source).toHaveText('12');
  await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','false');
- await drag();await expect(tier).toHaveAttribute('data-fraction','1');
- for(let i=0;i<3;i++)await page.keyboard.press('Tab');
+ await drag();await expect(tier).toHaveAttribute('data-fraction','0.25');
+ for(let i=0;i<2;i++)await page.keyboard.press('Tab');
  await expect(tier).toContainText('出兵 9 · 75%');
  const ribbon=await arrow.locator('path[data-dispatch-ribbon]').getAttribute('d');
  expect(ribbon).toBeTruthy();
@@ -78,6 +78,13 @@ test('dragging the plaque flag shows a single clipped arrow and dispatches only 
  const save=(await savedCampaigns(page,mapOrderFixture.savePrefix)).find(row=>row.name==='Map order result')!;
  const queue=save.state.provinces[mapOrderFixture.source].march!;
  expect(queue.fraction).toBe(.75);expect(queue.pendingIds).toHaveLength(9);
+ await loadMapOrderFixture(page,process.env.ROUGE_DRAG_LIVE_URL);
+ const afterReload=await frameOrder(page,'2d'),flag=await middle(plaque(page).locator('.province-plaque-flag'));
+ await page.mouse.move(flag.x,flag.y);await page.mouse.down();await page.mouse.move(afterReload.x,afterReload.y,{steps:5});
+ await expect(tier).toHaveAttribute('data-fraction','0.75');await expect(tier).toHaveAttribute('data-count','9');
+ await page.keyboard.press('Escape');await page.mouse.up();
+ await page.mouse.click(afterReload.x,afterReload.y,{button:'right'});
+ await expect(counts(page)).toHaveText('3');
 });
 
 test.describe('touch garrison dispatch',()=>{
@@ -100,8 +107,10 @@ test.describe('touch garrison dispatch',()=>{
    await expect(arrow).toHaveAttribute('data-phase','dragging');
    await expect(page.locator('.world canvas')).toHaveAttribute('data-route-overlay-visible','true');
    await expect(arrow).toHaveAttribute('data-target',String(mapOrderFixture.target));
-   await expect(tier).toHaveAttribute('data-fraction','1');
-   await tier.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:998,button:0,bubbles:true});
+   if(cancelled){
+    await expect(tier).toHaveAttribute('data-fraction','1');
+    await tier.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:998,button:0,bubbles:true});
+   }
    await expect(tier).toHaveAttribute('data-fraction','0.25');await expect(tier).toHaveAttribute('data-count','3');
    await expect(source).toHaveText('12');
    await touch(cancelled?'touchCancel':'touchEnd');

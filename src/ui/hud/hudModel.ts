@@ -1,5 +1,5 @@
-import {isRegionGarrison} from '../../game/capacity.ts';
-import {availableFunds, fundsIncomeRate, treasuryInterest} from '../../game/construction.ts';
+import {isRegionGarrison,trainingSlots} from '../../game/capacity.ts';
+import {armyUpkeep, availableFunds, fundsIncomeRate, treasuryInterest} from '../../game/construction.ts';
 import {BALANCE} from '../../game/balance.ts';
 import {UNITS} from '../../game/content.ts';
 import {MAP, PLAYABLE_COUNT} from '../../game/map.ts';
@@ -28,11 +28,16 @@ export function raidedRegions(state: GameState, actor: number): Set<number> {
  return raided;
 }
 
-export function incomePerDay(state: GameState, actor: number): number {
+export function dailyFundsBreakdown(state: GameState, actor: number, units = armyBreakdown(state, actor).total) {
  const player = state.players[actor], raided = raidedRegions(state, actor);
- let rate = 0;
- for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable && !raided.has(province.id)) rate += fundsIncomeRate(province, regionProductionRate(province.id), player, tradeBonus(state, province.id, player));
- return player ? rate + treasuryInterest(player) : rate;
+ let regions = 0;
+ for(const province of state.provinces) if(province.owner === actor && MAP[province.id]?.playable && !raided.has(province.id)) regions += fundsIncomeRate(province, regionProductionRate(province.id), player, tradeBonus(state, province.id, player));
+ const interest = player ? treasuryInterest(player) : 0, upkeep = armyUpkeep(units);
+ return {regions, interest, upkeep, net: regions + interest - upkeep};
+}
+
+export function incomePerDay(state: GameState, actor: number): number {
+ return dailyFundsBreakdown(state, actor).net;
 }
 
 export interface ArmyBreakdown {total: number; garrison: number; marching: number; embarked: number}
@@ -73,19 +78,12 @@ export interface RegionSummary {id: number; garrison: number; capacity: number; 
 /** The local faction's regions; contested ones first, then the largest garrisons. */
 export function ownedRegions(state: GameState, actor: number): RegionSummary[] {
  // One pass over units, not one per region: late campaigns own hundreds of regions.
- const garrison = new Map<number, number>(), present = new Map<number, number>(), incoming = new Map<number, number>();
- for(const unit of state.units) {
-  if(unit.owner !== actor) continue;
-  if(isRegionGarrison(unit, actor, unit.province)) garrison.set(unit.province, (garrison.get(unit.province) ?? 0) + 1);
-  if(!unit.transport?.embarked) present.set(unit.province, (present.get(unit.province) ?? 0) + 1);
-  if(unit.destination !== null && unit.province !== unit.destination) incoming.set(unit.destination, (incoming.get(unit.destination) ?? 0) + 1);
- }
+ const slots = trainingSlots(state);
  const result: RegionSummary[] = [];
  for(const province of state.provinces) {
   if(province.owner !== actor || !MAP[province.id]?.playable) continue;
-  const capacity = capacityFor(state, province.id), stationed = garrison.get(province.id) ?? 0;
-  // Mirrors the engine's production stall: physical occupants plus reservations fill the region.
-  const occupied = (present.get(province.id) ?? 0) + (incoming.get(province.id) ?? 0);
+  const capacity = capacityFor(state, province.id), stationed = slots.stationed[province.id];
+  const occupied = stationed + slots.reserved[province.id];
   result.push({id: province.id, garrison: stationed, capacity, production: province.production, train: UNITS[province.kind].train,
    capture: province.capture, captor: province.captor, recovering: province.recovery > 0, full: occupied >= capacity});
  }

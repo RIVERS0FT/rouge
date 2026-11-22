@@ -33,7 +33,7 @@ export function CommanderPortrait({player, language, color, onTalents}: {player:
  const action = `${name} · ${label(language, pending ? 'choose' : 'open')}`;
  return <aside className={`commander-portrait${pending ? ' has-talent' : ''}`} style={{'--commander-color': color, '--commander-progress': `${progress.percent}%`} as CSSProperties}
   data-testid="commander-portrait" data-leader={player.leader} data-actor={player.id} aria-label={name}>
-  <div className="commander-art"><LeaderBust leader={player.leader} label={`${leaderName} · ${label(language, 'portrait')}`}/></div>
+  <div className="commander-art"><LeaderBust appearance={player.appearance} leader={player.leader} label={`${leaderName} · ${label(language, 'portrait')}`}/></div>
   {/* The numeral is drawn from data-level so the card's text stays the player's name alone. */}
   <div className="commander-rank" role="img" data-testid="commander-level" data-level={player.level} aria-label={`${label(language, 'level')} ${player.level}`}/>
   {pending && <span className="commander-alert" aria-hidden="true"><Icon name="laurel" size={16}/></span>}

@@ -1,3 +1,4 @@
+import type {CommanderAppearance} from './portrait.ts';
 import type {CountryIdentity} from './countryNames.ts';
 import type { TerritoryGrouping } from './territoryGrouping.ts';
 import type {TravelPlan} from './terrain-navigation.ts';
@@ -44,8 +45,8 @@ export interface Unit { travel?:TravelPlan; assault?:number; army?:number; armyS
   /** World yaw from +Z to the primary opponent at the instant of the last attack. */
   lastShotHeading?:number;
 }
-export interface Player { id:number; name:string; country?:CountryIdentity; flag?:Flag; leader:Leader; loadout:Kind[]; ai:boolean; funds:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerollsUsed:number }
+export interface Player { id:number; name:string; country?:CountryIdentity; flag?:Flag; appearance?:CommanderAppearance; leader:Leader; loadout:Kind[]; ai:boolean; funds:number; xp:number; level:number; upgrades:Record<Kind,Record<Upgrade,number>>; talents:string[]; choices:string[]; drafts:number; rerollsUsed:number }
 export interface GameEvent { tick:number; key:'capture'|'level'|'victory'|'battle'; player:number; province?:number; sides?:number[] }
 export interface GameState { version:typeof import('./content.ts').STATE_VERSION; map:typeof import('./content.ts').MAP_ID; grouping:TerritoryGrouping; spawnModel:'single'; neutralGarrisonModel:'preplaced'; campaign:string; seed:number; rng:number; tick:number; nextId:number; topology:number; players:Player[]; provinces:Province[]; units:Unit[]; events:GameEvent[]; winner:number|null; domination:number[]; armies:Army[]; nextArmy:number; battles:Battle[]; nextBattle:number }
-export interface PlayerSetup { name:string; flag?:Flag; leader:Leader; loadout:Kind[]; ai?:boolean }
+export interface PlayerSetup { name:string; flag?:Flag; appearance?:CommanderAppearance; leader:Leader; loadout:Kind[]; ai?:boolean }
 export type Result = {ok:true} | {ok:false;error:string};
